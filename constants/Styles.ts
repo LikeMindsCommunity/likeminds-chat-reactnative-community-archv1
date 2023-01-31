@@ -9,11 +9,12 @@ export default {
     SMALL: 12,
     MEDIUM: 14,
     LARGE: 16,
+    XL:20
   },
   $FONT_WEIGHTS: {
-    LIGHT: '200',
-    MEDIUM: '500',
-    BOLD: '700',
+    LIGHT: '200' as '200',
+    MEDIUM: '500' as '500',
+    BOLD: '700' as '700',
   },
   $FONT_TYPES: {
     REGULAR: 'regular',
