@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 15,
   },
-  backBtn: {height: 40, width: 40, borderRadius: 10, backgroundColor: 'pink'},
+  backBtn: {height: 40, width: 40, borderRadius: 10, resizeMode: 'contain'},
 });
 
 export default styles;

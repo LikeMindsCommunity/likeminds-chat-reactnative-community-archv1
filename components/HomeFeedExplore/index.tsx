@@ -3,9 +3,7 @@ import {
   View,
   Text,
   Image,
-  StyleSheet,
   TouchableOpacity,
-  Pressable,
 } from 'react-native';
 import {styles} from './styles';
 
@@ -16,7 +14,7 @@ interface Props {
 
 const HomeFeedExplore: React.FC<Props> = ({newCount = 5, navigation}) => {
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={() => {
         navigation.navigate('ExploreFeed');
       }}
@@ -35,7 +33,7 @@ const HomeFeedExplore: React.FC<Props> = ({newCount = 5, navigation}) => {
           </View>
         )}
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 

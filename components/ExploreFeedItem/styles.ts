@@ -13,6 +13,7 @@ export const styles = StyleSheet.create({
     height: STYLES.$AVATAR.HEIGHT,
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
     marginRight: STYLES.$MARGINS.SMALL,
+    resizeMode: 'cover',
   },
   infoParent: {flex: 1},
   infoContainer: {
@@ -28,7 +29,7 @@ export const styles = StyleSheet.create({
   title: {
     fontSize: STYLES.$FONT_SIZES.XL,
     fontFamily: STYLES.$FONT_TYPES.BOLD,
-    color:STYLES.$COLORS.PRIMARY,
+    color: STYLES.$COLORS.PRIMARY,
     width: 160,
   },
   lastMessage: {
@@ -44,8 +45,21 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 10,
   },
+  joinedBtnContainer: {
+    backgroundColor: STYLES.$COLORS.JOINED_BTN,
+    borderRadius: 10,
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    padding: 10,
+  },
   join: {
     color: STYLES.$COLORS.TERTIARY,
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
+  },
+  joined: {
+    color: STYLES.$COLORS.SECONDARY,
     fontSize: STYLES.$FONT_SIZES.LARGE,
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
   },
@@ -58,11 +72,39 @@ export const styles = StyleSheet.create({
     // marginLeft: STYLES.$MARGINS.SMALL,
   },
   chatroomInfo: {
-    fontSize:STYLES.$FONT_SIZES.LARGE,
+    fontSize: STYLES.$FONT_SIZES.LARGE,
     marginTop: STYLES.$MARGINS.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
     // fontWeight:'500',
     // marginRight:STYLES.$MARGINS.SMALL,
     width: 290,
+  },
+  pinnedIconParent: {
+    backgroundColor: STYLES.$COLORS.SECONDARY,
+    height: 20,
+    width: 20,
+    position: 'absolute',
+    borderRadius: 50,
+    right: 10,
+    bottom: 0,
+  },
+  pinnedIcon: {
+    height: 20,
+    width: 20,
+    resizeMode: 'contain',
+  },
+  newBadge: {
+    position: 'absolute',
+    bottom: -5,
+    left: 10,
+    backgroundColor: 'red',
+    padding: 2,
+    borderRadius: 3
+  },
+  newBadgeText: {
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.TERTIARY,
   },
 });

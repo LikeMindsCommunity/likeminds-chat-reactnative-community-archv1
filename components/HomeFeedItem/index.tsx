@@ -1,8 +1,6 @@
 import React from 'react';
 import {View, Text, Image, StyleSheet} from 'react-native';
-import {myClient} from '../..';
 import {getFullDate} from '../../commonFuctions';
-import useAPI from '../../hooks/useAPI';
 import {styles} from './styles';
 
 interface Props {

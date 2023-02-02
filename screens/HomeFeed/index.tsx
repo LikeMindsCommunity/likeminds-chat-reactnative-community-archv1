@@ -1,12 +1,5 @@
 import React, {useState, useLayoutEffect, useEffect} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {myClient} from '../..';
 import {dummyData} from '../../assets/dummyResponse/dummyData';
 import HomeFeedExplore from '../../components/HomeFeedExplore';
@@ -62,25 +55,24 @@ const HomeFeed = ({navigation}: Props) => {
     });
   }, [navigation]);
 
-  useEffect(() => {
-    async function fetchData() {
-      let payload = {
-        user_unique_id: 'ankit-sdk-55',
-        user_name: 'Ankit SDK 55',
-        is_guest: false,
-      };
-      try {
-        // const res = await myClient.initSDK(payload)
-        // await myClient.getHomeFeedData({communityId:'1234',page: 1});
-        // console.log('res --', myClient.initSDK)
-        // return res;
-      } catch (error) {
-        throw error
-        
-      }
-    }
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     try {
+  //       let payload = {
+  //         user_unique_id: '780cfe5e-1605-49ee-b8a0-c79deaaf77bf',
+  //         user_name: '',
+  //         is_guest: false,
+  //       };
+  //       let res = await myClient.initSDK(payload);
+  //       // await myClient.getHomeFeedData({communityId:'1234',page: 1});
+  //       console.log('respose -=', res.then());
+  //       return res;
+  //     } catch (error) {
+  //       console.log('Yes Err!',error);
+  //     }
+  //   }
+  //   fetchData();
+  // }, []);
 
   // let {response} = useAPI({func: myClient?.initSDK, payload});
   // console.log('res =',response);

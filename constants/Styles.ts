@@ -4,6 +4,7 @@ export default {
     SECONDARY: '#2a4074',
     TERTIARY: '#ffffff',
     MSG: '#777e8e',
+    JOINED_BTN: '#e9ecf1',
   },
   $FONT_SIZES: {
     SMALL: 12,
