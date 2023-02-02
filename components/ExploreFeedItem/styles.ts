@@ -26,13 +26,15 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    fontWeight: '700',
-    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontSize: STYLES.$FONT_SIZES.XL,
+    fontFamily: STYLES.$FONT_TYPES.BOLD,
+    color:STYLES.$COLORS.PRIMARY,
     width: 160,
   },
   lastMessage: {
     color: STYLES.$COLORS.MSG,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
   },
   joinBtnContainer: {
     backgroundColor: STYLES.$COLORS.SECONDARY,
@@ -43,10 +45,9 @@ export const styles = StyleSheet.create({
     padding: 10,
   },
   join: {
-    color: 'white',
+    color: STYLES.$COLORS.TERTIARY,
     fontSize: STYLES.$FONT_SIZES.LARGE,
-    fontWeight: 'bold',
-    // paddingHorizontal: 5,
+    fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
   },
   icon: {
     width: 40,
@@ -59,6 +60,8 @@ export const styles = StyleSheet.create({
   chatroomInfo: {
     fontSize:STYLES.$FONT_SIZES.LARGE,
     marginTop: STYLES.$MARGINS.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    // fontWeight:'500',
     // marginRight:STYLES.$MARGINS.SMALL,
     width: 290,
   },

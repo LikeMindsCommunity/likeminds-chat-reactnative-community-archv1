@@ -9,7 +9,8 @@ export default {
     SMALL: 12,
     MEDIUM: 14,
     LARGE: 16,
-    XL:20
+    XL: 18,
+    XXL: 20,
   },
   $FONT_WEIGHTS: {
     LIGHT: '200' as '200',
@@ -17,8 +18,11 @@ export default {
     BOLD: '700' as '700',
   },
   $FONT_TYPES: {
-    REGULAR: 'regular',
-    BOLD: 'bold',
+    LIGHT: 'SofiaPro-Light',
+    MEDIUM: 'SofiaPro-Medium',
+    SEMI_BOLD: 'SofiaPro-SemiBold',
+    BOLD: 'SofiaPro-Bold',
+    BLACK: 'SofiaPro-Black',
   },
   $BACKGROUND_COLORS: {
     LIGHT: '#ffffff',
@@ -43,5 +47,10 @@ export default {
     WIDTH: 50,
     HEIGHT: 50,
     BORDER_RADIUS: 25,
+  },
+  $ALIGN_ROW: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 };

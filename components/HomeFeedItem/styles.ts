@@ -23,18 +23,21 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    fontWeight: '700',
-    fontSize: STYLES.$FONT_SIZES.LARGE,
-    width: 200
+    fontSize: STYLES.$FONT_SIZES.XL,
+    fontFamily: STYLES.$FONT_TYPES.BOLD,
+    color: STYLES.$COLORS.PRIMARY,
+    width: 200,
   },
   time: {
     color: STYLES.$COLORS.MSG,
     fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
   },
   lastMessage: {
     color: STYLES.$COLORS.MSG,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
-    width: 240
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    width: 240,
   },
   pinned: {
     width: 20,
@@ -57,8 +60,9 @@ export const styles = StyleSheet.create({
     right: 20,
   },
   unreadCount: {
-    color: 'white',
+    color: STYLES.$COLORS.TERTIARY,
     fontSize: STYLES.$FONT_SIZES.SMALL,
-    fontWeight: 'bold',
+    fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
+    padding: 5,
   },
 });

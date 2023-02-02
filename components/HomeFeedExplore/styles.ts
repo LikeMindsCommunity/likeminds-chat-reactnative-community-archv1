@@ -23,8 +23,9 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    fontWeight: '700',
-    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontSize: STYLES.$FONT_SIZES.XL,
+    fontFamily: STYLES.$FONT_TYPES.BOLD,
+    color: STYLES.$COLORS.PRIMARY,
     width: 200,
   },
   newCountContainer: {
@@ -36,9 +37,9 @@ export const styles = StyleSheet.create({
     marginRight: STYLES.$MARGINS.SMALL,
   },
   newCount: {
-    color: 'white',
+    color: STYLES.$COLORS.TERTIARY,
     fontSize: STYLES.$FONT_SIZES.SMALL,
-    fontWeight: 'bold',
-    paddingHorizontal: 5,
+    fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
+    padding: 5,
   },
 });

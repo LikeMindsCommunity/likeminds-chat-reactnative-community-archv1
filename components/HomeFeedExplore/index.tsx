@@ -1,14 +1,26 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+} from 'react-native';
 import {styles} from './styles';
 
 interface Props {
   newCount: number;
+  navigation: any;
 }
 
-const HomeFeedExplore: React.FC<Props> = ({newCount = 5}) => {
+const HomeFeedExplore: React.FC<Props> = ({newCount = 5, navigation}) => {
   return (
-    <View style={styles.itemContainer}>
+    <Pressable
+      onPress={() => {
+        navigation.navigate('ExploreFeed');
+      }}
+      style={styles.itemContainer}>
       <Image
         source={require('../../assets/images/explore_icon3x.png')}
         style={styles.icon}
@@ -23,7 +35,7 @@ const HomeFeedExplore: React.FC<Props> = ({newCount = 5}) => {
           </View>
         )}
       </View>
-    </View>
+    </Pressable>
   );
 };
 

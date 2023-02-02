@@ -1,6 +1,9 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { styles } from './styles';
+import {View, Text, Image, StyleSheet} from 'react-native';
+import {myClient} from '../..';
+import {getFullDate} from '../../commonFuctions';
+import useAPI from '../../hooks/useAPI';
+import {styles} from './styles';
 
 interface Props {
   avatar: string;
@@ -11,14 +14,24 @@ interface Props {
   unreadCount: number;
 }
 
-const HomeFeedItem: React.FC<Props> = ({ avatar, title, lastMessage, time, pinned = false, unreadCount }) => {
+const HomeFeedItem: React.FC<Props> = ({
+  avatar,
+  title,
+  lastMessage,
+  time,
+  pinned = false,
+  unreadCount,
+}) => {
+  let dateOrTime = getFullDate(time);
   return (
     <View style={styles.itemContainer}>
-      <Image source={{ uri: avatar }} style={styles.avatar} />
+      <Image source={{uri: avatar}} style={styles.avatar} />
       <View style={styles.infoContainer}>
         <View style={styles.headerContainer}>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          <Text style={styles.time}>{time}</Text>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text style={styles.time}>{dateOrTime}</Text>
         </View>
         <Text style={styles.lastMessage} numberOfLines={1}>
           {lastMessage}

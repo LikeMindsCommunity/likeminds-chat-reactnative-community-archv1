@@ -1,11 +1,7 @@
-import React, {useState, useLayoutEffect} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-} from 'react-native';
+import React, {useState, useLayoutEffect, useRef} from 'react';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {dummyData} from '../../assets/dummyResponse/dummyData';
+import ExploreFeedFilters from '../../components/ExploreFeedFilters';
 import ExploreFeedItem from '../../components/ExploreFeedItem';
 import HomeFeedExplore from '../../components/HomeFeedExplore';
 import STYLES from '../../constants/Styles';
@@ -17,31 +13,35 @@ interface Props {
 
 const ExploreFeed = ({navigation}: Props) => {
   const [chats, setChats] = useState(dummyData.data.my_chatrooms);
+  const modalRef = useRef(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       title: '',
       headerShadowVisible: false,
       headerLeft: () => (
-        <TouchableOpacity>
+        <View style={styles.headingContainer}>
+          <TouchableOpacity
+            onPress={navigation.goBack}
+            style={styles.backBtn}></TouchableOpacity>
           <Text
             style={{
               color: STYLES.$COLORS.PRIMARY,
               fontSize: STYLES.$FONT_SIZES.XL,
-              fontWeight: STYLES.$FONT_WEIGHTS.BOLD,
+              fontFamily: STYLES.$FONT_TYPES.BOLD
             }}>
             Explore Chatrooms
           </Text>
-        </TouchableOpacity>
+        </View>
       ),
     });
   }, [navigation]);
 
   return (
-    <View style={styles.page}>
+    <View ref={modalRef} style={styles.page}>
       <FlatList
         data={chats}
-        // ListHeaderComponent={() => <HomeFeedExplore newCount={5} />}
+        ListHeaderComponent={() => <ExploreFeedFilters />}
         renderItem={({item}) => {
           const exploreFeedProps = {
             title: item?.chatroom?.title!,

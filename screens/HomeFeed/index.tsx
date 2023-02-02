@@ -1,4 +1,4 @@
-import React, {useState, useLayoutEffect} from 'react';
+import React, {useState, useLayoutEffect, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
+import {myClient} from '../..';
 import {dummyData} from '../../assets/dummyResponse/dummyData';
 import HomeFeedExplore from '../../components/HomeFeedExplore';
 import HomeFeedItem from '../../components/HomeFeedItem';
 import STYLES from '../../constants/Styles';
+import useAPI from '../../hooks/useAPI';
 import styles from './styles';
 
 interface Props {
@@ -30,7 +32,7 @@ const HomeFeed = ({navigation}: Props) => {
             style={{
               color: STYLES.$COLORS.PRIMARY,
               fontSize: STYLES.$FONT_SIZES.XL,
-              fontWeight: STYLES.$FONT_WEIGHTS.BOLD,
+              fontFamily: STYLES.$FONT_TYPES.BOLD,
             }}>
             Community
           </Text>
@@ -50,6 +52,8 @@ const HomeFeed = ({navigation}: Props) => {
             style={{
               color: STYLES.$COLORS.TERTIARY,
               fontSize: STYLES.$FONT_SIZES.XL,
+              fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
+              paddingTop: 3,
             }}>
             R
           </Text>
@@ -58,11 +62,36 @@ const HomeFeed = ({navigation}: Props) => {
     });
   }, [navigation]);
 
+  useEffect(() => {
+    async function fetchData() {
+      let payload = {
+        user_unique_id: 'ankit-sdk-55',
+        user_name: 'Ankit SDK 55',
+        is_guest: false,
+      };
+      try {
+        // const res = await myClient.initSDK(payload)
+        // await myClient.getHomeFeedData({communityId:'1234',page: 1});
+        // console.log('res --', myClient.initSDK)
+        // return res;
+      } catch (error) {
+        throw error
+        
+      }
+    }
+    fetchData();
+  }, []);
+
+  // let {response} = useAPI({func: myClient?.initSDK, payload});
+  // console.log('res =',response);
+
   return (
     <View style={styles.page}>
       <FlatList
         data={chats}
-        ListHeaderComponent={() => <HomeFeedExplore newCount={5} />}
+        ListHeaderComponent={() => (
+          <HomeFeedExplore newCount={5} navigation={navigation} />
+        )}
         renderItem={({item}) => {
           const homeFeedProps = {
             title: item?.chatroom?.title!,
