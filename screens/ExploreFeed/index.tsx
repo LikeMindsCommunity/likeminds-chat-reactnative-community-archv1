@@ -12,7 +12,7 @@ interface Props {
 }
 
 const ExploreFeed = ({navigation}: Props) => {
-  const [chats, setChats] = useState(dummyData.data.my_chatrooms);
+  const [chats, setChats] = useState(dummyData.my_chatrooms);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -47,7 +47,7 @@ const ExploreFeed = ({navigation}: Props) => {
         renderItem={({item}) => {
           const exploreFeedProps = {
             title: item?.chatroom?.title!,
-            avatar: item?.chatroom?.chatroom_image_url!,
+            avatar: item?.chatroom?.image_url_round!,
             lastMessage: item?.last_conversation?.answer!,
             lastMessageUser: item?.last_conversation?.member?.name!,
             isJoined: false,

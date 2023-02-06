@@ -36,6 +36,15 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.MSG,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    // display:'flex'
+  },
+  info: {
+    color: STYLES.$COLORS.MSG,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   joinBtnContainer: {
     backgroundColor: STYLES.$COLORS.SECONDARY,
@@ -71,6 +80,12 @@ export const styles = StyleSheet.create({
     // marginRight: STYLES.$MARGINS.LARGE,
     // marginLeft: STYLES.$MARGINS.SMALL,
   },
+  info_icons: {
+    width: 18,
+    height: 18,
+    resizeMode: 'contain',
+    marginRight: 5,
+  },
   chatroomInfo: {
     fontSize: STYLES.$FONT_SIZES.LARGE,
     marginTop: STYLES.$MARGINS.SMALL,
@@ -100,7 +115,7 @@ export const styles = StyleSheet.create({
     left: 10,
     backgroundColor: 'red',
     padding: 2,
-    borderRadius: 3
+    borderRadius: 3,
   },
   newBadgeText: {
     fontSize: STYLES.$FONT_SIZES.SMALL,

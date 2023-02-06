@@ -21,9 +21,6 @@ const ExploreFeedItem: React.FC<Props> = ({
 }) => {
   const [isToast, setIsToast] = useState(false);
   const [msg, setMsg] = useState('');
-  // const toast = () => {
-  //   return <ToastMessage show={true} message="How you doinsdhcskjhdgcksjhdbcskj?" />;
-  // };
   return (
     <View style={styles.itemContainer}>
       <View>
@@ -47,9 +44,18 @@ const ExploreFeedItem: React.FC<Props> = ({
                 {title}
               </Text>
             </View>
-            <Text style={styles.lastMessage} numberOfLines={1}>
-              {`12 • 3`}
-            </Text>
+            <View style={styles.info}>
+              <Image
+                source={require('../../assets/images/participants_icon3x.png')}
+                style={styles.info_icons}
+              />
+              <Text style={styles.lastMessage} numberOfLines={1}>{`12 • `}</Text>
+              <Image
+                source={require('../../assets/images/message_icon3x.png')}
+                style={styles.info_icons}
+              />
+              <Text style={styles.lastMessage} numberOfLines={1}>{`3`}</Text>
+            </View>
           </View>
           {/* {pinned && <View style={styles.pinned} />} */}
           {!isJoined ? (

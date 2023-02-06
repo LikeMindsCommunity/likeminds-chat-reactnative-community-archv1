@@ -54,4 +54,7 @@ export default {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  $TEXTVIEW_WIDTH:{
+    REGULAR: 240
+  }
 };

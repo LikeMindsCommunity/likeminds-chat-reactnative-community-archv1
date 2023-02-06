@@ -13,7 +13,7 @@ interface Props {
 }
 
 const HomeFeed = ({navigation}: Props) => {
-  const [chats, setChats] = useState(dummyData.data.my_chatrooms);
+  const [chats, setChats] = useState(dummyData.my_chatrooms);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -55,24 +55,32 @@ const HomeFeed = ({navigation}: Props) => {
     });
   }, [navigation]);
 
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     try {
-  //       let payload = {
-  //         user_unique_id: '780cfe5e-1605-49ee-b8a0-c79deaaf77bf',
-  //         user_name: '',
-  //         is_guest: false,
-  //       };
-  //       let res = await myClient.initSDK(payload);
-  //       // await myClient.getHomeFeedData({communityId:'1234',page: 1});
-  //       console.log('respose -=', res.then());
-  //       return res;
-  //     } catch (error) {
-  //       console.log('Yes Err!',error);
-  //     }
-  //   }
-  //   fetchData();
-  // }, []);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        let payload = {
+          user_unique_id: '780cfe5e-1605-49ee-b8a0-c79deaaf77bf',
+          user_name: '',
+          is_guest: false,
+        };
+        let res = await myClient.initSDK(payload);
+        
+
+        // if(res){
+        //   let response = await myClient.getHomeFeedData({
+        //     communityId: '1234',
+        //     page: 0,
+        //   });
+        //   console.log('respose -=', response);
+        // }
+        
+        return res;
+      } catch (error) {
+        console.log('Yes Err!', error);
+      }
+    }
+    fetchData();
+  }, []);
 
   // let {response} = useAPI({func: myClient?.initSDK, payload});
   // console.log('res =',response);
@@ -87,7 +95,7 @@ const HomeFeed = ({navigation}: Props) => {
         renderItem={({item}) => {
           const homeFeedProps = {
             title: item?.chatroom?.title!,
-            avatar: item?.chatroom?.chatroom_image_url!,
+            avatar: item?.chatroom?.image_url_round!,
             lastMessage: item?.last_conversation?.answer!,
             lastMessageUser: item?.last_conversation?.member?.name!,
             time: item?.last_conversation?.reply_conversation_object
@@ -95,6 +103,7 @@ const HomeFeed = ({navigation}: Props) => {
 
             unreadCount: item?.unseen_conversation_count!,
             pinned: false,
+            lastConversation: item?.last_conversation,
           };
           return <HomeFeedItem {...homeFeedProps} />;
         }}

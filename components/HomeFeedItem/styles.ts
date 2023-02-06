@@ -39,6 +39,12 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     width: 240,
   },
+  attachment_msg: {
+    color: STYLES.$COLORS.MSG,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    marginRight: 5,
+  },
   pinned: {
     width: 20,
     height: 20,
