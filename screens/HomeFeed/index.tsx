@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useLayoutEffect, useEffect} from 'react';
 import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {myClient} from '../..';
@@ -64,16 +65,22 @@ const HomeFeed = ({navigation}: Props) => {
           is_guest: false,
         };
         let res = await myClient.initSDK(payload);
-        
-
-        // if(res){
-        //   let response = await myClient.getHomeFeedData({
-        //     communityId: '1234',
-        //     page: 0,
-        //   });
-        //   console.log('respose -=', response);
+        console.log('Initiate API -=', res);
+        // if (res) {
+        //   const value = await AsyncStorage.getAllKeys();
+        //   for (let i = 0; i < value.length; i++) {
+        //     let output = await AsyncStorage.getItem(value[i]);
+        //     console.log(`AsyncStorage key ${i}`, output);
+        //   }
+        //   // let response = await myClient.getHomeFeedData({
+        //   //   communityId: '1234',
+        //   //   page: 0,
+        //   // });
+        //   let pl = {community_id: 50421, member_id: 87040};
+        //   let response = await myClient.profileData(pl);
+        //   console.log('profileData API -=', response);
         // }
-        
+
         return res;
       } catch (error) {
         console.log('Yes Err!', error);
@@ -98,14 +105,12 @@ const HomeFeed = ({navigation}: Props) => {
             avatar: item?.chatroom?.image_url_round!,
             lastMessage: item?.last_conversation?.answer!,
             lastMessageUser: item?.last_conversation?.member?.name!,
-            time: item?.last_conversation?.reply_conversation_object
-              ?.created_epoch!,
-
+            time: item?.last_conversation?.created_epoch!,
             unreadCount: item?.unseen_conversation_count!,
             pinned: false,
             lastConversation: item?.last_conversation,
           };
-          return <HomeFeedItem {...homeFeedProps} />;
+          return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}
         keyExtractor={item => item.chatroom.id.toString()}
       />

@@ -4,6 +4,7 @@ import STYLES from '../constants/Styles';
 const REGEX_USER_SPLITTING = /(<<[\w\s🤖]+\|route:\/\/member\/\d+>>)/g;
 const REGEX_USER_TAGGING = /<<([\w\s🤖]+)\|route:\/\/member\/(\d+)>>/;
 
+// This function helps us to decode time(created_epoch: 1675421848540) into DATE if more than a day else TIME if less than a day.
 export function getFullDate(time: any) {
   if (!!time) {
     let t = new Date(time);
@@ -24,11 +25,14 @@ export function getFullDate(time: any) {
   }
 }
 
+// test string = '<<Sanjay kumar 🤖|route://member/1260>> <<Ishaan Jain|route://member/1003>> Hey google.com';
+
+// This decode function helps us to decode tagged messages like the above test string in to readable format.
+// This function has two responses: one for Homefeed screen and other is for chat screen(Pressable ones are for chat screen).
 export function decode(text: string | undefined, enableClick: boolean) {
   if (!text) {
     return;
   }
-  // test string = '<<Sanjay kumar 🤖|route://member/1260>> <<Ishaan Jain|route://member/1003>> Hey google.com';
   let arr: any[] = [];
   let parts = text.split(REGEX_USER_SPLITTING);
 
@@ -90,7 +94,7 @@ export function decode(text: string | undefined, enableClick: boolean) {
             flexDirection: 'row',
             alignItems: 'flex-end',
             width: 240,
-            overflow:'hidden',
+            overflow: 'hidden',
           }}>
           {arr.map((val, index) => (
             <Text

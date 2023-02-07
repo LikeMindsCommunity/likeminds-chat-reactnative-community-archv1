@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet} from 'react-native';
+import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import {decode, getFullDate} from '../../commonFuctions';
 import {styles} from './styles';
 
@@ -11,6 +11,7 @@ interface Props {
   pinned: boolean;
   unreadCount: number;
   lastConversation: any;
+  navigation: any;
 }
 
 const HomeFeedItem: React.FC<Props> = ({
@@ -21,6 +22,7 @@ const HomeFeedItem: React.FC<Props> = ({
   pinned = false,
   unreadCount,
   lastConversation,
+  navigation
 }) => {
   let dateOrTime = getFullDate(time);
 
@@ -74,7 +76,9 @@ const HomeFeedItem: React.FC<Props> = ({
     }
   };
   return (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity onPress={()=>{
+      navigation.navigate('ChatRoom')
+    }} style={styles.itemContainer}>
       <Image source={{uri: avatar}} style={styles.avatar} />
       <View style={styles.infoContainer}>
         <View style={styles.headerContainer}>
@@ -95,7 +99,7 @@ const HomeFeedItem: React.FC<Props> = ({
           <Text style={styles.unreadCount}>{unreadCount}</Text>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 };
 
