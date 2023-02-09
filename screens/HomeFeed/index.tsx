@@ -66,20 +66,20 @@ const HomeFeed = ({navigation}: Props) => {
         };
         let res = await myClient.initSDK(payload);
         console.log('Initiate API -=', res);
-        // if (res) {
-        //   const value = await AsyncStorage.getAllKeys();
-        //   for (let i = 0; i < value.length; i++) {
-        //     let output = await AsyncStorage.getItem(value[i]);
-        //     console.log(`AsyncStorage key ${i}`, output);
-        //   }
-        //   // let response = await myClient.getHomeFeedData({
-        //   //   communityId: '1234',
-        //   //   page: 0,
-        //   // });
-        //   let pl = {community_id: 50421, member_id: 87040};
-        //   let response = await myClient.profileData(pl);
-        //   console.log('profileData API -=', response);
-        // }
+        if (res) {
+          // const value = await AsyncStorage.getAllKeys();
+          // for (let i = 0; i < value.length; i++) {
+          //   let output = await AsyncStorage.getItem(value[i]);
+          //   console.log(`AsyncStorage key ${i}`, output);
+          // }
+          let response = await myClient.getHomeFeedData({
+            communityId: '1234',
+            page: 0,
+          });
+          // let pl = {community_id: 50421, member_id: 87040};
+          // let response = await myClient.profileData(pl);
+          console.log('profileData API -=', response);
+        }
 
         return res;
       } catch (error) {

@@ -9,7 +9,6 @@ import {
   Keyboard,
   Image,
 } from 'react-native';
-import Emoji from 'react-native-emoji';
 import InputBox from '../../components/InputBox';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';

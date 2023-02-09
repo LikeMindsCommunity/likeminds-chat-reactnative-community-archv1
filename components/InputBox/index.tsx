@@ -5,6 +5,8 @@ import {
   TextInput,
   Image,
   Platform,
+  Modal,
+  Pressable,
 } from 'react-native';
 import React, {useState} from 'react';
 import {styles} from './styles';
@@ -13,6 +15,12 @@ const InputBox = () => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+  };
+
   return (
     <View>
       <View
@@ -35,30 +43,32 @@ const InputBox = () => {
               style={styles.emoji}
             />
           </TouchableOpacity>
-          <TextInput
-            value={message}
-            onChangeText={setMessage}
-            style={styles.input}
-            numberOfLines={6}
-            multiline={true}
-            // onPressIn={() => {
-            //   setIsKeyBoardFocused(true);
-            // }}
-            onBlur={()=>{
+          <View style={styles.inputParent}>
+            <TextInput
+              value={message}
+              onChangeText={setMessage}
+              style={styles.input}
+              numberOfLines={6}
+              multiline={true}
+              // onPressIn={() => {
+              //   setIsKeyBoardFocused(true);
+              // }}
+              onBlur={() => {
                 setIsKeyBoardFocused(false);
-            }}
-            onFocus={() => {
+              }}
+              onFocus={() => {
                 setIsKeyBoardFocused(true);
               }}
-            // onPressOut={() => {
-            //   setIsKeyBoardFocused(false);
-            // }}
-            placeholder="Type a message..."
-            placeholderTextColor="#aaa"
-          />
+              // onPressOut={() => {
+              //   setIsKeyBoardFocused(false);
+              // }}
+              placeholder="Type a message..."
+              placeholderTextColor="#aaa"
+            />
+          </View>
           <TouchableOpacity
             style={styles.emojiButton}
-            onPress={() => setShowEmoji(!showEmoji)}>
+            onPress={() => setModalVisible(true)}>
             <Image
               source={require('../../assets/images/open_files3x.png')}
               style={styles.emoji}
@@ -74,6 +84,40 @@ const InputBox = () => {
           />
         </TouchableOpacity>
       </View>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}>
+        <Pressable style={styles.centeredView} onPress={handleModalClose}>
+          <View style={styles.modalViewParent}>
+            <Pressable onPress={() => {}} style={[styles.modalView]}>
+              <View style={styles.alignModalElements}>
+                <TouchableOpacity style={styles.cameraStyle}>
+                  <Image
+                    source={require('../../assets/images/camera_icon3x.png')}
+                    style={styles.emoji}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.imageStyle}>
+                  <Image
+                    source={require('../../assets/images/select_image_icon3x.png')}
+                    style={styles.emoji}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.docStyle}>
+                  <Image
+                    source={require('../../assets/images/select_doc_icon3x.png')}
+                    style={styles.emoji}
+                  />
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
       {/* {showEmoji && (
         <View style={styles.emojiPicker}>
           <Emoji name="smile" style={styles.emoji} />
