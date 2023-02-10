@@ -1,4 +1,4 @@
-import {View, Text, Pressable} from 'react-native';
+import {View, Text, Pressable, TouchableOpacity} from 'react-native';
 import STYLES from '../constants/Styles';
 
 const REGEX_USER_SPLITTING = /(<<[\w\s🤖]+\|route:\/\/member\/\d+>>)/g;
@@ -55,23 +55,35 @@ export function decode(text: string | undefined, enableClick: boolean) {
           style={{
             display: 'flex',
             flexDirection: 'row',
-            alignItems: 'center',
-            // width: STYLES.$TEXTVIEW_WIDTH.REGULAR,
-            overflow: 'hidden',
+            // alignItems: 'flex-end',
+            // width: 250,
+            // overflow: 'hidden',
+            // flexWrap: 'wrap',
+            backgroundColor: 'pink',
           }}>
           {arr.map((val, index) => (
-            <View key={index + val}>
+            <Text
+              style={{
+                backgroundColor: 'yellow',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems:'flex-end',
+                // flexWrap: 'wrap',
+                // width:350
+              }}
+              key={index + val}>
               {!!val.route ? (
-                <Pressable>
+                <TouchableOpacity>
                   <Text
                     style={{
                       color: STYLES.$COLORS.MSG,
                       fontSize: STYLES.$FONT_SIZES.MEDIUM,
                       fontFamily: STYLES.$FONT_TYPES.BOLD,
+                      backgroundColor: 'pink',
                     }}>
                     {val.key}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               ) : (
                 <Text
                   style={{
@@ -82,7 +94,7 @@ export function decode(text: string | undefined, enableClick: boolean) {
                   {val.key}
                 </Text>
               )}
-            </View>
+            </Text>
           ))}
         </View>
       );

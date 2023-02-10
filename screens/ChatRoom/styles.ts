@@ -16,39 +16,13 @@ export const styles = StyleSheet.create({
   threeDots: {height: 20, width: 20, resizeMode: 'contain'},
   chatRoomInfo: {gap: 5},
 
-  message: {
-    padding: 10,
-    margin: 10,
-    maxWidth: '80%',
-    alignSelf: 'flex-end',
-    borderRadius: 5,
-    backgroundColor: '#fff',
-    elevation: 2,
-  },
-  sentMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#ddd',
-  },
-  receivedMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#e6e6e6',
-  },
-  messageText: {
-    fontSize: 16,
-  },
-  messageDate: {
-    fontSize: 10,
-    color: '#aaa',
-    marginTop: 5,
-    textAlign: 'right',
-  },
   inputContainer: {
     flexDirection: 'row',
     // padding: 10,
     // backgroundColor: '#fff',
     elevation: 2,
-    flexGrow:1,
-    backgroundColor:'pink'
+    flexGrow: 1,
+    backgroundColor: 'pink',
   },
   emojiButton: {
     padding: 10,

@@ -72,10 +72,17 @@ const HomeFeed = ({navigation}: Props) => {
           //   let output = await AsyncStorage.getItem(value[i]);
           //   console.log(`AsyncStorage key ${i}`, output);
           // }
-          let response = await myClient.getHomeFeedData({
-            communityId: '1234',
-            page: 0,
+
+          // let response = await myClient.getHomeFeedData({
+          //   communityId: '50421',
+          //   page: 1,
+          // });
+
+          let response = await myClient.conversationsFetch({
+            chatroom_id: 21130,
+            conversation_id: 244986,
           });
+
           // let pl = {community_id: 50421, member_id: 87040};
           // let response = await myClient.profileData(pl);
           console.log('profileData API -=', response);

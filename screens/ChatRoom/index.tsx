@@ -9,24 +9,25 @@ import {
   Keyboard,
   Image,
 } from 'react-native';
+import { conversationData } from '../../assets/dummyResponse/conversationData';
 import InputBox from '../../components/InputBox';
+import Messages from '../../components/Messages';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 
-interface Message {
-  id: number;
-  type: 'sent' | 'received';
-  value: string;
-  date: string;
-  navigation: any;
-}
+// interface Message {
+//     id: number;
+//     type: 'sent' | 'received';
+//     value: string;
+//     date: string;
+// }
 
 interface ChatRoom {
   navigation: any;
 }
 
 const ChatRoom = ({navigation}: ChatRoom) => {
-const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState(conversationData?.data?.conversations);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -91,23 +92,13 @@ const [messages, setMessages] = useState<Message[]>([]);
     <View style={styles.container}>
       <FlatList
         data={messages}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => item?.id.toString()}
         renderItem={({item}) => (
-          <View
-            style={[
-              styles.message,
-              item.type === 'sent'
-                ? styles.sentMessage
-                : styles.receivedMessage,
-            ]}>
-            <Text style={styles.messageText}>{item.value}</Text>
-            <Text style={styles.messageDate}>{item.date}</Text>
-          </View>
+          <Messages item={item} />
         )}
       />
 
       <InputBox />
-
     </View>
   );
 };
