@@ -65,7 +65,7 @@ const HomeFeed = ({navigation}: Props) => {
           is_guest: false,
         };
         let res = await myClient.initSDK(payload);
-        console.log('Initiate API -=', res);
+        // console.log('Initiate API -=', res);
         if (res) {
           // const value = await AsyncStorage.getAllKeys();
           // for (let i = 0; i < value.length; i++) {
@@ -78,19 +78,29 @@ const HomeFeed = ({navigation}: Props) => {
           //   page: 1,
           // });
 
-          let response = await myClient.conversationsFetch({
-            chatroom_id: 21130,
-            conversation_id: 244986,
-          });
+          // let response = await myClient.getChatroom({chatroom_id: 69285})
+          let response = await myClient.getConversations({chatroomID: 69285, page:1000})
+        //   let response = await myClient.onConversationsCreate({
+        //     chatroom_id: 69285,
+        //     created_at: new Date(Date.now()),
+        //     has_files: false,
+        //     text: 'Just testing the flow2',
+        //     // attachment_count?: any;
+        //     // replied_conversation_id?: string | number;
+        // })
+          // let response = await myClient.conversationsFetch({
+          //   chatroom_id: 21130,
+          //   conversation_id: 244986,
+          // });
 
           // let pl = {community_id: 50421, member_id: 87040};
           // let response = await myClient.profileData(pl);
-          console.log('profileData API -=', response);
+          // console.log('profileData API -=', response);
         }
 
         return res;
       } catch (error) {
-        console.log('Yes Err!', error);
+        // console.log('Yes Err!', error);
       }
     }
     fetchData();

@@ -1,61 +1,75 @@
 import {View, Text, FlatList} from 'react-native';
 import React from 'react';
-import InputBox from '../InputBox';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
-import { decode } from '../../commonFuctions';
+import {decode} from '../../commonFuctions';
+import ReplyConversations from '../ReplyConversations';
+import AttachmentConversations from '../AttachmentConversations';
 
 interface Messages {
   item: any;
 }
 
 const Messages = ({item}: Messages) => {
-const isTypeSent = false;
+  const isTypeSent = item?.member?.id === 86986 ? true : false;
   return (
     <View style={styles.messageParent}>
-      <View
-        style={[
-          styles.message,
-          isTypeSent ? styles.sentMessage : styles.receivedMessage,
-        ]}>
-        <Text style={styles.messageText}>{decode(item?.answer, true)}</Text>
-        <Text style={styles.messageDate}>{item?.created_at}</Text>
+      <View>
+        {!!item.deleted_by ? (
+          <View
+            style={[
+              styles.message,
+              isTypeSent ? styles.sentMessage : styles.receivedMessage,
+            ]}>
+            <Text style={styles.deletedMsg}>This message has been deleted</Text>
+          </View>
+        ) : !!item?.reply_conversation_object ? (
+          <ReplyConversations item={item} isTypeSent={isTypeSent} />
+        ) : item?.attachment_count > 0 ? (
+          <AttachmentConversations item={item} isTypeSent={isTypeSent} />
+        ) : (
+          <View
+            style={[
+              styles.message,
+              isTypeSent ? styles.sentMessage : styles.receivedMessage,
+            ]}>
+            {!!(item?.member?.id === 86986) ? null : (
+              <Text style={styles.messageInfo}>{item?.member?.name}</Text>
+            )}
+            <Text style={styles.messageText}>{decode(item?.answer, true)}</Text>
+            <Text style={styles.messageDate}>{item?.created_at}</Text>
+          </View>
+        )}
+
+        {isTypeSent ? (
+          <View style={styles.typeSent} />
+        ) : (
+          <View style={styles.typeReceived} />
+        )}
       </View>
-      {isTypeSent ? (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            right: -15,
-            borderBottomWidth: 10,
-            borderRightWidth: 10,
-            borderLeftWidth: 10,
-            borderTopWidth: 10,
-            // borderBottomLeftRadius: 8,
-            borderBottomRightRadius: 8,
-            borderBottomColor: STYLES.$COLORS.TERTIARY,
-            borderLeftColor: STYLES.$COLORS.TERTIARY,
-            borderColor: 'transparent',
-          }}
-        />
+      {/* {item.reactions.length > 0 && item.reactions.length < 2 ? (
+        <View>
+          <View>
+            <Text
+              style={{
+                padding: 5,
+                borderRadius: 8,
+                backgroundColor: 'white',
+              }}>{`${item?.reactions[0]?.reaction}`}</Text>
+          </View>
+        </View>
       ) : (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: -15,
-            borderBottomWidth: 10,
-            borderRightWidth: 10,
-            borderLeftWidth: 10,
-            borderTopWidth: 10,
-            borderBottomLeftRadius: 8,
-            // borderBottomRightRadius: 8,
-            borderBottomColor: STYLES.$COLORS.TERTIARY,
-            borderRightColor: STYLES.$COLORS.TERTIARY,
-            borderColor: 'transparent',
-          }}
-        />
-      )}
+        item.reactions.length > 1 && (
+          <View>
+            <View style={{padding: 5, borderRadius: 8}}>
+              <Text>{`${item?.reactions[0]?.reaction}`}</Text>
+            </View>
+            <View style={{padding: 5, borderRadius: 8}}>
+              <Text>{`${item?.reactions[0]?.reaction}`}</Text>
+            </View>
+          </View>
+        )
+      )} */}
     </View>
   );
 };

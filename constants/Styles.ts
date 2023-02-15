@@ -5,6 +5,7 @@ export default {
     TERTIARY: '#ffffff',
     MSG: '#777e8e',
     JOINED_BTN: '#e9ecf1',
+    LIGHT_BLUE: '#0276fa',
   },
   $FONT_SIZES: {
     SMALL: 12,
@@ -35,6 +36,7 @@ export default {
     HEAVY: '0 30px 60px rgba(0, 0, 0, 0.6)',
   },
   $MARGINS: {
+    XS : 5,
     SMALL: 10,
     MEDIUM: 15,
     LARGE: 20,

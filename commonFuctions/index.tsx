@@ -51,52 +51,38 @@ export function decode(text: string | undefined, enableClick: boolean) {
     }
     if (enableClick) {
       return (
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            // alignItems: 'flex-end',
-            // width: 250,
-            // overflow: 'hidden',
-            // flexWrap: 'wrap',
-            backgroundColor: 'pink',
-          }}>
+        <Text>
           {arr.map((val, index) => (
             <Text
               style={{
-                backgroundColor: 'yellow',
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems:'flex-end',
-                // flexWrap: 'wrap',
-                // width:350
+                color: STYLES.$COLORS.PRIMARY,
+                // fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                fontFamily: STYLES.$FONT_TYPES.LIGHT,
               }}
               key={index + val}>
               {!!val.route ? (
-                <TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'flex-end',
+                    marginBottom: -3,
+                  }}>
                   <Text
                     style={{
-                      color: STYLES.$COLORS.MSG,
+                      color: STYLES.$COLORS.LIGHT_BLUE,
                       fontSize: STYLES.$FONT_SIZES.MEDIUM,
-                      fontFamily: STYLES.$FONT_TYPES.BOLD,
-                      backgroundColor: 'pink',
+                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
                     }}>
                     {val.key}
                   </Text>
                 </TouchableOpacity>
               ) : (
-                <Text
-                  style={{
-                    color: STYLES.$COLORS.MSG,
-                    fontSize: STYLES.$FONT_SIZES.MEDIUM,
-                    fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                  }}>
-                  {val.key}
-                </Text>
+                val.key
               )}
             </Text>
           ))}
-        </View>
+        </Text>
       );
     } else {
       return (
