@@ -7,11 +7,12 @@ interface Props {
   avatar: string;
   title: string;
   lastMessage: string;
-  time: number;
+  time: string;
   pinned: boolean;
   unreadCount: number;
   lastConversation: any;
   navigation: any;
+  chatroomID: number
 }
 
 const HomeFeedItem: React.FC<Props> = ({
@@ -22,9 +23,10 @@ const HomeFeedItem: React.FC<Props> = ({
   pinned = false,
   unreadCount,
   lastConversation,
-  navigation
+  navigation,
+  chatroomID
 }) => {
-  let dateOrTime = getFullDate(time);
+  // let dateOrTime = getFullDate(time);
 
   const getFeedIcon = (val: any) => {
     if (val[0].type === 'pdf') {
@@ -77,7 +79,9 @@ const HomeFeedItem: React.FC<Props> = ({
   };
   return (
     <TouchableOpacity onPress={()=>{
-      navigation.navigate('ChatRoom')
+      navigation.navigate('ChatRoom',{
+        chatroomID: chatroomID
+      })
     }} style={styles.itemContainer}>
       <Image source={{uri: avatar}} style={styles.avatar} />
       <View style={styles.infoContainer}>
@@ -85,7 +89,7 @@ const HomeFeedItem: React.FC<Props> = ({
           <Text style={styles.title} numberOfLines={1}>
             {title}
           </Text>
-          <Text style={styles.time}>{dateOrTime}</Text>
+          <Text style={styles.time}>{time}</Text>
         </View>
         <Text style={styles.lastMessage} numberOfLines={1}>
           {!!lastConversation?.has_files

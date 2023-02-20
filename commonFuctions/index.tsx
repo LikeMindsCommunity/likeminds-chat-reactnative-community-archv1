@@ -1,8 +1,16 @@
-import {View, Text, Pressable, TouchableOpacity} from 'react-native';
+import {View, Text, Pressable, TouchableOpacity, Platform} from 'react-native';
 import STYLES from '../constants/Styles';
 
-const REGEX_USER_SPLITTING = /(<<[\w\s🤖]+\|route:\/\/member\/\d+>>)/g;
-const REGEX_USER_TAGGING = /<<([\w\s🤖]+)\|route:\/\/member\/(\d+)>>/;
+// const REGEX_USER_SPLITTING =
+//   /<<(?<name>[\w\s🤖]+)\|route:\/\/member_profile\/\d+\?member_id=(?<id>\d+)&community_id=(?<community>[\w\d_]+)>>/g;
+// const REGEX_USER_TAGGING =
+//   /<<(?<name>[\w\s🤖]+)\|route:\/\/member_profile\/\d+\?member_id=(?<id>\d+)&community_id=(?<community>[\w\d_]+)>>/;
+
+// const REGEX_USER_SPLITTING = /(<<[\w\s🤖]+\|route:\/\/member\/\d+>>)/g;
+// const REGEX_USER_TAGGING = /<<([\w\s🤖]+)\|route:\/\/member\/(\d+)>>/;
+
+const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
+const REGEX_USER_TAGGING = /<<([\w\s🤖@]+)\|route:\/\/\S+>>/;
 
 // This function helps us to decode time(created_epoch: 1675421848540) into DATE if more than a day else TIME if less than a day.
 export function getFullDate(time: any) {
@@ -44,7 +52,7 @@ export function decode(text: string | undefined, enableClick: boolean) {
       if (!!keyValue) {
         memberName = keyValue[1];
         tag = keyValue[2];
-        arr.push({key: memberName, route: tag});
+        arr.push({key: memberName, route: true});
       } else if (!!matchResult) {
         arr.push({key: matchResult, route: null});
       }
@@ -61,18 +69,13 @@ export function decode(text: string | undefined, enableClick: boolean) {
               }}
               key={index + val}>
               {!!val.route ? (
-                <TouchableOpacity
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'flex-end',
-                    marginBottom: -3,
-                  }}>
+                <TouchableOpacity>
                   <Text
                     style={{
                       color: STYLES.$COLORS.LIGHT_BLUE,
                       fontSize: STYLES.$FONT_SIZES.MEDIUM,
                       fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                      marginBottom: -3,
                     }}>
                     {val.key}
                   </Text>
@@ -86,43 +89,30 @@ export function decode(text: string | undefined, enableClick: boolean) {
       );
     } else {
       return (
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'flex-end',
-            width: 240,
-            overflow: 'hidden',
-          }}>
+        <Text>
           {arr.map((val, index) => (
             <Text
               style={{
-                minHeight: 15,
+                color: STYLES.$COLORS.PRIMARY,
+                // fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                fontFamily: STYLES.$FONT_TYPES.LIGHT,
               }}
-              numberOfLines={1}
-              key={val + index}>
+              key={index + val}>
               {!!val.route ? (
                 <Text
                   style={{
                     color: STYLES.$COLORS.MSG,
-                    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                    // fontSize: STYLES.$FONT_SIZES.MEDIUM,
                     fontFamily: STYLES.$FONT_TYPES.BOLD,
                   }}>
                   {val.key}
                 </Text>
               ) : (
-                <Text
-                  style={{
-                    color: STYLES.$COLORS.MSG,
-                    fontSize: STYLES.$FONT_SIZES.MEDIUM,
-                    fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                  }}>
-                  {val.key}
-                </Text>
+                val.key
               )}
             </Text>
           ))}
-        </View>
+        </Text>
       );
     }
   } else {

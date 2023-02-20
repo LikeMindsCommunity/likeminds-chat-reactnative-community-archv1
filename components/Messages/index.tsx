@@ -1,4 +1,4 @@
-import {View, Text, FlatList} from 'react-native';
+import {View, Text, FlatList, Pressable} from 'react-native';
 import React from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
@@ -8,9 +8,10 @@ import AttachmentConversations from '../AttachmentConversations';
 
 interface Messages {
   item: any;
+  isIncluded: boolean;
 }
 
-const Messages = ({item}: Messages) => {
+const Messages = ({item, isIncluded}: Messages) => {
   const isTypeSent = item?.member?.id === 86986 ? true : false;
   return (
     <View style={styles.messageParent}>
@@ -20,6 +21,7 @@ const Messages = ({item}: Messages) => {
             style={[
               styles.message,
               isTypeSent ? styles.sentMessage : styles.receivedMessage,
+              // isIncluded ? {backgroundColor: 'blue'} : {backgroundColor: 'red'},
             ]}>
             <Text style={styles.deletedMsg}>This message has been deleted</Text>
           </View>
@@ -32,6 +34,7 @@ const Messages = ({item}: Messages) => {
             style={[
               styles.message,
               isTypeSent ? styles.sentMessage : styles.receivedMessage,
+              isIncluded ? {backgroundColor: '#e8f1fa'} : null,
             ]}>
             {!!(item?.member?.id === 86986) ? null : (
               <Text style={styles.messageInfo}>{item?.member?.name}</Text>
@@ -42,9 +45,23 @@ const Messages = ({item}: Messages) => {
         )}
 
         {isTypeSent ? (
-          <View style={styles.typeSent} />
+          <View
+            style={[
+              styles.typeSent,
+              isIncluded
+                ? {borderBottomColor: '#e8f1fa', borderLeftColor: '#e8f1fa'}
+                : null,
+            ]}
+          />
         ) : (
-          <View style={styles.typeReceived} />
+          <View
+            style={[
+              styles.typeReceived,
+              isIncluded
+                ? {borderBottomColor: '#e8f1fa', borderRightColor: '#e8f1fa'}
+                : null,
+            ]}
+          />
         )}
       </View>
       {/* {item.reactions.length > 0 && item.reactions.length < 2 ? (

@@ -29,17 +29,18 @@ export const styles = StyleSheet.create({
     width: 200,
   },
   newCountContainer: {
-    height: 20,
+    height: 25,
     backgroundColor: STYLES.$COLORS.SECONDARY,
-    borderRadius: 10,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: STYLES.$MARGINS.SMALL,
+    padding: 5,
   },
   newCount: {
     color: STYLES.$COLORS.TERTIARY,
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
-    padding: 5,
+    // padding: 5,
   },
 });

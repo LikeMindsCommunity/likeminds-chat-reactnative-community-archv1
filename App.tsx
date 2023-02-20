@@ -5,11 +5,14 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ExploreFeed from './screens/ExploreFeed';
 import ChatRoom from './screens/ChatRoom';
+import {Provider as ReduxProvider} from 'react-redux';
+import store from './store';
 
 const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
   return (
+    <ReduxProvider store={store}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{flex: 1}}>
@@ -21,6 +24,7 @@ function App(): JSX.Element {
           </Stack.Navigator>
         </NavigationContainer>
       </KeyboardAvoidingView>
+    </ReduxProvider>
   );
 }
 

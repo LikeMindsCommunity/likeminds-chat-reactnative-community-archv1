@@ -9,6 +9,56 @@ interface ReplyConversations {
   isTypeSent: boolean;
 }
 
+interface ReplyBox {
+  item: any;
+}
+
+export const ReplyBox = ({item}: ReplyBox) => {
+  return (
+    <View style={styles.replyBox}>
+      <View>
+        <Text style={styles.replySender}>
+          {item?.member?.id === 86986 ? 'You' : item?.member?.name}
+        </Text>
+      </View>
+      <View style={styles.alignRow}>
+        {!!item?.has_files ? (
+          item?.attachments[0]?.type === 'image' ? (
+            <Image
+              source={require('../../assets/images/image_icon3x.png')}
+              style={styles.icon}
+            />
+          ) : item?.attachments[0]?.type === 'pdf' ? (
+            <Image
+              source={require('../../assets/images/document_icon3x.png')}
+              style={styles.icon}
+            />
+          ) : null
+        ) : null}
+        <Text style={styles.messageText}>
+          {decode(
+            !!item?.answer
+              ? item?.answer
+              : item?.attachments[0]?.type === 'pdf'
+              ? `Document`
+              : item?.attachments[0]?.type === 'image'
+              ? `Photo`
+              : null,
+            false,
+          )}
+        </Text>
+        {!!item?.has_files && item?.attachments.length > 1 ? (
+          <View>
+            <Text style={styles.messageText}>{` (+${
+              item?.attachments.length - 1
+            } more)`}</Text>
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+};
+
 const ReplyConversations = ({item, isTypeSent}: ReplyConversations) => {
   return (
     <View
@@ -16,53 +66,7 @@ const ReplyConversations = ({item, isTypeSent}: ReplyConversations) => {
         styles.replyMessage,
         isTypeSent ? styles.sentMessage : styles.receivedMessage,
       ]}>
-      <View style={styles.replyBox}>
-        <View>
-          <Text style={styles.replySender}>
-            {item.reply_conversation_object?.member?.id === 86986
-              ? 'You'
-              : item?.reply_conversation_object?.member?.name}
-          </Text>
-        </View>
-        <View
-          style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-          {!!item?.reply_conversation_object.has_files ? (
-            item?.reply_conversation_object.attachments[0].type === 'image' ? (
-              <Image
-                source={require('../../assets/images/image_icon3x.png')}
-                style={styles.icon}
-              />
-            ) : item?.reply_conversation_object.attachments[0].type ===
-              'pdf' ? (
-              <Image
-                source={require('../../assets/images/document_icon3x.png')}
-                style={styles.icon}
-              />
-            ) : null
-          ) : null}
-          <Text style={styles.messageText}>
-            {decode(
-              !!item?.reply_conversation_object?.answer
-                ? item?.reply_conversation_object?.answer
-                : item?.reply_conversation_object?.attachments[0]?.type ===
-                  'pdf'
-                ? `Document`
-                : item?.reply_conversation_object?.attachments[0].type ===
-                  'image'
-                ? `Photo`
-                : null,
-              true,
-            )}
-          </Text>
-          {!!item?.reply_conversation_object.has_files && item?.reply_conversation_object.attachments.length > 1 ? (
-            <View>
-              <Text style={styles.messageText}>{` (+${
-                item?.reply_conversation_object.attachments.length - 1
-              } more)`}</Text>
-            </View>
-          ) : null}
-        </View>
-      </View>
+      <ReplyBox item={item?.reply_conversation_object} />
 
       <View style={styles.messageText as any}>
         {decode(item?.answer, true)}

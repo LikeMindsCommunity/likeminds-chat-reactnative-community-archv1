@@ -55,13 +55,14 @@ export const styles = StyleSheet.create({
     right: 16,
   },
   unreadCountContainer: {
-    width: 20,
-    height: 20,
+    minWidth: 25,
+    minHeight: 25,
     backgroundColor: STYLES.$COLORS.PRIMARY,
-    borderRadius: 10,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
+    padding: 5,
     bottom: 16,
     right: 20,
   },
@@ -69,6 +70,7 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.TERTIARY,
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
-    padding: 5,
+    // padding: 5,
+    // backgroundColor:'yellow'
   },
 });

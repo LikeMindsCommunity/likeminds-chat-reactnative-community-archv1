@@ -36,11 +36,11 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     borderRadius: 30,
     overflow: 'hidden',
-    maxWidth: Layout.window.width - 75,
-    minWidth: Layout.window.width - 75,
+    // maxWidth: Layout.window.width - 75,
+    width: Layout.window.width - 75,
     borderColor: STYLES.$COLORS.MSG,
     borderWidth: 1,
-    // backgroundColor:'pink'
+    backgroundColor:'pink'
   },
   inputContainer: {
     display: 'flex',
@@ -60,14 +60,15 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   inputParent: {
-    // backgroundColor: 'yellow',
+    backgroundColor: 'yellow',
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 30,
-    flexGrow: 1,
+    // flexGrow: 1,
     marginVertical: 10,
     paddingLeft: 0,
+    height: 30,
+    // maxHeight: 120,
     width: Layout.window.width - 180,
   },
   input: {
@@ -75,8 +76,8 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.XL,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.SECONDARY,
-
     maxHeight: 120,
+    padding:0,
     overflow: 'scroll',
   },
   sendButton: {
@@ -99,7 +100,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#f2f2f2',
     padding: 10,
-    elevation: 2,
+    // elevation: 2,
   },
 
   centeredView: {

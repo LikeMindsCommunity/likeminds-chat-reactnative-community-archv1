@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     borderRadius: 15,
     backgroundColor: '#fff',
-    elevation: 2,
+    // elevation: 2,
     // display: 'flex',
     // flexWrap: 'wrap',
     // flexDirection: 'column',
@@ -62,5 +62,11 @@ export const styles = StyleSheet.create({
     width: 15,
     resizeMode: 'contain',
     marginRight: 5,
+  },
+  alignRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
   },
 });

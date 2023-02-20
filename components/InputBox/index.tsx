@@ -10,15 +10,42 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import {styles} from './styles';
+import {useAppDispatch, useAppSelector} from '../../store';
+import {onConversationsCreate} from '../../store/actions/chatroom';
 
-const InputBox = () => {
+interface InputBox {
+  isReply: boolean;
+  replyChatID: any;
+}
+
+const InputBox = ({isReply, replyChatID}: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
+  const dispatch = useAppDispatch();
+  const myChatrooms = useAppSelector(state => state.homefeed.myChatrooms);
+
   const handleModalClose = () => {
     setModalVisible(false);
+  };
+
+  const onSend = async () => {
+    if (!!message) {
+      let payload = {
+        chatroom_id: 69285,
+        created_at: new Date(Date.now()),
+        has_files: false,
+        text: message,
+        // attachment_count?: any;
+        // replied_conversation_id?: string | number;
+      };
+      let response = await dispatch(onConversationsCreate(payload) as any);
+      if (!!response) {
+        setMessage('');
+      }
+    }
   };
 
   return (
@@ -28,7 +55,9 @@ const InputBox = () => {
           styles.inputContainer,
           {
             marginBottom: isKeyBoardFocused
-              ? 5
+              ? Platform.OS === 'android'
+                ? 35
+                : 5
               : Platform.OS === 'ios'
               ? 20
               : 5,
@@ -43,7 +72,7 @@ const InputBox = () => {
               style={styles.emoji}
             />
           </TouchableOpacity>
-          <View style={styles.inputParent}>
+          <View style={[styles.inputParent]}>
             <TextInput
               value={message}
               onChangeText={setMessage}
@@ -75,9 +104,7 @@ const InputBox = () => {
             />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          // onPress={onSend}
-          style={styles.sendButton}>
+        <TouchableOpacity onPress={onSend} style={styles.sendButton}>
           <Image
             source={require('../../assets/images/send_button3x.png')}
             style={styles.emoji}

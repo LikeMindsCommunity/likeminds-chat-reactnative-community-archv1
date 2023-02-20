@@ -12,7 +12,14 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 15,
   },
+  selectedHeadingContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 35,
+  },
   backBtn: {height: 40, width: 40, borderRadius: 10, resizeMode: 'contain'},
+  selectedBackBtn: {height: 20, width: 20, resizeMode: 'contain'},
   threeDots: {height: 20, width: 20, resizeMode: 'contain'},
   chatRoomInfo: {gap: 5},
 
@@ -20,7 +27,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     // padding: 10,
     // backgroundColor: '#fff',
-    elevation: 2,
+    // elevation: 2,
     flexGrow: 1,
     backgroundColor: 'pink',
   },
@@ -41,7 +48,7 @@ export const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#4caf50',
     borderRadius: 5,
-    elevation: 2,
+    // elevation: 2,
   },
   sendButtonText: {
     color: '#fff',
@@ -52,6 +59,6 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#f2f2f2',
     padding: 10,
-    elevation: 2,
+    // elevation: 2,
   },
 });

@@ -18,9 +18,9 @@ const AttachmentConversations = ({
         styles.attachmentMessage,
         isTypeSent ? styles.sentMessage : styles.receivedMessage,
       ]}>
-      {item?.attachments[0].type === 'image' ? (
+      {item?.attachments[0]?.type === 'image' ? (
         <ImageConversations item={item} isTypeSent={isTypeSent} />
-      ) : item?.attachments[0].type === 'pdf' ? (
+      ) : item?.attachments[0]?.type === 'pdf' ? (
         <PDFConversations item={item} isTypeSent={isTypeSent} />
       ) : null}
 

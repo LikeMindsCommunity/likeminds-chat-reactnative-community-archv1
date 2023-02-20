@@ -1,12 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useLayoutEffect, useEffect} from 'react';
-import {View, Text, FlatList, TouchableOpacity} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, Platform} from 'react-native';
+import {useDispatch} from 'react-redux';
 import {myClient} from '../..';
 import {dummyData} from '../../assets/dummyResponse/dummyData';
 import HomeFeedExplore from '../../components/HomeFeedExplore';
 import HomeFeedItem from '../../components/HomeFeedItem';
 import STYLES from '../../constants/Styles';
 import useAPI from '../../hooks/useAPI';
+import {AppDispatch, useAppDispatch, useAppSelector} from '../../store';
+import {getHomeFeedData} from '../../store/actions/homefeed';
 import styles from './styles';
 
 interface Props {
@@ -15,6 +18,8 @@ interface Props {
 
 const HomeFeed = ({navigation}: Props) => {
   const [chats, setChats] = useState(dummyData.my_chatrooms);
+  const dispatch = useAppDispatch();
+  const myChatrooms = useAppSelector(state => state.homefeed.myChatrooms);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -41,13 +46,14 @@ const HomeFeed = ({navigation}: Props) => {
             backgroundColor: 'purple',
             justifyContent: 'center',
             alignItems: 'center',
+            padding: 5
           }}>
           <Text
             style={{
               color: STYLES.$COLORS.TERTIARY,
               fontSize: STYLES.$FONT_SIZES.XL,
               fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
-              paddingTop: 3,
+              paddingTop: Platform.OS === 'ios' ?  3 : Platform.OS === 'android' ? 0 : 0
             }}>
             R
           </Text>
@@ -77,17 +83,22 @@ const HomeFeed = ({navigation}: Props) => {
           //   communityId: '50421',
           //   page: 1,
           // });
+          let payload = {
+            communityId: '50421',
+            page: 1,
+          };
+          let response = await dispatch(getHomeFeedData(payload) as any);
 
           // let response = await myClient.getChatroom({chatroom_id: 69285})
-          let response = await myClient.getConversations({chatroomID: 69285, page:1000})
-        //   let response = await myClient.onConversationsCreate({
-        //     chatroom_id: 69285,
-        //     created_at: new Date(Date.now()),
-        //     has_files: false,
-        //     text: 'Just testing the flow2',
-        //     // attachment_count?: any;
-        //     // replied_conversation_id?: string | number;
-        // })
+          // let response = await myClient.getConversations({chatroomID: 69285, page:1000})
+          //   let response = await myClient.onConversationsCreate({
+          //     chatroom_id: 69285,
+          //     created_at: new Date(Date.now()),
+          //     has_files: false,
+          //     text: 'Just testing the flow2',
+          //     // attachment_count?: any;
+          //     // replied_conversation_id?: string | number;
+          // })
           // let response = await myClient.conversationsFetch({
           //   chatroom_id: 21130,
           //   conversation_id: 244986,
@@ -95,7 +106,7 @@ const HomeFeed = ({navigation}: Props) => {
 
           // let pl = {community_id: 50421, member_id: 87040};
           // let response = await myClient.profileData(pl);
-          // console.log('profileData API -=', response);
+          console.log('profileData API -=', response);
         }
 
         return res;
@@ -112,7 +123,8 @@ const HomeFeed = ({navigation}: Props) => {
   return (
     <View style={styles.page}>
       <FlatList
-        data={chats}
+        data={myChatrooms}
+        // data={chats}
         ListHeaderComponent={() => (
           <HomeFeedExplore newCount={5} navigation={navigation} />
         )}
@@ -122,10 +134,11 @@ const HomeFeed = ({navigation}: Props) => {
             avatar: item?.chatroom?.image_url_round!,
             lastMessage: item?.last_conversation?.answer!,
             lastMessageUser: item?.last_conversation?.member?.name!,
-            time: item?.last_conversation?.created_epoch!,
+            time: item?.last_conversation_time!,
             unreadCount: item?.unseen_conversation_count!,
             pinned: false,
             lastConversation: item?.last_conversation,
+            chatroomID:  item?.chatroom?.id!,
           };
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}
