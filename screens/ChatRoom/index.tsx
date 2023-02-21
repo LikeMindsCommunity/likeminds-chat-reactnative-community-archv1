@@ -18,6 +18,9 @@ import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {getConversations} from '../../store/actions/chatroom';
 import {styles} from './styles';
+// import database from '@react-native-firebase/database';
+
+// let itemsRef = database().ref('/items');
 
 interface Data {
   id: string;
@@ -48,6 +51,19 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   //   // viewOffset?: number;
   //   // viewPosition?: number;
   // });
+
+  // const reference = database().ref('/users/123');
+
+  // console.log('reference',reference)
+
+  // useEffect(() => {
+  //   itemsRef.on('value', snapshot => {
+  //     let data = snapshot.val();
+  //     const items = Object.values(data);
+  //     console.log('items', items);
+  //     // setItemsArray(items);
+  //   });
+  // }, []);
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -127,14 +143,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             {len === 1 && (
               <TouchableOpacity
                 onPress={() => {
-                  if(len > 0){
-                    setReplyChatID(selectedMessages[0])
+                  if (len > 0) {
+                    setReplyChatID(selectedMessages[0]);
                     setIsReply(true);
                     setSelectedMessages([]);
                     setIsLongPress(false);
                     setInitialHeader();
                   }
-                  
                 }}>
                 <Image
                   source={require('../../assets/images/reply_icon3x.png')}
@@ -230,7 +245,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         inverted
       />
 
-      <InputBox isReply={isReply} replyChatID={replyChatID} />
+      <InputBox isReply={isReply} replyChatID={replyChatID} chatroomID={chatroomID} />
     </View>
   );
 };

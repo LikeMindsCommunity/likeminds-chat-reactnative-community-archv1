@@ -1,6 +1,10 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
+pod 'GoogleUtilities', :modular_headers => true
+# pod 'FirebaseAnalytics'
+# pod 'FirebaseDatabase'
+
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
@@ -22,6 +26,8 @@ if linkage != nil
 end
 
 target 'Scalix' do
+  # use_frameworks! :linkage => :static
+  # $RNFirebaseAsStaticFramework = true
   config = use_native_modules!
 
   # Flags change depending on the env values.

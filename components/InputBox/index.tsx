@@ -12,13 +12,20 @@ import React, {useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
+import {UPDATE_CONVERSATIONS} from '../../store/types/types';
+// import database from '@react-native-firebase/database';
+
+// let addItem = (payload: any) => {
+//   database().ref('/users').push(payload);
+// };
 
 interface InputBox {
   isReply: boolean;
   replyChatID: any;
+  chatroomID: any;
 }
 
-const InputBox = ({isReply, replyChatID}: InputBox) => {
+const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
@@ -32,9 +39,13 @@ const InputBox = ({isReply, replyChatID}: InputBox) => {
   };
 
   const onSend = async () => {
+    let time = new Date(Date.now());
+    let hr = time.getHours();
+    let min = time.getMinutes();
+    console.log(`${hr}:${min}`);
     if (!!message) {
       let payload = {
-        chatroom_id: 69285,
+        chatroom_id: chatroomID,
         created_at: new Date(Date.now()),
         has_files: false,
         text: message,
@@ -42,6 +53,22 @@ const InputBox = ({isReply, replyChatID}: InputBox) => {
         // replied_conversation_id?: string | number;
       };
       let response = await dispatch(onConversationsCreate(payload) as any);
+      // addItem(payload);
+      dispatch({
+        type: UPDATE_CONVERSATIONS,
+        body: {
+          member: {id: 86975, name: 'Jai'},
+          answer: message,
+          created_at: `${hr.toLocaleString('en-US', {
+            minimumIntegerDigits: 2,
+            useGrouping: false,
+          })}:${min.toLocaleString('en-US', {
+            minimumIntegerDigits: 2,
+            useGrouping: false,
+          })}`,
+          id: 11111,
+        },
+      });
       if (!!response) {
         setMessage('');
       }

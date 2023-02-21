@@ -40,7 +40,7 @@ export const styles = StyleSheet.create({
     width: Layout.window.width - 75,
     borderColor: STYLES.$COLORS.MSG,
     borderWidth: 1,
-    backgroundColor:'pink'
+    // backgroundColor:'pink'
   },
   inputContainer: {
     display: 'flex',
@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   inputParent: {
-    backgroundColor: 'yellow',
+    // backgroundColor: 'yellow',
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',

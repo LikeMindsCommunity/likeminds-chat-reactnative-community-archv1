@@ -12,11 +12,11 @@ interface Messages {
 }
 
 const Messages = ({item, isIncluded}: Messages) => {
-  const isTypeSent = item?.member?.id === 86986 ? true : false;
+  const isTypeSent = item?.member?.id === 86975 ? true : false;
   return (
     <View style={styles.messageParent}>
       <View>
-        {!!item.deleted_by ? (
+        {!!item?.deleted_by ? (
           <View
             style={[
               styles.message,
@@ -36,7 +36,7 @@ const Messages = ({item, isIncluded}: Messages) => {
               isTypeSent ? styles.sentMessage : styles.receivedMessage,
               isIncluded ? {backgroundColor: '#e8f1fa'} : null,
             ]}>
-            {!!(item?.member?.id === 86986) ? null : (
+            {!!(item?.member?.id === 86975) ? null : (
               <Text style={styles.messageInfo}>{item?.member?.name}</Text>
             )}
             <Text style={styles.messageText}>{decode(item?.answer, true)}</Text>

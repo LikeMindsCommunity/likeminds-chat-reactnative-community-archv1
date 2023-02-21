@@ -7,10 +7,13 @@ import {dummyData} from '../../assets/dummyResponse/dummyData';
 import HomeFeedExplore from '../../components/HomeFeedExplore';
 import HomeFeedItem from '../../components/HomeFeedItem';
 import STYLES from '../../constants/Styles';
+// import { app, firebase } from '../../firebase';
+// import { getDatabase, onValue, ref } from "firebase/database";
 import useAPI from '../../hooks/useAPI';
 import {AppDispatch, useAppDispatch, useAppSelector} from '../../store';
 import {getHomeFeedData} from '../../store/actions/homefeed';
 import styles from './styles';
+// import {onValue, ref} from 'firebase/database';
 
 interface Props {
   navigation: any;
@@ -46,14 +49,15 @@ const HomeFeed = ({navigation}: Props) => {
             backgroundColor: 'purple',
             justifyContent: 'center',
             alignItems: 'center',
-            padding: 5
+            padding: 5,
           }}>
           <Text
             style={{
               color: STYLES.$COLORS.TERTIARY,
               fontSize: STYLES.$FONT_SIZES.XL,
               fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
-              paddingTop: Platform.OS === 'ios' ?  3 : Platform.OS === 'android' ? 0 : 0
+              paddingTop:
+                Platform.OS === 'ios' ? 3 : Platform.OS === 'android' ? 0 : 0,
             }}>
             R
           </Text>
@@ -71,7 +75,7 @@ const HomeFeed = ({navigation}: Props) => {
           is_guest: false,
         };
         let res = await myClient.initSDK(payload);
-        // console.log('Initiate API -=', res);
+        console.log('Initiate API -=', res);
         if (res) {
           // const value = await AsyncStorage.getAllKeys();
           // for (let i = 0; i < value.length; i++) {
@@ -87,7 +91,29 @@ const HomeFeed = ({navigation}: Props) => {
             communityId: '50421',
             page: 1,
           };
+          // let response = await myClient.getHomeFeedData(payload);
+          // console.log('getHomeFeedData API -=', response);
           let response = await dispatch(getHomeFeedData(payload) as any);
+        //   let response = await myClient.followCR({
+        //     collabcard_id: 27845,
+        //     member_id: 86975,
+        //     value: false,
+        // })
+          // let response = await myClient.fetchFeedData({
+          //   community_id: 50421,
+          //   order_type: 0,
+          //   page: 10,
+          // });
+          // setTimeout(() => {
+          //   console.log('timeout API -=', response);
+          // }, 6000);
+
+          // let response = await myClient.allMembers({
+          //   community_id: 50421,
+          //   page: 1,
+          //   chatroom_id: 69285,
+          //   // member_state?: number,
+          // });
 
           // let response = await myClient.getChatroom({chatroom_id: 69285})
           // let response = await myClient.getConversations({chatroomID: 69285, page:1000})
@@ -106,7 +132,7 @@ const HomeFeed = ({navigation}: Props) => {
 
           // let pl = {community_id: 50421, member_id: 87040};
           // let response = await myClient.profileData(pl);
-          console.log('profileData API -=', response);
+          // console.log('profileData API -=', response);
         }
 
         return res;
@@ -117,33 +143,68 @@ const HomeFeed = ({navigation}: Props) => {
     fetchData();
   }, []);
 
+  // let db = myClient.fbInstance()
+
+  // useEffect(() => {
+  //   const query = ref(db, "collabcards");
+  //   return onValue(query, (snapshot) => {
+  //     if (snapshot.exists()) {
+  //       console.log('snpashot',snapshot.val());
+  //       // loadHomeFeed(1).then((res) => {
+  //       //   if (res[0].chatroom.id === dmContext.currentChatroom.id) {
+  //       //     getChatroomConversations(getCurrentChatroomID(), 500, dmContext);
+  //       //   }
+  //       // });
+  //     }
+  //   });
+  // }, []);
+
+  // let db = myClient.fbInstance();
+
+  // console.log('firebase',db);
+  // useEffect(() => {
+  //   const query = ref(db as any, "collabcards");
+  //   return onValue(query, (snapshot) => {
+  //     if (snapshot.exists()) {
+  //       console.log('firebase',snapshot.val());
+  //       // loadHomeFeed(1).then((res) => {
+  //       //   if (res[0].chatroom.id === dmContext.currentChatroom.id) {
+  //       //     getChatroomConversations(getCurrentChatroomID(), 500, dmContext);
+  //       //   }
+  //       // });
+  //     }
+  //   });
+  // }, []);
+
   // let {response} = useAPI({func: myClient?.initSDK, payload});
   // console.log('res =',response);
 
   return (
     <View style={styles.page}>
-      <FlatList
-        data={myChatrooms}
-        // data={chats}
-        ListHeaderComponent={() => (
-          <HomeFeedExplore newCount={5} navigation={navigation} />
-        )}
-        renderItem={({item}) => {
-          const homeFeedProps = {
-            title: item?.chatroom?.title!,
-            avatar: item?.chatroom?.image_url_round!,
-            lastMessage: item?.last_conversation?.answer!,
-            lastMessageUser: item?.last_conversation?.member?.name!,
-            time: item?.last_conversation_time!,
-            unreadCount: item?.unseen_conversation_count!,
-            pinned: false,
-            lastConversation: item?.last_conversation,
-            chatroomID:  item?.chatroom?.id!,
-          };
-          return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
-        }}
-        keyExtractor={item => item.chatroom.id.toString()}
-      />
+      {chats?.length > 0 && (
+        <FlatList
+          data={myChatrooms}
+          // data={chats}
+          ListHeaderComponent={() => (
+            <HomeFeedExplore newCount={5} navigation={navigation} />
+          )}
+          renderItem={({item}: any) => {
+            const homeFeedProps = {
+              title: item?.chatroom?.title!,
+              avatar: item?.chatroom?.image_url_round!,
+              lastMessage: item?.last_conversation?.answer!,
+              lastMessageUser: item?.last_conversation?.member?.name!,
+              time: item?.last_conversation_time!,
+              unreadCount: item?.unseen_conversation_count!,
+              pinned: false,
+              lastConversation: item?.last_conversation,
+              chatroomID: item?.chatroom?.id!,
+            };
+            return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
+          }}
+          keyExtractor={(item: any) => item.chatroom.id.toString()}
+        />
+      )}
     </View>
   );
 };

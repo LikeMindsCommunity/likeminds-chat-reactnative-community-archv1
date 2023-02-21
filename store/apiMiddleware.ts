@@ -1,7 +1,6 @@
 import {Alert} from 'react-native';
 import {Middleware} from '@reduxjs/toolkit';
 import {START_LOADING, STOP_LOADING} from './types/loader';
-import {myClient} from '..';
 
 export const NETWORK_FAILED = 'Network request failed';
 

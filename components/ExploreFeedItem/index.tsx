@@ -24,7 +24,7 @@ const ExploreFeedItem: React.FC<Props> = ({
   return (
     <View style={styles.itemContainer}>
       <View>
-        <Image source={{uri: avatar}} style={styles.avatar} />
+        <Image source={!!avatar ? {uri: avatar} : require('../../assets/images/default_pic.png')} style={styles.avatar} />
         <View style={styles.pinnedIconParent}>
           <Image
             source={require('../../assets/images/pin_icon_white3x.png')}
@@ -61,7 +61,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           {!isJoined ? (
             <TouchableOpacity
               onPress={() => {
-                setMsg('How you doin?');
+                setMsg('Joined successfully');
                 setIsToast(true);
               }}
               style={styles.joinBtnContainer}>
@@ -72,13 +72,16 @@ const ExploreFeedItem: React.FC<Props> = ({
               <Text style={styles.join}>{'Join'}</Text>
             </TouchableOpacity>
           ) : (
-            <View style={styles.joinedBtnContainer}>
+            <TouchableOpacity onPress={() => {
+              setMsg('Leaved chatroom successfully');
+              setIsToast(true);
+            }} style={styles.joinedBtnContainer}>
               <Image
                 source={require('../../assets/images/joined_group3x.png')}
                 style={styles.icon}
               />
               <Text style={styles.joined}>{'Joined'}</Text>
-            </View>
+            </TouchableOpacity>
           )}
         </View>
         <View style={{flex: 1}}>

@@ -9,22 +9,33 @@ import {
   Pressable,
 } from 'react-native';
 import STYLES from '../../constants/Styles';
+import {useAppDispatch} from '../../store';
+import {getExploreFeedData} from '../../store/actions/explorefeed';
 import {styles} from './styles';
 
 interface Props {
   isPinned: boolean;
+  setIsPinned: () => {};
+  setFilterState: () => {};
+  filterState: any;
 }
 
-const ExploreFeedFilters = ({isPinned}: Props) => {
+const ExploreFeedFilters = ({
+  isPinned,
+  filterState,
+  setFilterState,
+  setIsPinned,
+}: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
+
   const handleModalClose = () => {
     setModalVisible(false);
   };
   const arr = [
     'Newest',
     'Recently active',
-    'Most participants',
     'Most messages',
+    'Most participants',
   ];
 
   return (
@@ -35,15 +46,19 @@ const ExploreFeedFilters = ({isPinned}: Props) => {
             setModalVisible(!modalVisible);
           }}
           style={styles.itemContainer}>
-          <Text style={styles.titleText}>Newest</Text>
+          <Text style={styles.titleText}>{arr[filterState]}</Text>
           <Image
             source={require('../../assets/images/down_arrow3x.png')}
             style={styles.icon}
           />
         </TouchableOpacity>
 
-        {!isPinned ? (
-          <TouchableOpacity style={styles.cancelPinnedBtn}>
+        {isPinned ? (
+          <TouchableOpacity
+            onPress={() => {
+              setIsPinned(false);
+            }}
+            style={styles.cancelPinnedBtn}>
             <View style={styles.cancelPinIconParent}>
               <Image
                 source={require('../../assets/images/pin_icon_blue3x.png')}
@@ -65,7 +80,10 @@ const ExploreFeedFilters = ({isPinned}: Props) => {
             </View>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setIsPinned(true);
+            }}>
             <Image
               source={require('../../assets/images/pin_icon_grey3x.png')}
               style={styles.pinIcon}
@@ -84,9 +102,14 @@ const ExploreFeedFilters = ({isPinned}: Props) => {
           <View>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
               {arr.map((val, index) => (
-                <View key={val + index} style={styles.filtersView}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setFilterState(index);
+                  }}
+                  key={val + index}
+                  style={styles.filtersView}>
                   <Text style={styles.filterText}>{val}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </Pressable>
           </View>

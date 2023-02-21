@@ -3,11 +3,15 @@ import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import thunk, {ThunkMiddleware} from 'redux-thunk';
 import apiMiddleware from './store/apiMiddleware';
 import { chatroomReducer } from './store/reducers/chatroomReducer';
+import { explorefeedReducer } from './store/reducers/explorefeedReducer';
 import {homefeedReducer} from './store/reducers/homefeedReducer';
+import { loader } from './store/reducers/loader';
 
 const rootReducer = combineReducers({
   homefeed: homefeedReducer,
   chatroom: chatroomReducer,
+  explorefeed: explorefeedReducer,
+  loader: loader
 });
 
 const store = configureStore({

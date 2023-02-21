@@ -83,7 +83,7 @@ const HomeFeedItem: React.FC<Props> = ({
         chatroomID: chatroomID
       })
     }} style={styles.itemContainer}>
-      <Image source={{uri: avatar}} style={styles.avatar} />
+      <Image source={!!avatar ? {uri: avatar} : require('../../assets/images/default_pic.png')} style={styles.avatar} />
       <View style={styles.infoContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.title} numberOfLines={1}>
