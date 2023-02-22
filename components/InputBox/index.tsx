@@ -43,17 +43,7 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
     let hr = time.getHours();
     let min = time.getMinutes();
     console.log(`${hr}:${min}`);
-    if (!!message) {
-      let payload = {
-        chatroom_id: chatroomID,
-        created_at: new Date(Date.now()),
-        has_files: false,
-        text: message,
-        // attachment_count?: any;
-        // replied_conversation_id?: string | number;
-      };
-      let response = await dispatch(onConversationsCreate(payload) as any);
-      // addItem(payload);
+    if (!!message.trim()) {
       dispatch({
         type: UPDATE_CONVERSATIONS,
         body: {
@@ -69,9 +59,21 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
           id: 11111,
         },
       });
-      if (!!response) {
-        setMessage('');
-      }
+      setMessage('');
+
+      let payload = {
+        chatroom_id: chatroomID,
+        created_at: new Date(Date.now()),
+        has_files: false,
+        text: message,
+        // attachment_count?: any;
+        // replied_conversation_id?: string | number;
+      };
+      let response = await dispatch(onConversationsCreate(payload) as any);
+      // addItem(payload);
+      // if (!!response) {
+      //   setMessage('');
+      // }
     }
   };
 
@@ -131,7 +133,7 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
             />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={onSend} style={styles.sendButton}>
+        <TouchableOpacity onPressOut={onSend} style={styles.sendButton}>
           <Image
             source={require('../../assets/images/send_button3x.png')}
             style={styles.emoji}
