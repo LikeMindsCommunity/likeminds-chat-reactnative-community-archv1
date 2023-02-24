@@ -9,6 +9,8 @@ import {
   Keyboard,
   Image,
   Pressable,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import {myClient} from '../..';
 import {conversationData} from '../../assets/dummyResponse/conversationData';
@@ -41,29 +43,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [replyChatID, setReplyChatID] = useState<number>();
   const [isLongPress, setIsLongPress] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState<Array<number>>([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+
   const {chatroomID} = route.params;
   const dispatch = useAppDispatch();
   const {conversations = []} = useAppSelector(state => state.chatroom);
-  // flatlistRef?.current?.scrollToEnd({animated: false});
-  // flatlistRef?.current?.scrollToIndex({
-  //   index: conversations.length - 1,
-  //   animated: false,
-  //   // viewOffset?: number;
-  //   // viewPosition?: number;
-  // });
-
-  // const reference = database().ref('/users/123');
-
-  // console.log('reference',reference)
-
-  // useEffect(() => {
-  //   itemsRef.on('value', snapshot => {
-  //     let data = snapshot.val();
-  //     const items = Object.values(data);
-  //     console.log('items', items);
-  //     // setItemsArray(items);
-  //   });
-  // }, []);
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -179,17 +164,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
+  async function fetchData() {
+    // let payload = {chatroomID: 69285, page: 1000};
+    let payload = {chatroomID: chatroomID, page: 100 * page};
+    let response = await dispatch(getConversations(payload, true) as any);
+    console.log('getConversations ==', response);
+    return response;
+  }
+
+  async function paginatedData() {
+    // let payload = {chatroomID: 69285, page: 1000};
+    let payload = {chatroomID: chatroomID, page: 100 * page};
+    let response = await dispatch(getConversations(payload, false) as any);
+    return response;
+  }
+
   useLayoutEffect(() => {
     setInitialHeader();
   }, [navigation]);
 
   useEffect(() => {
-    async function fetchData() {
-      // let payload = {chatroomID: 69285, page: 1000};
-      let payload = {chatroomID: chatroomID, page: 1000};
-      let response = await dispatch(getConversations(payload) as any);
-      console.log('getConversations API -=', response);
-    }
     fetchData();
   }, []);
 
@@ -201,11 +195,35 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isLongPress, selectedMessages]);
 
+  const loadData = async () => {
+    setIsLoading(true);
+    const res = await paginatedData();
+    if (!!res) {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!isLoading && conversations.length > 0) {
+      setPage(prevPage => prevPage + 1);
+      loadData();
+    }
+  };
+
+  const renderFooter = () => {
+    return isLoading ? (
+      <View style={{paddingVertical: 20}}>
+        <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+      </View>
+    ) : null;
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
         ref={flatlistRef}
-        data={conversations}
+        data={messages}
+        // data={conversations}
         // initialScrollIndex={
         //   conversations.length > 0 ? conversations.length - 1 : 60
         // }
@@ -242,10 +260,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </Pressable>
           );
         }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.1}
+        ListFooterComponent={renderFooter}
         inverted
       />
 
-      <InputBox isReply={isReply} replyChatID={replyChatID} chatroomID={chatroomID} />
+      <InputBox
+        isReply={isReply}
+        replyChatID={replyChatID}
+        chatroomID={chatroomID}
+      />
     </View>
   );
 };

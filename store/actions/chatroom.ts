@@ -12,7 +12,7 @@ import {
 } from '../types/types';
 
 export const getConversations =
-  (payload: any) => async (dispatch: Dispatch) => {
+  (payload: any, showLoader:boolean) => async (dispatch: Dispatch) => {
     try {
       return await dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
@@ -24,7 +24,7 @@ export const getConversations =
             GET_CONVERSATIONS_SUCCESS,
             GET_CONVERSATIONS_FAILED,
           ],
-          showLoader: true,
+          showLoader: showLoader,
         },
       });
     } catch (error) {

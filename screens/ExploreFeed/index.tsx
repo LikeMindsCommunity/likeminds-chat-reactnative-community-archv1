@@ -1,12 +1,22 @@
 import React, {useState, useLayoutEffect, useRef, useEffect} from 'react';
-import {View, Text, FlatList, TouchableOpacity, Image} from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import {dummyData} from '../../assets/dummyResponse/dummyData';
 import ExploreFeedFilters from '../../components/ExploreFeedFilters';
 import ExploreFeedItem from '../../components/ExploreFeedItem';
 import ToastMessage from '../../components/ToastMessage';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
-import {getExploreFeedData} from '../../store/actions/explorefeed';
+import {
+  getExploreFeedData,
+  updateExploreFeedData,
+} from '../../store/actions/explorefeed';
 import styles from './styles';
 
 interface Props {
@@ -17,6 +27,9 @@ const ExploreFeed = ({navigation}: Props) => {
   const [chats, setChats] = useState(dummyData.my_chatrooms);
   const [filterState, setFilterState] = useState(0);
   const [isPinned, setIsPinned] = useState(false);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+
   const {exploreChatrooms = []} = useAppSelector(state => state.explorefeed);
   const dispatch = useAppDispatch();
 
@@ -44,19 +57,56 @@ const ExploreFeed = ({navigation}: Props) => {
       ),
     });
   }, [navigation]);
+
+  async function fetchData() {
+    // let payload = {chatroomID: 69285, page: 1000};
+    let payload = {
+      community_id: 50421,
+      order_type: filterState,
+      page: 1,
+    };
+    let response = await dispatch(getExploreFeedData(payload) as any);
+    return response;
+  }
+
+  async function updateData() {
+    let payload = {
+      community_id: 50421,
+      order_type: filterState,
+      page: page,
+    };
+    let response = await dispatch(updateExploreFeedData(payload) as any)
+    return response;
+  }
+
   useEffect(() => {
-    async function fetchData() {
-      // let payload = {chatroomID: 69285, page: 1000};
-      let payload = {
-        community_id: 50421,
-        order_type: filterState,
-        page: 1,
-      };
-      let response = await dispatch(getExploreFeedData(payload) as any);
-      console.log('getExploreFeedData API -=', response);
-    }
     fetchData();
   }, [filterState]);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    const res = await updateData();
+    if (!!res) {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!isLoading) {
+      if(exploreChatrooms.length % 10 === 0){
+        setPage(prevPage => prevPage + 1);
+        loadData();
+      }
+    }
+  };
+
+  const renderFooter = () => {
+    return isLoading ? (
+      <View style={{paddingVertical: 20}}>
+        <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+      </View>
+    ) : null;
+  };
 
   return (
     <View style={styles.page}>
@@ -69,7 +119,9 @@ const ExploreFeed = ({navigation}: Props) => {
             setFilterState={val => {
               setFilterState(val);
             }}
-            setIsPinned={(val)=>{setIsPinned(val)}}
+            setIsPinned={val => {
+              setIsPinned(val);
+            }}
             isPinned={isPinned}
           />
         )}
@@ -89,7 +141,10 @@ const ExploreFeed = ({navigation}: Props) => {
             </View>
           );
         }}
-        keyExtractor={item => item?.id.toString()}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.1}
+        ListFooterComponent={renderFooter}
+        keyExtractor={item => (item?.id ? item?.id.toString() : null)}
       />
     </View>
   );
