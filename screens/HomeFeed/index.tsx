@@ -17,6 +17,7 @@ import {getNameInitials} from '../../commonFuctions';
 import HomeFeedExplore from '../../components/HomeFeedExplore';
 import HomeFeedItem from '../../components/HomeFeedItem';
 import STYLES from '../../constants/Styles';
+import { onValue, ref} from '@firebase/database';
 // import { app, firebase } from '../../firebase';
 // import { getDatabase, onValue, ref } from "firebase/database";
 import useAPI from '../../hooks/useAPI';
@@ -37,11 +38,11 @@ const HomeFeed = ({navigation}: Props) => {
   const [chats, setChats] = useState(dummyData.my_chatrooms);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [communityId, setCommunityId] = useState("")
   const dispatch = useAppDispatch();
   const myChatrooms = useAppSelector(state => state.homefeed.myChatrooms);
   const user = useAppSelector(state => state.homefeed.user);
-
+  const db = myClient.fbInstance()
   const setOptions = () => {
     navigation.setOptions({
       title: '',
@@ -98,63 +99,13 @@ const HomeFeed = ({navigation}: Props) => {
     };
     let res = await dispatch(initAPI(payload) as any);
     if (!!res) {
-      // const value = await AsyncStorage.getAllKeys();
-      // for (let i = 0; i < value.length; i++) {
-      //   let output = await AsyncStorage.getItem(value[i]);
-      //   console.log(`AsyncStorage key ${i}`, output);
-      // }
-
-      // let response = await myClient.getHomeFeedData({
-      //   communityId: '50421',
-      //   page: 1,
-      // });
+      // console.log("the response for init ", res.community.id)
+      setCommunityId(res.community.id) 
       let payload = {
-        // communityId: '50421',
         page: 1,
       };
-      // let response = await myClient.getHomeFeedData(payload);
-      // console.log('getHomeFeedData API -=', response);
       let response = await dispatch(getHomeFeedData(payload) as any);
-      // let response = await myClient.getChatroom({chatroom_id: 28552})
-      //   let response = await myClient.leaveChatroom({
-      //     collabcard_id: 27845,
-      //     member_id: 86975,
-      //     value: false,
-      // })
-      // let response = await myClient.fetchFeedData({
-      //   community_id: 50421,
-      //   order_type: 0,
-      //   page: 10,
-      // });
-      // setTimeout(() => {
-      //   console.log('timeout API -=', response);
-      // }, 6000);
-
-      // let response = await myClient.allMembers({
-      //   community_id: 50421,
-      //   page: 1,
-      //   chatroom_id: 69285,
-      //   // member_state?: number,
-      // });
-
-      // let response = await myClient.getChatroom({chatroom_id: 69285})
-      // let response = await myClient.getConversations({chatroomID: 69285, page:1000})
-      //   let response = await myClient.onConversationsCreate({
-      //     chatroom_id: 69285,
-      //     created_at: new Date(Date.now()),
-      //     has_files: false,
-      //     text: 'Just testing the flow2',
-      //     // attachment_count?: any;
-      //     // replied_conversation_id?: string | number;
-      // })
-      // let response = await myClient.conversationsFetch({
-      //   chatroom_id: 21130,
-      //   conversation_id: 244986,
-      // });
-
-      // let pl = {community_id: 50421, member_id: 87040};
-      // let response = await myClient.profileData(pl);
-      // console.log('profileData API -=', response);
+    
     }
 
     return res;
@@ -208,46 +159,15 @@ const HomeFeed = ({navigation}: Props) => {
     ) : null;
   };
 
-  // useEffect(() => {
-  //   fetchData();
-  // }, []);
-
-  // let db = myClient.fbInstance()
-
-  // useEffect(() => {
-  //   const query = ref(db, "collabcards");
-  //   return onValue(query, (snapshot) => {
-  //     if (snapshot.exists()) {
-  //       console.log('snpashot',snapshot.val());
-  //       // loadHomeFeed(1).then((res) => {
-  //       //   if (res[0].chatroom.id === dmContext.currentChatroom.id) {
-  //       //     getChatroomConversations(getCurrentChatroomID(), 500, dmContext);
-  //       //   }
-  //       // });
-  //     }
-  //   });
-  // }, []);
-
-  // let db = myClient.fbInstance();
-
-  // console.log('firebase',db);
-  // useEffect(() => {
-  //   const query = ref(db as any, "collabcards");
-  //   return onValue(query, (snapshot) => {
-  //     if (snapshot.exists()) {
-  //       console.log('firebase',snapshot.val());
-  //       // loadHomeFeed(1).then((res) => {
-  //       //   if (res[0].chatroom.id === dmContext.currentChatroom.id) {
-  //       //     getChatroomConversations(getCurrentChatroomID(), 500, dmContext);
-  //       //   }
-  //       // });
-  //     }
-  //   });
-  // }, []);
-
-  // let {response} = useAPI({func: myClient?.initSDK, payload});
-  // console.log('res =',response);
-
+  useEffect(()=>{
+    const query = ref(db, `community/${communityId}`)
+    return onValue(query, (snapshot)=>{
+      if(snapshot.exists()){
+        console.log("the snapshot is", snapshot.val())
+        dispatch(getHomeFeedData({page: 1}) as any)
+      }
+    })
+  },[])
   return (
     <View style={styles.page}>
       {chats?.length > 0 && (
