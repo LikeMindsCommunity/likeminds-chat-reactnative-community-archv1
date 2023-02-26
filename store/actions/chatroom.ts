@@ -3,6 +3,9 @@ import {Alert} from 'react-native';
 import {myClient} from '../..';
 import {CALL_API} from '../apiMiddleware';
 import {
+  GET_CHATROOM,
+  GET_CHATROOM_SUCCESS,
+  GET_CHATROOM_FAILED,
   GET_CONVERSATIONS,
   GET_CONVERSATIONS_FAILED,
   GET_CONVERSATIONS_SUCCESS,
@@ -12,7 +15,7 @@ import {
 } from '../types/types';
 
 export const getConversations =
-  (payload: any, showLoader:boolean) => async (dispatch: Dispatch) => {
+  (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
     try {
       return await dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
@@ -52,3 +55,19 @@ export const onConversationsCreate =
       Alert.alert(`${error}`);
     }
   };
+
+export const getChatroom = (payload: any) => async (dispatch: Dispatch) => {
+  try {
+    return await dispatch({
+      type: GET_CHATROOM_SUCCESS,
+      [CALL_API]: {
+        func: myClient.getChatroom(payload),
+        body: payload,
+        types: [GET_CHATROOM, GET_CHATROOM_SUCCESS, GET_CHATROOM_FAILED],
+        showLoader: true,
+      },
+    });
+  } catch (error) {
+    Alert.alert(`${error}`);
+  }
+};

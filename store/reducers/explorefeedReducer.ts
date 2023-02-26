@@ -12,7 +12,7 @@ export function explorefeedReducer(state = initialState, action: any) {
     }
     case UPDATE_EXPLORE_FEED_CHAT_SUCCESS: {
       const {chatrooms = []} = action.body;
-      return {...state, exploreChatrooms: [...state.exploreChatrooms,chatrooms]};
+      return {...state, exploreChatrooms: [...state.exploreChatrooms,...chatrooms]};
     }
     default:
       return state;

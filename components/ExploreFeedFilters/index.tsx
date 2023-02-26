@@ -15,8 +15,8 @@ import {styles} from './styles';
 
 interface Props {
   isPinned: boolean;
-  setIsPinned: () => {};
-  setFilterState: () => {};
+  setIsPinned: (val: any) => void;
+  setFilterState: (val: any) => void;
   filterState: any;
 }
 

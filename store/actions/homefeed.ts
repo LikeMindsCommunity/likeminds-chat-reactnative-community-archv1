@@ -4,9 +4,35 @@ import {
   GET_HOMEFEED_CHAT,
   GET_HOMEFEED_CHAT_FAILED,
   GET_HOMEFEED_CHAT_SUCCESS,
+  INIT_API,
+  INIT_API_FAILED,
+  INIT_API_SUCCESS,
+  UPDATE_HOMEFEED_CHAT,
+  UPDATE_HOMEFEED_CHAT_FAILED,
+  UPDATE_HOMEFEED_CHAT_SUCCESS,
 } from '../types/types';
 import {myClient} from '../..';
 import { Dispatch } from '@reduxjs/toolkit';
+
+export const initAPI = (payload: any) => (async (dispatch: Dispatch) => {
+  try {
+    return await dispatch({
+      type: INIT_API_SUCCESS,
+      [CALL_API]: {
+        func: myClient.initSDK(payload),
+        body: payload,
+        types: [
+          INIT_API,
+          INIT_API_SUCCESS,
+          INIT_API_FAILED,
+        ],
+        showLoader: true,
+      },
+    });
+  } catch (error) {
+    Alert.alert(`${error}`);
+  }
+});
 
 export const getHomeFeedData = (payload: any) => (async (dispatch: Dispatch) => {
   try {
@@ -21,6 +47,26 @@ export const getHomeFeedData = (payload: any) => (async (dispatch: Dispatch) => 
           GET_HOMEFEED_CHAT_FAILED,
         ],
         showLoader: true,
+      },
+    });
+  } catch (error) {
+    Alert.alert(`${error}`);
+  }
+});
+
+export const updateHomeFeedData = (payload: any) => (async (dispatch: Dispatch) => {
+  try {
+    return await dispatch({
+      type: UPDATE_HOMEFEED_CHAT_SUCCESS,
+      [CALL_API]: {
+        func: myClient.getHomeFeedData(payload),
+        body: payload,
+        types: [
+          UPDATE_HOMEFEED_CHAT,
+          UPDATE_HOMEFEED_CHAT_SUCCESS,
+          UPDATE_HOMEFEED_CHAT_FAILED,
+        ],
+        showLoader: false,
       },
     });
   } catch (error) {

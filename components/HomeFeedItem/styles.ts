@@ -14,19 +14,25 @@ export const styles = StyleSheet.create({
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
     marginRight: STYLES.$MARGINS.SMALL,
   },
+  lockIcon: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+  },
   infoContainer: {
     flex: 1,
   },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems:'center',
     marginBottom: 8,
   },
   title: {
     fontSize: STYLES.$FONT_SIZES.XL,
     fontFamily: STYLES.$FONT_TYPES.BOLD,
     color: STYLES.$COLORS.PRIMARY,
-    width: 200,
+    maxWidth: '80%',
   },
   time: {
     color: STYLES.$COLORS.MSG,
@@ -34,10 +40,11 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
   },
   lastMessage: {
-    color: STYLES.$COLORS.MSG,
+    color: STYLES.$COLORS.PRIMARY,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
-    width: 240,
+    width:'85%'
+    // width: 240,
   },
   attachment_msg: {
     color: STYLES.$COLORS.MSG,

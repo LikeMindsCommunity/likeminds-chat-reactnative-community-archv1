@@ -1,4 +1,4 @@
-import {View, Text, Pressable, TouchableOpacity, Platform} from 'react-native';
+import {Text} from 'react-native';
 import STYLES from '../constants/Styles';
 
 // const REGEX_USER_SPLITTING =
@@ -31,6 +31,55 @@ export function getFullDate(time: any) {
   } else {
     return;
   }
+}
+
+function detectLinks(message: string) {
+  const regex = /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?)/i;
+  let parts = message.split(regex);
+  let i = 0;
+  if (parts?.length > 0) {
+    return (
+      <Text>
+        {parts?.map((val: any, index: any) => (
+          <Text>
+            {regex.test(val) ? (
+              <Text
+                onPress={() => {
+                  // Alert.alert('hello');
+                }}>
+                <Text
+                  style={{
+                    color: STYLES.$COLORS.LIGHT_BLUE,
+                    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                  }}>
+                  {val}
+                </Text>
+              </Text>
+            ) : (
+              <Text>{val}</Text>
+            )}
+          </Text>
+        ))}
+      </Text>
+    );
+  } else {
+    return message;
+  }
+}
+
+export function getNameInitials(name: string) {
+  let initials = '';
+
+  const words = name.split(' ');
+
+  for (let i = 0; i < words.length && initials.length < 2; i++) {
+    if (words[i].length > 0) {
+      initials += words[i][0].toUpperCase();
+    }
+  }
+
+  return initials;
 }
 
 // test string = '<<Sanjay kumar 🤖|route://member/1260>> <<Ishaan Jain|route://member/1003>> Hey google.com';
@@ -69,19 +118,18 @@ export function decode(text: string | undefined, enableClick: boolean) {
               }}
               key={index + val}>
               {!!val.route ? (
-                <TouchableOpacity>
-                  <Text
-                    style={{
-                      color: STYLES.$COLORS.LIGHT_BLUE,
-                      fontSize: STYLES.$FONT_SIZES.MEDIUM,
-                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                      marginBottom: -3,
-                    }}>
-                    {val.key}
-                  </Text>
-                </TouchableOpacity>
+                <Text
+                  onPress={() => {}}
+                  style={{
+                    color: STYLES.$COLORS.LIGHT_BLUE,
+                    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                    // marginBottom: -3,
+                  }}>
+                  {val.key}
+                </Text>
               ) : (
-                val.key
+                detectLinks(val.key)
               )}
             </Text>
           ))}

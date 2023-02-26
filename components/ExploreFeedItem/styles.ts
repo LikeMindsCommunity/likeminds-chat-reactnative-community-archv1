@@ -122,4 +122,9 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.TERTIARY,
   },
+  lockIcon: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+  },
 });

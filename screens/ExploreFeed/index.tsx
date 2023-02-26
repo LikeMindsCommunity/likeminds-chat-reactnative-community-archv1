@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import {dummyData} from '../../assets/dummyResponse/dummyData';
 import ExploreFeedFilters from '../../components/ExploreFeedFilters';
@@ -24,13 +25,14 @@ interface Props {
 }
 
 const ExploreFeed = ({navigation}: Props) => {
-  const [chats, setChats] = useState(dummyData.my_chatrooms);
+  // const [chats, setChats] = useState(dummyData.my_chatrooms);
+  const {exploreChatrooms = []} = useAppSelector(state => state.explorefeed);
+  const {community} = useAppSelector(state => state.homefeed);
+  const [chats, setChats] = useState(exploreChatrooms);
   const [filterState, setFilterState] = useState(0);
   const [isPinned, setIsPinned] = useState(false);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-
-  const {exploreChatrooms = []} = useAppSelector(state => state.explorefeed);
   const dispatch = useAppDispatch();
 
   useLayoutEffect(() => {
@@ -61,7 +63,7 @@ const ExploreFeed = ({navigation}: Props) => {
   async function fetchData() {
     // let payload = {chatroomID: 69285, page: 1000};
     let payload = {
-      community_id: 50421,
+      community_id: community?.id,
       order_type: filterState,
       page: 1,
     };
@@ -69,13 +71,13 @@ const ExploreFeed = ({navigation}: Props) => {
     return response;
   }
 
-  async function updateData() {
+  async function updateData(newPage: number) {
     let payload = {
-      community_id: 50421,
+      community_id: community?.id,
       order_type: filterState,
-      page: page,
+      page: newPage,
     };
-    let response = await dispatch(updateExploreFeedData(payload) as any)
+    let response = await dispatch(updateExploreFeedData(payload) as any);
     return response;
   }
 
@@ -83,9 +85,13 @@ const ExploreFeed = ({navigation}: Props) => {
     fetchData();
   }, [filterState]);
 
-  const loadData = async () => {
+  useEffect(() => {
+    setChats(exploreChatrooms);
+  }, [exploreChatrooms]);
+
+  const loadData = async (newPage: number) => {
     setIsLoading(true);
-    const res = await updateData();
+    const res = await updateData(newPage);
     if (!!res) {
       setIsLoading(false);
     }
@@ -93,9 +99,11 @@ const ExploreFeed = ({navigation}: Props) => {
 
   const handleLoadMore = () => {
     if (!isLoading) {
-      if(exploreChatrooms.length % 10 === 0){
+      if (chats.length > 0 && chats.length % 10 === 0) {
+        // Alert.alert(`${page} handleLoadMore`)
+        const newPage = page + 1;
         setPage(prevPage => prevPage + 1);
-        loadData();
+        loadData(newPage);
       }
     }
   };
@@ -111,7 +119,7 @@ const ExploreFeed = ({navigation}: Props) => {
   return (
     <View style={styles.page}>
       <FlatList
-        data={exploreChatrooms}
+        data={chats}
         // data={chats}
         ListHeaderComponent={() => (
           <ExploreFeedFilters
@@ -120,7 +128,16 @@ const ExploreFeed = ({navigation}: Props) => {
               setFilterState(val);
             }}
             setIsPinned={val => {
-              setIsPinned(val);
+              if (!!val) {
+                let pinnedChats = chats.filter((item: any) =>
+                  !!item?.is_pinned ? item : null,
+                );
+                setChats(pinnedChats);
+                setIsPinned(val);
+              } else {
+                setChats(exploreChatrooms);
+                setIsPinned(val);
+              }
             }}
             isPinned={isPinned}
           />
@@ -128,12 +145,17 @@ const ExploreFeed = ({navigation}: Props) => {
         renderItem={({item}) => {
           const exploreFeedProps = {
             // title: item?.chatroom?.title!,
+            header: item?.header,
             title: item?.title!,
             avatar: item?.chatroom_image_url,
             lastMessage: item?.last_conversation?.answer_text!,
             lastMessageUser: item?.last_conversation?.member?.name!,
-            isJoined: item?.member_can_message,
+            isJoined: item?.follow_status,
             pinned: item?.is_pinned,
+            participants: item?.participants_count,
+            messageCount: item?.total_response_count,
+            external_seen: item?.external_seen,
+            isSecret: item?.is_secret,
           };
           return (
             <View>

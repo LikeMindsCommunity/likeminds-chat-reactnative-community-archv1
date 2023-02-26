@@ -1,7 +1,8 @@
-import {GET_CONVERSATIONS_SUCCESS, UPDATE_CONVERSATIONS} from '../types/types';
+import {GET_CHATROOM_SUCCESS, GET_CONVERSATIONS_SUCCESS, UPDATE_CONVERSATIONS} from '../types/types';
 
 const initialState = {
   conversations: [],
+  chatroomDetails: {} as any
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -13,9 +14,11 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case UPDATE_CONVERSATIONS: {
       const message = action.body;
-      console.log('message',message)
-      // let arr = conversations.reverse();
       return {...state, conversations: [message, ...state.conversations]};
+    }
+    case GET_CHATROOM_SUCCESS: {
+      const chatroomDetails = action.body;
+      return {...state, chatroomDetails: chatroomDetails};
     }
     default:
       return state;

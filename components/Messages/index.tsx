@@ -1,10 +1,12 @@
-import {View, Text, FlatList, Pressable} from 'react-native';
-import React from 'react';
+import {View, Text, Image, TouchableOpacity} from 'react-native';
+import React, {useState} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {decode} from '../../commonFuctions';
 import ReplyConversations from '../ReplyConversations';
 import AttachmentConversations from '../AttachmentConversations';
+import ReactionGridModal from '../ReactionGridModal';
+import { useAppSelector } from '../../store';
 
 interface Messages {
   item: any;
@@ -12,7 +14,15 @@ interface Messages {
 }
 
 const Messages = ({item, isIncluded}: Messages) => {
-  const isTypeSent = item?.member?.id === 86975 ? true : false;
+  const {user} = useAppSelector(
+    state => state.homefeed,
+  );
+  const [modalVisible, setModalVisible] = useState(false);
+  const isTypeSent = item?.member?.id === user?.id ? true : false;
+  const stateArr = [2, 3, 7, 8, 9]; //states for person left, joined, added, removed messages.
+  const isItemIncludedInStateArr = stateArr.includes(item?.state);
+  const reactionLen = item.reactions.length;
+  // const reactionLen = 8;
   return (
     <View style={styles.messageParent}>
       <View>
@@ -30,63 +40,111 @@ const Messages = ({item, isIncluded}: Messages) => {
         ) : item?.attachment_count > 0 ? (
           <AttachmentConversations item={item} isTypeSent={isTypeSent} />
         ) : (
-          <View
-            style={[
-              styles.message,
-              isTypeSent ? styles.sentMessage : styles.receivedMessage,
-              isIncluded ? {backgroundColor: '#e8f1fa'} : null,
-            ]}>
-            {!!(item?.member?.id === 86975) ? null : (
-              <Text style={styles.messageInfo}>{item?.member?.name}</Text>
+          <View>
+            {isItemIncludedInStateArr ? (
+              <View style={[styles.statusMessage]}>
+                <Text>{decode(item?.answer, true)}</Text>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.message,
+                  isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                  isIncluded ? {backgroundColor: '#e8f1fa'} : null,
+                ]}>
+                {!!(item?.member?.id === user?.id) ? null : (
+                  <Text style={styles.messageInfo} numberOfLines={1}>
+                    {item?.member?.name}
+                    {!!item?.member?.custom_title ? (
+                      <Text
+                        style={
+                          styles.messageCustomTitle
+                        }>{` • ${item?.member?.custom_title}`}</Text>
+                    ) : null}
+                  </Text>
+                )}
+                <Text>{decode(item?.answer, true)}</Text>
+                <Text style={styles.messageDate}>{item?.created_at}</Text>
+              </View>
             )}
-            <Text style={styles.messageText}>{decode(item?.answer, true)}</Text>
-            <Text style={styles.messageDate}>{item?.created_at}</Text>
           </View>
         )}
 
-        {isTypeSent ? (
-          <View
-            style={[
-              styles.typeSent,
-              isIncluded
-                ? {borderBottomColor: '#e8f1fa', borderLeftColor: '#e8f1fa'}
-                : null,
-            ]}
-          />
-        ) : (
-          <View
-            style={[
-              styles.typeReceived,
-              isIncluded
-                ? {borderBottomColor: '#e8f1fa', borderRightColor: '#e8f1fa'}
-                : null,
-            ]}
-          />
-        )}
+        {!isItemIncludedInStateArr ? (
+          <View>
+            {isTypeSent ? (
+              <View
+                style={[
+                  styles.typeSent,
+                  isIncluded
+                    ? {borderBottomColor: '#e8f1fa', borderLeftColor: '#e8f1fa'}
+                    : null,
+                ]}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.typeReceived,
+                  isIncluded
+                    ? {
+                        borderBottomColor: '#e8f1fa',
+                        borderRightColor: '#e8f1fa',
+                      }
+                    : null,
+                ]}
+              />
+            )}
+          </View>
+        ) : null}
       </View>
-      {/* {item.reactions.length > 0 && item.reactions.length < 2 ? (
-        <View>
-          <View>
-            <Text
-              style={{
-                padding: 5,
-                borderRadius: 8,
-                backgroundColor: 'white',
-              }}>{`${item?.reactions[0]?.reaction}`}</Text>
+
+      {!item?.deleted_by ? (
+        reactionLen > 0 && reactionLen <= 2 ? (
+          <View style={styles.reactionParent}>
+            {item?.reactions.map((val: any, index: any) => (
+              <TouchableOpacity
+                onPress={() => {
+                  setModalVisible(true);
+                }}
+                style={styles.reaction}
+                key={val + index}>
+                <Text>{val?.reaction}</Text>
+                <Text style={styles.messageText}>{1}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        </View>
-      ) : (
-        item.reactions.length > 1 && (
-          <View>
-            <View style={{padding: 5, borderRadius: 8}}>
-              <Text>{`${item?.reactions[0]?.reaction}`}</Text>
-            </View>
-            <View style={{padding: 5, borderRadius: 8}}>
-              <Text>{`${item?.reactions[0]?.reaction}`}</Text>
-            </View>
+        ) : reactionLen > 2 ? (
+          <View style={styles.reactionParent}>
+            <TouchableOpacity style={styles.reaction}>
+              <Text>{item?.reactions[0]?.reaction}</Text>
+              <Text style={styles.messageText}>{1}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.reaction}>
+              <Text>{item?.reactions[0]?.reaction}</Text>
+              <Text style={styles.messageText}>{1}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.moreReaction}>
+              <View>
+                <Image
+                  style={{
+                    height: 20,
+                    width: 20,
+                    resizeMode: 'contain',
+                  }}
+                  source={require('../../assets/images/more_dots3x.png')}
+                />
+              </View>
+            </TouchableOpacity>
           </View>
-        )
-      )} */}
+        ) : null
+      ) : null}
+
+      <ReactionGridModal
+        modalVisible={modalVisible}
+        setModalVisible={val => {
+          setModalVisible(val);
+        }}
+      />
     </View>
   );
 };
