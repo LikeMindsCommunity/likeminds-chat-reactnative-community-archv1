@@ -68,8 +68,12 @@ export const styles = StyleSheet.create({
     marginVertical: 10,
     paddingLeft: 0,
     height: 30,
+    // minHeight: 30,
     // maxHeight: 120,
-    width: Layout.window.width - 180,
+    // width: Layout.window.width - 180,
+    // width:'65%', // when both emoji and updload icon is there
+    width: '90%',
+    marginHorizontal: 20,
   },
   input: {
     flexGrow: 1,
@@ -77,7 +81,7 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.SECONDARY,
     maxHeight: 120,
-    padding:0,
+    padding: 0,
     overflow: 'scroll',
   },
   sendButton: {

@@ -1,4 +1,4 @@
-import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {View, Text, Image, TouchableOpacity, Linking} from 'react-native';
 import React, {useState} from 'react';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
@@ -6,22 +6,39 @@ import {decode} from '../../commonFuctions';
 interface AttachmentConversations {
   item: any;
   isTypeSent: boolean;
+  isIncluded: boolean;
 }
 
 const AttachmentConversations = ({
   item,
   isTypeSent,
+  isIncluded,
 }: AttachmentConversations) => {
   return (
     <View
       style={[
         styles.attachmentMessage,
         isTypeSent ? styles.sentMessage : styles.receivedMessage,
+        isIncluded ? {backgroundColor: '#e8f1fa'} : null,
       ]}>
       {item?.attachments[0]?.type === 'image' ? (
-        <ImageConversations item={item} isTypeSent={isTypeSent} />
+        <ImageConversations
+          isIncluded={isIncluded}
+          item={item}
+          isTypeSent={isTypeSent}
+        />
       ) : item?.attachments[0]?.type === 'pdf' ? (
-        <PDFConversations item={item} isTypeSent={isTypeSent} />
+        <PDFConversations
+          isIncluded={isIncluded}
+          item={item}
+          isTypeSent={isTypeSent}
+        />
+      ) : item?.attachments[0]?.type === 'video' ? (
+        <VideoConversations
+          isIncluded={isIncluded}
+          item={item}
+          isTypeSent={isTypeSent}
+        />
       ) : null}
 
       <View style={styles.messageText as any}>
@@ -37,9 +54,14 @@ export default AttachmentConversations;
 interface PDFConversations {
   item: any;
   isTypeSent: boolean;
+  isIncluded: boolean;
 }
 
-export const PDFConversations = ({item, isTypeSent}: PDFConversations) => {
+export const VideoConversations = ({
+  item,
+  isTypeSent,
+  isIncluded,
+}: PDFConversations) => {
   const [isFullList, setIsFullList] = useState(false);
   return (
     <View>
@@ -47,41 +69,153 @@ export const PDFConversations = ({item, isTypeSent}: PDFConversations) => {
         <View style={{gap: 2}}>
           {!isFullList ? (
             <View>
-              <View style={styles.alignRow}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!isIncluded) {
+                    Linking.openURL(item?.attachments[0]?.url);
+                  }
+                }}
+                style={styles.alignRow}>
+                <Image
+                  source={require('../../assets/images/play_video.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.docName}>{item?.attachments[0]?.name}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!isIncluded) {
+                    Linking.openURL(item?.attachments[1]?.url);
+                  }
+                }}
+                style={styles.alignRow}>
+                <Image
+                  source={require('../../assets/images/play_video.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.docName}>{item?.attachments[1]?.name}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            item?.attachments.map((val: any, index: number) => (
+              <TouchableOpacity
+                onPress={() => {
+                  if (!isIncluded) {
+                    Linking.openURL(val?.url);
+                  }
+                }}
+                key={val + index}
+                style={styles.alignRow}>
+                <Image
+                  source={require('../../assets/images/play_video.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.docName}>{val?.name}</Text>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
+      ) : (
+        <TouchableOpacity
+          onPress={() => {
+            if (!isIncluded) {
+              Linking.openURL(item?.attachments[0]?.url);
+            }
+          }}
+          style={styles.alignRow}>
+          <Image
+            source={require('../../assets/images/play_video.png')}
+            style={styles.icon}
+          />
+          <Text style={styles.docName}>{item?.attachments[0]?.name}</Text>
+        </TouchableOpacity>
+      )}
+      {item.attachment_count > 2 && !isFullList && (
+        <TouchableOpacity
+          onPress={() => {
+            setIsFullList(true);
+          }}>
+          <Text style={styles.fullListCount}>{`+${
+            item.attachment_count - 2
+          } more`}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+export const PDFConversations = ({
+  item,
+  isTypeSent,
+  isIncluded,
+}: PDFConversations) => {
+  const [isFullList, setIsFullList] = useState(false);
+  return (
+    <View>
+      {item?.attachment_count > 1 ? (
+        <View style={{gap: 2}}>
+          {!isFullList ? (
+            <View>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!isIncluded) {
+                    Linking.openURL(item?.attachments[0]?.url);
+                  }
+                }}
+                style={styles.alignRow}>
                 <Image
                   source={require('../../assets/images/pdf_icon3x.png')}
                   style={styles.icon}
                 />
                 <Text style={styles.docName}>{item?.attachments[0]?.name}</Text>
-              </View>
-              <View style={styles.alignRow}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!isIncluded) {
+                    Linking.openURL(item?.attachments[1]?.url);
+                  }
+                }}
+                style={styles.alignRow}>
                 <Image
                   source={require('../../assets/images/pdf_icon3x.png')}
                   style={styles.icon}
                 />
                 <Text style={styles.docName}>{item?.attachments[1]?.name}</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           ) : (
             item?.attachments.map((val: any, index: number) => (
-              <View key={val + index} style={styles.alignRow}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!isIncluded) {
+                    Linking.openURL(val?.url);
+                  }
+                }}
+                key={val + index}
+                style={styles.alignRow}>
                 <Image
                   source={require('../../assets/images/pdf_icon3x.png')}
                   style={styles.icon}
                 />
                 <Text style={styles.docName}>{val?.name}</Text>
-              </View>
+              </TouchableOpacity>
             ))
           )}
         </View>
       ) : (
-        <View style={styles.alignRow}>
+        <TouchableOpacity
+          onPress={() => {
+            if (!isIncluded) {
+              Linking.openURL(item?.attachments[0]?.url);
+            }
+          }}
+          style={styles.alignRow}>
           <Image
             source={require('../../assets/images/pdf_icon3x.png')}
             style={styles.icon}
           />
           <Text style={styles.docName}>{item?.attachments[0]?.name}</Text>
-        </View>
+        </TouchableOpacity>
       )}
       {item.attachment_count > 2 && !isFullList && (
         <TouchableOpacity
@@ -100,19 +234,29 @@ export const PDFConversations = ({item, isTypeSent}: PDFConversations) => {
 interface ImageConversations {
   item: any;
   isTypeSent: boolean;
+  isIncluded: boolean;
 }
 
-export const ImageConversations = ({item, isTypeSent}: ImageConversations) => {
+export const ImageConversations = ({
+  item,
+  isTypeSent,
+  isIncluded,
+}: ImageConversations) => {
   const [isFullList, setIsFullList] = useState(false);
   return (
     <View>
       {item?.attachment_count === 1 ? (
-        <View>
+        <TouchableOpacity
+          onPress={() => {
+            if (isIncluded) {
+              Linking.openURL(item?.attachments[0]?.url);
+            }
+          }}>
           <Image
             style={styles.singleImg}
             source={{uri: item.attachments[0].url}}
           />
-        </View>
+        </TouchableOpacity>
       ) : item?.attachment_count === 2 ? (
         <View style={styles.doubleImgParent}>
           <Image
@@ -167,6 +311,7 @@ export const ImageConversations = ({item, isTypeSent}: ImageConversations) => {
           </View>
         </View>
       ) : null}
+      {isIncluded && <View style={{position:'absolute', height:150, width:'100%', backgroundColor:'#e8f1fa', opacity:0.5}} />}
     </View>
   );
 };

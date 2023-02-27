@@ -6,11 +6,15 @@ import MyTabs from '../TopTabNavigator';
 interface ReactionGridModal {
   modalVisible: boolean;
   setModalVisible: (val: any) => void;
+  reactionArr: any;
+  defaultReactionArr: any;
 }
 
 const ReactionGridModal = ({
   modalVisible,
   setModalVisible,
+  reactionArr,
+  defaultReactionArr
 }: ReactionGridModal) => {
   const handleModalClose = () => {
     setModalVisible(false);
@@ -33,7 +37,7 @@ const ReactionGridModal = ({
               <Text style={styles.text}>
                 Reactions
               </Text>
-              <MyTabs />
+              <MyTabs defaultReactionArr={defaultReactionArr} reactionArr={reactionArr} />
             </View>
             
           </Pressable>

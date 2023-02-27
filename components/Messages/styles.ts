@@ -102,10 +102,19 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     fontStyle: 'italic',
   },
-  reactionParent: {
+  reactionReceivedParent: {
     display: 'flex',
     flexDirection: 'row',
     alignSelf: 'flex-start',
+    alignItems: 'center',
+    justifyContent:'center',
+    marginTop: 5,
+    gap: 5,
+  },
+  reactionSentParent: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignSelf: 'flex-end',
     alignItems: 'center',
     justifyContent:'center',
     marginTop: 5,

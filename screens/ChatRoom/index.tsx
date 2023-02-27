@@ -1,3 +1,4 @@
+import {CommonActions} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {
   View,
@@ -17,11 +18,11 @@ import {myClient} from '../..';
 import {conversationData} from '../../assets/dummyResponse/conversationData';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
+import ToastMessage from '../../components/ToastMessage';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {getChatroom, getConversations} from '../../store/actions/chatroom';
 import {styles} from './styles';
-import {onValue, ref} from 'firebase/database'
 // import database from '@react-native-firebase/database';
 
 // let itemsRef = database().ref('/items');
@@ -44,16 +45,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [isReply, setIsReply] = useState(false);
   const [replyChatID, setReplyChatID] = useState<number>();
   const [isLongPress, setIsLongPress] = useState(false);
-  const [selectedMessages, setSelectedMessages] = useState<Array<number>>([]);
+  const [selectedMessages, setSelectedMessages] = useState<any>([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const db = myClient.fbInstance()
+  const [isToast, setIsToast] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [apiRes, setApiRes] = useState();
+
   const {chatroomID} = route.params;
   const dispatch = useAppDispatch();
   const {conversations = [], chatroomDetails} = useAppSelector(
     state => state.chatroom,
   );
+
+  const {user, community} = useAppSelector(state => state.homefeed);
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -158,6 +164,27 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               />
             </TouchableOpacity>
 
+            {len === 1 &&
+              (selectedMessages[0]?.member?.id === user?.id ||
+                chatroomDetails?.chatroom?.member?.state === 1) && (
+                <TouchableOpacity
+                  onPress={async () => {
+                    const res = await myClient.deleteMsg({
+                      conversation_ids: [selectedMessages[0]?.id],
+                      reason: 'none',
+                    });
+                    if (!!res) {
+                      setSelectedMessages([]);
+                      setIsLongPress(false);
+                      setInitialHeader();
+                    }
+                  }}>
+                  <Image
+                    source={require('../../assets/images/delete_icon3x.png')}
+                    style={styles.threeDots}
+                  />
+                </TouchableOpacity>
+              )}
             {len === 1 && (
               <TouchableOpacity>
                 <Image
@@ -175,7 +202,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchChatroomDetails() {
     let payload = {chatroom_id: chatroomID};
     let response = await dispatch(getChatroom(payload) as any);
-    console.log('getChatroom ==', response);
     return response;
   }
 
@@ -184,7 +210,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     // await myClient.markReadFn({chatroom_id: chatroomID});
     let payload = {chatroomID: chatroomID, page: 100 * page};
     let response = await dispatch(getConversations(payload, true) as any);
-    console.log('getConversations ==', response);
     return response;
   }
 
@@ -215,16 +240,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       setSelectedHeader();
     }
   }, [isLongPress, selectedMessages]);
-
-  useEffect(()=>{
-    const query = ref(db, '/collabcards/'+chatroomID)
-    return onValue(query, (snapshot)=>{
-      if(snapshot.exists()){
-        console.log("the snapshot is", snapshot.val())
-        fetchData()
-      }
-    })
-  },[])
 
   const loadData = async (newPage: number) => {
     setIsLoading(true);
@@ -261,6 +276,69 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setModalVisible(false);
   };
 
+  const leaveChatroom = async () => {
+    const payload = {
+      collabcard_id: chatroomID,
+      member_id: user?.id,
+      value: true,
+    };
+    const res = await myClient
+      .leaveChatroom(payload)
+      .then(() => {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{name: 'HomeFeed'}],
+          }),
+        );
+      })
+      .catch(() => {
+        Alert.alert('Mute Notification failed');
+      });
+
+    return res;
+  };
+
+  const muteNotifications = async () => {
+    const payload = {
+      chatroom_id: chatroomID,
+      value: true,
+    };
+    myClient
+      .muteNotification(payload)
+      .then(() => {
+        fetchChatroomDetails();
+        setMsg('Notifications muted for this chatroom');
+        setIsToast(true);
+      })
+      .catch(() => {
+        Alert.alert('Mute Notification failed');
+      });
+  };
+
+  const unmuteNotifications = async () => {
+    const payload = {
+      chatroom_id: chatroomID,
+      value: false,
+    };
+    const res = await myClient
+      .muteNotification(payload)
+      .then(() => {
+        fetchChatroomDetails();
+        setMsg('Notifications unmuted for this chatroom');
+        setIsToast(true);
+      })
+      .catch(() => {
+        Alert.alert('Unmute Notification failed');
+      });
+  };
+
+  // const getItemLayout = (data: any, index: any) => ({
+  //   length: 50,
+  //   offset: 50 * index,
+  //   index,
+  // });
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -268,33 +346,36 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         // data={messages}
         data={conversations}
         // initialScrollIndex={
-        //   conversations.length > 0 ? conversations.length - 1 : 60
+        //   conversations.length > 0 ? conversations.length - 1 : 0
         // }
+        // getItemLayout={getItemLayout}
         keyExtractor={item => item?.id.toString()}
         renderItem={({item}) => {
-          let isIncluded = selectedMessages.includes(item?.id);
+          let isIncluded = selectedMessages.some(
+            (val: any) => val?.id === item?.id,
+          );
           return (
             <Pressable
               onLongPress={() => {
                 setIsLongPress(true);
                 if (isIncluded) {
                   const filterdMessages = selectedMessages.filter(
-                    val => val !== item?.id,
+                    (val: any) => val?.id !== item?.id,
                   );
                   setSelectedMessages([...filterdMessages]);
                 } else {
-                  setSelectedMessages([...selectedMessages, item?.id]);
+                  setSelectedMessages([...selectedMessages, item]);
                 }
               }}
               onPress={() => {
                 if (isLongPress) {
                   if (isIncluded) {
                     const filterdMessages = selectedMessages.filter(
-                      val => val !== item?.id,
+                      (val: any) => val?.id !== item?.id,
                     );
                     setSelectedMessages([...filterdMessages]);
                   } else {
-                    setSelectedMessages([...selectedMessages, item?.id]);
+                    setSelectedMessages([...selectedMessages, item]);
                   }
                 }
               }}
@@ -331,22 +412,46 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         <Pressable style={styles.centeredView} onPress={handleModalClose}>
           <View>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
-              {chatroomDetails?.chatroom_actions?.map((val: any, index: any) => {
-                return (
-                  <TouchableOpacity
-                    onPress={() => {
-                      // setFilterState(index);
-                    }}
-                    key={val + index}
-                    style={styles.filtersView}>
-                    <Text style={styles.filterText}>{val?.title}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+              {chatroomDetails?.chatroom_actions?.map(
+                (val: any, index: any) => {
+                  return (
+                    <TouchableOpacity
+                      onPress={async () => {
+                        // if(val?.id === 2){
+                        //   navigation.navigate('ViewParticipants')
+                        //   setModalVisible(false)
+                        // }
+                        if (val?.id === 9) {
+                          leaveChatroom();
+                          setModalVisible(false);
+                        } else if (val?.id === 6) {
+                          await muteNotifications();
+
+                          setModalVisible(false);
+                        } else if (val?.id === 8) {
+                          await unmuteNotifications();
+                          setModalVisible(false);
+                        }
+                      }}
+                      key={val + index}
+                      style={styles.filtersView}>
+                      <Text style={styles.filterText}>{val?.title}</Text>
+                    </TouchableOpacity>
+                  );
+                },
+              )}
             </Pressable>
           </View>
         </Pressable>
       </Modal>
+
+      <ToastMessage
+        message={msg}
+        isToast={isToast}
+        onDismiss={() => {
+          setIsToast(false);
+        }}
+      />
     </View>
   );
 };

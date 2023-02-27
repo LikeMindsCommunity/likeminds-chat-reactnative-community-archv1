@@ -42,7 +42,6 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
     let time = new Date(Date.now());
     let hr = time.getHours();
     let min = time.getMinutes();
-    console.log(`${hr}:${min}`);
     if (!!message.trim()) {
       dispatch({
         type: UPDATE_CONVERSATIONS,
@@ -93,14 +92,14 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
           },
         ]}>
         <View style={styles.textInput}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.emojiButton}
             onPress={() => setShowEmoji(!showEmoji)}>
             <Image
               source={require('../../assets/images/smile_emoji3x.png')}
               style={styles.emoji}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <View style={[styles.inputParent]}>
             <TextInput
               value={message}
@@ -124,14 +123,14 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
               placeholderTextColor="#aaa"
             />
           </View>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.emojiButton}
             onPress={() => setModalVisible(true)}>
             <Image
               source={require('../../assets/images/open_files3x.png')}
               style={styles.emoji}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <TouchableOpacity onPressOut={onSend} style={styles.sendButton}>
           <Image

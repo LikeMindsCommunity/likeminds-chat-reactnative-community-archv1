@@ -6,7 +6,7 @@ import {decode} from '../../commonFuctions';
 import ReplyConversations from '../ReplyConversations';
 import AttachmentConversations from '../AttachmentConversations';
 import ReactionGridModal from '../ReactionGridModal';
-import { useAppSelector } from '../../store';
+import {useAppSelector} from '../../store';
 
 interface Messages {
   item: any;
@@ -14,14 +14,38 @@ interface Messages {
 }
 
 const Messages = ({item, isIncluded}: Messages) => {
-  const {user} = useAppSelector(
-    state => state.homefeed,
-  );
+  const {user} = useAppSelector(state => state.homefeed);
   const [modalVisible, setModalVisible] = useState(false);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
   const stateArr = [2, 3, 7, 8, 9]; //states for person left, joined, added, removed messages.
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
-  const reactionLen = item.reactions.length;
+
+  let reactionArr: any = [];
+  let defaultReactionArrLen = item?.reactions?.length;
+  for (let i = 0; i < defaultReactionArrLen; i++) {
+    if (defaultReactionArrLen > 0) {
+      let isIncuded = reactionArr.some(
+        (val: any) => val['reaction'] === item?.reactions[i]?.reaction,
+      );
+      if (isIncuded) {
+        let index = reactionArr.findIndex(
+          (val: any) => val['reaction'] === item?.reactions[i]?.reaction,
+        );
+        reactionArr[index].memberArr = [
+          ...reactionArr[index]?.memberArr,
+          item?.reactions[i]?.member,
+        ];
+      } else {
+        let obj = {
+          reaction: item?.reactions[i]?.reaction,
+          memberArr: [item?.reactions[i]?.member],
+        };
+        reactionArr = [...reactionArr, obj];
+      }
+    }
+  }
+
+  const reactionLen = reactionArr.length;
   // const reactionLen = 8;
   return (
     <View style={styles.messageParent}>
@@ -31,14 +55,22 @@ const Messages = ({item, isIncluded}: Messages) => {
             style={[
               styles.message,
               isTypeSent ? styles.sentMessage : styles.receivedMessage,
-              // isIncluded ? {backgroundColor: 'blue'} : {backgroundColor: 'red'},
+              isIncluded ? {backgroundColor: '#e8f1fa'} : null,
             ]}>
             <Text style={styles.deletedMsg}>This message has been deleted</Text>
           </View>
         ) : !!item?.reply_conversation_object ? (
-          <ReplyConversations item={item} isTypeSent={isTypeSent} />
+          <ReplyConversations
+            isIncluded={isIncluded}
+            item={item}
+            isTypeSent={isTypeSent}
+          />
         ) : item?.attachment_count > 0 ? (
-          <AttachmentConversations item={item} isTypeSent={isTypeSent} />
+          <AttachmentConversations
+            isIncluded={isIncluded}
+            item={item}
+            isTypeSent={isTypeSent}
+          />
         ) : (
           <View>
             {isItemIncludedInStateArr ? (
@@ -100,8 +132,13 @@ const Messages = ({item, isIncluded}: Messages) => {
 
       {!item?.deleted_by ? (
         reactionLen > 0 && reactionLen <= 2 ? (
-          <View style={styles.reactionParent}>
-            {item?.reactions.map((val: any, index: any) => (
+          <View
+            style={
+              isTypeSent
+                ? styles.reactionSentParent
+                : styles.reactionReceivedParent
+            }>
+            {reactionArr.map((val: any, index: any) => (
               <TouchableOpacity
                 onPress={() => {
                   setModalVisible(true);
@@ -109,19 +146,36 @@ const Messages = ({item, isIncluded}: Messages) => {
                 style={styles.reaction}
                 key={val + index}>
                 <Text>{val?.reaction}</Text>
-                <Text style={styles.messageText}>{1}</Text>
+                <Text style={styles.messageText}>{val?.memberArr?.length}</Text>
               </TouchableOpacity>
             ))}
           </View>
         ) : reactionLen > 2 ? (
-          <View style={styles.reactionParent}>
-            <TouchableOpacity style={styles.reaction}>
-              <Text>{item?.reactions[0]?.reaction}</Text>
-              <Text style={styles.messageText}>{1}</Text>
+          <View
+            style={
+              isTypeSent
+                ? styles.reactionSentParent
+                : styles.reactionReceivedParent
+            }>
+            <TouchableOpacity
+              onPress={() => {
+                setModalVisible(true);
+              }}
+              style={styles.reaction}>
+              <Text>{reactionArr[0]?.reaction}</Text>
+              <Text style={styles.messageText}>
+                {reactionArr[0]?.memberArr?.length}
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.reaction}>
-              <Text>{item?.reactions[0]?.reaction}</Text>
-              <Text style={styles.messageText}>{1}</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setModalVisible(true);
+              }}
+              style={styles.reaction}>
+              <Text>{reactionArr[1]?.reaction}</Text>
+              <Text style={styles.messageText}>
+                {reactionArr[1]?.memberArr?.length}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.moreReaction}>
               <View>
@@ -140,6 +194,8 @@ const Messages = ({item, isIncluded}: Messages) => {
       ) : null}
 
       <ReactionGridModal
+        defaultReactionArr={item?.reactions}
+        reactionArr={reactionArr}
         modalVisible={modalVisible}
         setModalVisible={val => {
           setModalVisible(val);

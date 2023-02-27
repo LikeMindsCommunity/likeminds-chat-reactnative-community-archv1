@@ -3,22 +3,26 @@ import React from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
+import { useAppSelector } from '../../store';
 
 interface ReplyConversations {
   item: any;
   isTypeSent: boolean;
+  isIncluded: boolean;
 }
 
 interface ReplyBox {
   item: any;
+  isIncluded: boolean;
 }
 
-export const ReplyBox = ({item}: ReplyBox) => {
+export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
+  const {user} = useAppSelector(state=>state.homefeed)
   return (
     <View style={styles.replyBox}>
       <View>
         <Text style={styles.replySender}>
-          {item?.member?.id === 86986 ? 'You' : item?.member?.name}
+          {item?.member?.id === user?.id ? 'You' : item?.member?.name}
         </Text>
       </View>
       <View style={styles.alignRow}>
@@ -59,14 +63,19 @@ export const ReplyBox = ({item}: ReplyBox) => {
   );
 };
 
-const ReplyConversations = ({item, isTypeSent}: ReplyConversations) => {
+const ReplyConversations = ({
+  isIncluded,
+  item,
+  isTypeSent,
+}: ReplyConversations) => {
   return (
     <View
       style={[
         styles.replyMessage,
         isTypeSent ? styles.sentMessage : styles.receivedMessage,
+        isIncluded ? {backgroundColor: '#e8f1fa'} : null,
       ]}>
-      <ReplyBox item={item?.reply_conversation_object} />
+      <ReplyBox isIncluded={isIncluded} item={item?.reply_conversation_object} />
 
       <View style={styles.messageText as any}>
         {decode(item?.answer, true)}
