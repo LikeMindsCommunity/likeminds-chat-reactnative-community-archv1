@@ -21,6 +21,7 @@ import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {getChatroom, getConversations} from '../../store/actions/chatroom';
 import {styles} from './styles';
+import {onValue, ref} from 'firebase/database'
 // import database from '@react-native-firebase/database';
 
 // let itemsRef = database().ref('/items');
@@ -47,7 +48,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-
+  const db = myClient.fbInstance()
   const {chatroomID} = route.params;
   const dispatch = useAppDispatch();
   const {conversations = [], chatroomDetails} = useAppSelector(
@@ -214,6 +215,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       setSelectedHeader();
     }
   }, [isLongPress, selectedMessages]);
+
+  useEffect(()=>{
+    const query = ref(db, '/collabcards/'+chatroomID)
+    return onValue(query, (snapshot)=>{
+      if(snapshot.exists()){
+        console.log("the snapshot is", snapshot.val())
+        fetchData()
+      }
+    })
+  },[])
 
   const loadData = async (newPage: number) => {
     setIsLoading(true);
