@@ -12,9 +12,15 @@ interface Messages {
   item: any;
   isIncluded: boolean;
   onScrollToIndex: any;
+  navigation: any;
 }
 
-const Messages = ({item, isIncluded, onScrollToIndex}: Messages) => {
+const Messages = ({
+  item,
+  isIncluded,
+  onScrollToIndex,
+  navigation,
+}: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
   const [modalVisible, setModalVisible] = useState(false);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
@@ -71,6 +77,7 @@ const Messages = ({item, isIncluded, onScrollToIndex}: Messages) => {
           />
         ) : item?.attachment_count > 0 ? (
           <AttachmentConversations
+            navigation={navigation}
             isIncluded={isIncluded}
             item={item}
             isTypeSent={isTypeSent}

@@ -1,6 +1,9 @@
 import React, {useState} from 'react';
-import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {View, Text, Image, TouchableOpacity, Alert} from 'react-native';
+import {myClient} from '../..';
 import STYLES from '../../constants/Styles';
+import {useAppDispatch, useAppSelector} from '../../store';
+import {getExploreFeedData} from '../../store/actions/explorefeed';
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 
@@ -14,7 +17,9 @@ interface Props {
   participants: number;
   messageCount: number;
   external_seen: number;
-  isSecret: boolean
+  isSecret: boolean;
+  chatroomID: number;
+  filterState: any;
 }
 
 const ExploreFeedItem: React.FC<Props> = ({
@@ -27,10 +32,45 @@ const ExploreFeedItem: React.FC<Props> = ({
   participants,
   messageCount,
   external_seen,
-  isSecret
+  isSecret,
+  chatroomID,
+  filterState,
 }) => {
   const [isToast, setIsToast] = useState(false);
   const [msg, setMsg] = useState('');
+  const {user, community} = useAppSelector(state => state.homefeed);
+
+  const dispatch = useAppDispatch();
+
+  const leaveChatroom = async (val: boolean) => {
+    const payload = {
+      collabcard_id: chatroomID,
+      member_id: user?.id,
+      value: val,
+    };
+    const res = await myClient
+      .leaveChatroom(payload)
+      .then(async () => {
+        let payload = {
+          community_id: community?.id,
+          order_type: filterState,
+          page: 1,
+        };
+        if (val) {
+          setMsg('Joined successfully');
+          setIsToast(true);
+        } else {
+          setMsg('Leaved chatroom successfully');
+          setIsToast(true);
+        }
+        await dispatch(getExploreFeedData(payload) as any);
+      })
+      .catch(() => {
+        // Alert.alert('Leave Chatroom failed');
+      });
+
+    return res;
+  };
   return (
     <View style={styles.itemContainer}>
       <View>
@@ -51,7 +91,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           </View>
         )}
 
-        {(external_seen && !pinned) && (
+        {external_seen && !pinned && (
           <View style={styles.newBadge}>
             <Text style={styles.newBadgeText}>New</Text>
           </View>
@@ -65,11 +105,11 @@ const ExploreFeedItem: React.FC<Props> = ({
               <Text style={styles.title} numberOfLines={1}>
                 {header}
                 {isSecret ? (
-              <Image
-                source={require('../../assets/images/lock_icon3x.png')}
-                style={styles.lockIcon}
-              />
-            ) : null}
+                  <Image
+                    source={require('../../assets/images/lock_icon3x.png')}
+                    style={styles.lockIcon}
+                  />
+                ) : null}
               </Text>
             </View>
             <View style={styles.info}>
@@ -93,8 +133,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           {!isJoined ? (
             <TouchableOpacity
               onPress={() => {
-                setMsg('Joined successfully');
-                setIsToast(true);
+                leaveChatroom(true);
               }}
               style={styles.joinBtnContainer}>
               <Image
@@ -106,8 +145,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           ) : (
             <TouchableOpacity
               onPress={() => {
-                setMsg('Leaved chatroom successfully');
-                setIsToast(true);
+                leaveChatroom(false);
               }}
               style={styles.joinedBtnContainer}>
               <Image

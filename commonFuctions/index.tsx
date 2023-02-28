@@ -1,4 +1,4 @@
-import {Text} from 'react-native';
+import {Linking, Text} from 'react-native';
 import STYLES from '../constants/Styles';
 
 // const REGEX_USER_SPLITTING =
@@ -45,6 +45,7 @@ function detectLinks(message: string) {
             {regex.test(val) ? (
               <Text
                 onPress={() => {
+                  Linking.openURL(val)
                   // Alert.alert('hello');
                 }}>
                 <Text

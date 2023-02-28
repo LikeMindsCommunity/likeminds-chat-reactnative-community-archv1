@@ -156,6 +156,8 @@ const ExploreFeed = ({navigation}: Props) => {
             messageCount: item?.total_response_count,
             external_seen: item?.external_seen,
             isSecret: item?.is_secret,
+            chatroomID: item?.id,
+            filterState: filterState,
           };
           return (
             <View>

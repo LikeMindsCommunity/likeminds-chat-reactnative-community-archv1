@@ -40,7 +40,11 @@ const HomeFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [communityId, setCommunityId] = useState('');
   const dispatch = useAppDispatch();
-  const myChatrooms = useAppSelector(state => state.homefeed.myChatrooms);
+  const {
+    myChatrooms,
+    unseenCount,
+    totalCount,
+  } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient.fbInstance();
   const setOptions = () => {
@@ -172,7 +176,11 @@ const HomeFeed = ({navigation}: Props) => {
           data={myChatrooms}
           // data={chats}
           ListHeaderComponent={() => (
-            <HomeFeedExplore newCount={5} navigation={navigation} />
+            <HomeFeedExplore
+              newCount={unseenCount}
+              totalCount={totalCount}
+              navigation={navigation}
+            />
           )}
           renderItem={({item}: any) => {
             const homeFeedProps = {

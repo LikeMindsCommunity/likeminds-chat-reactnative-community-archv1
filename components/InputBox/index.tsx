@@ -104,7 +104,7 @@ const InputBox = ({
               : 5,
           },
         ]}>
-        <View style={styles.replyBoxParent}>
+        <View style={isReply ? styles.replyBoxParent : null}>
           {isReply && (
             <View style={styles.replyBox}>
               <ReplyBox isIncluded={false} item={replyMessage} />

@@ -8,12 +8,14 @@ interface AttachmentConversations {
   item: any;
   isTypeSent: boolean;
   isIncluded: boolean;
+  navigation: any;
 }
 
 const AttachmentConversations = ({
   item,
   isTypeSent,
   isIncluded,
+  navigation,
 }: AttachmentConversations) => {
   return (
     <View
@@ -27,6 +29,7 @@ const AttachmentConversations = ({
           isIncluded={isIncluded}
           item={item}
           isTypeSent={isTypeSent}
+          navigation={navigation}
         />
       ) : item?.attachments[0]?.type === 'pdf' ? (
         <PDFConversations
@@ -236,12 +239,14 @@ interface ImageConversations {
   item: any;
   isTypeSent: boolean;
   isIncluded: boolean;
+  navigation: any;
 }
 
 export const ImageConversations = ({
   item,
   isTypeSent,
   isIncluded,
+  navigation,
 }: ImageConversations) => {
   const [isFullList, setIsFullList] = useState(false);
   return (
@@ -270,7 +275,13 @@ export const ImageConversations = ({
           />
         </View>
       ) : item?.attachment_count === 3 ? (
-        <View style={styles.doubleImgParent}>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.navigate('ImageScreen', {
+              attachments: item?.attachments,
+            });
+          }}
+          style={styles.doubleImgParent}>
           <Image
             source={{uri: item.attachments[0].url}}
             style={styles.doubleImg}
@@ -282,9 +293,14 @@ export const ImageConversations = ({
           <View style={styles.tripleImgOverlay}>
             <Text style={styles.tripleImgText}>+2</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       ) : item?.attachment_count > 3 ? (
-        <View>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.navigate('ImageScreen', {
+              attachments: item?.attachments,
+            });
+          }}>
           <View style={styles.doubleImgParent}>
             <Image
               source={{uri: item.attachments[0].url}}
@@ -310,7 +326,7 @@ export const ImageConversations = ({
               }`}</Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       ) : null}
       {isIncluded && (
         <View

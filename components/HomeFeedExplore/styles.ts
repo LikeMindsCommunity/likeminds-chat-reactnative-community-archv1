@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
   },
   newCount: {
     color: STYLES.$COLORS.TERTIARY,
-    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontSize: STYLES.$FONT_SIZES.XS,
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
     // padding: 5,
   },
