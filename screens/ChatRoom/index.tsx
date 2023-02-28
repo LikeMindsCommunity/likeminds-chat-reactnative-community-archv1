@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import {myClient} from '../..';
 import {conversationData} from '../../assets/dummyResponse/conversationData';
+import {copySelectedMessages} from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
 import ToastMessage from '../../components/ToastMessage';
@@ -23,9 +24,7 @@ import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {getChatroom, getConversations} from '../../store/actions/chatroom';
 import {styles} from './styles';
-// import database from '@react-native-firebase/database';
-
-// let itemsRef = database().ref('/items');
+import Clipboard from '@react-native-clipboard/clipboard';
 
 interface Data {
   id: string;
@@ -157,7 +156,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                const output = copySelectedMessages(selectedMessages);
+                Clipboard.setString(output);
+                setSelectedMessages([]);
+                setIsLongPress(false);
+                setInitialHeader();
+              }}>
               <Image
                 source={require('../../assets/images/copy_icon3x.png')}
                 style={styles.threeDots}
@@ -169,15 +175,19 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 chatroomDetails?.chatroom?.member?.state === 1) && (
                 <TouchableOpacity
                   onPress={async () => {
-                    const res = await myClient.deleteMsg({
-                      conversation_ids: [selectedMessages[0]?.id],
-                      reason: 'none',
-                    });
-                    if (!!res) {
-                      setSelectedMessages([]);
-                      setIsLongPress(false);
-                      setInitialHeader();
-                    }
+                    const res = await myClient
+                      .deleteMsg({
+                        conversation_ids: [selectedMessages[0]?.id],
+                        reason: 'none',
+                      })
+                      .then(() => {
+                        setSelectedMessages([]);
+                        setIsLongPress(false);
+                        setInitialHeader();
+                      })
+                      .catch(() => {
+                        Alert.alert('Delete message failed');
+                      });
                   }}>
                   <Image
                     source={require('../../assets/images/delete_icon3x.png')}
@@ -293,7 +303,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         );
       })
       .catch(() => {
-        Alert.alert('Mute Notification failed');
+        Alert.alert('Leave Chatroom failed');
       });
 
     return res;
@@ -350,7 +360,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         // }
         // getItemLayout={getItemLayout}
         keyExtractor={item => item?.id.toString()}
-        renderItem={({item}) => {
+        renderItem={({item, index}) => {
           let isIncluded = selectedMessages.some(
             (val: any) => val?.id === item?.id,
           );
@@ -380,6 +390,19 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 }
               }}
               style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
+              {index < conversations.length &&
+              conversations[index]?.date !== conversations[index + 1]?.date ? (
+                <View style={[styles.statusMessage]}>
+                  <Text
+                    style={{
+                      color: STYLES.$COLORS.PRIMARY,
+                      fontSize: STYLES.$FONT_SIZES.SMALL,
+                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                    }}>
+                    {item?.date}
+                  </Text>
+                </View>
+              ) : null}
               <Messages isIncluded={isIncluded} item={item} />
             </Pressable>
           );

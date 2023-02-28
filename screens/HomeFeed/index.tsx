@@ -17,7 +17,7 @@ import {getNameInitials} from '../../commonFuctions';
 import HomeFeedExplore from '../../components/HomeFeedExplore';
 import HomeFeedItem from '../../components/HomeFeedItem';
 import STYLES from '../../constants/Styles';
-import { onValue, ref} from '@firebase/database';
+import {onValue, ref} from '@firebase/database';
 // import { app, firebase } from '../../firebase';
 // import { getDatabase, onValue, ref } from "firebase/database";
 import useAPI from '../../hooks/useAPI';
@@ -38,11 +38,11 @@ const HomeFeed = ({navigation}: Props) => {
   const [chats, setChats] = useState(dummyData.my_chatrooms);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [communityId, setCommunityId] = useState("")
+  const [communityId, setCommunityId] = useState('');
   const dispatch = useAppDispatch();
   const myChatrooms = useAppSelector(state => state.homefeed.myChatrooms);
   const user = useAppSelector(state => state.homefeed.user);
-  const db = myClient.fbInstance()
+  const db = myClient.fbInstance();
   const setOptions = () => {
     navigation.setOptions({
       title: '',
@@ -100,12 +100,11 @@ const HomeFeed = ({navigation}: Props) => {
     let res = await dispatch(initAPI(payload) as any);
     if (!!res) {
       // console.log("the response for init ", res.community.id)
-      setCommunityId(res.community.id) 
+      setCommunityId(res.community.id);
       let payload = {
         page: 1,
       };
       let response = await dispatch(getHomeFeedData(payload) as any);
-    
     }
 
     return res;
@@ -159,15 +158,15 @@ const HomeFeed = ({navigation}: Props) => {
     ) : null;
   };
 
-  useEffect(()=>{
-    const query = ref(db, `community/${communityId}`)
-    return onValue(query, (snapshot)=>{
-      if(snapshot.exists()){
-        console.log("the snapshot is", snapshot.val())
-        dispatch(getHomeFeedData({page: 1}) as any)
+  useEffect(() => {
+    const query = ref(db, `community/${communityId}`);
+    return onValue(query, snapshot => {
+      if (snapshot.exists()) {
+        console.log('the snapshot is', snapshot.val());
+        dispatch(getHomeFeedData({page: 1}) as any);
       }
-    })
-  },[])
+    });
+  }, []);
   return (
     <View style={styles.page}>
       {chats?.length > 0 && (

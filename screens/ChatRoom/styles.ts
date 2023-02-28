@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
   },
-  disabledInput:{
+  disabledInput: {
     marginVertical: 20,
     marginHorizontal: 10,
     height: 50,
@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: STYLES.$COLORS.JOINED_BTN,
     borderRadius: 25,
-    justifyContent:'center',
+    justifyContent: 'center',
     borderColor: STYLES.$COLORS.MSG,
     borderWidth: 1,
   },
@@ -112,5 +112,12 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.LARGE,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
+  },
+  statusMessage: {
+    padding: 10,
+    maxWidth: '80%',
+    alignSelf: 'center',
+    borderRadius: 15,
+    backgroundColor: STYLES.$COLORS.JOINED_BTN,
   },
 });

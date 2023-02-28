@@ -67,7 +67,7 @@ export const styles = StyleSheet.create({
     // flexGrow: 1,
     marginVertical: 10,
     paddingLeft: 0,
-    height: 30,
+    // height: 30,
     // minHeight: 30,
     // maxHeight: 120,
     // width: Layout.window.width - 180,

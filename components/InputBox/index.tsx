@@ -43,21 +43,21 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
     let hr = time.getHours();
     let min = time.getMinutes();
     if (!!message.trim()) {
-      dispatch({
-        type: UPDATE_CONVERSATIONS,
-        body: {
-          member: {id: 86975, name: 'Jai'},
-          answer: message,
-          created_at: `${hr.toLocaleString('en-US', {
-            minimumIntegerDigits: 2,
-            useGrouping: false,
-          })}:${min.toLocaleString('en-US', {
-            minimumIntegerDigits: 2,
-            useGrouping: false,
-          })}`,
-          id: 11111,
-        },
-      });
+      // dispatch({
+      //   type: UPDATE_CONVERSATIONS,
+      //   body: {
+      //     member: {id: 86975, name: 'Jai'},
+      //     answer: message,
+      //     created_at: `${hr.toLocaleString('en-US', {
+      //       minimumIntegerDigits: 2,
+      //       useGrouping: false,
+      //     })}:${min.toLocaleString('en-US', {
+      //       minimumIntegerDigits: 2,
+      //       useGrouping: false,
+      //     })}`,
+      //     id: 11111,
+      //   },
+      // });
       setMessage('');
 
       let payload = {
@@ -100,7 +100,16 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
               style={styles.emoji}
             />
           </TouchableOpacity> */}
-          <View style={[styles.inputParent]}>
+          <View
+            style={[
+              styles.inputParent,
+              Platform.OS === 'ios'
+                ? {
+                    minHeight: 30,
+                    maxHeight: 120,
+                  }
+                : {height: 30},
+            ]}>
             <TextInput
               value={message}
               onChangeText={setMessage}

@@ -167,3 +167,58 @@ export function decode(text: string | undefined, enableClick: boolean) {
     return text;
   }
 }
+
+export function decodeStr(text: string | undefined) {
+  if (!text) {
+    return;
+  }
+  let arr: any[] = [];
+  let parts = text.split(REGEX_USER_SPLITTING);
+
+  if (!!parts) {
+    for (const matchResult of parts) {
+      let keyValue = matchResult.match(REGEX_USER_TAGGING);
+      let memberName;
+      let tag;
+      if (!!keyValue) {
+        memberName = keyValue[1];
+        tag = keyValue[2];
+        arr.push({key: memberName, route: true});
+      } else if (!!matchResult) {
+        arr.push({key: matchResult, route: null});
+      }
+    }
+    let str: string = '';
+    arr.forEach(val => {
+      str = str + val.key;
+    });
+    return str;
+  } else {
+    return text;
+  }
+}
+
+export function copySelectedMessages(selectedMessages: any) {
+  // const selectedMessages = messages.filter((message:any) => message.isSelected());
+  if (selectedMessages.length === 1 && !!!selectedMessages[0]?.deleted_by) {
+    if (!!selectedMessages[0]?.answer) {
+      return decodeStr(selectedMessages[0]?.answer);
+    } else {
+      return '';
+    }
+  } else {
+    const copiedMessages = selectedMessages
+      .map((message: any) => {
+        if (!!message?.answer && !!!message?.deleted_by) {
+          const timestamp = `[${message?.date}, ${message?.created_at}]`;
+          const sender = message?.member?.name;
+          const text = decodeStr(message?.answer);
+          return `${timestamp} ${sender}: ${text}`;
+        } else {
+          return '';
+        }
+      })
+      .join('\n');
+    return copiedMessages;
+  }
+}
