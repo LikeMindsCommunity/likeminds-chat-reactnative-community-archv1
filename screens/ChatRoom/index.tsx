@@ -29,7 +29,7 @@ import {
 } from '../../store/actions/chatroom';
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
-
+import {DataSnapshot, onValue, ref} from 'firebase/database'
 interface Data {
   id: string;
   title: string;
@@ -45,6 +45,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [messages, setMessages] = useState(
     conversationData?.data?.conversations,
   );
+  const db = myClient.fbInstance()
   const [isReply, setIsReply] = useState(false);
   const [replyMessage, setReplyMessage] = useState();
   const [replyChatID, setReplyChatID] = useState<number>();
@@ -221,14 +222,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return response;
   }
 
-  async function fetchData() {
+  async function fetchData(showLoaderVal? : boolean) {
     // let payload = {chatroomID: 69285, page: 1000};
     // await myClient.markReadFn({chatroom_id: chatroomID});
-    let payload = {
-      chatroomID: chatroomID,
-      page: 100,
-    };
-    let response = await dispatch(getConversations(payload, false) as any);
+    let payload = {chatroomID: chatroomID, page: 100 };
+    let response = await dispatch(getConversations(payload, showLoaderVal != undefined && showLoaderVal == false ? false : true) as any);
     return response;
   }
 
@@ -264,6 +262,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       setSelectedHeader();
     }
   }, [isLongPress, selectedMessages]);
+
+  useEffect(()=>{
+    const query = ref(db, `/collabcards/${chatroomID}`)
+    return onValue(query, (snapshot:DataSnapshot)=>{
+      if(snapshot.exists()){
+        fetchData(false)
+      }
+    })
+  })
 
   const loadData = async (newPage: number) => {
     setIsLoading(true);
