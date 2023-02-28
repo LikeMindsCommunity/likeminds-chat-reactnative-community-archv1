@@ -3,32 +3,6 @@ import Layout from '../../constants/Layout';
 import STYLES from '../../constants/Styles';
 
 export const styles = StyleSheet.create({
-  //   message: {
-  //     padding: 10,
-  //     margin: 10,
-  //     maxWidth: '80%',
-  //     alignSelf: 'flex-end',
-  //     borderRadius: 5,
-  //     backgroundColor: '#fff',
-  //     elevation: 2,
-  //   },
-  //   sentMessage: {
-  //     alignSelf: 'flex-end',
-  //     backgroundColor: '#ddd',
-  //   },
-  //   receivedMessage: {
-  //     alignSelf: 'flex-start',
-  //     backgroundColor: '#e6e6e6',
-  //   },
-  //   messageText: {
-  //     fontSize: 16,
-  //   },
-  //   messageDate: {
-  //     fontSize: 10,
-  //     color: '#aaa',
-  //     marginTop: 5,
-  //     textAlign: 'right',
-  //   },
   textInput: {
     display: 'flex',
     flexDirection: 'row',
@@ -51,8 +25,6 @@ export const styles = StyleSheet.create({
   },
   emojiButton: {
     padding: 15,
-    // marginVertical: 10,
-    // backgroundColor:'blue'
   },
   emoji: {
     width: 22,
@@ -142,4 +114,21 @@ export const styles = StyleSheet.create({
   cameraStyle: {backgroundColor: '#06C3AF', padding: 15, borderRadius: 50},
   imageStyle: {backgroundColor: '#9F5BCA', padding: 15, borderRadius: 50},
   docStyle: {backgroundColor: '#9F5BCA', padding: 15, borderRadius: 50},
+  replyBoxParent: {
+    backgroundColor: 'white',
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  replyBox: {marginHorizontal: 10, marginTop: 10},
+  replyBoxClose: {
+    position: 'absolute',
+    right: 5,
+    top: 5,
+    backgroundColor: STYLES.$COLORS.SELECTED_BLUE,
+    padding: 5,
+    borderRadius: 10,
+  },
+  replyCloseImg: {height: 5, width: 5, resizeMode: 'contain'},
 });

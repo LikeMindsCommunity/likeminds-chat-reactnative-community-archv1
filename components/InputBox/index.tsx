@@ -13,6 +13,7 @@ import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
 import {UPDATE_CONVERSATIONS} from '../../store/types/types';
+import {ReplyBox} from '../ReplyConversations';
 // import database from '@react-native-firebase/database';
 
 // let addItem = (payload: any) => {
@@ -23,9 +24,19 @@ interface InputBox {
   isReply: boolean;
   replyChatID: any;
   chatroomID: any;
+  replyMessage: any;
+  setIsReply: any;
+  setReplyMessage: any;
 }
 
-const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
+const InputBox = ({
+  isReply,
+  replyChatID,
+  chatroomID,
+  replyMessage,
+  setIsReply,
+  setReplyMessage,
+}: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
@@ -66,9 +77,11 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
         has_files: false,
         text: message,
         // attachment_count?: any;
-        // replied_conversation_id?: string | number;
+        replied_conversation_id: replyMessage?.id,
       };
       let response = await dispatch(onConversationsCreate(payload) as any);
+      setIsReply(false);
+      setReplyMessage();
       // addItem(payload);
       // if (!!response) {
       //   setMessage('');
@@ -91,8 +104,34 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
               : 5,
           },
         ]}>
-        <View style={styles.textInput}>
-          {/* <TouchableOpacity
+        <View style={styles.replyBoxParent}>
+          {isReply && (
+            <View style={styles.replyBox}>
+              <ReplyBox isIncluded={false} item={replyMessage} />
+              <TouchableOpacity
+                onPress={() => {
+                  setIsReply(false);
+                  setReplyMessage();
+                }}
+                style={styles.replyBoxClose}>
+                <Image
+                  style={styles.replyCloseImg}
+                  source={require('../../assets/images/close_icon.png')}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View
+            style={[
+              styles.textInput,
+              isReply
+                ? {
+                    borderWidth: 0,
+                  }
+                : null,
+            ]}>
+            {/* <TouchableOpacity
             style={styles.emojiButton}
             onPress={() => setShowEmoji(!showEmoji)}>
             <Image
@@ -100,39 +139,34 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
               style={styles.emoji}
             />
           </TouchableOpacity> */}
-          <View
-            style={[
-              styles.inputParent,
-              Platform.OS === 'ios'
-                ? {
-                    minHeight: 30,
-                    maxHeight: 120,
-                  }
-                : {height: 30},
-            ]}>
-            <TextInput
-              value={message}
-              onChangeText={setMessage}
-              style={styles.input}
-              numberOfLines={6}
-              multiline={true}
-              // onPressIn={() => {
-              //   setIsKeyBoardFocused(true);
-              // }}
-              onBlur={() => {
-                setIsKeyBoardFocused(false);
-              }}
-              onFocus={() => {
-                setIsKeyBoardFocused(true);
-              }}
-              // onPressOut={() => {
-              //   setIsKeyBoardFocused(false);
-              // }}
-              placeholder="Type a message..."
-              placeholderTextColor="#aaa"
-            />
-          </View>
-          {/* <TouchableOpacity
+
+            <View
+              style={[
+                styles.inputParent,
+                Platform.OS === 'ios'
+                  ? {
+                      minHeight: 30,
+                      maxHeight: 120,
+                    }
+                  : {height: 30},
+              ]}>
+              <TextInput
+                value={message}
+                onChangeText={setMessage}
+                style={styles.input}
+                numberOfLines={6}
+                multiline={true}
+                onBlur={() => {
+                  setIsKeyBoardFocused(false);
+                }}
+                onFocus={() => {
+                  setIsKeyBoardFocused(true);
+                }}
+                placeholder="Type a message..."
+                placeholderTextColor="#aaa"
+              />
+            </View>
+            {/* <TouchableOpacity
             style={styles.emojiButton}
             onPress={() => setModalVisible(true)}>
             <Image
@@ -140,7 +174,9 @@ const InputBox = ({isReply, replyChatID, chatroomID}: InputBox) => {
               style={styles.emoji}
             />
           </TouchableOpacity> */}
+          </View>
         </View>
+
         <TouchableOpacity onPressOut={onSend} style={styles.sendButton}>
           <Image
             source={require('../../assets/images/send_button3x.png')}

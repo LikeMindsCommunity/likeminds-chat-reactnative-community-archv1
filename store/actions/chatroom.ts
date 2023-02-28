@@ -12,6 +12,9 @@ import {
   ON_CONVERSATIONS_CREATE,
   ON_CONVERSATIONS_CREATE_FAILED,
   ON_CONVERSATIONS_CREATE_SUCCESS,
+  PAGINATED_CONVERSATIONS_SUCCESS,
+  PAGINATED_CONVERSATIONS,
+  PAGINATED_CONVERSATIONS_FAILED,
 } from '../types/types';
 
 export const getConversations =
@@ -28,6 +31,28 @@ export const getConversations =
             GET_CONVERSATIONS_FAILED,
           ],
           showLoader: showLoader,
+        },
+      });
+    } catch (error) {
+      Alert.alert(`${error}`);
+    }
+  };
+
+export const paginatedConversations =
+  (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
+    console.log('payload =', payload);
+    try {
+      return await dispatch({
+        type: PAGINATED_CONVERSATIONS_SUCCESS,
+        [CALL_API]: {
+          func: myClient.getConversations(payload),
+          body: payload,
+          types: [
+            PAGINATED_CONVERSATIONS,
+            PAGINATED_CONVERSATIONS_SUCCESS,
+            PAGINATED_CONVERSATIONS_FAILED,
+          ],
+          showLoader: false,
         },
       });
     } catch (error) {

@@ -1,14 +1,15 @@
-import {View, Text, Image} from 'react-native';
+import {View, Text, Image, TouchableOpacity} from 'react-native';
 import React from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
-import { useAppSelector } from '../../store';
+import {useAppSelector} from '../../store';
 
 interface ReplyConversations {
   item: any;
   isTypeSent: boolean;
   isIncluded: boolean;
+  onScrollToIndex: any;
 }
 
 interface ReplyBox {
@@ -17,7 +18,8 @@ interface ReplyBox {
 }
 
 export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
-  const {user} = useAppSelector(state=>state.homefeed)
+  const {user} = useAppSelector(state => state.homefeed);
+
   return (
     <View style={styles.replyBox}>
       <View>
@@ -67,16 +69,29 @@ const ReplyConversations = ({
   isIncluded,
   item,
   isTypeSent,
+  onScrollToIndex,
 }: ReplyConversations) => {
+  const {conversations} = useAppSelector(state => state.chatroom);
   return (
     <View
       style={[
         styles.replyMessage,
         isTypeSent ? styles.sentMessage : styles.receivedMessage,
-        isIncluded ? {backgroundColor: '#e8f1fa'} : null,
+        isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
       ]}>
-      <ReplyBox isIncluded={isIncluded} item={item?.reply_conversation_object} />
-
+      <TouchableOpacity
+        onPress={() => {
+          let index = conversations.findIndex(
+            (element: any) =>
+              element?.id === item?.reply_conversation_object?.id,
+          );
+          onScrollToIndex(index);
+        }}>
+        <ReplyBox
+          isIncluded={isIncluded}
+          item={item?.reply_conversation_object}
+        />
+      </TouchableOpacity>
       <View style={styles.messageText as any}>
         {decode(item?.answer, true)}
       </View>

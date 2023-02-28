@@ -1,4 +1,4 @@
-import {GET_CHATROOM_SUCCESS, GET_CONVERSATIONS_SUCCESS, UPDATE_CONVERSATIONS} from '../types/types';
+import {GET_CHATROOM_SUCCESS, GET_CONVERSATIONS_SUCCESS, PAGINATED_CONVERSATIONS_SUCCESS, UPDATE_CONVERSATIONS} from '../types/types';
 
 const initialState = {
   conversations: [],
@@ -11,6 +11,11 @@ export function chatroomReducer(state = initialState, action: any) {
       const {conversations = []} = action.body;
       let arr = conversations.reverse();
       return {...state, conversations: arr};
+    }
+    case PAGINATED_CONVERSATIONS_SUCCESS: {
+      const {conversations = []} = action.body;
+      let arr = conversations.reverse();
+      return {...state, conversations: [...state.conversations, ...arr]};
     }
     case UPDATE_CONVERSATIONS: {
       const message = action.body;

@@ -2,6 +2,7 @@ import {View, Text, Image, TouchableOpacity, Linking} from 'react-native';
 import React, {useState} from 'react';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
+import STYLES from '../../constants/Styles';
 
 interface AttachmentConversations {
   item: any;
@@ -19,7 +20,7 @@ const AttachmentConversations = ({
       style={[
         styles.attachmentMessage,
         isTypeSent ? styles.sentMessage : styles.receivedMessage,
-        isIncluded ? {backgroundColor: '#e8f1fa'} : null,
+        isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
       ]}>
       {item?.attachments[0]?.type === 'image' ? (
         <ImageConversations
@@ -311,7 +312,17 @@ export const ImageConversations = ({
           </View>
         </View>
       ) : null}
-      {isIncluded && <View style={{position:'absolute', height:150, width:'100%', backgroundColor:'#e8f1fa', opacity:0.5}} />}
+      {isIncluded && (
+        <View
+          style={{
+            position: 'absolute',
+            height: 150,
+            width: '100%',
+            backgroundColor: STYLES.$COLORS.SELECTED_BLUE,
+            opacity: 0.5,
+          }}
+        />
+      )}
     </View>
   );
 };

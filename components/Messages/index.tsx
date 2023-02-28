@@ -11,9 +11,10 @@ import {useAppSelector} from '../../store';
 interface Messages {
   item: any;
   isIncluded: boolean;
+  onScrollToIndex: any;
 }
 
-const Messages = ({item, isIncluded}: Messages) => {
+const Messages = ({item, isIncluded, onScrollToIndex}: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
   const [modalVisible, setModalVisible] = useState(false);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
@@ -55,7 +56,9 @@ const Messages = ({item, isIncluded}: Messages) => {
             style={[
               styles.message,
               isTypeSent ? styles.sentMessage : styles.receivedMessage,
-              isIncluded ? {backgroundColor: '#e8f1fa'} : null,
+              isIncluded
+                ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                : null,
             ]}>
             <Text style={styles.deletedMsg}>This message has been deleted</Text>
           </View>
@@ -64,6 +67,7 @@ const Messages = ({item, isIncluded}: Messages) => {
             isIncluded={isIncluded}
             item={item}
             isTypeSent={isTypeSent}
+            onScrollToIndex={onScrollToIndex}
           />
         ) : item?.attachment_count > 0 ? (
           <AttachmentConversations
@@ -82,7 +86,9 @@ const Messages = ({item, isIncluded}: Messages) => {
                 style={[
                   styles.message,
                   isTypeSent ? styles.sentMessage : styles.receivedMessage,
-                  isIncluded ? {backgroundColor: '#e8f1fa'} : null,
+                  isIncluded
+                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                    : null,
                 ]}>
                 {!!(item?.member?.id === user?.id) ? null : (
                   <Text style={styles.messageInfo} numberOfLines={1}>
@@ -109,7 +115,10 @@ const Messages = ({item, isIncluded}: Messages) => {
                 style={[
                   styles.typeSent,
                   isIncluded
-                    ? {borderBottomColor: '#e8f1fa', borderLeftColor: '#e8f1fa'}
+                    ? {
+                        borderBottomColor: STYLES.$COLORS.SELECTED_BLUE,
+                        borderLeftColor: STYLES.$COLORS.SELECTED_BLUE,
+                      }
                     : null,
                 ]}
               />
@@ -119,8 +128,8 @@ const Messages = ({item, isIncluded}: Messages) => {
                   styles.typeReceived,
                   isIncluded
                     ? {
-                        borderBottomColor: '#e8f1fa',
-                        borderRightColor: '#e8f1fa',
+                        borderBottomColor: STYLES.$COLORS.SELECTED_BLUE,
+                        borderRightColor: STYLES.$COLORS.SELECTED_BLUE,
                       }
                     : null,
                 ]}

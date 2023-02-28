@@ -22,7 +22,11 @@ import Messages from '../../components/Messages';
 import ToastMessage from '../../components/ToastMessage';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
-import {getChatroom, getConversations} from '../../store/actions/chatroom';
+import {
+  getChatroom,
+  getConversations,
+  paginatedConversations,
+} from '../../store/actions/chatroom';
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 
@@ -42,6 +46,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     conversationData?.data?.conversations,
   );
   const [isReply, setIsReply] = useState(false);
+  const [replyMessage, setReplyMessage] = useState();
   const [replyChatID, setReplyChatID] = useState<number>();
   const [isLongPress, setIsLongPress] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState<any>([]);
@@ -142,8 +147,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               <TouchableOpacity
                 onPress={() => {
                   if (len > 0) {
-                    setReplyChatID(selectedMessages[0]);
+                    setReplyChatID(selectedMessages[0]?.id);
                     setIsReply(true);
+                    setReplyMessage(selectedMessages[0]);
                     setSelectedMessages([]);
                     setIsLongPress(false);
                     setInitialHeader();
@@ -218,15 +224,23 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchData() {
     // let payload = {chatroomID: 69285, page: 1000};
     // await myClient.markReadFn({chatroom_id: chatroomID});
-    let payload = {chatroomID: chatroomID, page: 100 * page};
-    let response = await dispatch(getConversations(payload, true) as any);
+    let payload = {
+      chatroomID: chatroomID,
+      page: 100,
+    };
+    let response = await dispatch(getConversations(payload, false) as any);
     return response;
   }
 
   async function paginatedData(newPage: number) {
     // let payload = {chatroomID: 69285, page: 1000};
-    let payload = {chatroomID: chatroomID, page: 100 * newPage};
-    let response = await dispatch(getConversations(payload, false) as any);
+    let payload = {
+      chatroomID: chatroomID,
+      page: 50,
+      conversation_id: conversations[conversations.length - 1]?.id,
+      scroll_direction: 0,
+    };
+    let response = await dispatch(paginatedConversations(payload, true) as any);
     return response;
   }
 
@@ -290,7 +304,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const payload = {
       collabcard_id: chatroomID,
       member_id: user?.id,
-      value: true,
+      value: false,
     };
     const res = await myClient
       .leaveChatroom(payload)
@@ -361,35 +375,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         // getItemLayout={getItemLayout}
         keyExtractor={item => item?.id.toString()}
         renderItem={({item, index}) => {
+          let stateArr = [2, 3]; //joined and left chatroom state
+          let isStateIncluded = stateArr.includes(item?.state);
           let isIncluded = selectedMessages.some(
-            (val: any) => val?.id === item?.id,
+            (val: any) =>
+              val?.id === item?.id && !stateArr.includes(val?.state),
           );
           return (
-            <Pressable
-              onLongPress={() => {
-                setIsLongPress(true);
-                if (isIncluded) {
-                  const filterdMessages = selectedMessages.filter(
-                    (val: any) => val?.id !== item?.id,
-                  );
-                  setSelectedMessages([...filterdMessages]);
-                } else {
-                  setSelectedMessages([...selectedMessages, item]);
-                }
-              }}
-              onPress={() => {
-                if (isLongPress) {
-                  if (isIncluded) {
-                    const filterdMessages = selectedMessages.filter(
-                      (val: any) => val?.id !== item?.id,
-                    );
-                    setSelectedMessages([...filterdMessages]);
-                  } else {
-                    setSelectedMessages([...selectedMessages, item]);
-                  }
-                }
-              }}
-              style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
+            <View>
               {index < conversations.length &&
               conversations[index]?.date !== conversations[index + 1]?.date ? (
                 <View style={[styles.statusMessage]}>
@@ -403,8 +396,47 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </Text>
                 </View>
               ) : null}
-              <Messages isIncluded={isIncluded} item={item} />
-            </Pressable>
+              <Pressable
+                onLongPress={() => {
+                  setIsLongPress(true);
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    setSelectedMessages([...filterdMessages]);
+                  } else {
+                    if (!isStateIncluded) {
+                      setSelectedMessages([...selectedMessages, item]);
+                    }
+                  }
+                }}
+                onPress={() => {
+                  if (isLongPress) {
+                    if (isIncluded) {
+                      const filterdMessages = selectedMessages.filter(
+                        (val: any) =>
+                          val?.id !== item?.id &&
+                          !stateArr.includes(val?.state),
+                      );
+                      setSelectedMessages([...filterdMessages]);
+                    } else {
+                      if (!isStateIncluded) {
+                        setSelectedMessages([...selectedMessages, item]);
+                      }
+                    }
+                  }
+                }}
+                style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
+                <Messages
+                  onScrollToIndex={(index: any) => {
+                    flatlistRef.current?.scrollToIndex({animated: true, index});
+                  }}
+                  isIncluded={isIncluded}
+                  item={item}
+                />
+              </Pressable>
+            </View>
           );
         }}
         onEndReached={handleLoadMore}
@@ -418,6 +450,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           isReply={isReply}
           replyChatID={replyChatID}
           chatroomID={chatroomID}
+          replyMessage={replyMessage}
+          setIsReply={(val: any) => {
+            setIsReply(val);
+          }}
+          setReplyMessage={(val: any) => {
+            setReplyMessage(val);
+          }}
         />
       ) : (
         <View style={styles.disabledInput}>
