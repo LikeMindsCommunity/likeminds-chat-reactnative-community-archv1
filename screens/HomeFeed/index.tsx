@@ -124,14 +124,12 @@ const HomeFeed = ({navigation}: Props) => {
     let payload = {
       page: newPage,
     };
-    let response = await dispatch(updateHomeFeedData(payload) as any);
+    let response = await dispatch(updateHomeFeedData(payload, false) as any);
     return response;
   }
 
   const loadData = async (newPage: number) => {
     setIsLoading(true);
-    // Alert.alert(`page ${page}`);
-    // Alert.alert(`${myChatrooms.length % 10}`);
     setTimeout(async () => {
       const res = await updateData(newPage);
       if (!!res) {
@@ -159,11 +157,11 @@ const HomeFeed = ({navigation}: Props) => {
   };
 
   useEffect(() => {
-    const query = ref(db, `community/${communityId}`);
+    const query = ref(db, `/community/${communityId}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
-        console.log('the snapshot is', snapshot.val());
-        dispatch(getHomeFeedData({page: 1}) as any);
+        console.log('the snapshot of homefeed is', snapshot.val());
+        dispatch(getHomeFeedData({page: 1}, false) as any);
       }
     });
   }, []);

@@ -34,7 +34,7 @@ export const initAPI = (payload: any) => (async (dispatch: Dispatch) => {
   }
 });
 
-export const getHomeFeedData = (payload: any) => (async (dispatch: Dispatch) => {
+export const getHomeFeedData = (payload: any, showLoader?:boolean) => (async (dispatch: Dispatch) => {
   try {
     return await dispatch({
       type: GET_HOMEFEED_CHAT_SUCCESS,
@@ -46,7 +46,7 @@ export const getHomeFeedData = (payload: any) => (async (dispatch: Dispatch) => 
           GET_HOMEFEED_CHAT_SUCCESS,
           GET_HOMEFEED_CHAT_FAILED,
         ],
-        showLoader: true,
+        showLoader: showLoader != undefined ? false : true,
       },
     });
   } catch (error) {
@@ -54,7 +54,7 @@ export const getHomeFeedData = (payload: any) => (async (dispatch: Dispatch) => 
   }
 });
 
-export const updateHomeFeedData = (payload: any) => (async (dispatch: Dispatch) => {
+export const updateHomeFeedData = (payload: any, showLoader?:boolean) => (async (dispatch: Dispatch) => {
   try {
     return await dispatch({
       type: UPDATE_HOMEFEED_CHAT_SUCCESS,
@@ -66,7 +66,7 @@ export const updateHomeFeedData = (payload: any) => (async (dispatch: Dispatch) 
           UPDATE_HOMEFEED_CHAT_SUCCESS,
           UPDATE_HOMEFEED_CHAT_FAILED,
         ],
-        showLoader: false,
+        showLoader: showLoader != undefined ? false : true,
       },
     });
   } catch (error) {

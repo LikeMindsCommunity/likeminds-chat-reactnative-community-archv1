@@ -61,7 +61,7 @@ export const paginatedConversations =
   };
 
 export const onConversationsCreate =
-  (payload: any) => async (dispatch: Dispatch) => {
+  (payload: any, showLoader? : boolean) => async (dispatch: Dispatch) => {
     try {
       return await dispatch({
         type: ON_CONVERSATIONS_CREATE_SUCCESS,
@@ -73,7 +73,7 @@ export const onConversationsCreate =
             ON_CONVERSATIONS_CREATE_SUCCESS,
             ON_CONVERSATIONS_CREATE_FAILED,
           ],
-          showLoader: true,
+          showLoader: showLoader != undefined ? true : false ,
         },
       });
     } catch (error) {
