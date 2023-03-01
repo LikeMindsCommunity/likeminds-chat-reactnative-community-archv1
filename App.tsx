@@ -1,13 +1,26 @@
 import React from 'react';
-import {StatusBar, Text, View} from 'react-native';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import HomeFeed from './screens/HomeFeed';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+} from 'react-native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {Provider as ReduxProvider} from 'react-redux';
+import store, {useAppSelector} from './store';
+import SwitchComponent from './navigation/SwitchComponent';
+
+const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
   return (
-    <SafeAreaProvider style={{ flex: 1, backgroundColor: 'red' }}>
-      <HomeFeed />
-    </SafeAreaProvider>
+    <ReduxProvider store={store}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1}}>
+          <SwitchComponent />
+      </KeyboardAvoidingView>
+    </ReduxProvider>
   );
 }
 
