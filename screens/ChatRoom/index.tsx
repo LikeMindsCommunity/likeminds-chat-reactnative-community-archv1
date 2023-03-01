@@ -194,7 +194,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         setInitialHeader();
                         let payload = {
                           chatroomID: chatroomID,
-                          page: 50,
+                          page: conversations.length * 2,
                         };
                         await dispatch(getConversations(payload, true) as any);
                       })
