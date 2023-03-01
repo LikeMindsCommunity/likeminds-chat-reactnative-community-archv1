@@ -158,6 +158,7 @@ const ExploreFeed = ({navigation}: Props) => {
             isSecret: item?.is_secret,
             chatroomID: item?.id,
             filterState: filterState,
+            navigation: navigation,
           };
           return (
             <View>

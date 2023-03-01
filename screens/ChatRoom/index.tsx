@@ -64,9 +64,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {conversations = [], chatroomDetails} = useAppSelector(
     state => state.chatroom,
   );
+  const routes = navigation.getState()?.routes;
+  const prevRoute = routes[routes.length - 2];
 
   const {user, community} = useAppSelector(state => state.homefeed);
+  let isSecret = chatroomDetails?.chatroom?.is_secret;
 
+  let notIncludedActionsID = [2, 3];
+  let filteredChatroomActions = chatroomDetails?.chatroom_actions?.filter(
+    (val: any) => !notIncludedActionsID?.includes(val?.id),
+  );
   const setInitialHeader = () => {
     navigation.setOptions({
       title: '',
@@ -99,17 +106,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           </View>
         </View>
       ),
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => {
-            setModalVisible(!modalVisible);
-          }}>
-          <Image
-            source={require('../../assets/images/three_dots3x.png')}
-            style={styles.threeDots}
-          />
-        </TouchableOpacity>
-      ),
+      headerRight: () =>
+        filteredChatroomActions?.length > 0 && (
+          <TouchableOpacity
+            onPress={() => {
+              setModalVisible(!modalVisible);
+            }}>
+            <Image
+              source={require('../../assets/images/three_dots3x.png')}
+              style={styles.threeDots}
+            />
+          </TouchableOpacity>
+        ),
     });
   };
   const setSelectedHeader = () => {
@@ -338,7 +346,36 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
-            routes: [{name: 'HomeFeed'}],
+            routes:
+              prevRoute?.name === 'ExploreFeed'
+                ? [{name: 'HomeFeed'}, {name: prevRoute?.name}]
+                : [{name: prevRoute?.name}],
+          }),
+        );
+      })
+      .catch(() => {
+        Alert.alert('Leave Chatroom failed');
+      });
+
+    return res;
+  };
+
+  const joinChatroom = async () => {
+    const payload = {
+      collabcard_id: chatroomID,
+      member_id: user?.id,
+      value: true,
+    };
+    const res = await myClient
+      .leaveChatroom(payload)
+      .then(() => {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes:
+              prevRoute?.name === 'ExploreFeed'
+                ? [{name: 'HomeFeed'}, {name: prevRoute?.name}]
+                : [{name: prevRoute?.name}],
           }),
         );
       })
@@ -505,34 +542,38 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         <Pressable style={styles.centeredView} onPress={handleModalClose}>
           <View>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
-              {chatroomDetails?.chatroom_actions?.map(
-                (val: any, index: any) => {
-                  return (
-                    <TouchableOpacity
-                      onPress={async () => {
-                        // if(val?.id === 2){
-                        //   navigation.navigate('ViewParticipants')
-                        //   setModalVisible(false)
-                        // }
-                        if (val?.id === 9) {
+              {filteredChatroomActions?.map((val: any, index: any) => {
+                return (
+                  <TouchableOpacity
+                    onPress={async () => {
+                      // if(val?.id === 2){
+                      //   navigation.navigate('ViewParticipants')
+                      //   setModalVisible(false)
+                      // }
+                      if (val?.id === 9 || val?.id === 15) {
+                        if (!isSecret) {
                           leaveChatroom();
-                          setModalVisible(false);
-                        } else if (val?.id === 6) {
-                          await muteNotifications();
-
-                          setModalVisible(false);
-                        } else if (val?.id === 8) {
-                          await unmuteNotifications();
-                          setModalVisible(false);
                         }
-                      }}
-                      key={val + index}
-                      style={styles.filtersView}>
-                      <Text style={styles.filterText}>{val?.title}</Text>
-                    </TouchableOpacity>
-                  );
-                },
-              )}
+                        setModalVisible(false);
+                      } else if (val?.id === 4) {
+                        if (!isSecret) {
+                          joinChatroom();
+                        }
+                        setModalVisible(false);
+                      } else if (val?.id === 6) {
+                        await muteNotifications();
+                        setModalVisible(false);
+                      } else if (val?.id === 8) {
+                        await unmuteNotifications();
+                        setModalVisible(false);
+                      }
+                    }}
+                    key={val + index}
+                    style={styles.filtersView}>
+                    <Text style={styles.filterText}>{val?.title}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </Pressable>
           </View>
         </Pressable>
@@ -548,34 +589,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         <Pressable style={styles.centeredView} onPress={handleReportModalClose}>
           <View>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
-              {/* {chatroomDetails?.chatroom_actions?.map(
-                (val: any, index: any) => {
-                  return (
-                    <TouchableOpacity
-                      onPress={async () => {
-                        // if(val?.id === 2){
-                        //   navigation.navigate('ViewParticipants')
-                        //   setModalVisible(false)
-                        // }
-                        if (val?.id === 9) {
-                          leaveChatroom();
-                          setModalVisible(false);
-                        } else if (val?.id === 6) {
-                          await muteNotifications();
-
-                          setModalVisible(false);
-                        } else if (val?.id === 8) {
-                          await unmuteNotifications();
-                          setModalVisible(false);
-                        }
-                      }}
-                      key={val + index}
-                      style={styles.filtersView}>
-                      <Text style={styles.filterText}>{val?.title}</Text>
-                    </TouchableOpacity>
-                  );
-                },
-              )} */}
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate('Report', {

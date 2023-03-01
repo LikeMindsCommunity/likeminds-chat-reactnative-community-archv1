@@ -20,6 +20,7 @@ interface Props {
   isSecret: boolean;
   chatroomID: number;
   filterState: any;
+  navigation: any;
 }
 
 const ExploreFeedItem: React.FC<Props> = ({
@@ -35,6 +36,7 @@ const ExploreFeedItem: React.FC<Props> = ({
   isSecret,
   chatroomID,
   filterState,
+  navigation,
 }) => {
   const [isToast, setIsToast] = useState(false);
   const [msg, setMsg] = useState('');
@@ -72,7 +74,11 @@ const ExploreFeedItem: React.FC<Props> = ({
     return res;
   };
   return (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity
+      onPress={() => {
+        navigation.navigate('ChatRoom', {chatroomID: chatroomID});
+      }}
+      style={styles.itemContainer}>
       <View>
         <Image
           source={
@@ -145,7 +151,9 @@ const ExploreFeedItem: React.FC<Props> = ({
           ) : (
             <TouchableOpacity
               onPress={() => {
-                leaveChatroom(false);
+                if (!isSecret) {
+                  leaveChatroom(false);
+                }
               }}
               style={styles.joinedBtnContainer}>
               <Image
@@ -167,7 +175,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           setIsToast(false);
         }}
       />
-    </View>
+    </TouchableOpacity>
   );
 };
 
