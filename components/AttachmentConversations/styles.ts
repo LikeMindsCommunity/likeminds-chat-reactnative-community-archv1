@@ -64,7 +64,13 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     // gap: 5,
   },
-  doubleImg: {height: 150, width: '49%', resizeMode: 'cover', borderRadius: 5},
+  doubleImg: {height: 150, width: '100%', resizeMode: 'cover', borderRadius: 5},
+  multipleImg: {
+    height: 150,
+    width: '49%',
+    resizeMode: 'cover',
+    borderRadius: 5,
+  },
   tripleImgText: {
     color: 'white',
     fontSize: STYLES.$FONT_SIZES.XXL,
@@ -81,4 +87,5 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  touchableImg: {height: 150, width: '49%'},
 });

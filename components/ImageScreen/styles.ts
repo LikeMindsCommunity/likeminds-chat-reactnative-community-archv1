@@ -8,6 +8,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 15,
   },
-  backBtn: {height: 35, width: 40, borderRadius: 10, resizeMode: 'contain'},
+  backBtn: {height: 35, width: 35, borderRadius: 10, resizeMode: 'contain'},
   chatRoomInfo: {gap: 5},
 });

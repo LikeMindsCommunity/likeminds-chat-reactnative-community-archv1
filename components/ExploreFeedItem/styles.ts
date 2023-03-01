@@ -53,6 +53,7 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     padding: 10,
+    gap: 5,
   },
   joinedBtnContainer: {
     backgroundColor: STYLES.$COLORS.JOINED_BTN,
@@ -73,7 +74,7 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
   },
   icon: {
-    width: 40,
+    width: 30,
     height: 25,
     resizeMode: 'contain',
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,

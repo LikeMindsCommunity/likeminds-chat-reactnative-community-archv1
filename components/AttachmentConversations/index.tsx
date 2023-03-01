@@ -265,14 +265,30 @@ export const ImageConversations = ({
         </TouchableOpacity>
       ) : item?.attachment_count === 2 ? (
         <View style={styles.doubleImgParent}>
-          <Image
-            source={{uri: item.attachments[0].url}}
-            style={styles.doubleImg}
-          />
-          <Image
-            source={{uri: item.attachments[1].url}}
-            style={styles.doubleImg}
-          />
+          <TouchableOpacity
+            style={styles.touchableImg}
+            onPress={() => {
+              if (!isIncluded) {
+                Linking.openURL(item?.attachments[0]?.url);
+              }
+            }}>
+            <Image
+              source={{uri: item.attachments[0].url}}
+              style={styles.doubleImg}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.touchableImg}
+            onPress={() => {
+              if (!isIncluded) {
+                Linking.openURL(item?.attachments[1]?.url);
+              }
+            }}>
+            <Image
+              source={{uri: item.attachments[1].url}}
+              style={styles.doubleImg}
+            />
+          </TouchableOpacity>
         </View>
       ) : item?.attachment_count === 3 ? (
         <TouchableOpacity
@@ -284,10 +300,10 @@ export const ImageConversations = ({
           style={styles.doubleImgParent}>
           <Image
             source={{uri: item.attachments[0].url}}
-            style={styles.doubleImg}
+            style={styles.multipleImg}
           />
           <Image
-            style={styles.doubleImg}
+            style={styles.multipleImg}
             source={{uri: item.attachments[1].url}}
           />
           <View style={styles.tripleImgOverlay}>
@@ -304,20 +320,20 @@ export const ImageConversations = ({
           <View style={styles.doubleImgParent}>
             <Image
               source={{uri: item.attachments[0].url}}
-              style={styles.doubleImg}
+              style={styles.multipleImg}
             />
             <Image
-              style={styles.doubleImg}
+              style={styles.multipleImg}
               source={{uri: item.attachments[1].url}}
             />
           </View>
           <View style={styles.doubleImgParent}>
             <Image
               source={{uri: item.attachments[2].url}}
-              style={styles.doubleImg}
+              style={styles.multipleImg}
             />
             <Image
-              style={styles.doubleImg}
+              style={styles.multipleImg}
               source={{uri: item.attachments[3].url}}
             />
             <View style={styles.tripleImgOverlay}>
