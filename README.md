@@ -104,17 +104,21 @@ Login as apple developer, create certificates, and then identifiers from develop
 
 Then instead of iphone emulator like `iphone 14` select `any iOS Device`, then from top tab bar in Xcode, you will find `Product` tab. Click on Product > Archieve.
 
-After archeive is done, distribute the app from test flight or adhoc(Diawi).
+After archive is done, distribute the app on the test flight or adhoc(Diawi).
 
 ## 😎 File Structure
 
 ```text
 src
-├── assets                  * Assets that are imported into your components(images, custom svg, etc).
-├── App.css                 * Main app styles.
-├── App.js                  * Main app component.
-├── components              * Components of the projects that are not the main views.
+├── assets                  * Assets that are imported into your components(images custom svg, etc).
+├── commonFunctions         * Common functions that we used across the app.
+├── components              * Components of the project that are not the main views.
 │   └── channelGroups
-├── sdkFunctions            * All the common services.
+├── constants               * Constants that we used across the app.
+├── navigations             * Switch Component for the screens.
+├── screens                 * Screens of the project that are on the main views.
+├── store                   * Redux store, it has action, reducers, types, and API middleware.
+├── App.tsx                 * Main app component.
 ├── index.js                * Entry point of the application.
+├── store.ts                * To connect redux store.
 ```
