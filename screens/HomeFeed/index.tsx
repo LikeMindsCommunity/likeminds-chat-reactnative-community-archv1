@@ -16,9 +16,6 @@ import HomeFeedExplore from '../../components/HomeFeedExplore';
 import HomeFeedItem from '../../components/HomeFeedItem';
 import STYLES from '../../constants/Styles';
 import {onValue, ref} from '@firebase/database';
-// import { app, firebase } from '../../firebase';
-// import { getDatabase, onValue, ref } from "firebase/database";
-import useAPI from '../../hooks/useAPI';
 import {AppDispatch, useAppDispatch, useAppSelector} from '../../store';
 import {
   getHomeFeedData,
