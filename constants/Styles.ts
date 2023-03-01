@@ -9,6 +9,7 @@ export default {
     SELECTED_BLUE: '#e8f1fa',
   },
   $FONT_SIZES: {
+    XS: 10,
     SMALL: 12,
     MEDIUM: 14,
     LARGE: 16,

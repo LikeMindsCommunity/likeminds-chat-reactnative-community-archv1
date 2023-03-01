@@ -91,6 +91,13 @@ const ReportScreen = ({navigation, route} :Props)=>{
                         onChangeText={(e)=>{
                             setOtherReason(e)
                         }}
+                        style={{
+                            margin: 12,
+                            height: 40,
+                            borderWidth: 1,
+                            padding: 10
+                        }}
+                        placeholder="Enter the reason for Reporting this conversation"
                         value={otherReason}/>
                 </View>:null
             }

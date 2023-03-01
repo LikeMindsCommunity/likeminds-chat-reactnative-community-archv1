@@ -29,7 +29,7 @@ import {
 } from '../../store/actions/chatroom';
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {DataSnapshot, onValue, ref} from 'firebase/database'
+import {DataSnapshot, onValue, ref} from 'firebase/database';
 interface Data {
   id: string;
   title: string;
@@ -45,7 +45,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [messages, setMessages] = useState(
     conversationData?.data?.conversations,
   );
-  const db = myClient.fbInstance()
+  const db = myClient.fbInstance();
   const [isReply, setIsReply] = useState(false);
   const [replyMessage, setReplyMessage] = useState();
   const [replyChatID, setReplyChatID] = useState<number>();
@@ -57,7 +57,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [isToast, setIsToast] = useState(false);
   const [msg, setMsg] = useState('');
   const [apiRes, setApiRes] = useState();
-
+  const [reportModalVisible, setReportModalVisible] = useState(false)
+  const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true)
   const {chatroomID} = route.params;
   const dispatch = useAppDispatch();
   const {conversations = [], chatroomDetails} = useAppSelector(
@@ -203,7 +204,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </TouchableOpacity>
               )}
             {len === 1 && (
-              <TouchableOpacity>
+              <TouchableOpacity
+              onPress={()=>{
+                setReportModalVisible(true)
+              }}
+              >
                 <Image
                   source={require('../../assets/images/three_dots3x.png')}
                   style={styles.threeDots}
@@ -216,17 +221,25 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
+  const handleReportModalClose = () =>{
+    setReportModalVisible(false)
+  }
   async function fetchChatroomDetails() {
     let payload = {chatroom_id: chatroomID};
     let response = await dispatch(getChatroom(payload) as any);
     return response;
   }
 
-  async function fetchData(showLoaderVal? : boolean) {
+  async function fetchData(showLoaderVal?: boolean) {
     // let payload = {chatroomID: 69285, page: 1000};
     // await myClient.markReadFn({chatroom_id: chatroomID});
-    let payload = {chatroomID: chatroomID, page: 100 };
-    let response = await dispatch(getConversations(payload, showLoaderVal != undefined && showLoaderVal == false ? false : true) as any);
+    let payload = {chatroomID: chatroomID, page: 100};
+    let response = await dispatch(
+      getConversations(
+        payload,
+        showLoaderVal != undefined && showLoaderVal == false ? false : true,
+      ) as any,
+    );
     return response;
   }
 
@@ -263,18 +276,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isLongPress, selectedMessages]);
 
-  useEffect(()=>{
-    const query = ref(db, `/collabcards/${chatroomID}`)
-    return onValue(query, (snapshot:DataSnapshot)=>{
-      if(snapshot.exists()){
-        fetchData(false)
+  useEffect(() => {
+    const query = ref(db, `/collabcards/${chatroomID}`);
+    return onValue(query, (snapshot: DataSnapshot) => {
+      if (snapshot.exists()) {
+        fetchData(false);
       }
-    })
-  })
+    });
+  }, []);
 
   const loadData = async (newPage: number) => {
     setIsLoading(true);
     const res = await paginatedData(newPage);
+    if(res.conversations.length == 0){
+      setShouldLoadMoreChat(false)
+    }
     if (!!res) {
       setIsLoading(false);
     }
@@ -441,12 +457,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   }}
                   isIncluded={isIncluded}
                   item={item}
+                  navigation={navigation}
                 />
               </Pressable>
             </View>
           );
         }}
-        onEndReached={handleLoadMore}
+        onEndReached={()=>{
+          if(shouldLoadMoreChat){
+            handleLoadMore()
+          }
+          }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         inverted
@@ -509,6 +530,60 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   );
                 },
               )}
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        // animationType="slide"
+        transparent={true}
+        visible={reportModalVisible && selectedMessages.length == 1}
+        onRequestClose={() => {
+          setReportModalVisible(!modalVisible);
+        }}>
+        <Pressable style={styles.centeredView} onPress={handleReportModalClose}>
+          <View>
+            <Pressable onPress={() => {}} style={[styles.modalView]}>
+              {/* {chatroomDetails?.chatroom_actions?.map(
+                (val: any, index: any) => {
+                  return (
+                    <TouchableOpacity
+                      onPress={async () => {
+                        // if(val?.id === 2){
+                        //   navigation.navigate('ViewParticipants')
+                        //   setModalVisible(false)
+                        // }
+                        if (val?.id === 9) {
+                          leaveChatroom();
+                          setModalVisible(false);
+                        } else if (val?.id === 6) {
+                          await muteNotifications();
+
+                          setModalVisible(false);
+                        } else if (val?.id === 8) {
+                          await unmuteNotifications();
+                          setModalVisible(false);
+                        }
+                      }}
+                      key={val + index}
+                      style={styles.filtersView}>
+                      <Text style={styles.filterText}>{val?.title}</Text>
+                    </TouchableOpacity>
+                  );
+                },
+              )} */}
+              <TouchableOpacity onPress={()=>{
+
+                navigation.navigate("Report", {
+                  convoId: selectedMessages[0].id
+                })
+                setSelectedMessages([])
+                // handleReportModalClose()
+              }}
+              style={styles.filtersView}>
+                <Text style={styles.filterText}>Report</Text>
+              </TouchableOpacity>
             </Pressable>
           </View>
         </Pressable>
