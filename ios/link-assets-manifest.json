@@ -1,0 +1,29 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/SofiaPro-Black.otf",
+      "sha1": "2c329f57045fc027d0f338056a4a1b82c052f556"
+    },
+    {
+      "path": "assets/fonts/SofiaPro-Bold.otf",
+      "sha1": "3e77b75a32477f1f3f1121b2bbcb5128c017a92f"
+    },
+    {
+      "path": "assets/fonts/SofiaPro-Light.otf",
+      "sha1": "844c27a9a4ed2defb0470b20351f8e89602d1b2f"
+    },
+    {
+      "path": "assets/fonts/SofiaPro-Medium.otf",
+      "sha1": "031fbc487fedfb1d112f5ee21d74dd5c91b8c240"
+    },
+    {
+      "path": "assets/fonts/SofiaPro-Regular.otf",
+      "sha1": "a316b3beca0376331f497c9c44a33224512c5fe9"
+    },
+    {
+      "path": "assets/fonts/SofiaPro-SemiBold.otf",
+      "sha1": "cc5717c99183d0009be73de5f938680aea962c7f"
+    }
+  ]
+}
