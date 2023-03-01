@@ -92,12 +92,10 @@ export function decode(text: string | undefined, enableClick: boolean) {
   }
   let arr: any[] = [];
   let parts = text.split(REGEX_USER_SPLITTING);
-  console.log('parts ==', parts);
 
   if (!!parts) {
     for (const matchResult of parts) {
       let keyValue = matchResult.match(REGEX_USER_TAGGING);
-      console.log('keyValue ==', keyValue);
       let memberName;
       let tag;
       if (!!keyValue) {

@@ -40,11 +40,9 @@ const HomeFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [communityId, setCommunityId] = useState('');
   const dispatch = useAppDispatch();
-  const {
-    myChatrooms,
-    unseenCount,
-    totalCount,
-  } = useAppSelector(state => state.homefeed);
+  const {myChatrooms, unseenCount, totalCount} = useAppSelector(
+    state => state.homefeed,
+  );
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient.fbInstance();
   const setOptions = () => {
@@ -103,7 +101,6 @@ const HomeFeed = ({navigation}: Props) => {
     };
     let res = await dispatch(initAPI(payload) as any);
     if (!!res) {
-      // console.log("the response for init ", res.community.id)
       setCommunityId(res.community.id);
       let payload = {
         page: 1,
@@ -164,7 +161,6 @@ const HomeFeed = ({navigation}: Props) => {
     const query = ref(db, `/community/${communityId}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
-        console.log('the snapshot of homefeed is', snapshot.val());
         dispatch(getHomeFeedData({page: 1}, false) as any);
       }
     });

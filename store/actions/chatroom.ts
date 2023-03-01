@@ -40,7 +40,6 @@ export const getConversations =
 
 export const paginatedConversations =
   (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
-    console.log('payload =', payload);
     try {
       return await dispatch({
         type: PAGINATED_CONVERSATIONS_SUCCESS,

@@ -1,5 +1,6 @@
 import {useEffect, useLayoutEffect, useState} from 'react';
 import {
+    Alert,
   Button,
   Image,
   Pressable,
@@ -69,10 +70,9 @@ const ReportScreen = ({navigation, route}: Props) => {
         const res = await myClient.getReportTags({
           type: 0,
         });
-        // console.log("the res is", res)
         setReasons(res.report_tags);
       } catch (error) {
-        console.log(error);
+    //    Alert.alert('API failed')
       }
     };
     getTags();
@@ -85,7 +85,7 @@ const ReportScreen = ({navigation, route}: Props) => {
         reason: otherReason != '' ? otherReason : undefined,
       });
     } catch (error) {
-      console.log(error);
+    //  Alert.alert('API failed')
     }
   };
   return (
