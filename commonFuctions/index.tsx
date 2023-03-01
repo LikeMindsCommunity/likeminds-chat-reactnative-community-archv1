@@ -1,16 +1,15 @@
-import {Linking, Text} from 'react-native';
+import {Alert, Linking, Text} from 'react-native';
 import STYLES from '../constants/Styles';
-
-// const REGEX_USER_SPLITTING =
-//   /<<(?<name>[\w\s🤖]+)\|route:\/\/member_profile\/\d+\?member_id=(?<id>\d+)&community_id=(?<community>[\w\d_]+)>>/g;
-// const REGEX_USER_TAGGING =
-//   /<<(?<name>[\w\s🤖]+)\|route:\/\/member_profile\/\d+\?member_id=(?<id>\d+)&community_id=(?<community>[\w\d_]+)>>/;
 
 // const REGEX_USER_SPLITTING = /(<<[\w\s🤖]+\|route:\/\/member\/\d+>>)/g;
 // const REGEX_USER_TAGGING = /<<([\w\s🤖]+)\|route:\/\/member\/(\d+)>>/;
 
 const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
-const REGEX_USER_TAGGING = /<<([\w\s🤖@]+)\|route:\/\/\S+>>/;
+const REGEX_USER_TAGGING =
+  /<<(?<name>[\w\s🤖@]+)\|route:\/\/(?:(?:member|member_profile)\/)?(?<route>\d+|everyone|participants)>?>?/;
+
+// const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
+// const REGEX_USER_TAGGING = /<<([\w\s🤖@]+)\|route:\/\/\S+>>/;
 
 // This function helps us to decode time(created_epoch: 1675421848540) into DATE if more than a day else TIME if less than a day.
 export function getFullDate(time: any) {
@@ -45,7 +44,7 @@ function detectLinks(message: string) {
             {regex.test(val) ? (
               <Text
                 onPress={() => {
-                  Linking.openURL(val)
+                  Linking.openURL(val);
                   // Alert.alert('hello');
                 }}>
                 <Text
@@ -74,8 +73,8 @@ export function getNameInitials(name: string) {
 
   const words = name.split(' ');
 
-  for (let i = 0; i < words.length && initials.length < 2; i++) {
-    if (words[i].length > 0) {
+  for (let i = 0; i < words?.length && initials?.length < 2; i++) {
+    if (words[i]?.length > 0) {
       initials += words[i][0].toUpperCase();
     }
   }
@@ -93,16 +92,18 @@ export function decode(text: string | undefined, enableClick: boolean) {
   }
   let arr: any[] = [];
   let parts = text.split(REGEX_USER_SPLITTING);
+  console.log('parts ==', parts);
 
   if (!!parts) {
     for (const matchResult of parts) {
       let keyValue = matchResult.match(REGEX_USER_TAGGING);
+      console.log('keyValue ==', keyValue);
       let memberName;
       let tag;
       if (!!keyValue) {
         memberName = keyValue[1];
         tag = keyValue[2];
-        arr.push({key: memberName, route: true});
+        arr.push({key: memberName, route: tag});
       } else if (!!matchResult) {
         arr.push({key: matchResult, route: null});
       }
@@ -120,7 +121,9 @@ export function decode(text: string | undefined, enableClick: boolean) {
               key={index + val}>
               {!!val.route ? (
                 <Text
-                  onPress={() => {}}
+                  onPress={() => {
+                    Alert.alert(`navigate to the route ${val?.route}`);
+                  }}
                   style={{
                     color: STYLES.$COLORS.LIGHT_BLUE,
                     fontSize: STYLES.$FONT_SIZES.MEDIUM,
@@ -201,7 +204,7 @@ export function decodeStr(text: string | undefined) {
 
 export function copySelectedMessages(selectedMessages: any) {
   // const selectedMessages = messages.filter((message:any) => message.isSelected());
-  if (selectedMessages.length === 1 && !!!selectedMessages[0]?.deleted_by) {
+  if (selectedMessages?.length === 1 && !!!selectedMessages[0]?.deleted_by) {
     if (!!selectedMessages[0]?.answer) {
       return decodeStr(selectedMessages[0]?.answer);
     } else {

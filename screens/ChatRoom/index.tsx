@@ -57,8 +57,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [isToast, setIsToast] = useState(false);
   const [msg, setMsg] = useState('');
   const [apiRes, setApiRes] = useState();
-  const [reportModalVisible, setReportModalVisible] = useState(false)
-  const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true)
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
   const {chatroomID} = route.params;
   const dispatch = useAppDispatch();
   const {conversations = [], chatroomDetails} = useAppSelector(
@@ -205,10 +205,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               )}
             {len === 1 && (
               <TouchableOpacity
-              onPress={()=>{
-                setReportModalVisible(true)
-              }}
-              >
+                onPress={() => {
+                  setReportModalVisible(true);
+                }}>
                 <Image
                   source={require('../../assets/images/three_dots3x.png')}
                   style={styles.threeDots}
@@ -221,9 +220,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
-  const handleReportModalClose = () =>{
-    setReportModalVisible(false)
-  }
+  const handleReportModalClose = () => {
+    setReportModalVisible(false);
+  };
   async function fetchChatroomDetails() {
     let payload = {chatroom_id: chatroomID};
     let response = await dispatch(getChatroom(payload) as any);
@@ -231,8 +230,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
 
   async function fetchData(showLoaderVal?: boolean) {
-    // let payload = {chatroomID: 69285, page: 1000};
-    // await myClient.markReadFn({chatroom_id: chatroomID});
+    await myClient.markReadFn({chatroom_id: chatroomID});
     let payload = {chatroomID: chatroomID, page: 100};
     let response = await dispatch(
       getConversations(
@@ -288,8 +286,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const loadData = async (newPage: number) => {
     setIsLoading(true);
     const res = await paginatedData(newPage);
-    if(res.conversations.length == 0){
-      setShouldLoadMoreChat(false)
+    if (res.conversations.length == 0) {
+      setShouldLoadMoreChat(false);
     }
     if (!!res) {
       setIsLoading(false);
@@ -463,11 +461,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           );
         }}
-        onEndReached={()=>{
-          if(shouldLoadMoreChat){
-            handleLoadMore()
+        onEndReached={() => {
+          if (shouldLoadMoreChat) {
+            handleLoadMore();
           }
-          }}
+        }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         inverted
@@ -573,15 +571,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   );
                 },
               )} */}
-              <TouchableOpacity onPress={()=>{
-
-                navigation.navigate("Report", {
-                  convoId: selectedMessages[0].id
-                })
-                setSelectedMessages([])
-                // handleReportModalClose()
-              }}
-              style={styles.filtersView}>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate('Report', {
+                    convoId: selectedMessages[0].id,
+                  });
+                  setSelectedMessages([]);
+                  setReportModalVisible(false)
+                  // handleReportModalClose()
+                }}
+                style={styles.filtersView}>
                 <Text style={styles.filterText}>Report</Text>
               </TouchableOpacity>
             </Pressable>

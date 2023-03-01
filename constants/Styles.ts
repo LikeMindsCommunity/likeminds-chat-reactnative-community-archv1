@@ -7,6 +7,7 @@ export default {
     JOINED_BTN: '#e9ecf1',
     LIGHT_BLUE: '#0276fa',
     SELECTED_BLUE: '#e8f1fa',
+    RED: 'red'
   },
   $FONT_SIZES: {
     XS: 10,

@@ -144,7 +144,7 @@ const HomeFeed = ({navigation}: Props) => {
 
   const handleLoadMore = () => {
     if (!isLoading) {
-      if (myChatrooms.length > 0 && myChatrooms.length % 10 === 0) {
+      if (myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
         const newPage = page + 1;
         setPage(newPage);
         loadData(newPage);
