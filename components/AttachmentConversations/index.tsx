@@ -254,13 +254,13 @@ export const ImageConversations = ({
       {item?.attachment_count === 1 ? (
         <TouchableOpacity
           onPress={() => {
-            if (isIncluded) {
+            if (!isIncluded) {
               Linking.openURL(item?.attachments[0]?.url);
             }
           }}>
           <Image
             style={styles.singleImg}
-            source={{uri: item.attachments[0].url}}
+            source={{uri: item?.attachments[0]?.url}}
           />
         </TouchableOpacity>
       ) : item?.attachment_count === 2 ? (
