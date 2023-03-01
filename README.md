@@ -32,50 +32,93 @@
 git clone git@github.com:NateshR/ReactNative-GroupChat-SX.git
 ```
 
-## NPM
-
-```shell
-Run `npm install` and then `npm start`.
-```
-
 ## 🤔 Prerequisites
 
 NodeJS
 https://nodejs.org/en/
 
-## 🙌 Available Scripts
+## NPM
 
-In the project directory, you can run:
+```shell
+`npm install` or `yarn`.
+```
 
-### `npm start`
+## For iOS update podfile
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```shell
+Run `cd ios && pod install` then `cd ..`
+```
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+## Running your React Native application
 
-### `npm run build`
+# Step 1: Start Metro
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```shell
+`npx react-native start`
+```
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+If you are using package manager
 
-### `npm run build` fails to minify
+```shell
+Run `npm run start` or `yarn start`
+```
 
-https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+# Step 2: Start your application
+
+For iOS (Choose according to your package manager)
+
+```shell
+Run `npx react-native run-ios` or `npm run ios` or `yarn ios`
+```
+
+For Android(Choose according to your package manager)
+```shell
+Run `npx react-native run-android` or `npm run android` or `yarn android`
+```
+
+## 🙌 For creating builds
+
+### Android
+
+```shell
+`npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res`
+```
+
+For Debug build
+```shell
+`cd android && ./gradlew assembleDebug`
+```
+
+For Release build
+```shell
+`cd android && ./gradlew assembleRelease`
+```
+
+```shell
+`cd ..`
+```
+
+### iOS
+
+Login as apple developer, create certificates, and then identifiers from developer.apple.com. Integrate that identifier in `Build Identifier` inside `Signing & Capabilities`, that you will find in `XCode`.
+
+Then instead of iphone emulator like `iphone 14` select `any iOS Device`, then from top tab bar in Xcode, you will find `Product` tab. Click on Product > Archieve.
+
+After archive is done, distribute the app on the test flight or adhoc(Diawi).
 
 ## 😎 File Structure
 
 ```text
 src
-├── assets                  * Assets that are imported into your components(images, custom svg, etc).
-├── App.css                 * Main app styles.
-├── App.js                  * Main app component.
-├── components              * Components of the projects that are not the main views.
+├── assets                  * Assets that are imported into your components(images custom svg, etc).
+├── commonFunctions         * Common functions that we used across the app.
+├── components              * Components of the project that are not the main views.
 │   └── channelGroups
-├── sdkFunctions            * All the common services.
+├── constants               * Constants that we used across the app.
+├── navigations             * Switch Component for the screens.
+├── screens                 * Screens of the project that are on the main views.
+├── store                   * Redux store, it has action, reducers, types, and API middleware.
+├── App.tsx                 * Main app component.
 ├── index.js                * Entry point of the application.
+├── store.ts                * To connect redux store.
 ```
