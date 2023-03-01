@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useLayoutEffect, useEffect} from 'react';
 import {
   View,
@@ -12,7 +11,6 @@ import {
 } from 'react-native';
 import {useDispatch} from 'react-redux';
 import {myClient} from '../..';
-import {dummyData} from '../../assets/dummyResponse/dummyData';
 import {getNameInitials} from '../../commonFuctions';
 import HomeFeedExplore from '../../components/HomeFeedExplore';
 import HomeFeedItem from '../../components/HomeFeedItem';
@@ -35,7 +33,7 @@ interface Props {
 }
 
 const HomeFeed = ({navigation}: Props) => {
-  const [chats, setChats] = useState(dummyData.my_chatrooms);
+  // const [chats, setChats] = useState(dummyData.my_chatrooms);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [communityId, setCommunityId] = useState('');
@@ -167,7 +165,7 @@ const HomeFeed = ({navigation}: Props) => {
   }, []);
   return (
     <View style={styles.page}>
-      {chats?.length > 0 && (
+      {myChatrooms?.length > 0 && (
         <FlatList
           data={myChatrooms}
           // data={chats}

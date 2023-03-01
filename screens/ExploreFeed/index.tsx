@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import {dummyData} from '../../assets/dummyResponse/dummyData';
 import ExploreFeedFilters from '../../components/ExploreFeedFilters';
 import ExploreFeedItem from '../../components/ExploreFeedItem';
 import ToastMessage from '../../components/ToastMessage';

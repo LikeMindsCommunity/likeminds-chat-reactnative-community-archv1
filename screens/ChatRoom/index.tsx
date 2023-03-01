@@ -15,7 +15,6 @@ import {
   Modal,
 } from 'react-native';
 import {myClient} from '../..';
-import {conversationData} from '../../assets/dummyResponse/conversationData';
 import {copySelectedMessages} from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
@@ -42,9 +41,6 @@ interface ChatRoom {
 
 const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<FlatList>(null);
-  const [messages, setMessages] = useState(
-    conversationData?.data?.conversations,
-  );
   const db = myClient.fbInstance();
   const [isReply, setIsReply] = useState(false);
   const [replyMessage, setReplyMessage] = useState();
