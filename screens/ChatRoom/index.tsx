@@ -188,10 +188,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         conversation_ids: [selectedMessages[0]?.id],
                         reason: 'none',
                       })
-                      .then(() => {
+                      .then(async () => {
                         setSelectedMessages([]);
                         setIsLongPress(false);
                         setInitialHeader();
+                        let payload = {
+                          chatroomID: chatroomID,
+                          page: 50,
+                        };
+                        await dispatch(getConversations(payload, true) as any);
                       })
                       .catch(() => {
                         Alert.alert('Delete message failed');
@@ -577,7 +582,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     convoId: selectedMessages[0].id,
                   });
                   setSelectedMessages([]);
-                  setReportModalVisible(false)
+                  setReportModalVisible(false);
                   // handleReportModalClose()
                 }}
                 style={styles.filtersView}>
