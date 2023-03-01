@@ -57,7 +57,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [isToast, setIsToast] = useState(false);
   const [msg, setMsg] = useState('');
   const [apiRes, setApiRes] = useState();
-
+  const [reportModalVisible, setReportModalVisible] = useState(false)
+  const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true)
   const {chatroomID} = route.params;
   const dispatch = useAppDispatch();
   const {conversations = [], chatroomDetails} = useAppSelector(
@@ -203,7 +204,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </TouchableOpacity>
               )}
             {len === 1 && (
-              <TouchableOpacity>
+              <TouchableOpacity
+              onPress={()=>{
+                setReportModalVisible(true)
+              }}
+              >
                 <Image
                   source={require('../../assets/images/three_dots3x.png')}
                   style={styles.threeDots}
@@ -216,6 +221,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
+  const handleReportModalClose = () =>{
+    setReportModalVisible(false)
+  }
   async function fetchChatroomDetails() {
     let payload = {chatroom_id: chatroomID};
     let response = await dispatch(getChatroom(payload) as any);
@@ -280,6 +288,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const loadData = async (newPage: number) => {
     setIsLoading(true);
     const res = await paginatedData(newPage);
+    if(res.conversations.length == 0){
+      setShouldLoadMoreChat(false)
+    }
     if (!!res) {
       setIsLoading(false);
     }
@@ -452,7 +463,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           );
         }}
-        onEndReached={handleLoadMore}
+        onEndReached={()=>{
+          if(shouldLoadMoreChat){
+            handleLoadMore()
+          }
+          }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         inverted
@@ -515,6 +530,60 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   );
                 },
               )}
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        // animationType="slide"
+        transparent={true}
+        visible={reportModalVisible && selectedMessages.length == 1}
+        onRequestClose={() => {
+          setReportModalVisible(!modalVisible);
+        }}>
+        <Pressable style={styles.centeredView} onPress={handleReportModalClose}>
+          <View>
+            <Pressable onPress={() => {}} style={[styles.modalView]}>
+              {/* {chatroomDetails?.chatroom_actions?.map(
+                (val: any, index: any) => {
+                  return (
+                    <TouchableOpacity
+                      onPress={async () => {
+                        // if(val?.id === 2){
+                        //   navigation.navigate('ViewParticipants')
+                        //   setModalVisible(false)
+                        // }
+                        if (val?.id === 9) {
+                          leaveChatroom();
+                          setModalVisible(false);
+                        } else if (val?.id === 6) {
+                          await muteNotifications();
+
+                          setModalVisible(false);
+                        } else if (val?.id === 8) {
+                          await unmuteNotifications();
+                          setModalVisible(false);
+                        }
+                      }}
+                      key={val + index}
+                      style={styles.filtersView}>
+                      <Text style={styles.filterText}>{val?.title}</Text>
+                    </TouchableOpacity>
+                  );
+                },
+              )} */}
+              <TouchableOpacity onPress={()=>{
+
+                navigation.navigate("Report", {
+                  convoId: selectedMessages[0].id
+                })
+                setSelectedMessages([])
+                // handleReportModalClose()
+              }}
+              style={styles.filtersView}>
+                <Text style={styles.filterText}>Report</Text>
+              </TouchableOpacity>
             </Pressable>
           </View>
         </Pressable>

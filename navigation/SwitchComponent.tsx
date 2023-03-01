@@ -7,6 +7,7 @@ import ExploreFeed from '../screens/ExploreFeed';
 import ChatRoom from '../screens/ChatRoom';
 import LoaderComponent from '../components/LoaderComponent';
 import { useAppSelector } from '../store';
+import ReportScreen from '../screens/ReportMessage';
 import ImageScreen from '../components/ImageScreen';
 
 const Stack = createNativeStackNavigator();
@@ -20,6 +21,7 @@ const SwitchComponent = () => {
           <Stack.Screen name="HomeFeed" component={HomeFeed} />
           <Stack.Screen name="ExploreFeed" component={ExploreFeed} />
           <Stack.Screen name="ChatRoom" component={ChatRoom} />
+          <Stack.Screen name="Report" component={ReportScreen} />
           <Stack.Screen name="ImageScreen" component={ImageScreen} />
         </Stack.Navigator>
       </NavigationContainer>
