@@ -18,11 +18,11 @@
 ## Getting Started
 
 ## Generating API key
-
+ 
 ```shell
   1. Go to dashboard.likeminds.community and create your account.
   2. After signup, create a new app and copy the API key from the settings tab in the app.
-  3. Copy and save this API key to be used in client-side and backend SDKs for your projects.
+  3. Copy and save this API key to be used in client-side and backend SDKs for your projects (paste this API key in `index.js` file).
   5. The dashboard also helps you to manage the users and the chatroom created
 ```
 
