@@ -26,6 +26,13 @@
   5. The dashboard also helps you to manage the users and the chatroom created
 ```
 
+## Integration of authorization userID and userName in initSDK function
+
+```shell
+  1. Go to screens> Homefeed > index.tsx file, you will find `initAPI`. 
+  2. In the payload of `initAPI`, add your user uniqueID (Authorization ID) and userName.
+```
+
 ## Clone repo
 
 ```shell
