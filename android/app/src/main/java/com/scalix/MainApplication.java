@@ -1,4 +1,4 @@
-package com.scalix;
+package com.likeminds.chat.sx;
 
 import android.app.Application;
 import com.facebook.react.PackageList;
