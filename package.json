@@ -1,6 +1,7 @@
 {
-  "name": "Scalix",
-  "version": "0.0.1",
+  "name": "Likeminds_chat_sx",
+  "versionCode": "1",
+  "versionName": "0.5",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
