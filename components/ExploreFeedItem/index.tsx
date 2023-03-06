@@ -4,6 +4,7 @@ import {myClient} from '../..';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
+import { getHomeFeedData } from '../../store/actions/homefeed';
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 
@@ -66,6 +67,9 @@ const ExploreFeedItem: React.FC<Props> = ({
           setIsToast(true);
         }
         await dispatch(getExploreFeedData(payload) as any);
+        await dispatch(getHomeFeedData({
+          page: 1,
+        }, false) as any);
       })
       .catch(() => {
         // Alert.alert('Leave Chatroom failed');

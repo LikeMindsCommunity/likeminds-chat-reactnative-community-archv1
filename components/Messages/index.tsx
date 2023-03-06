@@ -193,7 +193,11 @@ const Messages = ({
                 {reactionArr[1]?.memberArr?.length}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.moreReaction}>
+            <TouchableOpacity
+              onPress={() => {
+                setModalVisible(true);
+              }}
+              style={styles.moreReaction}>
               <View>
                 <Image
                   style={{

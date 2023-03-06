@@ -43,8 +43,20 @@ function detectLinks(message: string) {
           <Text>
             {regex.test(val) ? (
               <Text
-                onPress={() => {
-                  Linking.openURL(val);
+                onPress={async () => {
+                  const supported = await Linking.canOpenURL(val);
+                  if (supported) {
+                    let urlRegex = /(https?:\/\/[^\s]+)/gi;
+                    let isMatched = urlRegex.test(val);
+                    if (isMatched) {
+                      await Linking.openURL(val);
+                    } else {
+                      await Linking.openURL(`https://${val}`);
+                    }
+                  } else {
+                    Alert.alert(`Don't know how to open this URL: ${val}`);
+                  }
+
                   // Alert.alert('hello');
                 }}>
                 <Text

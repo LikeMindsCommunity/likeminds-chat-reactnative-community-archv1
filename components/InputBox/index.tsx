@@ -75,7 +75,7 @@ const InputBox = ({
         chatroom_id: chatroomID,
         created_at: new Date(Date.now()),
         has_files: false,
-        text: message,
+        text: message.trim(),
         // attachment_count?: any;
         replied_conversation_id: replyMessage?.id,
       };

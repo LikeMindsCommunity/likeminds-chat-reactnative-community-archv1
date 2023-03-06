@@ -16,7 +16,9 @@ interface PeopleWhoReacted {
 
 export const PeopleWhoReactedDefault = ({item}: PeopleWhoReactedDefault) => {
   return (
-    <ScrollView>
+    <ScrollView
+      contentContainerStyle={{flexGrow: 1}}
+      keyboardDismissMode="on-drag">
       {item?.map((val: any, index: any) => {
         return (
           <View key={val + index} style={styles.reactionItem}>
@@ -46,35 +48,37 @@ export const PeopleWhoReactedDefault = ({item}: PeopleWhoReactedDefault) => {
   );
 };
 
-export const PeopleWhoReacted = ({item,title}: PeopleWhoReacted) => {
+export const PeopleWhoReacted = ({item, title}: PeopleWhoReacted) => {
   return (
-    <ScrollView>
-      {item?.map((val: any, index: any) => {
-        return (
-          <View key={val + index} style={styles.reactionItem}>
-            <View style={styles.alignRow}>
+    <View>
+      <ScrollView>
+        {item?.map((val: any, index: any) => {
+          return (
+            <View key={val + index} style={styles.reactionItem}>
+              <View style={styles.alignRow}>
+                <View>
+                  <Image
+                    source={
+                      !!val?.image_url
+                        ? {uri: val?.image_url}
+                        : require('../../assets/images/default_pic.png')
+                    }
+                    style={styles.avatar}
+                  />
+                </View>
+                <View style={styles.alignColumn}>
+                  <Text style={styles.textHeading}>{val?.name}</Text>
+                  <Text style={styles.text}>Tap to remove</Text>
+                </View>
+              </View>
               <View>
-                <Image
-                  source={
-                    !!val?.image_url
-                      ? {uri:val?.image_url}
-                      : require('../../assets/images/default_pic.png')
-                  }
-                  style={styles.avatar}
-                />
-              </View>
-              <View style={styles.alignColumn}>
-                <Text style={styles.textHeading}>{val?.name}</Text>
-                <Text style={styles.text}>Tap to remove</Text>
+                <Text>{title}</Text>
               </View>
             </View>
-            <View>
-              <Text>{title}</Text>
-            </View>
-          </View>
-        );
-      })}
-    </ScrollView>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 };
 
@@ -145,6 +149,7 @@ export default function MyTabs({reactionArr, defaultReactionArr}: MyTabs) {
       onIndexChange={index => setState({index, routes: state.routes})}
       initialLayout={{width: Layout.window.width}}
       style={styles.container}
+      overScrollMode={'always'}
       // pagerStyle={{overflow: 'scroll', height: 150}}
       // sceneContainerStyle={{overflow:'scroll',height:150}}
     />

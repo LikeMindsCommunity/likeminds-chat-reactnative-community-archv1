@@ -11,7 +11,6 @@ export const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
-    marginTop: 20,
     backgroundColor: '#000000aa',
   },
   modalParent: {

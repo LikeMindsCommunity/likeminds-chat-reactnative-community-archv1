@@ -1,4 +1,11 @@
-import {View, Text, Modal, Pressable, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Modal,
+  Pressable,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import React from 'react';
 import {styles} from './styles';
 import MyTabs from '../TopTabNavigator';
@@ -14,7 +21,7 @@ const ReactionGridModal = ({
   modalVisible,
   setModalVisible,
   reactionArr,
-  defaultReactionArr
+  defaultReactionArr,
 }: ReactionGridModal) => {
   const handleModalClose = () => {
     setModalVisible(false);
@@ -30,16 +37,14 @@ const ReactionGridModal = ({
       <Pressable style={styles.centeredView} onPress={handleModalClose}>
         <View style={styles.modalParent}>
           <Pressable onPress={() => {}} style={[styles.modalView]}>
-            <View
-              style={styles.bar}
-            />
+            <View style={styles.bar} />
             <View style={{padding: 20, paddingTop: 10, height: '100%'}}>
-              <Text style={styles.text}>
-                Reactions
-              </Text>
-              <MyTabs defaultReactionArr={defaultReactionArr} reactionArr={reactionArr} />
+              <Text style={styles.text}>Reactions</Text>
+              <MyTabs
+                defaultReactionArr={defaultReactionArr}
+                reactionArr={reactionArr}
+              />
             </View>
-            
           </Pressable>
         </View>
       </Pressable>

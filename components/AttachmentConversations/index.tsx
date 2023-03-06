@@ -84,7 +84,9 @@ export const VideoConversations = ({
                   source={require('../../assets/images/play_video.png')}
                   style={styles.icon}
                 />
-                <Text style={styles.docName}>{item?.attachments[0]?.name}</Text>
+                <Text numberOfLines={2} style={styles.docName}>
+                  {item?.attachments[0]?.name}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -97,7 +99,9 @@ export const VideoConversations = ({
                   source={require('../../assets/images/play_video.png')}
                   style={styles.icon}
                 />
-                <Text style={styles.docName}>{item?.attachments[1]?.name}</Text>
+                <Text numberOfLines={2} style={styles.docName}>
+                  {item?.attachments[1]?.name}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -114,7 +118,9 @@ export const VideoConversations = ({
                   source={require('../../assets/images/play_video.png')}
                   style={styles.icon}
                 />
-                <Text style={styles.docName}>{val?.name}</Text>
+                <Text numberOfLines={2} style={styles.docName}>
+                  {val?.name}
+                </Text>
               </TouchableOpacity>
             ))
           )}
@@ -131,7 +137,9 @@ export const VideoConversations = ({
             source={require('../../assets/images/play_video.png')}
             style={styles.icon}
           />
-          <Text style={styles.docName}>{item?.attachments[0]?.name}</Text>
+          <Text numberOfLines={2} style={styles.docName}>
+            {item?.attachments[0]?.name}
+          </Text>
         </TouchableOpacity>
       )}
       {item.attachment_count > 2 && !isFullList && (
@@ -171,7 +179,9 @@ export const PDFConversations = ({
                   source={require('../../assets/images/pdf_icon3x.png')}
                   style={styles.icon}
                 />
-                <Text style={styles.docName}>{item?.attachments[0]?.name}</Text>
+                <Text numberOfLines={2} style={styles.docName}>
+                  {item?.attachments[0]?.name}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -184,7 +194,9 @@ export const PDFConversations = ({
                   source={require('../../assets/images/pdf_icon3x.png')}
                   style={styles.icon}
                 />
-                <Text style={styles.docName}>{item?.attachments[1]?.name}</Text>
+                <Text numberOfLines={2} style={styles.docName}>
+                  {item?.attachments[1]?.name}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -201,7 +213,9 @@ export const PDFConversations = ({
                   source={require('../../assets/images/pdf_icon3x.png')}
                   style={styles.icon}
                 />
-                <Text style={styles.docName}>{val?.name}</Text>
+                <Text numberOfLines={2} style={styles.docName}>
+                  {val?.name}
+                </Text>
               </TouchableOpacity>
             ))
           )}
@@ -218,7 +232,9 @@ export const PDFConversations = ({
             source={require('../../assets/images/pdf_icon3x.png')}
             style={styles.icon}
           />
-          <Text style={styles.docName}>{item?.attachments[0]?.name}</Text>
+          <Text numberOfLines={2} style={styles.docName}>
+            {item?.attachments[0]?.name}
+          </Text>
         </TouchableOpacity>
       )}
       {item.attachment_count > 2 && !isFullList && (
