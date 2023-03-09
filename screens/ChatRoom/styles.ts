@@ -33,7 +33,7 @@ export const styles = StyleSheet.create({
     // backgroundColor: '#fff',
     // elevation: 2,
     flexGrow: 1,
-    backgroundColor: 'pink',
+    // backgroundColor: 'pink',
   },
   emojiButton: {
     padding: 10,

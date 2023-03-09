@@ -80,13 +80,13 @@ export const styles = StyleSheet.create({
   },
 
   centeredView: {
-    flex: 1,
+    flexGrow: 1,
     marginTop: 20,
   },
   modalViewParent: {
     position: 'absolute',
     bottom: 80,
-    flex: 1,
+    flexGrow: 1,
     width: Layout.window.width,
   },
   modalView: {

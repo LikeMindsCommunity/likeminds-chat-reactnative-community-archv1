@@ -39,6 +39,7 @@ const InputBox = ({
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
+  const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -140,20 +141,14 @@ const InputBox = ({
             />
           </TouchableOpacity> */}
 
-            <View
-              style={[
-                styles.inputParent,
-                Platform.OS === 'ios'
-                  ? {
-                      minHeight: 30,
-                      maxHeight: 120,
-                    }
-                  : {height: 30},
-              ]}>
+            <View style={[styles.inputParent]}>
               <TextInput
                 value={message}
                 onChangeText={setMessage}
-                style={styles.input}
+                onContentSizeChange={event => {
+                  setInputHeight(event.nativeEvent.contentSize.height);
+                }}
+                style={[styles.input, {height: Math.max(25, inputHeight)}]}
                 numberOfLines={6}
                 multiline={true}
                 onBlur={() => {
