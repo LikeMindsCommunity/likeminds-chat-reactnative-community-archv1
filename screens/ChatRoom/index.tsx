@@ -29,6 +29,7 @@ import {
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
+import { getHomeFeedData } from '../../store/actions/homefeed';
 interface Data {
   id: string;
   title: string;
@@ -41,7 +42,9 @@ interface ChatRoom {
 
 const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<FlatList>(null);
+
   const db = myClient.fbInstance();
+
   const [isReply, setIsReply] = useState(false);
   const [replyMessage, setReplyMessage] = useState();
   const [replyChatID, setReplyChatID] = useState<number>();
@@ -55,11 +58,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [apiRes, setApiRes] = useState();
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
+
   const {chatroomID} = route.params;
+
   const dispatch = useAppDispatch();
   const {conversations = [], chatroomDetails} = useAppSelector(
     state => state.chatroom,
   );
+
   const routes = navigation.getState()?.routes;
   const prevRoute = routes[routes.length - 2];
 
@@ -263,6 +269,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         showLoaderVal != undefined && showLoaderVal == false ? false : true,
       ) as any,
     );
+    await dispatch(getHomeFeedData({page: 1}, false) as any);
     return response;
   }
 
@@ -466,12 +473,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     <View style={styles.container}>
       <FlatList
         ref={flatlistRef}
-        // data={messages}
         data={conversations}
-        // initialScrollIndex={
-        //   conversations.length > 0 ? conversations.length - 1 : 0
-        // }
-        // getItemLayout={getItemLayout}
         keyExtractor={item => item?.id.toString()}
         renderItem={({item, index}) => {
           let stateArr = [2, 3]; //joined and left chatroom state
