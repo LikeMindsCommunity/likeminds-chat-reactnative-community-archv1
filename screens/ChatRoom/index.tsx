@@ -149,7 +149,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let len = selectedMessages.length;
         return (
           <View style={styles.selectedHeadingContainer}>
-            {len === 1 && (
+            {len === 1 && !!!selectedMessages[0].deleted_by && (
               <TouchableOpacity
                 onPress={() => {
                   if (len > 0) {
@@ -168,21 +168,37 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity
-              onPress={() => {
-                const output = copySelectedMessages(selectedMessages);
-                Clipboard.setString(output);
-                setSelectedMessages([]);
-                setIsLongPress(false);
-                setInitialHeader();
-              }}>
-              <Image
-                source={require('../../assets/images/copy_icon3x.png')}
-                style={styles.threeDots}
-              />
-            </TouchableOpacity>
-
+            {len === 1 && !!!selectedMessages[0].deleted_by ? (
+              <TouchableOpacity
+                onPress={() => {
+                  const output = copySelectedMessages(selectedMessages);
+                  Clipboard.setString(output);
+                  setSelectedMessages([]);
+                  setIsLongPress(false);
+                  setInitialHeader();
+                }}>
+                <Image
+                  source={require('../../assets/images/copy_icon3x.png')}
+                  style={styles.threeDots}
+                />
+              </TouchableOpacity>
+            ) : len > 1 ? (
+              <TouchableOpacity
+                onPress={() => {
+                  const output = copySelectedMessages(selectedMessages);
+                  Clipboard.setString(output);
+                  setSelectedMessages([]);
+                  setIsLongPress(false);
+                  setInitialHeader();
+                }}>
+                <Image
+                  source={require('../../assets/images/copy_icon3x.png')}
+                  style={styles.threeDots}
+                />
+              </TouchableOpacity>
+            ) : null}
             {len === 1 &&
+              !!!selectedMessages[0].deleted_by &&
               (selectedMessages[0]?.member?.id === user?.id ||
                 chatroomDetails?.chatroom?.member?.state === 1) && (
                 <TouchableOpacity
@@ -212,7 +228,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   />
                 </TouchableOpacity>
               )}
-            {len === 1 && (
+            {len === 1 && !!!selectedMessages[0].deleted_by && (
               <TouchableOpacity
                 onPress={() => {
                   setReportModalVisible(true);
@@ -356,6 +372,30 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return res;
   };
 
+  const leaveSecretChatroom = async () => {
+    const payload = {
+      chatroom_id: chatroomID,
+      member_id: user?.id,
+    };
+    const res = await myClient
+      .leaveSecretChatroom(payload)
+      .then(() => {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes:
+              prevRoute?.name === 'ExploreFeed'
+                ? [{name: 'HomeFeed'}, {name: prevRoute?.name}]
+                : [{name: prevRoute?.name}],
+          }),
+        );
+      })
+      .catch(() => {
+        Alert.alert('Leave Chatroom failed');
+      });
+    return res;
+  };
+
   const joinChatroom = async () => {
     const payload = {
       collabcard_id: chatroomID,
@@ -478,7 +518,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                           val?.id !== item?.id &&
                           !stateArr.includes(val?.state),
                       );
-                      setSelectedMessages([...filterdMessages]);
+                      if (filterdMessages.length > 0) {
+                        setSelectedMessages([...filterdMessages]);
+                      } else {
+                        setSelectedMessages([...filterdMessages]);
+                        setIsLongPress(false);
+                      }
                     } else {
                       if (!isStateIncluded) {
                         setSelectedMessages([...selectedMessages, item]);
@@ -547,9 +592,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       //   setModalVisible(false)
                       // }
                       if (val?.id === 9 || val?.id === 15) {
-                        if (!isSecret) {
+                        if (isSecret) {
+                          leaveSecretChatroom();
+                        } else if (!isSecret) {
                           leaveChatroom();
                         }
+
                         setModalVisible(false);
                       } else if (val?.id === 4) {
                         if (!isSecret) {

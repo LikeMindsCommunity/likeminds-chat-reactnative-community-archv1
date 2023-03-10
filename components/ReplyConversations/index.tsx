@@ -1,4 +1,4 @@
-import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {View, Text, Image, TouchableOpacity, Alert} from 'react-native';
 import React from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
@@ -85,7 +85,9 @@ const ReplyConversations = ({
             (element: any) =>
               element?.id === item?.reply_conversation_object?.id,
           );
-          onScrollToIndex(index);
+          if (index >= 0) {
+            onScrollToIndex(index);
+          }
         }}>
         <ReplyBox
           isIncluded={isIncluded}

@@ -15,7 +15,7 @@ const LoaderComponent = () => {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor:'white',
-        opacity:0.7
+        opacity:1
       }}>
       <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
     </View>
