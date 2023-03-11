@@ -1,8 +1,9 @@
-import {GET_CHATROOM_SUCCESS, GET_CONVERSATIONS_SUCCESS, PAGINATED_CONVERSATIONS_SUCCESS, UPDATE_CONVERSATIONS} from '../types/types';
+import {GET_CHATROOM_SUCCESS, GET_CONVERSATIONS_SUCCESS, ON_CONVERSATIONS_CREATE_SUCCESS, PAGINATED_CONVERSATIONS_SUCCESS, UPDATE_CONVERSATIONS} from '../types/types';
 
 const initialState = {
   conversations: [],
-  chatroomDetails: {} as any
+  chatroomDetails: {} as any,
+  messageSent: {} as any
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -24,6 +25,10 @@ export function chatroomReducer(state = initialState, action: any) {
     case GET_CHATROOM_SUCCESS: {
       const chatroomDetails = action.body;
       return {...state, chatroomDetails: chatroomDetails};
+    }
+    case ON_CONVERSATIONS_CREATE_SUCCESS: {
+      const messageObj = action.body
+      return {...state, messageSent: messageObj};
     }
     default:
       return state;

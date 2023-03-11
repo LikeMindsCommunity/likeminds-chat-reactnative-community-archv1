@@ -120,4 +120,24 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: STYLES.$COLORS.JOINED_BTN,
   },
+  joinBtnContainer: {
+    backgroundColor: STYLES.$COLORS.SECONDARY,
+    borderRadius: 10,
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    padding: 10,
+    gap: 5,
+  },
+  join: {
+    color: STYLES.$COLORS.TERTIARY,
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
+  },
+  icon: {
+    width: 30,
+    height: 25,
+    resizeMode: 'contain',
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+  },
 });

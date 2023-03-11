@@ -44,20 +44,13 @@ function detectLinks(message: string) {
             {regex.test(val) ? (
               <Text
                 onPress={async () => {
-                  const supported = await Linking.canOpenURL(val);
-                  if (supported) {
-                    let urlRegex = /(https?:\/\/[^\s]+)/gi;
-                    let isMatched = urlRegex.test(val);
-                    if (isMatched) {
-                      await Linking.openURL(val);
-                    } else {
-                      await Linking.openURL(`https://${val}`);
-                    }
+                  let urlRegex = /(https?:\/\/[^\s]+)/gi;
+                  let isMatched = urlRegex.test(val);
+                  if (isMatched) {
+                    await Linking.openURL(val);
                   } else {
-                    Alert.alert(`Don't know how to open this URL: ${val}`);
+                    await Linking.openURL(`https://${val}`);
                   }
-
-                  // Alert.alert('hello');
                 }}>
                 <Text
                   style={{

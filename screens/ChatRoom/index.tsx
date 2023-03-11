@@ -29,7 +29,8 @@ import {
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
-import { getHomeFeedData } from '../../store/actions/homefeed';
+import {getHomeFeedData} from '../../store/actions/homefeed';
+import {SET_PAGE} from '../../store/types/types';
 interface Data {
   id: string;
   title: string;
@@ -62,9 +63,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {chatroomID} = route.params;
 
   const dispatch = useAppDispatch();
-  const {conversations = [], chatroomDetails} = useAppSelector(
-    state => state.chatroom,
-  );
+  const {
+    conversations = [],
+    chatroomDetails,
+    messageSent,
+  } = useAppSelector(state => state.chatroom);
 
   const routes = navigation.getState()?.routes;
   const prevRoute = routes[routes.length - 2];
@@ -254,11 +257,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const handleReportModalClose = () => {
     setReportModalVisible(false);
   };
-  async function fetchChatroomDetails() {
-    let payload = {chatroom_id: chatroomID};
-    let response = await dispatch(getChatroom(payload) as any);
-    return response;
-  }
 
   async function fetchData(showLoaderVal?: boolean) {
     await myClient.markReadFn({chatroom_id: chatroomID});
@@ -269,7 +267,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         showLoaderVal != undefined && showLoaderVal == false ? false : true,
       ) as any,
     );
+    dispatch({type: SET_PAGE, body: 1});
     await dispatch(getHomeFeedData({page: 1}, false) as any);
+    return response;
+  }
+
+  async function fetchChatroomDetails() {
+    let payload = {chatroom_id: chatroomID};
+    let response = await dispatch(getChatroom(payload) as any);
     return response;
   }
 
@@ -297,6 +302,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (conversations.length > 0) {
+      flatlistRef?.current?.scrollToIndex({
+        animated: false,
+        index: 0,
+      });
+    }
+  }, [messageSent]);
 
   useEffect(() => {
     if (selectedMessages.length === 0) {
@@ -361,16 +375,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
     const res = await myClient
       .leaveChatroom(payload)
-      .then(() => {
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes:
-              prevRoute?.name === 'ExploreFeed'
-                ? [{name: 'HomeFeed'}, {name: prevRoute?.name}]
-                : [{name: prevRoute?.name}],
-          }),
-        );
+      .then(async () => {
+        dispatch({type: SET_PAGE, body: 1});
+        await dispatch(getHomeFeedData({page: 1}) as any);
+        navigation.goBack();
       })
       .catch(() => {
         Alert.alert('Leave Chatroom failed');
@@ -386,16 +394,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
     const res = await myClient
       .leaveSecretChatroom(payload)
-      .then(() => {
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes:
-              prevRoute?.name === 'ExploreFeed'
-                ? [{name: 'HomeFeed'}, {name: prevRoute?.name}]
-                : [{name: prevRoute?.name}],
-          }),
-        );
+      .then(async () => {
+        dispatch({type: SET_PAGE, body: 1});
+        await dispatch(getHomeFeedData({page: 1}) as any);
+        navigation.goBack();
       })
       .catch(() => {
         Alert.alert('Leave Chatroom failed');
@@ -423,7 +425,32 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         );
       })
       .catch(() => {
-        Alert.alert('Leave Chatroom failed');
+        Alert.alert('Join Chatroom failed');
+      });
+
+    return res;
+  };
+
+  const joinSecretChatroom = async () => {
+    const payload = {
+      collabcard_id: chatroomID,
+      member_id: user?.id,
+      value: true,
+    };
+    const res = await myClient
+      .leaveChatroom(payload)
+      .then(async () => {
+        let payload = {chatroom_id: chatroomID};
+        await dispatch(getChatroom(payload) as any);
+
+        let payload1 = {chatroomID: chatroomID, page: 100};
+        await dispatch(getConversations(payload1, true) as any);
+
+        dispatch({type: SET_PAGE, body: 1});
+        await dispatch(getHomeFeedData({page: 1}) as any);
+      })
+      .catch(() => {
+        Alert.alert('Join Secret Chatroom failed');
       });
 
     return res;
@@ -463,11 +490,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       });
   };
 
-  // const getItemLayout = (data: any, index: any) => ({
-  //   length: 50,
-  //   offset: 50 * index,
-  //   index,
-  // });
+  const getItemLayout = (data: any, index: any) => ({
+    length: conversations.length,
+    offset: conversations.length * index,
+    index,
+  });
 
   return (
     <View style={styles.container}>
@@ -553,10 +580,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
+        // getItemLayout={getItemLayout}
         inverted
       />
 
-      {chatroomDetails?.chatroom?.member_can_message ? (
+      {!chatroomDetails?.chatroom?.follow_status && (
+        <TouchableOpacity
+          onPress={() => {
+            joinSecretChatroom();
+          }}
+          style={[styles.joinBtnContainer, {alignSelf: 'center'}]}>
+          <Image
+            source={require('../../assets/images/join_group3x.png')}
+            style={styles.icon}
+          />
+          <Text style={styles.join}>{'Join'}</Text>
+        </TouchableOpacity>
+      )}
+
+      {chatroomDetails?.chatroom?.member_can_message &&
+      chatroomDetails?.chatroom?.follow_status ? (
         <InputBox
           isReply={isReply}
           replyChatID={replyChatID}

@@ -5,6 +5,7 @@ import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
 import {getHomeFeedData} from '../../store/actions/homefeed';
+import { SET_PAGE } from '../../store/types/types';
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 
@@ -67,6 +68,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           setIsToast(true);
         }
         await dispatch(getExploreFeedData(payload) as any);
+        dispatch({type: SET_PAGE, body: 1});
         await dispatch(
           getHomeFeedData(
             {

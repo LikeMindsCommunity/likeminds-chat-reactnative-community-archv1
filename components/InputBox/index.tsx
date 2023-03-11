@@ -81,6 +81,7 @@ const InputBox = ({
         replied_conversation_id: replyMessage?.id,
       };
       let response = await dispatch(onConversationsCreate(payload) as any);
+      setInputHeight(25)
       setIsReply(false);
       setReplyMessage();
       // addItem(payload);
