@@ -7,8 +7,9 @@ import {
   Platform,
   Modal,
   Pressable,
+  Keyboard,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
@@ -50,6 +51,20 @@ const InputBox = ({
     setModalVisible(false);
   };
 
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyBoardFocused(true)
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyBoardFocused(false)
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
   const onSend = async () => {
     let time = new Date(Date.now());
     let hr = time.getHours();
@@ -81,7 +96,7 @@ const InputBox = ({
         replied_conversation_id: replyMessage?.id,
       };
       let response = await dispatch(onConversationsCreate(payload) as any);
-      setInputHeight(25)
+      setInputHeight(25);
       setIsReply(false);
       setReplyMessage();
       // addItem(payload);

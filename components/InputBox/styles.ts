@@ -54,6 +54,7 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.SECONDARY,
     maxHeight: 120,
     padding: 0,
+    marginBottom: 2,
     overflow: 'scroll',
   },
   sendButton: {
@@ -65,6 +66,7 @@ export const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingLeft: 5,
     marginLeft: 5,
   },
   sendButtonText: {

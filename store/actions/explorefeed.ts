@@ -12,7 +12,7 @@ import {myClient} from '../..';
 import {Dispatch} from '@reduxjs/toolkit';
 
 export const getExploreFeedData =
-  (payload: any) => async (dispatch: Dispatch) => {
+  (payload: any, showLoader?: boolean) => async (dispatch: Dispatch) => {
     try {
       return await dispatch({
         type: GET_EXPLORE_FEED_CHAT_SUCCESS,
@@ -24,7 +24,7 @@ export const getExploreFeedData =
             GET_EXPLORE_FEED_CHAT_SUCCESS,
             GET_EXPLORE_FEED_CHAT_FAILED,
           ],
-          showLoader: true,
+          showLoader: showLoader ? showLoader : false,
         },
       });
     } catch (error) {

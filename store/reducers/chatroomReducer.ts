@@ -1,13 +1,38 @@
-import {GET_CHATROOM_SUCCESS, GET_CONVERSATIONS_SUCCESS, ON_CONVERSATIONS_CREATE_SUCCESS, PAGINATED_CONVERSATIONS_SUCCESS, UPDATE_CONVERSATIONS} from '../types/types';
+import {
+  GET_CHATROOM_SUCCESS,
+  GET_CONVERSATIONS_SUCCESS,
+  LONG_PRESSED,
+  ON_CONVERSATIONS_CREATE_SUCCESS,
+  PAGINATED_CONVERSATIONS_SUCCESS,
+  SELECTED_MESSAGES,
+  UPDATE_CONVERSATIONS,
+} from '../types/types';
 
 const initialState = {
   conversations: [],
   chatroomDetails: {} as any,
-  messageSent: {} as any
+  messageSent: {} as any,
+  isLongPress: false,
+  selectedMessages: [],
+  stateArr: [2, 3], //joined and left chatroom state
 };
 
 export function chatroomReducer(state = initialState, action: any) {
   switch (action.type) {
+    case LONG_PRESSED: {
+      const isLongPressed = action.body;
+      return {
+        ...state,
+        isLongPress: isLongPressed,
+      };
+    }
+    case SELECTED_MESSAGES: {
+      const selectedMessages = action.body;
+      return {
+        ...state,
+        selectedMessages: selectedMessages,
+      };
+    }
     case GET_CONVERSATIONS_SUCCESS: {
       const {conversations = []} = action.body;
       let arr = conversations.reverse();
@@ -27,7 +52,7 @@ export function chatroomReducer(state = initialState, action: any) {
       return {...state, chatroomDetails: chatroomDetails};
     }
     case ON_CONVERSATIONS_CREATE_SUCCESS: {
-      const messageObj = action.body
+      const messageObj = action.body;
       return {...state, messageSent: messageObj};
     }
     default:

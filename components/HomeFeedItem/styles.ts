@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import STYLES from '../../constants/Styles';
 
 export const styles = StyleSheet.create({
@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems:'center',
+    alignItems: 'center',
     marginBottom: 8,
   },
   title: {
@@ -43,14 +43,23 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.PRIMARY,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
-    width:'85%'
+    width: '85%',
+    // width: 240,
+  },
+  deletedMessage: {
+    color: STYLES.$COLORS.PRIMARY,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    fontStyle: 'italic',
+    width: '85%',
     // width: 240,
   },
   attachment_msg: {
-    color: STYLES.$COLORS.MSG,
+    color: STYLES.$COLORS.PRIMARY,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     marginRight: 5,
+    alignSelf: 'flex-end',
   },
   pinned: {
     width: 20,
@@ -77,6 +86,7 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.TERTIARY,
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
+    marginTop: Platform.OS === 'ios' ? 2 : -1
     // padding: 5,
     // backgroundColor:'yellow'
   },

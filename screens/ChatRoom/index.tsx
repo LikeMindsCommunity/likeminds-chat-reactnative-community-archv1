@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  BackHandler,
 } from 'react-native';
 import {myClient} from '../..';
 import {copySelectedMessages} from '../../commonFuctions';
@@ -30,7 +31,17 @@ import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
 import {getHomeFeedData} from '../../store/actions/homefeed';
-import {SET_PAGE} from '../../store/types/types';
+import {
+  LONG_PRESSED,
+  SELECTED_MESSAGES,
+  SET_EXPLORE_FEED_PAGE,
+  SET_PAGE,
+} from '../../store/types/types';
+import {
+  START_CHATROOM_LOADING,
+  STOP_CHATROOM_LOADING,
+} from '../../store/types/loader';
+import {getExploreFeedData} from '../../store/actions/explorefeed';
 interface Data {
   id: string;
   title: string;
@@ -49,8 +60,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [isReply, setIsReply] = useState(false);
   const [replyMessage, setReplyMessage] = useState();
   const [replyChatID, setReplyChatID] = useState<number>();
-  const [isLongPress, setIsLongPress] = useState(false);
-  const [selectedMessages, setSelectedMessages] = useState<any>([]);
+  // const [isLongPress, setIsLongPress] = useState(false);
+  // const [selectedMessages, setSelectedMessages] = useState<any>([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -67,6 +78,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     conversations = [],
     chatroomDetails,
     messageSent,
+    isLongPress,
+    selectedMessages,
+    stateArr,
   } = useAppSelector(state => state.chatroom);
 
   const routes = navigation.getState()?.routes;
@@ -133,8 +147,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         <View style={styles.headingContainer}>
           <TouchableOpacity
             onPress={() => {
-              setSelectedMessages([]);
-              setIsLongPress(false);
+              dispatch({type: SELECTED_MESSAGES, body: []});
+              dispatch({type: LONG_PRESSED, body: false});
               setInitialHeader();
             }}>
             <Image
@@ -158,32 +172,35 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let len = selectedMessages.length;
         return (
           <View style={styles.selectedHeadingContainer}>
-            {len === 1 && !!!selectedMessages[0].deleted_by && (
-              <TouchableOpacity
-                onPress={() => {
-                  if (len > 0) {
-                    setReplyChatID(selectedMessages[0]?.id);
-                    setIsReply(true);
-                    setReplyMessage(selectedMessages[0]);
-                    setSelectedMessages([]);
-                    setIsLongPress(false);
-                    setInitialHeader();
-                  }
-                }}>
-                <Image
-                  source={require('../../assets/images/reply_icon3x.png')}
-                  style={styles.threeDots}
-                />
-              </TouchableOpacity>
-            )}
+            {len === 1 &&
+              !!!selectedMessages[0].deleted_by &&
+              chatroomDetails?.chatroom?.member_can_message &&
+              chatroomDetails?.chatroom?.follow_status && (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (len > 0) {
+                      setReplyChatID(selectedMessages[0]?.id);
+                      setIsReply(true);
+                      setReplyMessage(selectedMessages[0]);
+                      dispatch({type: SELECTED_MESSAGES, body: []});
+                      dispatch({type: LONG_PRESSED, body: false});
+                      setInitialHeader();
+                    }
+                  }}>
+                  <Image
+                    source={require('../../assets/images/reply_icon3x.png')}
+                    style={styles.threeDots}
+                  />
+                </TouchableOpacity>
+              )}
 
             {len === 1 && !!!selectedMessages[0].deleted_by ? (
               <TouchableOpacity
                 onPress={() => {
                   const output = copySelectedMessages(selectedMessages);
                   Clipboard.setString(output);
-                  setSelectedMessages([]);
-                  setIsLongPress(false);
+                  dispatch({type: SELECTED_MESSAGES, body: []});
+                  dispatch({type: LONG_PRESSED, body: false});
                   setInitialHeader();
                 }}>
                 <Image
@@ -196,8 +213,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 onPress={() => {
                   const output = copySelectedMessages(selectedMessages);
                   Clipboard.setString(output);
-                  setSelectedMessages([]);
-                  setIsLongPress(false);
+                  dispatch({type: SELECTED_MESSAGES, body: []});
+                  dispatch({type: LONG_PRESSED, body: false});
                   setInitialHeader();
                 }}>
                 <Image
@@ -218,14 +235,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         reason: 'none',
                       })
                       .then(async () => {
-                        setSelectedMessages([]);
-                        setIsLongPress(false);
+                        dispatch({type: SELECTED_MESSAGES, body: []});
+                        dispatch({type: LONG_PRESSED, body: false});
                         setInitialHeader();
                         let payload = {
                           chatroomID: chatroomID,
                           page: conversations.length * 2,
                         };
-                        await dispatch(getConversations(payload, true) as any);
+                        await dispatch(getConversations(payload, false) as any);
                       })
                       .catch(() => {
                         Alert.alert('Delete message failed');
@@ -260,6 +277,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   async function fetchData(showLoaderVal?: boolean) {
     await myClient.markReadFn({chatroom_id: chatroomID});
+    const res = await myClient.crSeenFn({
+      collabcard_id: chatroomID,
+      // community_id: community?.id,
+      member_id: user?.id,
+      collabcard_type: chatroomDetails?.chatroom?.type,
+    });
     let payload = {chatroomID: chatroomID, page: 100};
     let response = await dispatch(
       getConversations(
@@ -291,16 +314,40 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
 
   useLayoutEffect(() => {
+    dispatch({type: START_CHATROOM_LOADING});
     fetchChatroomDetails();
     setInitialHeader();
   }, [navigation]);
+
+  useEffect(() => {
+    const backAction = () => {
+      dispatch({type: SELECTED_MESSAGES, body: []});
+      dispatch({type: LONG_PRESSED, body: false});
+      setInitialHeader();
+      return null;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   useEffect(() => {
     setInitialHeader();
   }, [chatroomDetails]);
 
   useEffect(() => {
-    fetchData();
+    async function callApi() {
+      let res = await fetchData(false);
+      if (!!res) {
+        dispatch({type: STOP_CHATROOM_LOADING});
+      }
+    }
+
+    callApi();
   }, []);
 
   useEffect(() => {
@@ -377,7 +424,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .leaveChatroom(payload)
       .then(async () => {
         dispatch({type: SET_PAGE, body: 1});
-        await dispatch(getHomeFeedData({page: 1}) as any);
+        await dispatch(getHomeFeedData({page: 1}, true) as any);
         navigation.goBack();
       })
       .catch(() => {
@@ -446,6 +493,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let payload1 = {chatroomID: chatroomID, page: 100};
         await dispatch(getConversations(payload1, true) as any);
 
+        dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
+        let payload2 = {
+          community_id: community?.id,
+          order_type: 0,
+          page: 1,
+        };
+        let response = await dispatch(
+          getExploreFeedData(payload2, true) as any,
+        );
+
         dispatch({type: SET_PAGE, body: 1});
         await dispatch(getHomeFeedData({page: 1}) as any);
       })
@@ -503,7 +560,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         data={conversations}
         keyExtractor={item => item?.id.toString()}
         renderItem={({item, index}) => {
-          let stateArr = [2, 3]; //joined and left chatroom state
           let isStateIncluded = stateArr.includes(item?.state);
           let isIncluded = selectedMessages.some(
             (val: any) =>
@@ -526,16 +582,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               ) : null}
               <Pressable
                 onLongPress={() => {
-                  setIsLongPress(true);
+                  dispatch({type: LONG_PRESSED, body: true});
                   if (isIncluded) {
                     const filterdMessages = selectedMessages.filter(
                       (val: any) =>
                         val?.id !== item?.id && !stateArr.includes(val?.state),
                     );
-                    setSelectedMessages([...filterdMessages]);
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
                   } else {
                     if (!isStateIncluded) {
-                      setSelectedMessages([...selectedMessages, item]);
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
                     }
                   }
                 }}
@@ -548,14 +610,23 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                           !stateArr.includes(val?.state),
                       );
                       if (filterdMessages.length > 0) {
-                        setSelectedMessages([...filterdMessages]);
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
                       } else {
-                        setSelectedMessages([...filterdMessages]);
-                        setIsLongPress(false);
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                        dispatch({type: LONG_PRESSED, body: false});
                       }
                     } else {
                       if (!isStateIncluded) {
-                        setSelectedMessages([...selectedMessages, item]);
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...selectedMessages, item],
+                        });
                       }
                     }
                   }
@@ -683,7 +754,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   navigation.navigate('Report', {
                     convoId: selectedMessages[0].id,
                   });
-                  setSelectedMessages([]);
+                  dispatch({type: SELECTED_MESSAGES, body: []});
                   setReportModalVisible(false);
                   // handleReportModalClose()
                 }}

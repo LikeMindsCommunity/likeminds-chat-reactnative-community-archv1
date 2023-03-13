@@ -3,6 +3,8 @@ import React, {useState} from 'react';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
+import {LONG_PRESSED, SELECTED_MESSAGES} from '../../store/types/types';
+import {useAppDispatch, useAppSelector} from '../../store';
 
 interface AttachmentConversations {
   item: any;
@@ -66,6 +68,10 @@ export const VideoConversations = ({
   isTypeSent,
   isIncluded,
 }: PDFConversations) => {
+  const dispatch = useAppDispatch();
+  const {selectedMessages, stateArr, isLongPress} = useAppSelector(
+    state => state.chatroom,
+  );
   const [isFullList, setIsFullList] = useState(false);
   return (
     <View>
@@ -74,8 +80,57 @@ export const VideoConversations = ({
           {!isFullList ? (
             <View>
               <TouchableOpacity
+                onLongPress={() => {
+                  dispatch({type: LONG_PRESSED, body: true});
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                  } else {
+                    if (!isStateIncluded) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
+                    }
+                  }
+                }}
                 onPress={() => {
-                  if (!isIncluded) {
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isLongPress) {
+                    if (isIncluded) {
+                      const filterdMessages = selectedMessages.filter(
+                        (val: any) =>
+                          val?.id !== item?.id &&
+                          !stateArr.includes(val?.state),
+                      );
+                      if (filterdMessages.length > 0) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                      } else {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                        dispatch({type: LONG_PRESSED, body: false});
+                      }
+                    } else {
+                      if (!isStateIncluded) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...selectedMessages, item],
+                        });
+                      }
+                    }
+                  } else {
                     Linking.openURL(item?.attachments[0]?.url);
                   }
                 }}
@@ -89,8 +144,57 @@ export const VideoConversations = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
+                onLongPress={() => {
+                  dispatch({type: LONG_PRESSED, body: true});
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                  } else {
+                    if (!isStateIncluded) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
+                    }
+                  }
+                }}
                 onPress={() => {
-                  if (!isIncluded) {
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isLongPress) {
+                    if (isIncluded) {
+                      const filterdMessages = selectedMessages.filter(
+                        (val: any) =>
+                          val?.id !== item?.id &&
+                          !stateArr.includes(val?.state),
+                      );
+                      if (filterdMessages.length > 0) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                      } else {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                        dispatch({type: LONG_PRESSED, body: false});
+                      }
+                    } else {
+                      if (!isStateIncluded) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...selectedMessages, item],
+                        });
+                      }
+                    }
+                  } else {
                     Linking.openURL(item?.attachments[1]?.url);
                   }
                 }}
@@ -107,8 +211,57 @@ export const VideoConversations = ({
           ) : (
             item?.attachments.map((val: any, index: number) => (
               <TouchableOpacity
+                onLongPress={() => {
+                  dispatch({type: LONG_PRESSED, body: true});
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                  } else {
+                    if (!isStateIncluded) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
+                    }
+                  }
+                }}
                 onPress={() => {
-                  if (!isIncluded) {
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isLongPress) {
+                    if (isIncluded) {
+                      const filterdMessages = selectedMessages.filter(
+                        (val: any) =>
+                          val?.id !== item?.id &&
+                          !stateArr.includes(val?.state),
+                      );
+                      if (filterdMessages.length > 0) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                      } else {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                        dispatch({type: LONG_PRESSED, body: false});
+                      }
+                    } else {
+                      if (!isStateIncluded) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...selectedMessages, item],
+                        });
+                      }
+                    }
+                  } else {
                     Linking.openURL(val?.url);
                   }
                 }}
@@ -127,8 +280,56 @@ export const VideoConversations = ({
         </View>
       ) : (
         <TouchableOpacity
+          onLongPress={() => {
+            dispatch({type: LONG_PRESSED, body: true});
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isIncluded) {
+              const filterdMessages = selectedMessages.filter(
+                (val: any) =>
+                  val?.id !== item?.id && !stateArr.includes(val?.state),
+              );
+              dispatch({
+                type: SELECTED_MESSAGES,
+                body: [...filterdMessages],
+              });
+            } else {
+              if (!isStateIncluded) {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...selectedMessages, item],
+                });
+              }
+            }
+          }}
           onPress={() => {
-            if (!isIncluded) {
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isLongPress) {
+              if (isIncluded) {
+                const filterdMessages = selectedMessages.filter(
+                  (val: any) =>
+                    val?.id !== item?.id && !stateArr.includes(val?.state),
+                );
+                if (filterdMessages.length > 0) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                } else {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                  dispatch({type: LONG_PRESSED, body: false});
+                }
+              } else {
+                if (!isStateIncluded) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...selectedMessages, item],
+                  });
+                }
+              }
+            } else {
               Linking.openURL(item?.attachments[0]?.url);
             }
           }}
@@ -144,8 +345,58 @@ export const VideoConversations = ({
       )}
       {item.attachment_count > 2 && !isFullList && (
         <TouchableOpacity
+          onLongPress={() => {
+            dispatch({type: LONG_PRESSED, body: true});
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isIncluded) {
+              const filterdMessages = selectedMessages.filter(
+                (val: any) =>
+                  val?.id !== item?.id && !stateArr.includes(val?.state),
+              );
+              dispatch({
+                type: SELECTED_MESSAGES,
+                body: [...filterdMessages],
+              });
+            } else {
+              if (!isStateIncluded) {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...selectedMessages, item],
+                });
+              }
+            }
+          }}
           onPress={() => {
-            setIsFullList(true);
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isLongPress) {
+              if (isIncluded) {
+                const filterdMessages = selectedMessages.filter(
+                  (val: any) =>
+                    val?.id !== item?.id && !stateArr.includes(val?.state),
+                );
+                if (filterdMessages.length > 0) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                } else {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                  dispatch({type: LONG_PRESSED, body: false});
+                }
+              } else {
+                if (!isStateIncluded) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...selectedMessages, item],
+                  });
+                }
+              }
+            } else {
+              setIsFullList(true);
+            }
           }}>
           <Text style={styles.fullListCount}>{`+${
             item.attachment_count - 2
@@ -161,6 +412,10 @@ export const PDFConversations = ({
   isTypeSent,
   isIncluded,
 }: PDFConversations) => {
+  const dispatch = useAppDispatch();
+  const {selectedMessages, stateArr, isLongPress} = useAppSelector(
+    state => state.chatroom,
+  );
   const [isFullList, setIsFullList] = useState(false);
   return (
     <View>
@@ -169,8 +424,57 @@ export const PDFConversations = ({
           {!isFullList ? (
             <View>
               <TouchableOpacity
+                onLongPress={() => {
+                  dispatch({type: LONG_PRESSED, body: true});
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                  } else {
+                    if (!isStateIncluded) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
+                    }
+                  }
+                }}
                 onPress={() => {
-                  if (!isIncluded) {
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isLongPress) {
+                    if (isIncluded) {
+                      const filterdMessages = selectedMessages.filter(
+                        (val: any) =>
+                          val?.id !== item?.id &&
+                          !stateArr.includes(val?.state),
+                      );
+                      if (filterdMessages.length > 0) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                      } else {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                        dispatch({type: LONG_PRESSED, body: false});
+                      }
+                    } else {
+                      if (!isStateIncluded) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...selectedMessages, item],
+                        });
+                      }
+                    }
+                  } else {
                     Linking.openURL(item?.attachments[0]?.url);
                   }
                 }}
@@ -184,8 +488,57 @@ export const PDFConversations = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
+                onLongPress={() => {
+                  dispatch({type: LONG_PRESSED, body: true});
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                  } else {
+                    if (!isStateIncluded) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
+                    }
+                  }
+                }}
                 onPress={() => {
-                  if (!isIncluded) {
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isLongPress) {
+                    if (isIncluded) {
+                      const filterdMessages = selectedMessages.filter(
+                        (val: any) =>
+                          val?.id !== item?.id &&
+                          !stateArr.includes(val?.state),
+                      );
+                      if (filterdMessages.length > 0) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                      } else {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                        dispatch({type: LONG_PRESSED, body: false});
+                      }
+                    } else {
+                      if (!isStateIncluded) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...selectedMessages, item],
+                        });
+                      }
+                    }
+                  } else {
                     Linking.openURL(item?.attachments[1]?.url);
                   }
                 }}
@@ -202,8 +555,57 @@ export const PDFConversations = ({
           ) : (
             item?.attachments.map((val: any, index: number) => (
               <TouchableOpacity
+                onLongPress={() => {
+                  dispatch({type: LONG_PRESSED, body: true});
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                  } else {
+                    if (!isStateIncluded) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
+                    }
+                  }
+                }}
                 onPress={() => {
-                  if (!isIncluded) {
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isLongPress) {
+                    if (isIncluded) {
+                      const filterdMessages = selectedMessages.filter(
+                        (val: any) =>
+                          val?.id !== item?.id &&
+                          !stateArr.includes(val?.state),
+                      );
+                      if (filterdMessages.length > 0) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                      } else {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                        dispatch({type: LONG_PRESSED, body: false});
+                      }
+                    } else {
+                      if (!isStateIncluded) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...selectedMessages, item],
+                        });
+                      }
+                    }
+                  } else {
                     Linking.openURL(val?.url);
                   }
                 }}
@@ -222,8 +624,56 @@ export const PDFConversations = ({
         </View>
       ) : (
         <TouchableOpacity
+          onLongPress={() => {
+            dispatch({type: LONG_PRESSED, body: true});
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isIncluded) {
+              const filterdMessages = selectedMessages.filter(
+                (val: any) =>
+                  val?.id !== item?.id && !stateArr.includes(val?.state),
+              );
+              dispatch({
+                type: SELECTED_MESSAGES,
+                body: [...filterdMessages],
+              });
+            } else {
+              if (!isStateIncluded) {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...selectedMessages, item],
+                });
+              }
+            }
+          }}
           onPress={() => {
-            if (!isIncluded) {
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isLongPress) {
+              if (isIncluded) {
+                const filterdMessages = selectedMessages.filter(
+                  (val: any) =>
+                    val?.id !== item?.id && !stateArr.includes(val?.state),
+                );
+                if (filterdMessages.length > 0) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                } else {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                  dispatch({type: LONG_PRESSED, body: false});
+                }
+              } else {
+                if (!isStateIncluded) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...selectedMessages, item],
+                  });
+                }
+              }
+            } else {
               Linking.openURL(item?.attachments[0]?.url);
             }
           }}
@@ -239,8 +689,58 @@ export const PDFConversations = ({
       )}
       {item.attachment_count > 2 && !isFullList && (
         <TouchableOpacity
+          onLongPress={() => {
+            dispatch({type: LONG_PRESSED, body: true});
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isIncluded) {
+              const filterdMessages = selectedMessages.filter(
+                (val: any) =>
+                  val?.id !== item?.id && !stateArr.includes(val?.state),
+              );
+              dispatch({
+                type: SELECTED_MESSAGES,
+                body: [...filterdMessages],
+              });
+            } else {
+              if (!isStateIncluded) {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...selectedMessages, item],
+                });
+              }
+            }
+          }}
           onPress={() => {
-            setIsFullList(true);
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isLongPress) {
+              if (isIncluded) {
+                const filterdMessages = selectedMessages.filter(
+                  (val: any) =>
+                    val?.id !== item?.id && !stateArr.includes(val?.state),
+                );
+                if (filterdMessages.length > 0) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                } else {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                  dispatch({type: LONG_PRESSED, body: false});
+                }
+              } else {
+                if (!isStateIncluded) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...selectedMessages, item],
+                  });
+                }
+              }
+            } else {
+              setIsFullList(true);
+            }
           }}>
           <Text style={styles.fullListCount}>{`+${
             item.attachment_count - 2
@@ -264,13 +764,61 @@ export const ImageConversations = ({
   isIncluded,
   navigation,
 }: ImageConversations) => {
-  const [isFullList, setIsFullList] = useState(false);
+  const dispatch = useAppDispatch();
+  const {selectedMessages, stateArr, isLongPress} = useAppSelector(
+    state => state.chatroom,
+  );
   return (
     <View>
       {item?.attachment_count === 1 ? (
         <TouchableOpacity
+          onLongPress={() => {
+            dispatch({type: LONG_PRESSED, body: true});
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isIncluded) {
+              const filterdMessages = selectedMessages.filter(
+                (val: any) =>
+                  val?.id !== item?.id && !stateArr.includes(val?.state),
+              );
+              dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
+            } else {
+              if (!isStateIncluded) {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...selectedMessages, item],
+                });
+              }
+            }
+          }}
           onPress={() => {
-            if (!isIncluded) {
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isLongPress) {
+              if (isIncluded) {
+                const filterdMessages = selectedMessages.filter(
+                  (val: any) =>
+                    val?.id !== item?.id && !stateArr.includes(val?.state),
+                );
+                if (filterdMessages.length > 0) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                } else {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                  dispatch({type: LONG_PRESSED, body: false});
+                }
+              } else {
+                if (!isStateIncluded) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...selectedMessages, item],
+                  });
+                }
+              }
+            } else {
               Linking.openURL(item?.attachments[0]?.url);
             }
           }}>
@@ -283,8 +831,53 @@ export const ImageConversations = ({
         <View style={styles.doubleImgParent}>
           <TouchableOpacity
             style={styles.touchableImg}
+            onLongPress={() => {
+              dispatch({type: LONG_PRESSED, body: true});
+              let isStateIncluded = stateArr.includes(item?.state);
+              if (isIncluded) {
+                const filterdMessages = selectedMessages.filter(
+                  (val: any) =>
+                    val?.id !== item?.id && !stateArr.includes(val?.state),
+                );
+                dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
+              } else {
+                if (!isStateIncluded) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...selectedMessages, item],
+                  });
+                }
+              }
+            }}
             onPress={() => {
-              if (!isIncluded) {
+              let isStateIncluded = stateArr.includes(item?.state);
+              if (isLongPress) {
+                if (isIncluded) {
+                  const filterdMessages = selectedMessages.filter(
+                    (val: any) =>
+                      val?.id !== item?.id && !stateArr.includes(val?.state),
+                  );
+                  if (filterdMessages.length > 0) {
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                  } else {
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                    dispatch({type: LONG_PRESSED, body: false});
+                  }
+                } else {
+                  if (!isStateIncluded) {
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...selectedMessages, item],
+                    });
+                  }
+                }
+              } else {
                 Linking.openURL(item?.attachments[0]?.url);
               }
             }}>
@@ -295,9 +888,54 @@ export const ImageConversations = ({
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.touchableImg}
+            onLongPress={() => {
+              dispatch({type: LONG_PRESSED, body: true});
+              let isStateIncluded = stateArr.includes(item?.state);
+              if (isIncluded) {
+                const filterdMessages = selectedMessages.filter(
+                  (val: any) =>
+                    val?.id !== item?.id && !stateArr.includes(val?.state),
+                );
+                dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
+              } else {
+                if (!isStateIncluded) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...selectedMessages, item],
+                  });
+                }
+              }
+            }}
             onPress={() => {
-              if (!isIncluded) {
-                Linking.openURL(item?.attachments[1]?.url);
+              let isStateIncluded = stateArr.includes(item?.state);
+              if (isLongPress) {
+                if (isIncluded) {
+                  const filterdMessages = selectedMessages.filter(
+                    (val: any) =>
+                      val?.id !== item?.id && !stateArr.includes(val?.state),
+                  );
+                  if (filterdMessages.length > 0) {
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                  } else {
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...filterdMessages],
+                    });
+                    dispatch({type: LONG_PRESSED, body: false});
+                  }
+                } else {
+                  if (!isStateIncluded) {
+                    dispatch({
+                      type: SELECTED_MESSAGES,
+                      body: [...selectedMessages, item],
+                    });
+                  }
+                }
+              } else {
+                Linking.openURL(item?.attachments[0]?.url);
               }
             }}>
             <Image
@@ -308,10 +946,57 @@ export const ImageConversations = ({
         </View>
       ) : item?.attachment_count === 3 ? (
         <TouchableOpacity
+          onLongPress={() => {
+            dispatch({type: LONG_PRESSED, body: true});
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isIncluded) {
+              const filterdMessages = selectedMessages.filter(
+                (val: any) =>
+                  val?.id !== item?.id && !stateArr.includes(val?.state),
+              );
+              dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
+            } else {
+              if (!isStateIncluded) {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...selectedMessages, item],
+                });
+              }
+            }
+          }}
           onPress={() => {
-            navigation.navigate('ImageScreen', {
-              attachments: item?.attachments,
-            });
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isLongPress) {
+              if (isIncluded) {
+                const filterdMessages = selectedMessages.filter(
+                  (val: any) =>
+                    val?.id !== item?.id && !stateArr.includes(val?.state),
+                );
+                if (filterdMessages.length > 0) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                } else {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                  dispatch({type: LONG_PRESSED, body: false});
+                }
+              } else {
+                if (!isStateIncluded) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...selectedMessages, item],
+                  });
+                }
+              }
+            } else {
+              navigation.navigate('ImageScreen', {
+                attachments: item?.attachments,
+              });
+            }
           }}
           style={styles.doubleImgParent}>
           <Image
@@ -328,10 +1013,57 @@ export const ImageConversations = ({
         </TouchableOpacity>
       ) : item?.attachment_count > 3 ? (
         <TouchableOpacity
+          onLongPress={() => {
+            dispatch({type: LONG_PRESSED, body: true});
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isIncluded) {
+              const filterdMessages = selectedMessages.filter(
+                (val: any) =>
+                  val?.id !== item?.id && !stateArr.includes(val?.state),
+              );
+              dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
+            } else {
+              if (!isStateIncluded) {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...selectedMessages, item],
+                });
+              }
+            }
+          }}
           onPress={() => {
-            navigation.navigate('ImageScreen', {
-              attachments: item?.attachments,
-            });
+            let isStateIncluded = stateArr.includes(item?.state);
+            if (isLongPress) {
+              if (isIncluded) {
+                const filterdMessages = selectedMessages.filter(
+                  (val: any) =>
+                    val?.id !== item?.id && !stateArr.includes(val?.state),
+                );
+                if (filterdMessages.length > 0) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                } else {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...filterdMessages],
+                  });
+                  dispatch({type: LONG_PRESSED, body: false});
+                }
+              } else {
+                if (!isStateIncluded) {
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [...selectedMessages, item],
+                  });
+                }
+              }
+            } else {
+              navigation.navigate('ImageScreen', {
+                attachments: item?.attachments,
+              });
+            }
           }}>
           <View style={styles.doubleImgParent}>
             <Image

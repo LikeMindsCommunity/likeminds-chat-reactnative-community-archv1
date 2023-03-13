@@ -1,15 +1,22 @@
 import {Alert, Linking, Text} from 'react-native';
+import 'url-search-params-polyfill';
 import STYLES from '../constants/Styles';
 
 // const REGEX_USER_SPLITTING = /(<<[\w\s🤖]+\|route:\/\/member\/\d+>>)/g;
 // const REGEX_USER_TAGGING = /<<([\w\s🤖]+)\|route:\/\/member\/(\d+)>>/;
 
+// const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
+// const REGEX_USER_TAGGING =
+//   /<<(?<name>[\w\s🤖@]+)\|route:\/\/(?:(?:member|member_profile)\/)?(?<route>\d+|everyone|participants)>?>?/;
+
 const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
 const REGEX_USER_TAGGING =
-  /<<(?<name>[\w\s🤖@]+)\|route:\/\/(?:(?:member|member_profile)\/)?(?<route>\d+|everyone|participants)>?>?/;
+  /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
 
-// const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
-// const REGEX_USER_TAGGING = /<<([\w\s🤖@]+)\|route:\/\/\S+>>/;
+// const REGEX_USER_SPLITTING =
+//   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+)(?<query>\?.+)?>?>/;
+// const REGEX_USER_TAGGING =
+//   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+)(?<query>\?.+)?>?>/;
 
 // This function helps us to decode time(created_epoch: 1675421848540) into DATE if more than a day else TIME if less than a day.
 export function getFullDate(time: any) {
@@ -97,20 +104,27 @@ export function decode(text: string | undefined, enableClick: boolean) {
   }
   let arr: any[] = [];
   let parts = text.split(REGEX_USER_SPLITTING);
+  // console.log('parts', parts);
 
   if (!!parts) {
     for (const matchResult of parts) {
-      let keyValue = matchResult.match(REGEX_USER_TAGGING);
-      let memberName;
-      let tag;
-      if (!!keyValue) {
-        memberName = keyValue[1];
-        tag = keyValue[2];
-        arr.push({key: memberName, route: tag});
-      } else if (!!matchResult) {
+      // let memberName;
+      // let tag;
+      if (!!matchResult.match(REGEX_USER_TAGGING)) {
+        let match = REGEX_USER_TAGGING.exec(matchResult);
+        if (match !== null) {
+          const {name, route} = match?.groups!;
+          const searchParams = new URLSearchParams(route);
+          // for (var item of searchParams) {
+          //   console.log('key: ' + item[0] + ', ' + 'value: ' + item[1]);
+          // }
+          arr.push({key: name, route: route});
+        }
+      } else {
         arr.push({key: matchResult, route: null});
       }
     }
+
     if (enableClick) {
       return (
         <Text>
@@ -156,7 +170,7 @@ export function decode(text: string | undefined, enableClick: boolean) {
               {!!val.route ? (
                 <Text
                   style={{
-                    color: STYLES.$COLORS.MSG,
+                    color: STYLES.$COLORS.PRIMARY,
                     // fontSize: STYLES.$FONT_SIZES.MEDIUM,
                     fontFamily: STYLES.$FONT_TYPES.BOLD,
                   }}>
