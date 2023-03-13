@@ -14,7 +14,7 @@ const initialState = {
   messageSent: {} as any,
   isLongPress: false,
   selectedMessages: [],
-  stateArr: [2, 3], //joined and left chatroom state
+  stateArr: [1, 2, 3, 7, 8, 9], //joined and left chatroom state
 };
 
 export function chatroomReducer(state = initialState, action: any) {

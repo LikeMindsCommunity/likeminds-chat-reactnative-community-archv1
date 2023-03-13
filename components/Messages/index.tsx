@@ -24,7 +24,7 @@ const Messages = ({
   const {user} = useAppSelector(state => state.homefeed);
   const [modalVisible, setModalVisible] = useState(false);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
-  const stateArr = [2, 3, 7, 8, 9]; //states for person left, joined, added, removed messages.
+  const stateArr = [1, 2, 3, 7, 8, 9]; //states for person started, left, joined, added, removed messages.
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   let reactionArr: any = [];
