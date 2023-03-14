@@ -88,7 +88,7 @@ export const getChatroom = (payload: any) => async (dispatch: Dispatch) => {
         func: myClient.getChatroom(payload),
         body: payload,
         types: [GET_CHATROOM, GET_CHATROOM_SUCCESS, GET_CHATROOM_FAILED],
-        showLoader: true,
+        showLoader: false,
       },
     });
   } catch (error) {

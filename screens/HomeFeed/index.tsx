@@ -23,6 +23,7 @@ import {
   updateHomeFeedData,
 } from '../../store/actions/homefeed';
 import styles from './styles';
+import {SET_PAGE} from '../../store/types/types';
 // import {onValue, ref} from 'firebase/database';
 
 interface Props {
@@ -30,12 +31,10 @@ interface Props {
 }
 
 const HomeFeed = ({navigation}: Props) => {
-  // const [chats, setChats] = useState(dummyData.my_chatrooms);
-  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [communityId, setCommunityId] = useState('');
   const dispatch = useAppDispatch();
-  const {myChatrooms, unseenCount, totalCount} = useAppSelector(
+  const {myChatrooms, unseenCount, totalCount, page} = useAppSelector(
     state => state.homefeed,
   );
   const user = useAppSelector(state => state.homefeed.user);
@@ -66,6 +65,7 @@ const HomeFeed = ({navigation}: Props) => {
             justifyContent: 'center',
             alignItems: 'center',
             padding: 5,
+            paddingTop: Platform.OS === 'ios' ? 5 : 3,
           }}>
           {!!user?.image_url ? (
             <Image source={{uri: user?.image_url}} style={styles.avatar} />
@@ -88,8 +88,10 @@ const HomeFeed = ({navigation}: Props) => {
 
   async function fetchData() {
     let payload = {
-      user_unique_id: '',
-      user_name: '',
+      // user_unique_id: '780cfe5e-1605-49ee-b8a0-c79deaaf77bf',
+      user_unique_id: '53208f29-5d15-473e-ab70-5fd77605be0f',
+      user_name: 'Ankit Garg SDK',
+      // user_name: '',
       is_guest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
@@ -98,7 +100,7 @@ const HomeFeed = ({navigation}: Props) => {
       let payload = {
         page: 1,
       };
-      let response = await dispatch(getHomeFeedData(payload) as any);
+      await dispatch(getHomeFeedData(payload) as any);
     }
 
     return res;
@@ -136,7 +138,7 @@ const HomeFeed = ({navigation}: Props) => {
     if (!isLoading) {
       if (myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
         const newPage = page + 1;
-        setPage(newPage);
+        dispatch({type: SET_PAGE, body: newPage});
         loadData(newPage);
       }
     }
@@ -163,7 +165,6 @@ const HomeFeed = ({navigation}: Props) => {
       {myChatrooms?.length > 0 && (
         <FlatList
           data={myChatrooms}
-          // data={chats}
           ListHeaderComponent={() => (
             <HomeFeedExplore
               newCount={unseenCount}
@@ -184,6 +185,7 @@ const HomeFeed = ({navigation}: Props) => {
               lastConvoMember: item?.last_conversation?.member?.name!,
               chatroomID: item?.chatroom?.id!,
               isSecret: item?.chatroom?.is_secret,
+              deletedBy: item?.last_conversation?.deleted_by,
             };
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}

@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import STYLES from '../../constants/Styles';
 
 export const styles = StyleSheet.create({
@@ -81,6 +81,14 @@ export const styles = StyleSheet.create({
     // marginRight: STYLES.$MARGINS.LARGE,
     // marginLeft: STYLES.$MARGINS.SMALL,
   },
+  joinIcon: {
+    width: 30,
+    height: 22,
+    resizeMode: 'contain',
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+    // marginRight: STYLES.$MARGINS.LARGE,
+    // marginLeft: STYLES.$MARGINS.SMALL,
+  },
   info_icons: {
     width: 18,
     height: 18,
@@ -112,11 +120,17 @@ export const styles = StyleSheet.create({
   },
   newBadge: {
     position: 'absolute',
-    bottom: -5,
-    left: 10,
+    bottom: -3,
+    left: 13,
     backgroundColor: 'red',
-    padding: 2,
+    height: 15,
+    width: 25,
+    // padding: 2,
+    // paddingVertical: Platform.OS === 'ios' ? 2 : 0,
     borderRadius: 3,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   newBadgeText: {
     fontSize: STYLES.$FONT_SIZES.SMALL,

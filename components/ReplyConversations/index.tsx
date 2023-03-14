@@ -1,9 +1,10 @@
-import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {View, Text, Image, TouchableOpacity, Alert} from 'react-native';
 import React from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
-import {useAppSelector} from '../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
+import {LONG_PRESSED, SELECTED_MESSAGES} from '../../store/types/types';
 
 interface ReplyConversations {
   item: any;
@@ -71,7 +72,9 @@ const ReplyConversations = ({
   isTypeSent,
   onScrollToIndex,
 }: ReplyConversations) => {
-  const {conversations} = useAppSelector(state => state.chatroom);
+  const dispatch = useAppDispatch();
+  const {conversations, selectedMessages, stateArr, isLongPress} =
+    useAppSelector(state => state.chatroom);
   return (
     <View
       style={[
@@ -80,12 +83,64 @@ const ReplyConversations = ({
         isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
       ]}>
       <TouchableOpacity
+        onLongPress={() => {
+          dispatch({type: LONG_PRESSED, body: true});
+          let isStateIncluded = stateArr.includes(item?.state);
+          if (isIncluded) {
+            const filterdMessages = selectedMessages.filter(
+              (val: any) =>
+                val?.id !== item?.id && !stateArr.includes(val?.state),
+            );
+            dispatch({
+              type: SELECTED_MESSAGES,
+              body: [...filterdMessages],
+            });
+          } else {
+            if (!isStateIncluded) {
+              dispatch({
+                type: SELECTED_MESSAGES,
+                body: [...selectedMessages, item],
+              });
+            }
+          }
+        }}
         onPress={() => {
-          let index = conversations.findIndex(
-            (element: any) =>
-              element?.id === item?.reply_conversation_object?.id,
-          );
-          onScrollToIndex(index);
+          let isStateIncluded = stateArr.includes(item?.state);
+          if (isLongPress) {
+            if (isIncluded) {
+              const filterdMessages = selectedMessages.filter(
+                (val: any) =>
+                  val?.id !== item?.id && !stateArr.includes(val?.state),
+              );
+              if (filterdMessages.length > 0) {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...filterdMessages],
+                });
+              } else {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...filterdMessages],
+                });
+                dispatch({type: LONG_PRESSED, body: false});
+              }
+            } else {
+              if (!isStateIncluded) {
+                dispatch({
+                  type: SELECTED_MESSAGES,
+                  body: [...selectedMessages, item],
+                });
+              }
+            }
+          } else {
+            let index = conversations.findIndex(
+              (element: any) =>
+                element?.id === item?.reply_conversation_object?.id,
+            );
+            if (index >= 0) {
+              onScrollToIndex(index);
+            }
+          }
         }}>
         <ReplyBox
           isIncluded={isIncluded}
