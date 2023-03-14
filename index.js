@@ -9,9 +9,7 @@ import {name as appName} from './app.json';
 import LikeMinds from 'likeminds-chat-rn-beta';
 
 export const myClient = new LikeMinds({
-  apiKey: '',
-  baseUrl: 'https://betaauth.likeminds.community',
-  baseUrlCaravan: 'https://beta.likeminds.community',
+  apiKey: '', // Put API key that you get from Dashboard
 });
 
 AppRegistry.registerComponent(appName, () => App);
