@@ -54,6 +54,7 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.SECONDARY,
     maxHeight: 120,
     padding: 0,
+    marginBottom: 2,
     overflow: 'scroll',
   },
   sendButton: {
@@ -65,6 +66,7 @@ export const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingLeft: 5,
     marginLeft: 5,
   },
   sendButtonText: {
@@ -80,13 +82,13 @@ export const styles = StyleSheet.create({
   },
 
   centeredView: {
-    flex: 1,
+    flexGrow: 1,
     marginTop: 20,
   },
   modalViewParent: {
     position: 'absolute',
     bottom: 80,
-    flex: 1,
+    flexGrow: 1,
     width: Layout.window.width,
   },
   modalView: {

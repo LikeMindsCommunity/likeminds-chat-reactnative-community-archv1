@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import STYLES from '../../constants/Styles';
 
 export const styles = StyleSheet.create({
@@ -33,7 +33,7 @@ export const styles = StyleSheet.create({
     // backgroundColor: '#fff',
     // elevation: 2,
     flexGrow: 1,
-    backgroundColor: 'pink',
+    // backgroundColor: 'pink',
   },
   emojiButton: {
     padding: 10,
@@ -91,9 +91,9 @@ export const styles = StyleSheet.create({
   },
   modalView: {
     position: 'absolute',
-    right: 0,
+    right: 10,
     marginLeft: 10,
-    marginTop: 40,
+    marginTop: Platform.OS === 'ios' ? 45 : 10,
     backgroundColor: 'white',
     borderRadius: 8,
     // width: 200,
@@ -119,5 +119,25 @@ export const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: 15,
     backgroundColor: STYLES.$COLORS.JOINED_BTN,
+  },
+  joinBtnContainer: {
+    backgroundColor: STYLES.$COLORS.SECONDARY,
+    borderRadius: 10,
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    padding: 10,
+    gap: 5,
+  },
+  join: {
+    color: STYLES.$COLORS.TERTIARY,
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
+  },
+  icon: {
+    width: 30,
+    height: 25,
+    resizeMode: 'contain',
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
   },
 });

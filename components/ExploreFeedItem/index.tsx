@@ -4,6 +4,8 @@ import {myClient} from '../..';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
+import {getHomeFeedData} from '../../store/actions/homefeed';
+import { SET_EXPLORE_FEED_PAGE, SET_PAGE } from '../../store/types/types';
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 
@@ -65,7 +67,17 @@ const ExploreFeedItem: React.FC<Props> = ({
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
         }
+        dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1})
         await dispatch(getExploreFeedData(payload) as any);
+        dispatch({type: SET_PAGE, body: 1});
+        await dispatch(
+          getHomeFeedData(
+            {
+              page: 1,
+            },
+            false,
+          ) as any,
+        );
       })
       .catch(() => {
         // Alert.alert('Leave Chatroom failed');
@@ -136,33 +148,37 @@ const ExploreFeedItem: React.FC<Props> = ({
             </View>
           </View>
           {/* {pinned && <View style={styles.pinned} />} */}
-          {!isJoined ? (
-            <TouchableOpacity
-              onPress={() => {
-                leaveChatroom(true);
-              }}
-              style={styles.joinBtnContainer}>
-              <Image
-                source={require('../../assets/images/join_group3x.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.join}>{'Join'}</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={() => {
-                if (!isSecret) {
-                  leaveChatroom(false);
-                }
-              }}
-              style={styles.joinedBtnContainer}>
-              <Image
-                source={require('../../assets/images/joined_group3x.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.joined}>{'Joined'}</Text>
-            </TouchableOpacity>
-          )}
+          {!isSecret ? (
+            <View>
+              {!isJoined ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    leaveChatroom(true);
+                  }}
+                  style={styles.joinBtnContainer}>
+                  <Image
+                    source={require('../../assets/images/join_group3x.png')}
+                    style={styles.joinIcon}
+                  />
+                  <Text style={styles.join}>{'Join'}</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!isSecret) {
+                      leaveChatroom(false);
+                    }
+                  }}
+                  style={styles.joinedBtnContainer}>
+                  <Image
+                    source={require('../../assets/images/joined_group3x.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.joined}>{'Joined'}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : null}
         </View>
         <View style={{flex: 1}}>
           <Text style={styles.chatroomInfo}>{title}</Text>

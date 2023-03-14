@@ -15,6 +15,7 @@ interface Props {
   chatroomID: number;
   lastConvoMember: string;
   isSecret: boolean;
+  deletedBy?: number;
 }
 
 const HomeFeedItem: React.FC<Props> = ({
@@ -29,6 +30,7 @@ const HomeFeedItem: React.FC<Props> = ({
   chatroomID,
   lastConvoMember,
   isSecret,
+  deletedBy,
 }) => {
   // let dateOrTime = getFullDate(time);
 
@@ -36,7 +38,15 @@ const HomeFeedItem: React.FC<Props> = ({
     if (val[0].type === 'pdf') {
       return (
         <View
-          style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            // marginBottom: -20,
+          }}>
+          {val?.length > 1 && (
+            <Text style={styles.attachment_msg}>{val?.length}</Text>
+          )}
           <Image
             source={require('../../assets/images/document_icon3x.png')}
             style={{
@@ -46,20 +56,47 @@ const HomeFeedItem: React.FC<Props> = ({
               marginRight: 5,
             }}
           />
-          <Text style={styles.lastMessage}>Document</Text>
+          <Text style={styles.lastMessage}>
+            {val?.length > 1 ? 'Documents' : 'Document'}
+          </Text>
         </View>
       );
     } else if (val[0].type === 'video') {
       return (
-        <Image
-          source={require('../../assets/images/cross_icon3x.png')}
-          style={{height: 10, width: 10, resizeMode: 'contain'}}
-        />
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            // padding:-5
+            marginBottom: -2,
+          }}>
+          {val?.length > 1 && (
+            <Text style={styles.attachment_msg}>{val?.length}</Text>
+          )}
+          <Image
+            source={require('../../assets/images/video_icon3x.png')}
+            style={{
+              height: 15,
+              width: 15,
+              resizeMode: 'contain',
+              marginRight: 5,
+            }}
+          />
+          <Text style={styles.lastMessage}>
+            {val?.length > 1 ? 'Videos' : 'Video'}
+          </Text>
+        </View>
       );
     } else if (val[0].type === 'image') {
       return (
         <View
-          style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: -2,
+          }}>
           {val?.length > 1 && (
             <Text style={styles.attachment_msg}>{val?.length}</Text>
           )}
@@ -113,10 +150,21 @@ const HomeFeedItem: React.FC<Props> = ({
         </View>
         {!!lastConversation ? (
           <Text style={styles.lastMessage} numberOfLines={1}>
-            <Text style={styles.lastMessage}>{`${lastConvoMember}: `}</Text>
-            {!!lastConversation?.has_files
-              ? getFeedIcon(lastConversation?.attachments)
-              : decode(lastMessage, false)}
+            {!!deletedBy ? (
+              <Text
+                style={
+                  styles.deletedMessage
+                }>{`This message has been deleted`}</Text>
+            ) : (
+              <Text>
+                <Text style={styles.lastMessage}>{`${lastConvoMember}: `}</Text>
+                <Text>
+                  {!!lastConversation?.has_files
+                    ? getFeedIcon(lastConversation?.attachments)
+                    : decode(lastMessage, false)}
+                </Text>
+              </Text>
+            )}
           </Text>
         ) : null}
       </View>

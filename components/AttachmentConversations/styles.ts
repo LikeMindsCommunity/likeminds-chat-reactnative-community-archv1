@@ -38,6 +38,7 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
+    width: '80%',
   },
   messageText: {
     fontSize: STYLES.$FONT_SIZES.SMALL,

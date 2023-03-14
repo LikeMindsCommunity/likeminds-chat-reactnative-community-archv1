@@ -7,8 +7,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatar: {
-    width: STYLES.$AVATAR.WIDTH,
-    height: STYLES.$AVATAR.HEIGHT,
+    // width: STYLES.$AVATAR.WIDTH,
+    // height: STYLES.$AVATAR.HEIGHT,
+    width: 36,
+    height: 36,
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
     marginRight: STYLES.$MARGINS.SMALL,
   },
