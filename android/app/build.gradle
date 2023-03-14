@@ -93,13 +93,13 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.scalix"
+    namespace "com.likeminds.chat.sx"
     defaultConfig {
-        applicationId "com.scalix"
+        applicationId "com.likeminds.chat.sx"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "0.5"
     }
 
     splits {

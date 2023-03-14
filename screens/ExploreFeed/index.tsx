@@ -17,6 +17,7 @@ import {
   getExploreFeedData,
   updateExploreFeedData,
 } from '../../store/actions/explorefeed';
+import {SET_EXPLORE_FEED_PAGE} from '../../store/types/types';
 import styles from './styles';
 
 interface Props {
@@ -25,12 +26,14 @@ interface Props {
 
 const ExploreFeed = ({navigation}: Props) => {
   // const [chats, setChats] = useState(dummyData.my_chatrooms);
-  const {exploreChatrooms = []} = useAppSelector(state => state.explorefeed);
+  const {exploreChatrooms = [], page} = useAppSelector(
+    state => state.explorefeed,
+  );
   const {community} = useAppSelector(state => state.homefeed);
   const [chats, setChats] = useState(exploreChatrooms);
   const [filterState, setFilterState] = useState(0);
   const [isPinned, setIsPinned] = useState(false);
-  const [page, setPage] = useState(1);
+  // const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useAppDispatch();
 
@@ -61,6 +64,7 @@ const ExploreFeed = ({navigation}: Props) => {
 
   async function fetchData() {
     // let payload = {chatroomID: 69285, page: 1000};
+    dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
     let payload = {
       community_id: community?.id,
       order_type: filterState,
@@ -85,7 +89,14 @@ const ExploreFeed = ({navigation}: Props) => {
   }, [filterState]);
 
   useEffect(() => {
-    setChats(exploreChatrooms);
+    if (isPinned) {
+      let pinnedChats = exploreChatrooms.filter((item: any) =>
+        !!item?.is_pinned ? item : null,
+      );
+      setChats(pinnedChats);
+    } else {
+      setChats(exploreChatrooms);
+    }
   }, [exploreChatrooms]);
 
   const loadData = async (newPage: number) => {
@@ -101,7 +112,7 @@ const ExploreFeed = ({navigation}: Props) => {
       if (chats.length > 0 && chats.length % 10 === 0) {
         // Alert.alert(`${page} handleLoadMore`)
         const newPage = page + 1;
-        setPage(prevPage => prevPage + 1);
+        dispatch({type: SET_EXPLORE_FEED_PAGE, body: newPage});
         loadData(newPage);
       }
     }

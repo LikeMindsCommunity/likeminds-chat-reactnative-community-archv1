@@ -5,15 +5,18 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeFeed from '../screens/HomeFeed';
 import ExploreFeed from '../screens/ExploreFeed';
 import ChatRoom from '../screens/ChatRoom';
-import LoaderComponent from '../components/LoaderComponent';
-import { useAppSelector } from '../store';
+import {useAppSelector} from '../store';
 import ReportScreen from '../screens/ReportMessage';
 import ImageScreen from '../components/ImageScreen';
+import {
+  LoaderChatroomComponent,
+  LoaderComponent,
+} from '../components/LoaderComponent';
 
 const Stack = createNativeStackNavigator();
 
 const SwitchComponent = () => {
-  const {count} = useAppSelector((state) => state.loader)
+  const {count, chatroomCount} = useAppSelector(state => state.loader);
   return (
     <View style={{flex: 1}}>
       <NavigationContainer>
@@ -26,6 +29,7 @@ const SwitchComponent = () => {
         </Stack.Navigator>
       </NavigationContainer>
       {count > 0 && <LoaderComponent />}
+      {chatroomCount > 0 && <LoaderChatroomComponent />}
     </View>
   );
 };

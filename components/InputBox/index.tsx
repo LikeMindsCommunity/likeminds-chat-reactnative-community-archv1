@@ -7,8 +7,9 @@ import {
   Platform,
   Modal,
   Pressable,
+  Keyboard,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
@@ -39,6 +40,7 @@ const InputBox = ({
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
+  const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -48,6 +50,20 @@ const InputBox = ({
   const handleModalClose = () => {
     setModalVisible(false);
   };
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyBoardFocused(true)
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyBoardFocused(false)
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const onSend = async () => {
     let time = new Date(Date.now());
@@ -75,11 +91,12 @@ const InputBox = ({
         chatroom_id: chatroomID,
         created_at: new Date(Date.now()),
         has_files: false,
-        text: message,
+        text: message.trim(),
         // attachment_count?: any;
         replied_conversation_id: replyMessage?.id,
       };
       let response = await dispatch(onConversationsCreate(payload) as any);
+      setInputHeight(25);
       setIsReply(false);
       setReplyMessage();
       // addItem(payload);
@@ -140,20 +157,14 @@ const InputBox = ({
             />
           </TouchableOpacity> */}
 
-            <View
-              style={[
-                styles.inputParent,
-                Platform.OS === 'ios'
-                  ? {
-                      minHeight: 30,
-                      maxHeight: 120,
-                    }
-                  : {height: 30},
-              ]}>
+            <View style={[styles.inputParent]}>
               <TextInput
                 value={message}
                 onChangeText={setMessage}
-                style={styles.input}
+                onContentSizeChange={event => {
+                  setInputHeight(event.nativeEvent.contentSize.height);
+                }}
+                style={[styles.input, {height: Math.max(25, inputHeight)}]}
                 numberOfLines={6}
                 multiline={true}
                 onBlur={() => {
