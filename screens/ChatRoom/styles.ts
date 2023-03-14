@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import STYLES from '../../constants/Styles';
 
 export const styles = StyleSheet.create({
@@ -91,9 +91,9 @@ export const styles = StyleSheet.create({
   },
   modalView: {
     position: 'absolute',
-    right: 0,
+    right: 10,
     marginLeft: 10,
-    marginTop: 40,
+    marginTop: Platform.OS === 'ios' ? 45 : 10,
     backgroundColor: 'white',
     borderRadius: 8,
     // width: 200,

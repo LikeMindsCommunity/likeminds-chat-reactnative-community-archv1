@@ -158,7 +158,7 @@ const ExploreFeedItem: React.FC<Props> = ({
                   style={styles.joinBtnContainer}>
                   <Image
                     source={require('../../assets/images/join_group3x.png')}
-                    style={styles.icon}
+                    style={styles.joinIcon}
                   />
                   <Text style={styles.join}>{'Join'}</Text>
                 </TouchableOpacity>

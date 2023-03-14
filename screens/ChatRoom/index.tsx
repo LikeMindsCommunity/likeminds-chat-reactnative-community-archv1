@@ -423,9 +423,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .leaveChatroom(payload)
       .then(async () => {
-        dispatch({type: SET_PAGE, body: 1});
-        await dispatch(getHomeFeedData({page: 1}, true) as any);
-        navigation.goBack();
+        if (prevRoute?.name === 'ExploreFeed') {
+          dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
+          let payload2 = {
+            community_id: community?.id,
+            order_type: 0,
+            page: 1,
+          };
+          await dispatch(getExploreFeedData(payload2, true) as any);
+          dispatch({type: SET_PAGE, body: 1});
+          await dispatch(getHomeFeedData({page: 1}) as any);
+          navigation.goBack();
+        } else {
+          dispatch({type: SET_PAGE, body: 1});
+          await dispatch(getHomeFeedData({page: 1}) as any);
+          navigation.goBack();
+        }
       })
       .catch(() => {
         Alert.alert('Leave Chatroom failed');
@@ -442,9 +455,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .leaveSecretChatroom(payload)
       .then(async () => {
-        dispatch({type: SET_PAGE, body: 1});
-        await dispatch(getHomeFeedData({page: 1}) as any);
-        navigation.goBack();
+        if (prevRoute?.name === 'ExploreFeed') {
+          dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
+          let payload2 = {
+            community_id: community?.id,
+            order_type: 0,
+            page: 1,
+          };
+          await dispatch(getExploreFeedData(payload2, true) as any);
+          dispatch({type: SET_PAGE, body: 1});
+          await dispatch(getHomeFeedData({page: 1}) as any);
+          navigation.goBack();
+        } else {
+          dispatch({type: SET_PAGE, body: 1});
+          await dispatch(getHomeFeedData({page: 1}) as any);
+          navigation.goBack();
+        }
       })
       .catch(() => {
         Alert.alert('Leave Chatroom failed');
@@ -493,18 +519,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let payload1 = {chatroomID: chatroomID, page: 100};
         await dispatch(getConversations(payload1, true) as any);
 
-        dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
-        let payload2 = {
-          community_id: community?.id,
-          order_type: 0,
-          page: 1,
-        };
-        let response = await dispatch(
-          getExploreFeedData(payload2, true) as any,
-        );
-
-        dispatch({type: SET_PAGE, body: 1});
-        await dispatch(getHomeFeedData({page: 1}) as any);
+        if (prevRoute?.name === 'ExploreFeed') {
+          dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
+          let payload2 = {
+            community_id: community?.id,
+            order_type: 0,
+            page: 1,
+          };
+          await dispatch(getExploreFeedData(payload2, true) as any);
+          dispatch({type: SET_PAGE, body: 1});
+          await dispatch(getHomeFeedData({page: 1}) as any);
+        } else {
+          dispatch({type: SET_PAGE, body: 1});
+          await dispatch(getHomeFeedData({page: 1}) as any);
+        }
       })
       .catch(() => {
         Alert.alert('Join Secret Chatroom failed');
@@ -759,7 +787,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   // handleReportModalClose()
                 }}
                 style={styles.filtersView}>
-                <Text style={styles.filterText}>Report</Text>
+                <Text style={styles.filterText}>Report Message</Text>
               </TouchableOpacity>
             </Pressable>
           </View>

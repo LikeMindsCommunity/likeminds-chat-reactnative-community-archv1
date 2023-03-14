@@ -81,6 +81,14 @@ export const styles = StyleSheet.create({
     // marginRight: STYLES.$MARGINS.LARGE,
     // marginLeft: STYLES.$MARGINS.SMALL,
   },
+  joinIcon: {
+    width: 30,
+    height: 22,
+    resizeMode: 'contain',
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+    // marginRight: STYLES.$MARGINS.LARGE,
+    // marginLeft: STYLES.$MARGINS.SMALL,
+  },
   info_icons: {
     width: 18,
     height: 18,

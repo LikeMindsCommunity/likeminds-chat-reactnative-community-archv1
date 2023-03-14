@@ -1,6 +1,7 @@
 import {Alert, Linking, Text} from 'react-native';
 import 'url-search-params-polyfill';
 import STYLES from '../constants/Styles';
+import {useAppSelector} from '../store';
 
 // const REGEX_USER_SPLITTING = /(<<[\w\s🤖]+\|route:\/\/member\/\d+>>)/g;
 // const REGEX_USER_TAGGING = /<<([\w\s🤖]+)\|route:\/\/member\/(\d+)>>/;
@@ -40,6 +41,7 @@ export function getFullDate(time: any) {
 }
 
 function detectLinks(message: string) {
+  const {isLongPress} = useAppSelector(state => state.chatroom);
   const regex = /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?)/i;
   let parts = message.split(regex);
   let i = 0;
@@ -51,12 +53,15 @@ function detectLinks(message: string) {
             {regex.test(val) ? (
               <Text
                 onPress={async () => {
-                  let urlRegex = /(https?:\/\/[^\s]+)/gi;
-                  let isMatched = urlRegex.test(val);
-                  if (isMatched) {
-                    await Linking.openURL(val);
-                  } else {
-                    await Linking.openURL(`https://${val}`);
+                  if (!isLongPress) {
+                    let urlRegex = /(https?:\/\/[^\s]+)/gi;
+                    let isMatched = urlRegex.test(val);
+
+                    if (isMatched) {
+                      await Linking.openURL(val);
+                    } else {
+                      await Linking.openURL(`https://${val}`);
+                    }
                   }
                 }}>
                 <Text
@@ -104,6 +109,7 @@ export function decode(text: string | undefined, enableClick: boolean) {
   }
   let arr: any[] = [];
   let parts = text.split(REGEX_USER_SPLITTING);
+  const {isLongPress} = useAppSelector(state => state.chatroom);
   // console.log('parts', parts);
 
   if (!!parts) {
@@ -139,7 +145,9 @@ export function decode(text: string | undefined, enableClick: boolean) {
               {!!val.route ? (
                 <Text
                   onPress={() => {
-                    Alert.alert(`navigate to the route ${val?.route}`);
+                    if (!isLongPress) {
+                      Alert.alert(`navigate to the route ${val?.route}`);
+                    }
                   }}
                   style={{
                     color: STYLES.$COLORS.LIGHT_BLUE,
