@@ -20,6 +20,7 @@ import {AppDispatch, useAppDispatch, useAppSelector} from '../../store';
 import {
   getHomeFeedData,
   initAPI,
+  profileData,
   updateHomeFeedData,
 } from '../../store/actions/homefeed';
 import styles from './styles';
@@ -61,7 +62,7 @@ const HomeFeed = ({navigation}: Props) => {
             width: 35,
             height: 35,
             borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
-            backgroundColor: 'purple',
+            backgroundColor: !!user?.image_url ? 'white' : 'purple',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 5,
@@ -88,14 +89,19 @@ const HomeFeed = ({navigation}: Props) => {
 
   async function fetchData() {
     let payload = {
-      // user_unique_id: '780cfe5e-1605-49ee-b8a0-c79deaaf77bf',
-      user_unique_id: '53208f29-5d15-473e-ab70-5fd77605be0f',
-      user_name: 'Ankit Garg SDK',
-      // user_name: '',
+      user_unique_id: '0d6f9958-a2db-46aa-a4b1-c40d268b767b',
+      user_name: 'Ankit Garg Prod',
       is_guest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
+
     if (!!res) {
+      await dispatch(
+        profileData({
+          community_id: res?.community?.id,
+          member_id: res?.user?.id,
+        }) as any,
+      );
       setCommunityId(res.community.id);
       let payload = {
         page: 1,

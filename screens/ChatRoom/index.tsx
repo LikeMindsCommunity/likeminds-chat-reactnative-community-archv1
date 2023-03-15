@@ -32,6 +32,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
 import {getHomeFeedData} from '../../store/actions/homefeed';
 import {
+  CLEAR_CHATROOM_CONVERSATION,
+  CLEAR_CHATROOM_DETAILS,
   LONG_PRESSED,
   SELECTED_MESSAGES,
   SET_EXPLORE_FEED_PAGE,
@@ -99,43 +101,60 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       headerShadowVisible: false,
       headerLeft: () => (
         <View style={styles.headingContainer}>
-          <TouchableOpacity onPress={navigation.goBack}>
+          <TouchableOpacity
+            onPress={() => {
+              dispatch({
+                type: CLEAR_CHATROOM_CONVERSATION,
+                body: {conversations: []},
+              });
+              dispatch({
+                type: CLEAR_CHATROOM_DETAILS,
+                body: {chatroomDetails: {}},
+              });
+              navigation.goBack();
+            }}>
             <Image
               source={require('../../assets/images/back_arrow3x.png')}
               style={styles.backBtn}
             />
           </TouchableOpacity>
-          <View style={styles.chatRoomInfo}>
-            <Text
-              style={{
-                color: STYLES.$COLORS.PRIMARY,
-                fontSize: STYLES.$FONT_SIZES.LARGE,
-                fontFamily: STYLES.$FONT_TYPES.BOLD,
-              }}>
-              {chatroomDetails?.chatroom?.header}
-            </Text>
-            <Text
-              style={{
-                color: STYLES.$COLORS.MSG,
-                fontSize: STYLES.$FONT_SIZES.SMALL,
-                fontFamily: STYLES.$FONT_TYPES.LIGHT,
-              }}>
-              {`${chatroomDetails?.chatroom?.participants_count} participants`}
-            </Text>
-          </View>
+          {!(Object.keys(chatroomDetails).length === 0) ? (
+            <View style={styles.chatRoomInfo}>
+              <Text
+                style={{
+                  color: STYLES.$COLORS.PRIMARY,
+                  fontSize: STYLES.$FONT_SIZES.LARGE,
+                  fontFamily: STYLES.$FONT_TYPES.BOLD,
+                }}>
+                {chatroomDetails?.chatroom?.header}
+              </Text>
+              <Text
+                style={{
+                  color: STYLES.$COLORS.MSG,
+                  fontSize: STYLES.$FONT_SIZES.SMALL,
+                  fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                }}>
+                {`${chatroomDetails?.chatroom?.participants_count} participants`}
+              </Text>
+            </View>
+          ) : null}
         </View>
       ),
       headerRight: () =>
         filteredChatroomActions?.length > 0 && (
-          <TouchableOpacity
-            onPress={() => {
-              setModalVisible(!modalVisible);
-            }}>
-            <Image
-              source={require('../../assets/images/three_dots3x.png')}
-              style={styles.threeDots}
-            />
-          </TouchableOpacity>
+          <View>
+            {!!chatroomDetails ? (
+              <TouchableOpacity
+                onPress={() => {
+                  setModalVisible(!modalVisible);
+                }}>
+                <Image
+                  source={require('../../assets/images/three_dots3x.png')}
+                  style={styles.threeDots}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </View>
         ),
     });
   };
@@ -276,13 +295,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   async function fetchData(showLoaderVal?: boolean) {
-    await myClient.markReadFn({chatroom_id: chatroomID});
-    const res = await myClient.crSeenFn({
-      collabcard_id: chatroomID,
-      // community_id: community?.id,
-      member_id: user?.id,
-      collabcard_type: chatroomDetails?.chatroom?.type,
-    });
     let payload = {chatroomID: chatroomID, page: 100};
     let response = await dispatch(
       getConversations(
@@ -290,6 +302,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         showLoaderVal != undefined && showLoaderVal == false ? false : true,
       ) as any,
     );
+    await myClient.markReadFn({chatroom_id: chatroomID});
+    const res = await myClient.crSeenFn({
+      collabcard_id: chatroomID,
+      // community_id: community?.id,
+      member_id: user?.id,
+      collabcard_type: chatroomDetails?.chatroom?.type,
+    });
     dispatch({type: SET_PAGE, body: 1});
     await dispatch(getHomeFeedData({page: 1}, false) as any);
     return response;
@@ -314,7 +333,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
 
   useLayoutEffect(() => {
-    dispatch({type: START_CHATROOM_LOADING});
+    // dispatch({type: START_CHATROOM_LOADING});
     fetchChatroomDetails();
     setInitialHeader();
   }, [navigation]);
@@ -323,6 +342,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const backAction = () => {
       dispatch({type: SELECTED_MESSAGES, body: []});
       dispatch({type: LONG_PRESSED, body: false});
+      dispatch({
+        type: CLEAR_CHATROOM_CONVERSATION,
+        body: {conversations: []},
+      });
+      dispatch({
+        type: CLEAR_CHATROOM_DETAILS,
+        body: {chatroomDetails: {}},
+      });
       setInitialHeader();
       return null;
     };
@@ -343,7 +370,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     async function callApi() {
       let res = await fetchData(false);
       if (!!res) {
-        dispatch({type: STOP_CHATROOM_LOADING});
+        // dispatch({type: STOP_CHATROOM_LOADING});
       }
     }
 
@@ -486,7 +513,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
     const res = await myClient
       .leaveChatroom(payload)
-      .then(() => {
+      .then(async () => {
+        if (prevRoute?.name === 'ExploreFeed') {
+          dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
+          let payload2 = {
+            community_id: community?.id,
+            order_type: 0,
+            page: 1,
+          };
+          await dispatch(getExploreFeedData(payload2, true) as any);
+          dispatch({type: SET_PAGE, body: 1});
+          await dispatch(getHomeFeedData({page: 1}) as any);
+        } else {
+          dispatch({type: SET_PAGE, body: 1});
+          await dispatch(getHomeFeedData({page: 1}) as any);
+        }
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
@@ -683,37 +724,45 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         inverted
       />
 
-      {!chatroomDetails?.chatroom?.follow_status && (
-        <TouchableOpacity
-          onPress={() => {
-            joinSecretChatroom();
-          }}
-          style={[styles.joinBtnContainer, {alignSelf: 'center'}]}>
-          <Image
-            source={require('../../assets/images/join_group3x.png')}
-            style={styles.icon}
-          />
-          <Text style={styles.join}>{'Join'}</Text>
-        </TouchableOpacity>
-      )}
+      {!(Object.keys(chatroomDetails).length === 0)
+        ? !!!chatroomDetails?.chatroom?.follow_status && (
+            <TouchableOpacity
+              onPress={() => {
+                joinSecretChatroom();
+              }}
+              style={[styles.joinBtnContainer, {alignSelf: 'center'}]}>
+              <Image
+                source={require('../../assets/images/join_group3x.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.join}>{'Join'}</Text>
+            </TouchableOpacity>
+          )
+        : null}
 
-      {chatroomDetails?.chatroom?.member_can_message &&
-      chatroomDetails?.chatroom?.follow_status ? (
-        <InputBox
-          isReply={isReply}
-          replyChatID={replyChatID}
-          chatroomID={chatroomID}
-          replyMessage={replyMessage}
-          setIsReply={(val: any) => {
-            setIsReply(val);
-          }}
-          setReplyMessage={(val: any) => {
-            setReplyMessage(val);
-          }}
-        />
+      {!(Object.keys(chatroomDetails).length === 0) ? (
+        chatroomDetails?.chatroom?.member_can_message &&
+        chatroomDetails?.chatroom?.follow_status ? (
+          <InputBox
+            isReply={isReply}
+            replyChatID={replyChatID}
+            chatroomID={chatroomID}
+            replyMessage={replyMessage}
+            setIsReply={(val: any) => {
+              setIsReply(val);
+            }}
+            setReplyMessage={(val: any) => {
+              setReplyMessage(val);
+            }}
+          />
+        ) : (
+          <View style={styles.disabledInput}>
+            <Text style={styles.disabledInputText}>Responding is disabled</Text>
+          </View>
+        )
       ) : (
         <View style={styles.disabledInput}>
-          <Text style={styles.disabledInputText}>Responding is disabled</Text>
+          <Text style={styles.disabledInputText}>Loading...</Text>
         </View>
       )}
 

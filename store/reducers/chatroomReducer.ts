@@ -1,4 +1,6 @@
 import {
+  CLEAR_CHATROOM_CONVERSATION,
+  CLEAR_CHATROOM_DETAILS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
@@ -47,8 +49,17 @@ export function chatroomReducer(state = initialState, action: any) {
       const message = action.body;
       return {...state, conversations: [message, ...state.conversations]};
     }
+
+    case CLEAR_CHATROOM_CONVERSATION: {
+      const {conversations = []} = action.body;
+      return {...state, conversations: conversations};
+    }
     case GET_CHATROOM_SUCCESS: {
       const chatroomDetails = action.body;
+      return {...state, chatroomDetails: chatroomDetails};
+    }
+    case CLEAR_CHATROOM_DETAILS: {
+      const {chatroomDetails} = action.body;
       return {...state, chatroomDetails: chatroomDetails};
     }
     case ON_CONVERSATIONS_CREATE_SUCCESS: {
