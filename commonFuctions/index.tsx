@@ -107,7 +107,7 @@ export const decode = (text: string | undefined, enableClick: boolean) => {
     return;
   }
   let arr: any[] = [];
-  let parts = text.split(REGEX_USER_SPLITTING);
+  let parts = text?.split(REGEX_USER_SPLITTING);
   const {isLongPress} = useAppSelector(state => state.chatroom);
   // console.log('parts', parts);
 
