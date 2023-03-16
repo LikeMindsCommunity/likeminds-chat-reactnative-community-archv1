@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
     height: 50,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: STYLES.$COLORS.JOINED_BTN,
+    backgroundColor: '#f2f2f2',
     borderRadius: 25,
     justifyContent: 'center',
     borderColor: STYLES.$COLORS.MSG,

@@ -1,6 +1,7 @@
 import {
   GET_HOMEFEED_CHAT_SUCCESS,
   INIT_API_SUCCESS,
+  PROFILE_DATA_SUCCESS,
   SET_PAGE,
   UPDATE_HOMEFEED_CHAT_SUCCESS,
 } from '../types/types';
@@ -38,8 +39,12 @@ export function homefeedReducer(state = initialState, action: any) {
       return {...state, myChatrooms: [...state.myChatrooms, ...my_chatrooms]};
     }
     case INIT_API_SUCCESS: {
-      const {user, community} = action.body;
-      return {...state, user: user, community: community};
+      const {community} = action.body;
+      return {...state, community: community};
+    }
+    case PROFILE_DATA_SUCCESS: {
+      const {member} = action.body;
+      return {...state, user: member};
     }
     default:
       return state;

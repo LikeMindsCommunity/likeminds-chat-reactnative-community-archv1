@@ -7,6 +7,9 @@ import {
   INIT_API,
   INIT_API_FAILED,
   INIT_API_SUCCESS,
+  PROFILE_DATA,
+  PROFILE_DATA_FAILED,
+  PROFILE_DATA_SUCCESS,
   UPDATE_HOMEFEED_CHAT,
   UPDATE_HOMEFEED_CHAT_FAILED,
   UPDATE_HOMEFEED_CHAT_SUCCESS,
@@ -25,6 +28,26 @@ export const initAPI = (payload: any) => (async (dispatch: Dispatch) => {
           INIT_API,
           INIT_API_SUCCESS,
           INIT_API_FAILED,
+        ],
+        showLoader: true,
+      },
+    });
+  } catch (error) {
+    Alert.alert(`${error}`);
+  }
+});
+
+export const profileData = (payload: any) => (async (dispatch: Dispatch) => {
+  try {
+    return await dispatch({
+      type: PROFILE_DATA_SUCCESS,
+      [CALL_API]: {
+        func: myClient.profileData(payload),
+        body: payload,
+        types: [
+          PROFILE_DATA,
+          PROFILE_DATA_SUCCESS,
+          PROFILE_DATA_FAILED,
         ],
         showLoader: true,
       },
