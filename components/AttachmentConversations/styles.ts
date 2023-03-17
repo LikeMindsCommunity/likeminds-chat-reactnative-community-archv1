@@ -89,4 +89,10 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   touchableImg: {height: 150, width: '49%'},
+  deletedMsg: {
+    color: STYLES.$COLORS.MSG,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    fontStyle: 'italic',
+  }
 });

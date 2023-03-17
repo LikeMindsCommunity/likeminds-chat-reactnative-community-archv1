@@ -94,6 +94,7 @@ const InputBox = ({
         replyObj.reply_conversation = replyMessage?.id;
         replyObj.reply_conversation_object = replyMessage;
         replyObj.member.name = user?.name;
+        replyObj.member.id = user?.id;
         replyObj.answer = message;
         replyObj.created_at = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
@@ -112,6 +113,7 @@ const InputBox = ({
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
+      obj.member.id = user?.id;
       obj.answer = message;
       obj.created_at = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,

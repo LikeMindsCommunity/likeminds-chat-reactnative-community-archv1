@@ -40,8 +40,7 @@ export function getFullDate(time: any) {
   }
 }
 
-function detectLinks(message: string) {
-  const {isLongPress} = useAppSelector(state => state.chatroom);
+function detectLinks(message: string,isLongPress?: boolean) {
   const regex = /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?)/i;
   let parts = message.split(regex);
   let i = 0;
@@ -53,7 +52,7 @@ function detectLinks(message: string) {
             {regex.test(val) ? (
               <Text
                 onPress={async () => {
-                  if (!isLongPress) {
+                  if (!!!isLongPress) {
                     let urlRegex = /(https?:\/\/[^\s]+)/gi;
                     let isMatched = urlRegex.test(val);
 
@@ -102,13 +101,13 @@ export function getNameInitials(name: string) {
 
 // This decode function helps us to decode tagged messages like the above test string in to readable format.
 // This function has two responses: one for Homefeed screen and other is for chat screen(Pressable ones are for chat screen).
-export const decode = (text: string | undefined, enableClick: boolean) => {
+export const decode = (text: string | undefined, enableClick: boolean, isLongPress?: boolean ) => {
   if (!text) {
     return;
   }
   let arr: any[] = [];
   let parts = text?.split(REGEX_USER_SPLITTING);
-  const {isLongPress} = useAppSelector(state => state.chatroom);
+  // const {isLongPress} = useAppSelector(state => state.chatroom);
   // console.log('parts', parts);
 
   if (!!parts) {
@@ -143,7 +142,7 @@ export const decode = (text: string | undefined, enableClick: boolean) => {
             {!!val.route ? (
               <Text
                 onPress={() => {
-                  if (!isLongPress) {
+                  if (!!!isLongPress) {
                     Alert.alert(`navigate to the route ${val?.route}`);
                   }
                 }}
@@ -156,7 +155,7 @@ export const decode = (text: string | undefined, enableClick: boolean) => {
                 {val.key}
               </Text>
             ) : (
-              detectLinks(val.key)
+              detectLinks(val.key,isLongPress)
             )}
           </Text>
         ))}
