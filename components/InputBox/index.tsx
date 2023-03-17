@@ -109,7 +109,6 @@ const InputBox = ({
         replyObj.date = `${time.getDate()} ${
           months[time.getMonth()]
         } ${time.getFullYear()}`;
-        console.log('DATE.NOW =',Date.now(), replyObj.id)
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
