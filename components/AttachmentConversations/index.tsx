@@ -48,7 +48,7 @@ const AttachmentConversations = ({
       ) : item?.attachments[0]?.type === 'audio' ? (
         <View>
           <Text style={styles.deletedMsg}>
-            This message has not been supported in this app yet.
+            This message is not supported in this app yet.
           ›</Text>
         </View>
       ) : null}
