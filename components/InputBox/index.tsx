@@ -13,8 +13,9 @@ import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
-import {UPDATE_CONVERSATIONS} from '../../store/types/types';
+import {MESSAGE_SENT, UPDATE_CONVERSATIONS} from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
+import {chatSchema} from '../../assets/chatSchema';
 // import database from '@react-native-firebase/database';
 
 // let addItem = (payload: any) => {
@@ -45,7 +46,10 @@ const InputBox = ({
   const [modalVisible, setModalVisible] = useState(false);
 
   const dispatch = useAppDispatch();
-  const myChatrooms = useAppSelector(state => state.homefeed.myChatrooms);
+  const {myChatrooms, user, community} = useAppSelector(
+    state => state.homefeed,
+  );
+  const {chatroomDetails} = useAppSelector(state => state.chatroom);
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -53,10 +57,10 @@ const InputBox = ({
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-      setIsKeyBoardFocused(true)
+      setIsKeyBoardFocused(true);
     });
     const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setIsKeyBoardFocused(false)
+      setIsKeyBoardFocused(false);
     });
 
     return () => {
@@ -66,26 +70,79 @@ const InputBox = ({
   }, []);
 
   const onSend = async () => {
+    // -- Code for local message handling for normal and reply for now
+    let months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     let time = new Date(Date.now());
     let hr = time.getHours();
     let min = time.getMinutes();
     if (!!message.trim()) {
-      // dispatch({
-      //   type: UPDATE_CONVERSATIONS,
-      //   body: {
-      //     member: {id: 86975, name: 'Jai'},
-      //     answer: message,
-      //     created_at: `${hr.toLocaleString('en-US', {
-      //       minimumIntegerDigits: 2,
-      //       useGrouping: false,
-      //     })}:${min.toLocaleString('en-US', {
-      //       minimumIntegerDigits: 2,
-      //       useGrouping: false,
-      //     })}`,
-      //     id: 11111,
-      //   },
-      // });
+      let replyObj = chatSchema.reply;
+      if (isReply) {
+        replyObj.reply_conversation = replyMessage?.id;
+        replyObj.reply_conversation_object = replyMessage;
+        replyObj.member.name = user?.name;
+        replyObj.member.id = user?.id;
+        replyObj.answer = message;
+        replyObj.created_at = `${hr.toLocaleString('en-US', {
+          minimumIntegerDigits: 2,
+          useGrouping: false,
+        })}:${min.toLocaleString('en-US', {
+          minimumIntegerDigits: 2,
+          useGrouping: false,
+        })}`;
+        replyObj.id = Date.now();
+        replyObj.chatroom_id = chatroomDetails?.chatroom.id;
+        replyObj.community_id = community?.id;
+        replyObj.date = `${time.getDate()} ${
+          months[time.getMonth()]
+        } ${time.getFullYear()}`;
+      }
+      let obj = chatSchema.normal;
+      obj.member.name = user?.name;
+      obj.member.id = user?.id;
+      obj.answer = message;
+      obj.created_at = `${hr.toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })}:${min.toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })}`;
+      obj.id = Date.now();
+      obj.chatroom_id = chatroomDetails?.chatroom.id;
+      obj.community_id = community?.id;
+      obj.date = `${time.getDate()} ${
+        months[time.getMonth()]
+      } ${time.getFullYear()}`;
+
+      dispatch({
+        type: UPDATE_CONVERSATIONS,
+        body: isReply ? replyObj : obj,
+      });
+      dispatch({
+        type: MESSAGE_SENT,
+        body: isReply ? replyObj?.id : obj?.id,
+      });
       setMessage('');
+      setIsReply(false);
+
+      setInputHeight(25);
+      setReplyMessage();
+
+      // -- Code for local message handling ended
 
       let payload = {
         chatroom_id: chatroomID,
@@ -96,9 +153,6 @@ const InputBox = ({
         replied_conversation_id: replyMessage?.id,
       };
       let response = await dispatch(onConversationsCreate(payload) as any);
-      setInputHeight(25);
-      setIsReply(false);
-      setReplyMessage();
       // addItem(payload);
       // if (!!response) {
       //   setMessage('');
