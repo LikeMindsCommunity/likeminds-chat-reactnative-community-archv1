@@ -58,7 +58,7 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
               : item?.attachments[0]?.type === 'video'
               ? `Video`
               : item?.attachments[0]?.type === 'audio'
-              ? `This message has not been supported in this app yet.`
+              ? `This message is not supported in this app yet.`
               : null,
             false,
           )}
