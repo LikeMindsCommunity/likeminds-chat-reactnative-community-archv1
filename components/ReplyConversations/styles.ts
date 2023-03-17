@@ -33,7 +33,7 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
-    // maxWidth: '80%',
+    maxWidth: '80%',
     // textAlign: 'left',
   },
   messageDate: {
