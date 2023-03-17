@@ -189,6 +189,53 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ),
       headerRight: () => {
         let len = selectedMessages.length;
+        let communityManagerState = 1;
+        let userCanDeleteParticularMessageArr: any = [];
+        let selectedMessagesIDArr: any = [];
+        let isCopy = false;
+        let isDelete = false;
+        for (let i = 0; i < selectedMessages.length; i++) {
+          if (!!!selectedMessages[i]?.deleted_by && !isCopy) {
+            isCopy = true;
+          }
+
+          if (
+            selectedMessages[i]?.member?.id === user?.id &&
+            !!!selectedMessages[i]?.deleted_by
+          ) {
+            userCanDeleteParticularMessageArr = [
+              ...userCanDeleteParticularMessageArr,
+              true,
+            ];
+            selectedMessagesIDArr = [
+              ...selectedMessagesIDArr,
+              selectedMessages[i]?.id,
+            ];
+          } else {
+            userCanDeleteParticularMessageArr = [
+              ...userCanDeleteParticularMessageArr,
+              false,
+            ];
+            selectedMessagesIDArr = [
+              ...selectedMessagesIDArr,
+              selectedMessages[i]?.id,
+            ];
+          }
+        }
+
+        if (userCanDeleteParticularMessageArr.includes(false)) {
+          if (
+            user?.state === communityManagerState &&
+            userCanDeleteParticularMessageArr.length === 1 &&
+            !!!selectedMessages[0]?.deleted_by
+          ) {
+            isDelete = true;
+          } else {
+            isDelete = false;
+          }
+        } else {
+          isDelete = true;
+        }
         return (
           <View style={styles.selectedHeadingContainer}>
             {len === 1 &&
@@ -227,7 +274,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   style={styles.threeDots}
                 />
               </TouchableOpacity>
-            ) : len > 1 ? (
+            ) : len > 1 && isCopy ? (
               <TouchableOpacity
                 onPress={() => {
                   const output = copySelectedMessages(selectedMessages);
@@ -242,15 +289,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 />
               </TouchableOpacity>
             ) : null}
-            {len === 1 &&
-              !!!selectedMessages[0].deleted_by &&
-              (selectedMessages[0]?.member?.id === user?.id ||
-                chatroomDetails?.chatroom?.member?.state === 1) && (
+            {isDelete && (
                 <TouchableOpacity
                   onPress={async () => {
                     const res = await myClient
                       .deleteMsg({
-                        conversation_ids: [selectedMessages[0]?.id],
+                        conversation_ids: selectedMessagesIDArr,
                         reason: 'none',
                       })
                       .then(async () => {
