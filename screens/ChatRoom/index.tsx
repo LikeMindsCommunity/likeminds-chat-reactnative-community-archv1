@@ -627,7 +627,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       <FlatList
         ref={flatlistRef}
         data={conversations}
-        keyExtractor={item => item?.id.toString()}
+        keyExtractor={item => item?.id?.toString()}
         renderItem={({item, index}) => {
           let isStateIncluded = stateArr.includes(item?.state);
           let isIncluded = selectedMessages.some(

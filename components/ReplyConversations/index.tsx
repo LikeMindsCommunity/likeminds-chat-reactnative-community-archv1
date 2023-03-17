@@ -40,6 +40,11 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
               source={require('../../assets/images/document_icon3x.png')}
               style={styles.icon}
             />
+          ) : item?.attachments[0]?.type === 'video' ? (
+            <Image
+              source={require('../../assets/images/video_icon3x.png')}
+              style={styles.icon}
+            />
           ) : null
         ) : null}
         <Text style={styles.messageText}>
@@ -50,6 +55,10 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
               ? `Document`
               : item?.attachments[0]?.type === 'image'
               ? `Photo`
+              : item?.attachments[0]?.type === 'video'
+              ? `Video`
+              : item?.attachments[0]?.type === 'audio'
+              ? `This message has not been supported in this app yet.`
               : null,
             false,
           )}

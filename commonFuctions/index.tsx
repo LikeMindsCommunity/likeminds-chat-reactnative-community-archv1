@@ -40,8 +40,7 @@ export function getFullDate(time: any) {
   }
 }
 
-function detectLinks(message: string) {
-  const {isLongPress} = useAppSelector(state => state.chatroom);
+function detectLinks(message: string,isLongPress?: boolean) {
   const regex = /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?)/i;
   let parts = message.split(regex);
   let i = 0;
@@ -53,7 +52,7 @@ function detectLinks(message: string) {
             {regex.test(val) ? (
               <Text
                 onPress={async () => {
-                  if (!isLongPress) {
+                  if (!!!isLongPress) {
                     let urlRegex = /(https?:\/\/[^\s]+)/gi;
                     let isMatched = urlRegex.test(val);
 
@@ -98,18 +97,17 @@ export function getNameInitials(name: string) {
 
   return initials;
 }
-
 // test string = '<<Sanjay kumar 🤖|route://member/1260>> <<Ishaan Jain|route://member/1003>> Hey google.com';
 
 // This decode function helps us to decode tagged messages like the above test string in to readable format.
 // This function has two responses: one for Homefeed screen and other is for chat screen(Pressable ones are for chat screen).
-export function decode(text: string | undefined, enableClick: boolean) {
+export const decode = (text: string | undefined, enableClick: boolean, isLongPress?: boolean ) => {
   if (!text) {
     return;
   }
   let arr: any[] = [];
-  let parts = text.split(REGEX_USER_SPLITTING);
-  const {isLongPress} = useAppSelector(state => state.chatroom);
+  let parts = text?.split(REGEX_USER_SPLITTING);
+  // const {isLongPress} = useAppSelector(state => state.chatroom);
   // console.log('parts', parts);
 
   if (!!parts) {
@@ -131,71 +129,67 @@ export function decode(text: string | undefined, enableClick: boolean) {
       }
     }
 
-    if (enableClick) {
-      return (
-        <Text>
-          {arr.map((val, index) => (
-            <Text
-              style={{
-                color: STYLES.$COLORS.PRIMARY,
-                // fontSize: STYLES.$FONT_SIZES.MEDIUM,
-                fontFamily: STYLES.$FONT_TYPES.LIGHT,
-              }}
-              key={index + val}>
-              {!!val.route ? (
-                <Text
-                  onPress={() => {
-                    if (!isLongPress) {
-                      Alert.alert(`navigate to the route ${val?.route}`);
-                    }
-                  }}
-                  style={{
-                    color: STYLES.$COLORS.LIGHT_BLUE,
-                    fontSize: STYLES.$FONT_SIZES.MEDIUM,
-                    fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                    // marginBottom: -3,
-                  }}>
-                  {val.key}
-                </Text>
-              ) : (
-                detectLinks(val.key)
-              )}
-            </Text>
-          ))}
-        </Text>
-      );
-    } else {
-      return (
-        <Text>
-          {arr.map((val, index) => (
-            <Text
-              style={{
-                color: STYLES.$COLORS.PRIMARY,
-                // fontSize: STYLES.$FONT_SIZES.MEDIUM,
-                fontFamily: STYLES.$FONT_TYPES.LIGHT,
-              }}
-              key={index + val}>
-              {!!val.route ? (
-                <Text
-                  style={{
-                    color: STYLES.$COLORS.PRIMARY,
-                    // fontSize: STYLES.$FONT_SIZES.MEDIUM,
-                    fontFamily: STYLES.$FONT_TYPES.BOLD,
-                  }}>
-                  {val.key}
-                </Text>
-              ) : (
-                val.key
-              )}
-            </Text>
-          ))}
-        </Text>
-      );
-    }
+    return enableClick ? (
+      <Text>
+        {arr.map((val, index) => (
+          <Text
+            style={{
+              color: STYLES.$COLORS.PRIMARY,
+              // fontSize: STYLES.$FONT_SIZES.MEDIUM,
+              fontFamily: STYLES.$FONT_TYPES.LIGHT,
+            }}
+            key={index + val}>
+            {!!val.route ? (
+              <Text
+                onPress={() => {
+                  if (!!!isLongPress) {
+                    Alert.alert(`navigate to the route ${val?.route}`);
+                  }
+                }}
+                style={{
+                  color: STYLES.$COLORS.LIGHT_BLUE,
+                  fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                  fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                  // marginBottom: -3,
+                }}>
+                {val.key}
+              </Text>
+            ) : (
+              detectLinks(val.key,isLongPress)
+            )}
+          </Text>
+        ))}
+      </Text>
+    ) : (
+      <Text>
+        {arr.map((val, index) => (
+          <Text
+            style={{
+              color: STYLES.$COLORS.PRIMARY,
+              // fontSize: STYLES.$FONT_SIZES.MEDIUM,
+              fontFamily: STYLES.$FONT_TYPES.LIGHT,
+            }}
+            key={index + val}>
+            {!!val.route ? (
+              <Text
+                style={{
+                  color: STYLES.$COLORS.PRIMARY,
+                  // fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                  fontFamily: STYLES.$FONT_TYPES.BOLD,
+                }}>
+                {val.key}
+              </Text>
+            ) : (
+              val.key
+            )}
+          </Text>
+        ))}
+      </Text>
+    );
   } else {
     return text;
   }
-}
+};
 
 export function decodeStr(text: string | undefined) {
   if (!text) {
