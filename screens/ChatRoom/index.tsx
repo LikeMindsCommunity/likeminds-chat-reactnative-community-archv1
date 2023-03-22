@@ -76,7 +76,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
 
-  const {chatroomID} = route.params;
+  const {chatroomID, isInvited} = route.params;
 
   const dispatch = useAppDispatch();
   const {
@@ -349,15 +349,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         showLoaderVal != undefined && showLoaderVal == false ? false : true,
       ) as any,
     );
-    await myClient.markReadFn({chatroom_id: chatroomID});
-    const res = await myClient.crSeenFn({
-      collabcard_id: chatroomID,
-      // community_id: community?.id,
-      member_id: user?.id,
-      collabcard_type: chatroomDetails?.chatroom?.type,
-    });
-    dispatch({type: SET_PAGE, body: 1});
-    await dispatch(getHomeFeedData({page: 1}, false) as any);
+    if (!isInvited) {
+      await myClient.markReadFn({chatroom_id: chatroomID});
+      const res = await myClient.crSeenFn({
+        collabcard_id: chatroomID,
+        // community_id: community?.id,
+        member_id: user?.id,
+        collabcard_type: chatroomDetails?.chatroom?.type,
+      });
+      dispatch({type: SET_PAGE, body: 1});
+      await dispatch(getHomeFeedData({page: 1}, false) as any);
+    }
     return response;
   }
 
@@ -421,8 +423,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       }
     }
 
-    callApi();
-  }, []);
+    if (!!chatroomDetails?.chatroom) {
+      callApi();
+    }
+  }, [chatroomDetails]);
 
   useEffect(() => {
     if (conversations.length > 0) {
@@ -908,7 +912,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   style={styles.emoji}
                   source={require('../../assets/images/like_icon3x.png')}
                 />
-                <Text style={styles.inviteText}>Accept</Text>
+                <Text style={styles.inviteBtnText}>Accept</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -926,7 +930,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   style={styles.emoji}
                   source={require('../../assets/images/ban_icon3x.png')}
                 />
-                <Text style={styles.inviteText}>Reject</Text>
+                <Text style={styles.inviteBtnText}>Reject</Text>
               </TouchableOpacity>
             </View>
           </View>
