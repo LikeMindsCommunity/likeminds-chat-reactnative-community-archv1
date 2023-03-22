@@ -1,4 +1,5 @@
 import {StyleSheet} from 'react-native';
+import Layout from '../../constants/Layout';
 import STYLES from '../../constants/Styles';
 
 export const styles = StyleSheet.create({
@@ -33,7 +34,7 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
-    maxWidth: '80%',
+    maxWidth: Layout.window.width - 150,
     // textAlign: 'left',
   },
   messageDate: {

@@ -15,8 +15,8 @@ export const styles = StyleSheet.create({
     marginRight: STYLES.$MARGINS.SMALL,
   },
   lockIcon: {
-    width: 20,
-    height: 20,
+    width: 15,
+    height: 15,
     resizeMode: 'contain',
   },
   infoContainer: {
@@ -90,4 +90,13 @@ export const styles = StyleSheet.create({
     // padding: 5,
     // backgroundColor:'yellow'
   },
+  inviteIcon: {
+    height: 40,
+    width: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth:2,
+    borderRadius:50,
+    borderColor:'grey'
+  }
 });

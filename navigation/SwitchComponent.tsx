@@ -5,18 +5,22 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeFeed from '../screens/HomeFeed';
 import ExploreFeed from '../screens/ExploreFeed';
 import ChatRoom from '../screens/ChatRoom';
-import {useAppSelector} from '../store';
+import {useAppDispatch, useAppSelector} from '../store';
 import ReportScreen from '../screens/ReportMessage';
 import ImageScreen from '../components/ImageScreen';
 import {
   LoaderChatroomComponent,
   LoaderComponent,
 } from '../components/LoaderComponent';
+import ToastMessage from '../components/ToastMessage';
+import {SHOW_TOAST} from '../store/types/types';
 
 const Stack = createNativeStackNavigator();
 
 const SwitchComponent = () => {
   const {count, chatroomCount} = useAppSelector(state => state.loader);
+  const {isToast, toastMessage} = useAppSelector(state => state.homefeed);
+  const dispatch = useAppDispatch();
   return (
     <View style={{flex: 1}}>
       <NavigationContainer>
@@ -28,6 +32,13 @@ const SwitchComponent = () => {
           <Stack.Screen name="ImageScreen" component={ImageScreen} />
         </Stack.Navigator>
       </NavigationContainer>
+      <ToastMessage
+        message={toastMessage}
+        isToast={isToast}
+        onDismiss={() => {
+          dispatch({type: SHOW_TOAST, body: {isToast: false, msg: ''}});
+        }}
+      />
       {count > 0 && <LoaderComponent />}
       {chatroomCount > 0 && <LoaderChatroomComponent />}
     </View>
