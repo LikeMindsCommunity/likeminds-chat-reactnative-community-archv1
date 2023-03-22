@@ -222,6 +222,7 @@ const HomeFeedItem: React.FC<Props> = ({
       onPress={() => {
         navigation.navigate('ChatRoom', {
           chatroomID: chatroomID,
+          isInvited: !!inviteReceiver ? true : false,
         });
       }}
       style={styles.itemContainer}>
@@ -265,12 +266,12 @@ const HomeFeedItem: React.FC<Props> = ({
               </Text>
             )}
           </Text>
-        ) : (
+        ) : !!inviteReceiver ? (
           <Text
             style={
               styles.lastMessage
             }>{`${`Member`} invited you to join `}</Text>
-        )}
+        ) : null}
       </View>
       {!!!lastConversation && !!inviteReceiver ? (
         <View style={{display: 'flex', flexDirection: 'row', gap: 10}}>

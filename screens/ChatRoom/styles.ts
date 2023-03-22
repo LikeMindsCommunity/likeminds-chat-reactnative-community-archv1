@@ -143,6 +143,11 @@ export const styles = StyleSheet.create({
   inviteText: {
     fontSize: STYLES.$FONT_SIZES.LARGE,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    color: STYLES.$COLORS.MSG,
+  },
+  inviteBtnText: {
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
   },
 });
