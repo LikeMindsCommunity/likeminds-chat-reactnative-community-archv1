@@ -120,8 +120,8 @@ const HomeFeed = ({navigation}: Props) => {
         getInvites({channel_type: 1, page: 1, page_size: 10}, true) as any,
       );
 
-      if (!!invitesRes) {
-        if (invitesRes?.length < 10) {
+      if (!!invitesRes?.user_invites) {
+        if (invitesRes?.user_invites?.length < 10) {
           let payload = {
             page: 1,
           };
@@ -185,7 +185,7 @@ const HomeFeed = ({navigation}: Props) => {
           return invitePage + 1;
         });
         setIsLoading(false);
-      } else {
+      } else if(myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
         const newPage = page + 1;
         dispatch({type: SET_PAGE, body: newPage});
         loadData(newPage);
