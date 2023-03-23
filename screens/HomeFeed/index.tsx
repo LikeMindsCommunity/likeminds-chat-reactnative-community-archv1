@@ -19,9 +19,11 @@ import {onValue, ref} from '@firebase/database';
 import {AppDispatch, useAppDispatch, useAppSelector} from '../../store';
 import {
   getHomeFeedData,
+  getInvites,
   initAPI,
   profileData,
   updateHomeFeedData,
+  updateInvites,
 } from '../../store/actions/homefeed';
 import styles from './styles';
 import {SET_PAGE} from '../../store/types/types';
@@ -34,12 +36,13 @@ interface Props {
 const HomeFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [communityId, setCommunityId] = useState('');
+  const [invitePage, setInvitePage] = useState(1);
   const dispatch = useAppDispatch();
-  const {myChatrooms, unseenCount, totalCount, page} = useAppSelector(
-    state => state.homefeed,
-  );
+  const {myChatrooms, unseenCount, totalCount, page, invitedChatrooms} =
+    useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient.fbInstance();
+  const chatrooms = [...invitedChatrooms, ...myChatrooms];
   const setOptions = () => {
     navigation.setOptions({
       title: '',
@@ -89,11 +92,21 @@ const HomeFeed = ({navigation}: Props) => {
 
   async function fetchData() {
     let payload = {
-      user_unique_id: '',
-      user_name: '',
+      // user_unique_id: '',
+      // user_name: '',
+      // is_guest: false,
+      // user_unique_id: '53208f29-5d15-473e-ab70-5fd77605be0f',
+      // user_name: 'Ankit Garg SDK',
+      user_unique_id: '0992885d-a170-494b-80c5-ecaef0cb2a24',
+      user_name: 'Ankit',
       is_guest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
+    // let res1 = await myClient.inviteAction({
+    //   channel_id: `27908`,
+    //   invite_status: 2,
+    // });
+    // console.log('res11 =', res1,res);
 
     if (!!res) {
       await dispatch(
@@ -103,10 +116,28 @@ const HomeFeed = ({navigation}: Props) => {
         }) as any,
       );
       setCommunityId(res.community.id);
-      let payload = {
-        page: 1,
-      };
-      await dispatch(getHomeFeedData(payload) as any);
+      const invitesRes = await dispatch(
+        getInvites({channel_type: 1, page: 1, page_size: 10}, true) as any,
+      );
+
+      if (!!invitesRes?.user_invites) {
+        if (invitesRes?.user_invites?.length < 10) {
+          let payload = {
+            page: 1,
+          };
+          await dispatch(getHomeFeedData(payload) as any);
+        } else {
+          await dispatch(
+            updateInvites(
+              {channel_type: 1, page: 2, page_size: 10},
+              true,
+            ) as any,
+          );
+          setInvitePage(invitePage => {
+            return invitePage + 1;
+          });
+        }
+      }
     }
 
     return res;
@@ -140,13 +171,30 @@ const HomeFeed = ({navigation}: Props) => {
     }, 1500);
   };
 
-  const handleLoadMore = () => {
+  const handleLoadMore = async () => {
     if (!isLoading) {
-      if (myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
+      if (myChatrooms?.length === 0 && invitedChatrooms === 10 * invitePage) {
+        setIsLoading(true);
+        await dispatch(
+          updateInvites(
+            {channel_type: 1, page: invitePage + 1, page_size: 10},
+            true,
+          ) as any,
+        );
+        setInvitePage(invitePage => {
+          return invitePage + 1;
+        });
+        setIsLoading(false);
+      } else if(myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
         const newPage = page + 1;
         dispatch({type: SET_PAGE, body: newPage});
         loadData(newPage);
       }
+      // if (myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
+      //   const newPage = page + 1;
+      //   dispatch({type: SET_PAGE, body: newPage});
+      //   loadData(newPage);
+      // }
     }
   };
 
@@ -166,11 +214,12 @@ const HomeFeed = ({navigation}: Props) => {
       }
     });
   }, []);
+
   return (
     <View style={styles.page}>
-      {myChatrooms?.length > 0 && (
+      {chatrooms?.length > 0 && (
         <FlatList
-          data={myChatrooms}
+          data={chatrooms}
           ListHeaderComponent={() => (
             <HomeFeedExplore
               newCount={unseenCount}
@@ -192,6 +241,7 @@ const HomeFeed = ({navigation}: Props) => {
               chatroomID: item?.chatroom?.id!,
               isSecret: item?.chatroom?.is_secret,
               deletedBy: item?.last_conversation?.deleted_by,
+              inviteReceiver: item?.invite_receiver,
             };
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}

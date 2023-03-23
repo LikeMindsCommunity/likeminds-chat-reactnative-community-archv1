@@ -1,18 +1,30 @@
 import {CALL_API} from '../apiMiddleware';
 import {Alert} from 'react-native';
 import {
+  ACCEPT_INVITE,
+  ACCEPT_INVITE_FAILED,
+  ACCEPT_INVITE_SUCCESS,
   GET_HOMEFEED_CHAT,
   GET_HOMEFEED_CHAT_FAILED,
   GET_HOMEFEED_CHAT_SUCCESS,
+  GET_INVITES,
+  GET_INVITES_FAILED,
+  GET_INVITES_SUCCESS,
   INIT_API,
   INIT_API_FAILED,
   INIT_API_SUCCESS,
   PROFILE_DATA,
   PROFILE_DATA_FAILED,
   PROFILE_DATA_SUCCESS,
+  REJECT_INVITE,
+  REJECT_INVITE_FAILED,
+  REJECT_INVITE_SUCCESS,
   UPDATE_HOMEFEED_CHAT,
   UPDATE_HOMEFEED_CHAT_FAILED,
   UPDATE_HOMEFEED_CHAT_SUCCESS,
+  UPDATE_INVITES,
+  UPDATE_INVITES_FAILED,
+  UPDATE_INVITES_SUCCESS,
 } from '../types/types';
 import {myClient} from '../..';
 import { Dispatch } from '@reduxjs/toolkit';
@@ -56,6 +68,86 @@ export const profileData = (payload: any) => (async (dispatch: Dispatch) => {
     Alert.alert(`${error}`);
   }
 });
+
+export const getInvites = (payload: any, showLoader?:boolean) => (async (dispatch: Dispatch) => {
+  try {
+    return await dispatch({
+      type: GET_INVITES_SUCCESS,
+      [CALL_API]: {
+        func: myClient.getInvites(payload),
+        body: payload,
+        types: [
+          GET_INVITES,
+          GET_INVITES_SUCCESS,
+          GET_INVITES_FAILED,
+        ],
+        showLoader: showLoader,
+      },
+    });
+  } catch (error) {
+    Alert.alert(`${error}`);
+  }
+});
+
+export const updateInvites = (payload: any, showLoader?:boolean) => (async (dispatch: Dispatch) => {
+  try {
+    return await dispatch({
+      type: UPDATE_INVITES_SUCCESS,
+      [CALL_API]: {
+        func: myClient.getInvites(payload),
+        body: payload,
+        types: [
+          UPDATE_INVITES,
+          UPDATE_INVITES_SUCCESS,
+          UPDATE_INVITES_FAILED,
+        ],
+        showLoader: showLoader,
+      },
+    });
+  } catch (error) {
+    Alert.alert(`${error}`);
+  }
+});
+
+// export const acceptInvite = (payload: any, showLoader?:boolean) => (async (dispatch: Dispatch) => {
+//   try {
+//     return await dispatch({
+//       type: ACCEPT_INVITE_SUCCESS,
+//       [CALL_API]: {
+//         func: myClient.inviteAction(payload),
+//         body: payload,
+//         types: [
+//           ACCEPT_INVITE,
+//           ACCEPT_INVITE_SUCCESS,
+//           ACCEPT_INVITE_FAILED,
+//         ],
+//         showLoader: showLoader,
+//       },
+//     });
+//   } catch (error) {
+//     Alert.alert(`${error}`);
+//   }
+// });
+
+// export const rejectInvite = (payload: any, showLoader?:boolean) => (async (dispatch: Dispatch) => {
+//   try {
+//     return await dispatch({
+//       type: REJECT_INVITE_SUCCESS,
+//       [CALL_API]: {
+//         func: myClient.inviteAction(payload),
+//         body: payload,
+//         types: [
+//           REJECT_INVITE,
+//           REJECT_INVITE_SUCCESS,
+//           REJECT_INVITE_FAILED,
+//         ],
+//         showLoader: showLoader,
+//       },
+//     });
+//   } catch (error) {
+//     Alert.alert(`${error}`);
+//   }
+// });
 
 export const getHomeFeedData = (payload: any, showLoader?:boolean) => (async (dispatch: Dispatch) => {
   try {

@@ -1,6 +1,23 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import {myClient} from '../..';
 import {decode, getFullDate} from '../../commonFuctions';
+import {useAppDispatch} from '../../store';
+import {getHomeFeedData} from '../../store/actions/homefeed';
+import {
+  ACCEPT_INVITE,
+  ACCEPT_INVITE_SUCCESS,
+  REJECT_INVITE_SUCCESS,
+  SET_PAGE,
+  SHOW_TOAST,
+} from '../../store/types/types';
 import {styles} from './styles';
 
 interface Props {
@@ -16,6 +33,7 @@ interface Props {
   lastConvoMember: string;
   isSecret: boolean;
   deletedBy?: number;
+  inviteReceiver: any;
 }
 
 const HomeFeedItem: React.FC<Props> = ({
@@ -31,8 +49,88 @@ const HomeFeedItem: React.FC<Props> = ({
   lastConvoMember,
   isSecret,
   deletedBy,
+  inviteReceiver,
 }) => {
   // let dateOrTime = getFullDate(time);
+  const dispatch = useAppDispatch();
+
+  const showJoinAlert = () =>
+    Alert.alert(
+      'Join this chatroom?',
+      'You are about to join this secret chatroom.',
+      [
+        {
+          text: 'Cancel',
+          // onPress: () => Alert.alert('Cancel Pressed'),
+          style: 'default',
+        },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            let res = await myClient.inviteAction({
+              channel_id: `${chatroomID}`,
+              invite_status: 1,
+            });
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: 'Invitation accepted'},
+            });
+            dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
+            dispatch({type: SET_PAGE, body: 1});
+            await dispatch(getHomeFeedData({page: 1}, false) as any);
+          },
+          style: 'default',
+        },
+      ],
+      {
+        cancelable: false,
+        // cancelable: true,
+        // onDismiss: () =>
+        //   Alert.alert(
+        //     'This alert was dismissed by tapping outside of the alert dialog.',
+        //   ),
+      },
+    );
+
+  const showRejectAlert = () =>
+    Alert.alert(
+      'Reject Invitation?',
+      'Are you sure you want to reject the invitation to join this chatroom?',
+      [
+        {
+          text: 'Cancel',
+          // onPress: () => Alert.alert('Cancel Pressed'),
+          style: 'default',
+        },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            let res = await myClient.inviteAction({
+              channel_id: `${chatroomID}`,
+              invite_status: 2,
+            });
+            // setTimeout(() => {
+            //   console.log('res reject =', res);
+            // }, 2000);
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: 'Invitation rejected'},
+            });
+
+            dispatch({type: REJECT_INVITE_SUCCESS, body: chatroomID});
+          },
+          style: 'default',
+        },
+      ],
+      {
+        cancelable: false,
+        // cancelable: true,
+        // onDismiss: () =>
+        //   Alert.alert(
+        //     'This alert was dismissed by tapping outside of the alert dialog.',
+        //   ),
+      },
+    );
 
   const getFeedIcon = (val: any) => {
     if (val[0].type === 'pdf') {
@@ -118,11 +216,13 @@ const HomeFeedItem: React.FC<Props> = ({
       return;
     }
   };
+
   return (
     <TouchableOpacity
       onPress={() => {
         navigation.navigate('ChatRoom', {
           chatroomID: chatroomID,
+          isInvited: !!inviteReceiver ? true : false,
         });
       }}
       style={styles.itemContainer}>
@@ -146,9 +246,9 @@ const HomeFeedItem: React.FC<Props> = ({
               />
             ) : null}
           </Text>
-          <Text style={styles.time}>{time}</Text>
+          {!!time ? <Text style={styles.time}>{time}</Text> : null}
         </View>
-        {!!lastConversation ? (
+        {!!lastConversation && !!!inviteReceiver ? (
           <Text style={styles.lastMessage} numberOfLines={1}>
             {!!deletedBy ? (
               <Text
@@ -166,14 +266,45 @@ const HomeFeedItem: React.FC<Props> = ({
               </Text>
             )}
           </Text>
+        ) : !!inviteReceiver ? (
+          <Text
+            style={
+              styles.lastMessage
+            }>{`${`Member`} invited you to join `}</Text>
         ) : null}
       </View>
-      {/* {pinned && <View style={styles.pinned} />} */}
-      {unreadCount > 0 && (
-        <View style={styles.unreadCountContainer}>
-          <Text style={styles.unreadCount}>{unreadCount}</Text>
+      {!!!lastConversation && !!inviteReceiver ? (
+        <View style={{display: 'flex', flexDirection: 'row', gap: 10}}>
+          <TouchableOpacity
+            onPress={() => {
+              showRejectAlert();
+            }}
+            style={styles.inviteIcon}>
+            <Image
+              style={styles.lockIcon}
+              source={require('../../assets/images/invite_cross3x.png')}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              showJoinAlert();
+            }}
+            style={[styles.inviteIcon, {borderColor: '#5046E5'}]}>
+            <Image
+              style={styles.lockIcon}
+              source={require('../../assets/images/invite_tick3x.png')}
+            />
+          </TouchableOpacity>
         </View>
-      )}
+      ) : null}
+      {/* {pinned && <View style={styles.pinned} />} */}
+      {!!unreadCount
+        ? unreadCount > 0 && (
+            <View style={styles.unreadCountContainer}>
+              <Text style={styles.unreadCount}>{unreadCount}</Text>
+            </View>
+          )
+        : null}
     </TouchableOpacity>
   );
 };

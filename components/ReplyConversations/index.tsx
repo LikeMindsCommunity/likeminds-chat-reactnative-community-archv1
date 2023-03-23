@@ -64,7 +64,7 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
           )}
         </Text>
         {!!item?.has_files && item?.attachments.length > 1 ? (
-          <View>
+          <View >
             <Text style={styles.messageText}>{` (+${
               item?.attachments.length - 1
             } more)`}</Text>
