@@ -27,6 +27,8 @@ import {
 } from '../../store/actions/homefeed';
 import styles from './styles';
 import {SET_PAGE} from '../../store/types/types';
+import {getUniqueId} from 'react-native-device-info';
+import messaging from '@react-native-firebase/messaging';
 // import {onValue, ref} from 'firebase/database';
 
 interface Props {
@@ -37,6 +39,7 @@ const HomeFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [communityId, setCommunityId] = useState('');
   const [invitePage, setInvitePage] = useState(1);
+  const [FCMToken, setFCMToken] = useState('');
   const dispatch = useAppDispatch();
   const {myChatrooms, unseenCount, totalCount, page, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
@@ -90,6 +93,33 @@ const HomeFeed = ({navigation}: Props) => {
     });
   };
 
+  const pushAPI = async (token: any) => {
+    const deviceID = await getUniqueId();
+    console.log('getDeviceId()', await getUniqueId());
+    try {
+      const response = await fetch(
+        'https://betaauth.likeminds.community/user/device/push',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'x-device-id': `${deviceID}`,
+            'x-platform-code': 'rn',
+            Authorization: `${token}`,
+          },
+          body: JSON.stringify({
+            token: FCMToken,
+          }),
+        },
+      );
+      let res = await response.json();
+      console.log('res pushAPI ==', res);
+    } catch (error) {
+      Alert.alert(`${error}`);
+    }
+  };
+
   async function fetchData() {
     let payload = {
       // user_unique_id: '',
@@ -106,7 +136,7 @@ const HomeFeed = ({navigation}: Props) => {
     //   channel_id: `27908`,
     //   invite_status: 2,
     // });
-    // console.log('res11 =', res1,res);
+    // console.log('res11 =',res);
 
     if (!!res) {
       await dispatch(
@@ -138,6 +168,7 @@ const HomeFeed = ({navigation}: Props) => {
           });
         }
       }
+      pushAPI(res?.access_token);
     }
 
     return res;
@@ -146,6 +177,17 @@ const HomeFeed = ({navigation}: Props) => {
   useLayoutEffect(() => {
     fetchData();
   }, [navigation]);
+
+  useEffect(() => {
+    const token = async () => {
+      let fcmToken = await messaging().getToken();
+      if (!!fcmToken) {
+        console.log('fcmToken ==', fcmToken);
+        setFCMToken(fcmToken);
+      }
+    };
+    token();
+  }, []);
 
   useEffect(() => {
     if (!!user) {
@@ -185,7 +227,7 @@ const HomeFeed = ({navigation}: Props) => {
           return invitePage + 1;
         });
         setIsLoading(false);
-      } else if(myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
+      } else if (myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
         const newPage = page + 1;
         dispatch({type: SET_PAGE, body: newPage});
         loadData(newPage);

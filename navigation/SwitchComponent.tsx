@@ -1,5 +1,5 @@
 import {View, Text, Alert, PermissionsAndroid, Platform} from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeFeed from '../screens/HomeFeed';
@@ -22,8 +22,10 @@ const SwitchComponent = () => {
   const {count, chatroomCount} = useAppSelector(state => state.loader);
   const {isToast, toastMessage} = useAppSelector(state => state.homefeed);
   const dispatch = useAppDispatch();
-  if(Platform.OS === 'android'){
-    PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+  if (Platform.OS === 'android') {
+    PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
   }
 
   useEffect(() => {
@@ -38,19 +40,13 @@ const SwitchComponent = () => {
       }
     }
     requestUserPermission();
-    const token = async () => {
-      let fcmToken = await messaging().getToken();
-      if (!!fcmToken) {
-        console.log('fcmToken ==', fcmToken);
-      }
-    };
-    token();
   }, []);
 
   useEffect(() => {
     // messaging().setBackgroundMessageHandler(async remoteMessage => {
     //   console.log('Message handled in the background!', remoteMessage);
     // });
+    // pushAPI();
 
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
