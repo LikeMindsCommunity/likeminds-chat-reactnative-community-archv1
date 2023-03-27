@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Pressable,
 } from 'react-native';
 import {myClient} from '../..';
 import {decode, getFullDate} from '../../commonFuctions';
@@ -218,14 +219,17 @@ const HomeFeedItem: React.FC<Props> = ({
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => {
         navigation.navigate('ChatRoom', {
           chatroomID: chatroomID,
           isInvited: !!inviteReceiver ? true : false,
         });
       }}
-      style={styles.itemContainer}>
+      style={({pressed}) => [
+        {opacity: pressed ? 0.5 : 1.0},
+        styles.itemContainer,
+      ]}>
       <Image
         source={
           !!avatar
@@ -305,7 +309,7 @@ const HomeFeedItem: React.FC<Props> = ({
             </View>
           )
         : null}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
