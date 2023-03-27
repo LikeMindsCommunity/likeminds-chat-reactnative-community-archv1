@@ -511,10 +511,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           await dispatch(getExploreFeedData(payload2, true) as any);
           dispatch({type: SET_PAGE, body: 1});
           await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({
+            type: CLEAR_CHATROOM_CONVERSATION,
+            body: {conversations: []},
+          });
+          dispatch({
+            type: CLEAR_CHATROOM_DETAILS,
+            body: {chatroomDetails: {}},
+          });
           navigation.goBack();
         } else {
           dispatch({type: SET_PAGE, body: 1});
           await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({
+            type: CLEAR_CHATROOM_CONVERSATION,
+            body: {conversations: []},
+          });
+          dispatch({
+            type: CLEAR_CHATROOM_DETAILS,
+            body: {chatroomDetails: {}},
+          });
           navigation.goBack();
         }
       })
@@ -543,10 +559,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           await dispatch(getExploreFeedData(payload2, true) as any);
           dispatch({type: SET_PAGE, body: 1});
           await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({
+            type: CLEAR_CHATROOM_CONVERSATION,
+            body: {conversations: []},
+          });
+          dispatch({
+            type: CLEAR_CHATROOM_DETAILS,
+            body: {chatroomDetails: {}},
+          });
           navigation.goBack();
         } else {
           dispatch({type: SET_PAGE, body: 1});
           await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({
+            type: CLEAR_CHATROOM_CONVERSATION,
+            body: {conversations: []},
+          });
+          dispatch({
+            type: CLEAR_CHATROOM_DETAILS,
+            body: {chatroomDetails: {}},
+          });
           navigation.goBack();
         }
       })
@@ -732,6 +764,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               body: {isToast: true, msg: 'Invitation rejected'},
             });
 
+            dispatch({
+              type: CLEAR_CHATROOM_CONVERSATION,
+              body: {conversations: []},
+            });
+            dispatch({
+              type: CLEAR_CHATROOM_DETAILS,
+              body: {chatroomDetails: {}},
+            });
             dispatch({type: REJECT_INVITE_SUCCESS, body: chatroomID});
             navigation.goBack();
           },
