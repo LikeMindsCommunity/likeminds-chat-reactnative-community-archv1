@@ -1,23 +1,11 @@
-import {Alert, Linking, Text} from 'react-native';
+import React, {Alert, Linking, Text} from 'react-native';
 import 'url-search-params-polyfill';
 import STYLES from '../constants/Styles';
 import {useAppSelector} from '../store';
 
-// const REGEX_USER_SPLITTING = /(<<[\w\s🤖]+\|route:\/\/member\/\d+>>)/g;
-// const REGEX_USER_TAGGING = /<<([\w\s🤖]+)\|route:\/\/member\/(\d+)>>/;
-
-// const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
-// const REGEX_USER_TAGGING =
-//   /<<(?<name>[\w\s🤖@]+)\|route:\/\/(?:(?:member|member_profile)\/)?(?<route>\d+|everyone|participants)>?>?/;
-
 const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
 const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
-
-// const REGEX_USER_SPLITTING =
-//   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+)(?<query>\?.+)?>?>/;
-// const REGEX_USER_TAGGING =
-//   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+)(?<query>\?.+)?>?>/;
 
 // This function helps us to decode time(created_epoch: 1675421848540) into DATE if more than a day else TIME if less than a day.
 export function getFullDate(time: any) {
@@ -40,7 +28,7 @@ export function getFullDate(time: any) {
   }
 }
 
-function detectLinks(message: string,isLongPress?: boolean) {
+function detectLinks(message: string, isLongPress?: boolean) {
   const regex = /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?)/i;
   let parts = message.split(regex);
   let i = 0;
@@ -101,7 +89,11 @@ export function getNameInitials(name: string) {
 
 // This decode function helps us to decode tagged messages like the above test string in to readable format.
 // This function has two responses: one for Homefeed screen and other is for chat screen(Pressable ones are for chat screen).
-export const decode = (text: string | undefined, enableClick: boolean, isLongPress?: boolean ) => {
+export const decode = (
+  text: string | undefined,
+  enableClick: boolean,
+  isLongPress?: boolean,
+) => {
   if (!text) {
     return;
   }
@@ -155,7 +147,7 @@ export const decode = (text: string | undefined, enableClick: boolean, isLongPre
                 {val.key}
               </Text>
             ) : (
-              detectLinks(val.key,isLongPress)
+              detectLinks(val.key, isLongPress)
             )}
           </Text>
         ))}

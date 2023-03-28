@@ -29,6 +29,13 @@ import styles from './styles';
 import {SET_PAGE} from '../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import messaging from '@react-native-firebase/messaging';
+import notifee, {
+  AndroidCategory,
+  AndroidImportance,
+  EventType,
+} from '@notifee/react-native';
+import {useNavigation} from '@react-navigation/native';
+import getNotification from '../../notifications';
 // import {onValue, ref} from 'firebase/database';
 
 interface Props {
@@ -40,6 +47,8 @@ const HomeFeed = ({navigation}: Props) => {
   const [communityId, setCommunityId] = useState('');
   const [invitePage, setInvitePage] = useState(1);
   const [FCMToken, setFCMToken] = useState('');
+  const [accessToken, setAccessToken] = useState('');
+  // const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const {myChatrooms, unseenCount, totalCount, page, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
@@ -93,9 +102,10 @@ const HomeFeed = ({navigation}: Props) => {
     });
   };
 
-  const pushAPI = async (token: any) => {
+  const pushAPI = async (fcmToken: any) => {
     const deviceID = await getUniqueId();
-    console.log('getDeviceId()', await getUniqueId());
+    console.log('getDeviceId()', fcmToken);
+    console.log('getDeviceId( ===)', accessToken);
     try {
       const response = await fetch(
         'https://betaauth.likeminds.community/user/device/push',
@@ -106,10 +116,12 @@ const HomeFeed = ({navigation}: Props) => {
             'Content-Type': 'application/json',
             'x-device-id': `${deviceID}`,
             'x-platform-code': 'rn',
-            Authorization: `${token}`,
+            // Authorization: `${accessToken}`,
+            Authorization:
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjdiMmNlMDM0LTRmYzEtNDUyMi1iNDQ3LWEwNWI4OTU0OWI1ZSIsImFwaV9rZXkiOiI0NWM0NjlkYy0wNmUxLTRmMDUtOTE0ZS1kZDAyNDE5ZWI1M2YiLCJleHAiOjE2ODAwMDA5MTgsInVzZXJfdW5pcXVlX2lkIjoiMDk5Mjg4NWQtYTE3MC00OTRiLTgwYzUtZWNhZWYwY2IyYTI0In0.4fProsP_7__ijCpHJQnZQoP47MLvgYbHtFalrlCvkSs',
           },
           body: JSON.stringify({
-            token: FCMToken,
+            token: fcmToken,
           }),
         },
       );
@@ -136,7 +148,7 @@ const HomeFeed = ({navigation}: Props) => {
     //   channel_id: `27908`,
     //   invite_status: 2,
     // });
-    // console.log('res11 =',res);
+    console.log('res11 =', res);
 
     if (!!res) {
       await dispatch(
@@ -168,7 +180,7 @@ const HomeFeed = ({navigation}: Props) => {
           });
         }
       }
-      pushAPI(res?.access_token);
+      setAccessToken(res?.access_token);
     }
 
     return res;
@@ -180,13 +192,41 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const token = async () => {
-      let fcmToken = await messaging().getToken();
-      if (!!fcmToken) {
-        console.log('fcmToken ==', fcmToken);
-        setFCMToken(fcmToken);
+      async function requestUserPermission() {
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+        if (enabled) {
+          console.log('Authorization status:', authStatus);
+          let fcmToken = await messaging().getToken();
+          if (!!fcmToken) {
+            console.log('fcmToken ==', fcmToken);
+            pushAPI(fcmToken);
+            setFCMToken(fcmToken);
+          }
+        }
       }
+      requestUserPermission();
     };
     token();
+  }, []);
+
+  useEffect(() => {
+    // messaging().setBackgroundMessageHandler(async remoteMessage => {
+    //   console.log('Message handled in the background!', remoteMessage);
+    //   await getNotification(remoteMessage);
+    // });
+    // notifee.onBackgroundEvent(async ({type, detail}) => {
+    //   const {notification, pressAction} = detail;
+    //   if (type === EventType.PRESS) {
+    //     console.log('User pressed an action with the id: ', pressAction?.id);
+    //     navigation.navigate('ChatRoom', {chatroomID: 69285});
+    //     // navigate here
+    //   }
+    //   await notifee.cancelNotification(notification?.id);
+    // });
   }, []);
 
   useEffect(() => {
