@@ -1,5 +1,4 @@
 import {Alert, Linking, Text} from 'react-native';
-import 'url-search-params-polyfill';
 import STYLES from '../constants/Styles';
 import {useAppSelector} from '../store';
 
@@ -40,7 +39,7 @@ export function getFullDate(time: any) {
   }
 }
 
-function detectLinks(message: string,isLongPress?: boolean) {
+function detectLinks(message: string, isLongPress?: boolean) {
   const regex = /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?)/i;
   let parts = message.split(regex);
   let i = 0;
@@ -101,7 +100,11 @@ export function getNameInitials(name: string) {
 
 // This decode function helps us to decode tagged messages like the above test string in to readable format.
 // This function has two responses: one for Homefeed screen and other is for chat screen(Pressable ones are for chat screen).
-export const decode = (text: string | undefined, enableClick: boolean, isLongPress?: boolean ) => {
+export const decode = (
+  text: string | undefined,
+  enableClick: boolean,
+  isLongPress?: boolean,
+) => {
   if (!text) {
     return;
   }
@@ -118,7 +121,6 @@ export const decode = (text: string | undefined, enableClick: boolean, isLongPre
         let match = REGEX_USER_TAGGING.exec(matchResult);
         if (match !== null) {
           const {name, route} = match?.groups!;
-          const searchParams = new URLSearchParams(route);
           // for (var item of searchParams) {
           //   console.log('key: ' + item[0] + ', ' + 'value: ' + item[1]);
           // }
@@ -155,7 +157,7 @@ export const decode = (text: string | undefined, enableClick: boolean, isLongPre
                 {val.key}
               </Text>
             ) : (
-              detectLinks(val.key,isLongPress)
+              detectLinks(val.key, isLongPress)
             )}
           </Text>
         ))}

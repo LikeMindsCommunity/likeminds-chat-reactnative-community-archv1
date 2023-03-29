@@ -185,7 +185,7 @@ const HomeFeed = ({navigation}: Props) => {
           return invitePage + 1;
         });
         setIsLoading(false);
-      } else if(myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
+      } else if (myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
         const newPage = page + 1;
         dispatch({type: SET_PAGE, body: newPage});
         loadData(newPage);
@@ -217,40 +217,38 @@ const HomeFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      {chatrooms?.length > 0 && (
-        <FlatList
-          data={chatrooms}
-          ListHeaderComponent={() => (
-            <HomeFeedExplore
-              newCount={unseenCount}
-              totalCount={totalCount}
-              navigation={navigation}
-            />
-          )}
-          renderItem={({item}: any) => {
-            const homeFeedProps = {
-              title: item?.chatroom?.header!,
-              avatar: item?.chatroom?.chatroom_image_url!,
-              lastMessage: item?.last_conversation?.answer!,
-              lastMessageUser: item?.last_conversation?.member?.name!,
-              time: item?.last_conversation_time!,
-              unreadCount: item?.unseen_conversation_count!,
-              pinned: false,
-              lastConversation: item?.last_conversation!,
-              lastConvoMember: item?.last_conversation?.member?.name!,
-              chatroomID: item?.chatroom?.id!,
-              isSecret: item?.chatroom?.is_secret,
-              deletedBy: item?.last_conversation?.deleted_by,
-              inviteReceiver: item?.invite_receiver,
-            };
-            return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
-          }}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.1}
-          ListFooterComponent={renderFooter}
-          keyExtractor={(item: any) => item?.chatroom?.id.toString()}
-        />
-      )}
+      <FlatList
+        data={chatrooms}
+        ListHeaderComponent={() => (
+          <HomeFeedExplore
+            newCount={unseenCount}
+            totalCount={totalCount}
+            navigation={navigation}
+          />
+        )}
+        renderItem={({item}: any) => {
+          const homeFeedProps = {
+            title: item?.chatroom?.header!,
+            avatar: item?.chatroom?.chatroom_image_url!,
+            lastMessage: item?.last_conversation?.answer!,
+            lastMessageUser: item?.last_conversation?.member?.name!,
+            time: item?.last_conversation_time!,
+            unreadCount: item?.unseen_conversation_count!,
+            pinned: false,
+            lastConversation: item?.last_conversation!,
+            lastConvoMember: item?.last_conversation?.member?.name!,
+            chatroomID: item?.chatroom?.id!,
+            isSecret: item?.chatroom?.is_secret,
+            deletedBy: item?.last_conversation?.deleted_by,
+            inviteReceiver: item?.invite_receiver,
+          };
+          return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
+        }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.1}
+        ListFooterComponent={renderFooter}
+        keyExtractor={(item: any) => item?.chatroom?.id.toString()}
+      />
     </View>
   );
 };
