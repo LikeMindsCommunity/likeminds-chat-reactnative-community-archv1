@@ -104,8 +104,7 @@ const HomeFeed = ({navigation}: Props) => {
 
   const pushAPI = async (fcmToken: any) => {
     const deviceID = await getUniqueId();
-    console.log('getDeviceId()', fcmToken);
-    console.log('getDeviceId( ===)', accessToken);
+    // console.log('getDeviceId()', deviceID);
     try {
       const response = await fetch(
         'https://betaauth.likeminds.community/user/device/push',
@@ -118,7 +117,7 @@ const HomeFeed = ({navigation}: Props) => {
             'x-platform-code': 'rn',
             // Authorization: `${accessToken}`,
             Authorization:
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjdiMmNlMDM0LTRmYzEtNDUyMi1iNDQ3LWEwNWI4OTU0OWI1ZSIsImFwaV9rZXkiOiI0NWM0NjlkYy0wNmUxLTRmMDUtOTE0ZS1kZDAyNDE5ZWI1M2YiLCJleHAiOjE2ODAwMDA5MTgsInVzZXJfdW5pcXVlX2lkIjoiMDk5Mjg4NWQtYTE3MC00OTRiLTgwYzUtZWNhZWYwY2IyYTI0In0.4fProsP_7__ijCpHJQnZQoP47MLvgYbHtFalrlCvkSs',
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6ImUyNTc1ZDA3LTA4NzItNDIzOS05NjU2LWY4ZGEyMDZhYTNhZiIsImFwaV9rZXkiOiI0NWM0NjlkYy0wNmUxLTRmMDUtOTE0ZS1kZDAyNDE5ZWI1M2YiLCJleHAiOjE2ODAwNzAwNzgsInVzZXJfdW5pcXVlX2lkIjoiNjBkMTk5MjctOGI2Ni00Zjc4LWFmOTEtYzYwMDU5NTA4NDdjIn0.NvaRjgIe6C_WQjo5H7z79_5uYXOFhGIHW0PU3QWB534',
           },
           body: JSON.stringify({
             token: fcmToken,
@@ -126,7 +125,7 @@ const HomeFeed = ({navigation}: Props) => {
         },
       );
       let res = await response.json();
-      console.log('res pushAPI ==', res);
+      // console.log('res pushAPI ==', res);
     } catch (error) {
       Alert.alert(`${error}`);
     }
@@ -139,8 +138,11 @@ const HomeFeed = ({navigation}: Props) => {
       // is_guest: false,
       // user_unique_id: '53208f29-5d15-473e-ab70-5fd77605be0f',
       // user_name: 'Ankit Garg SDK',
-      user_unique_id: '0992885d-a170-494b-80c5-ecaef0cb2a24',
-      user_name: 'Ankit',
+      // user_unique_id: '0992885d-a170-494b-80c5-ecaef0cb2a24',
+      // user_name: 'Ankit',
+      user_unique_id: '60d19927-8b66-4f78-af91-c6005950847c',
+      user_name: 'Earfuls12',
+
       is_guest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
@@ -148,7 +150,7 @@ const HomeFeed = ({navigation}: Props) => {
     //   channel_id: `27908`,
     //   invite_status: 2,
     // });
-    console.log('res11 =', res);
+    // console.log('res11 =', res);
 
     if (!!res) {
       await dispatch(
@@ -199,10 +201,10 @@ const HomeFeed = ({navigation}: Props) => {
           authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
         if (enabled) {
-          console.log('Authorization status:', authStatus);
+          // console.log('Authorization status:', authStatus);
           let fcmToken = await messaging().getToken();
           if (!!fcmToken) {
-            console.log('fcmToken ==', fcmToken);
+            // console.log('fcmToken ==', fcmToken);
             pushAPI(fcmToken);
             setFCMToken(fcmToken);
           }
@@ -211,22 +213,6 @@ const HomeFeed = ({navigation}: Props) => {
       requestUserPermission();
     };
     token();
-  }, []);
-
-  useEffect(() => {
-    // messaging().setBackgroundMessageHandler(async remoteMessage => {
-    //   console.log('Message handled in the background!', remoteMessage);
-    //   await getNotification(remoteMessage);
-    // });
-    // notifee.onBackgroundEvent(async ({type, detail}) => {
-    //   const {notification, pressAction} = detail;
-    //   if (type === EventType.PRESS) {
-    //     console.log('User pressed an action with the id: ', pressAction?.id);
-    //     navigation.navigate('ChatRoom', {chatroomID: 69285});
-    //     // navigate here
-    //   }
-    //   await notifee.cancelNotification(notification?.id);
-    // });
   }, []);
 
   useEffect(() => {
@@ -299,40 +285,38 @@ const HomeFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      {chatrooms?.length > 0 && (
-        <FlatList
-          data={chatrooms}
-          ListHeaderComponent={() => (
-            <HomeFeedExplore
-              newCount={unseenCount}
-              totalCount={totalCount}
-              navigation={navigation}
-            />
-          )}
-          renderItem={({item}: any) => {
-            const homeFeedProps = {
-              title: item?.chatroom?.header!,
-              avatar: item?.chatroom?.chatroom_image_url!,
-              lastMessage: item?.last_conversation?.answer!,
-              lastMessageUser: item?.last_conversation?.member?.name!,
-              time: item?.last_conversation_time!,
-              unreadCount: item?.unseen_conversation_count!,
-              pinned: false,
-              lastConversation: item?.last_conversation!,
-              lastConvoMember: item?.last_conversation?.member?.name!,
-              chatroomID: item?.chatroom?.id!,
-              isSecret: item?.chatroom?.is_secret,
-              deletedBy: item?.last_conversation?.deleted_by,
-              inviteReceiver: item?.invite_receiver,
-            };
-            return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
-          }}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.1}
-          ListFooterComponent={renderFooter}
-          keyExtractor={(item: any) => item?.chatroom?.id.toString()}
-        />
-      )}
+      <FlatList
+        data={chatrooms}
+        ListHeaderComponent={() => (
+          <HomeFeedExplore
+            newCount={unseenCount}
+            totalCount={totalCount}
+            navigation={navigation}
+          />
+        )}
+        renderItem={({item}: any) => {
+          const homeFeedProps = {
+            title: item?.chatroom?.header!,
+            avatar: item?.chatroom?.chatroom_image_url!,
+            lastMessage: item?.last_conversation?.answer!,
+            lastMessageUser: item?.last_conversation?.member?.name!,
+            time: item?.last_conversation_time!,
+            unreadCount: item?.unseen_conversation_count!,
+            pinned: false,
+            lastConversation: item?.last_conversation!,
+            lastConvoMember: item?.last_conversation?.member?.name!,
+            chatroomID: item?.chatroom?.id!,
+            isSecret: item?.chatroom?.is_secret,
+            deletedBy: item?.last_conversation?.deleted_by,
+            inviteReceiver: item?.invite_receiver,
+          };
+          return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
+        }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.1}
+        ListFooterComponent={renderFooter}
+        keyExtractor={(item: any) => item?.chatroom?.id.toString()}
+      />
     </View>
   );
 };

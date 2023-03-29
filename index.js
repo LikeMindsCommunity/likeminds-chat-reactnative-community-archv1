@@ -14,23 +14,22 @@ import {getRoute} from './notifications/routes';
 
 notifee.onBackgroundEvent(async ({type, detail}) => {
   const {notification, pressAction} = detail;
-  console.log('User pressed an action with the id: ', pressAction?.id);
-  const {navigate} = navigationRef?.current;
-  console.log('navigation ', detail?.notification?.data?.route);
-  let route = getRoute(detail?.notification?.data?.route)
+  const navigation = navigationRef?.current;
+  let routes = getRoute(detail?.notification?.data?.route);
 
   if (type === EventType.PRESS) {
-    navigate('ChatRoom', {chatroomID: 69285});
-    // navigation.navigate('ChatRoom', {chatroomID: 69285});
-    // navigate here
+    if (!!navigation) {
+      navigation.navigate(routes.route, routes.params); //navigate('ChatRoom', {chatroomID: 69285});
+    } else {
+      // navigation?.reset([
+      //   {name: 'HomeFeed'},
+      //   {name: 'ChatRoom', params: {chatroomID: 69285}},
+      // ]);
+    }
   }
-  // await notifee.cancelNotification(notification.id);
-  // console.log('background-event');
-  return null;
 });
 
 messaging().setBackgroundMessageHandler(async remoteMessage => {
-  // console.log('Message handled in the background!', remoteMessage);
   let val = await getNotification(remoteMessage);
   return val;
 });

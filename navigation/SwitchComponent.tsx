@@ -3,7 +3,8 @@ import * as React from 'react';
 import {useEffect} from 'react';
 import {
   NavigationContainer,
-  createNavigationContainerRef
+  createNavigationContainerRef,
+  StackActions,
 } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeFeed from '../screens/HomeFeed';
@@ -17,13 +18,18 @@ import {
   LoaderComponent,
 } from '../components/LoaderComponent';
 import ToastMessage from '../components/ToastMessage';
-import {SHOW_TOAST} from '../store/types/types';
+import {
+  CLEAR_CHATROOM_CONVERSATION,
+  CLEAR_CHATROOM_DETAILS,
+  SHOW_TOAST,
+} from '../store/types/types';
 import messaging from '@react-native-firebase/messaging';
 import notifee, {
   AndroidCategory,
   AndroidImportance,
   EventType,
 } from '@notifee/react-native';
+import {getRoute} from '../notifications/routes';
 
 const Stack = createNativeStackNavigator();
 export const navigationRef = createNavigationContainerRef();
@@ -65,8 +71,10 @@ const SwitchComponent = () => {
 
     // Display a notification
     await notifee.displayNotification({
-      title: remoteMessage?.notification?.title,
-      body: remoteMessage?.notification?.body,
+      title: remoteMessage?.data?.title,
+      body: remoteMessage?.data?.sub_title,
+      data: remoteMessage?.data,
+      id: remoteMessage?.messageId,
       android: {
         channelId,
         // smallIcon: remoteMessage?.community_logo, // optional, defaults to 'ic_launcher'.
@@ -84,11 +92,53 @@ const SwitchComponent = () => {
   }
 
   useEffect(() => {
-
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      console.log('remoteMessage -->', remoteMessage);
-      // Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
-      onDisplayNotification(remoteMessage);
+      let val = await onDisplayNotification(remoteMessage);
+      return val;
+    });
+
+    notifee.onForegroundEvent(async ({type, detail}) => {
+      const {notification, pressAction} = detail;
+      const navigation = navigationRef?.current;
+      let currentRoute = navigation?.getCurrentRoute();
+      let routes = getRoute(detail?.notification?.data?.route);
+
+      if (type === EventType.PRESS) {
+        if (!!navigation) {
+          if ((currentRoute?.name as any) === routes?.route) {
+            if (
+              JSON.stringify(routes?.params) !==
+              JSON.stringify(currentRoute?.params)
+            ) {
+              dispatch({
+                type: CLEAR_CHATROOM_CONVERSATION,
+                body: {conversations: []},
+              });
+              dispatch({
+                type: CLEAR_CHATROOM_DETAILS,
+                body: {chatroomDetails: {}},
+              });
+              const popAction = StackActions.pop(1);
+              navigation.dispatch(popAction);
+              navigation.navigate(
+                routes?.route as never,
+                routes?.params as never,
+              );
+            }
+          } else {
+            navigation.navigate(
+              routes?.route as never,
+              routes?.params as never,
+            ); //navigate('ChatRoom', {chatroomID: 69285});
+          }
+        } else {
+          // navigation?.reset([
+          //   {name: 'HomeFeed'},
+          //   {name: 'ChatRoom', params: {chatroomID: 69285}},
+          // ]);
+        }
+      }
+      // await notifee.cancelNotification(notification?.id as string);
     });
 
     return unsubscribe;

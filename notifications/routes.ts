@@ -1,12 +1,24 @@
-const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
-const REGEX_USER_TAGGING =
-  /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
+import {ROUTE_CHATROOM} from './constants';
 
 export function getRoute(route: any) {
+  // const searchURL = new URL(route);
+  let regexToExtractHost = /route:\/\/(.*?)\?/;
+  let regexToExtractParams = /[?&]([^=#]+)=([^&#]*)/g,
+    params = {} as any,
+    match;
+  // console.log('searchURL =-', searchURL, searchURL.host, searchURL.query);
 
-  let regex = /route:\/\//g;
-  let parts = route?.split(regex);
-  const searchParams = new URLSearchParams(parts[1]);
-  console.log('searchParams ==', searchParams);
+  let navigationRoute = route?.match(regexToExtractHost);
+  // console.log('regexToExtractHost', val, route);
+  while ((match = regexToExtractParams.exec(route))) {
+    params[match[1]] = match[2];
+  }
+  switch (navigationRoute[1]) {
+    case ROUTE_CHATROOM:
+      let paramsKey = Object.keys(params);
+      return {route: 'ChatRoom', params: {chatroomID: params[paramsKey[0]]}};
 
+    default:
+      return {route: 'HomeFeed', params: {}};
+  }
 }

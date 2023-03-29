@@ -7,16 +7,16 @@ async function requestUserPermission() {
   const enabled =
     authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
     authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-  if (enabled) {
-    console.log('Firebase authorization:', authStatus);
-  }
+  // if (enabled) {
+  //   console.log('Firebase authorization:', authStatus);
+  // }
 }
 
 export const checkToken = async () => {
   const fcmToken = await messaging().getToken();
-  if (fcmToken) {
-    console.log(fcmToken);
-  }
+  // if (fcmToken) {
+  //   console.log(fcmToken);
+  // }
   return fcmToken;
   // await AsyncStorage.setItem("fcmToken", fcmToken);
 };
@@ -29,8 +29,8 @@ export default async function getNotification(remoteMessage: any) {
   });
 
   await notifee.displayNotification({
-    title: remoteMessage?.notification?.title,
-    body: remoteMessage?.notification?.body,
+    title: remoteMessage?.data?.title,
+    body: remoteMessage?.data?.sub_title,
     data: remoteMessage?.data,
     id: remoteMessage?.messageId,
     android: {

@@ -1,5 +1,4 @@
 import React, {Alert, Linking, Text} from 'react-native';
-import 'url-search-params-polyfill';
 import STYLES from '../constants/Styles';
 import {useAppSelector} from '../store';
 
@@ -100,7 +99,6 @@ export const decode = (
   let arr: any[] = [];
   let parts = text?.split(REGEX_USER_SPLITTING);
   // const {isLongPress} = useAppSelector(state => state.chatroom);
-  // console.log('parts', parts);
 
   if (!!parts) {
     for (const matchResult of parts) {
@@ -110,10 +108,6 @@ export const decode = (
         let match = REGEX_USER_TAGGING.exec(matchResult);
         if (match !== null) {
           const {name, route} = match?.groups!;
-          const searchParams = new URLSearchParams(route);
-          // for (var item of searchParams) {
-          //   console.log('key: ' + item[0] + ', ' + 'value: ' + item[1]);
-          // }
           arr.push({key: name, route: route});
         }
       } else {
