@@ -110,9 +110,6 @@ const HomeFeedItem: React.FC<Props> = ({
               channel_id: `${chatroomID}`,
               invite_status: 2,
             });
-            // setTimeout(() => {
-            //   console.log('res reject =', res);
-            // }, 2000);
             dispatch({
               type: SHOW_TOAST,
               body: {isToast: true, msg: 'Invitation rejected'},
