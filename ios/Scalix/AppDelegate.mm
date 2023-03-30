@@ -16,6 +16,14 @@
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
+-(void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken: (NSData *)deviceToken
+    {
+      [FIRMessaging messaging].APNSToken = deviceToken;
+      NSString *fcmToken = [FIRMessaging messaging].FCMToken;
+      NSLog(@"++APNST deviceToken : %@", deviceToken);
+      NSLog(@"++FCM device token : %@", fcmToken);
+    }
+
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
 #if DEBUG

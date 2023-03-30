@@ -9,22 +9,16 @@ import messaging from '@react-native-firebase/messaging';
 import LikeMinds from 'likeminds-chat-rn-beta';
 import notifee, {EventType} from '@notifee/react-native';
 import getNotification from './notifications';
-import {navigationRef} from './navigation/SwitchComponent';
 import {getRoute} from './notifications/routes';
+import * as RootNavigation from './RootNavigation';
 
 notifee.onBackgroundEvent(async ({type, detail}) => {
-  const {notification, pressAction} = detail;
-  const navigation = navigationRef?.current;
   let routes = getRoute(detail?.notification?.data?.route);
+  console;
 
   if (type === EventType.PRESS) {
-    if (!!navigation) {
-      navigation.navigate(routes.route, routes.params); //navigate('ChatRoom', {chatroomID: 69285});
-    } else {
-      // navigation?.reset([
-      //   {name: 'HomeFeed'},
-      //   {name: 'ChatRoom', params: {chatroomID: 69285}},
-      // ]);
+    if (!!RootNavigation) {
+      RootNavigation.navigate(routes.route, routes.params); // e.g. navigate('ChatRoom', {chatroomID: 69285});
     }
   }
 });
@@ -35,10 +29,16 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 });
 
 export const myClient = new LikeMinds({
-  // apiKey: 'd4356d31-306e-406d-aa4a-cd49f1b88f19',
-  apiKey: '45c469dc-06e1-4f05-914e-dd02419eb53f',
-  baseUrl: 'https://betaauth.likeminds.community',
-  baseUrlCaravan: 'https://beta.likeminds.community',
+  apiKey: '',
 });
 
-AppRegistry.registerComponent(appName, () => App);
+function HeadlessCheck({isHeadless}) {
+  if (isHeadless) {
+    // App has been launched in the background by iOS, ignore
+    return null;
+  }
+
+  return <App />;
+}
+
+AppRegistry.registerComponent(appName, () => HeadlessCheck);

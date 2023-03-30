@@ -1,24 +1,20 @@
 import messaging from '@react-native-firebase/messaging';
 import notifee, {AndroidImportance, EventType} from '@notifee/react-native';
 import React from 'react';
+import {decodeForNotifications} from '../commonFuctions';
+import {Platform} from 'react-native';
 
-async function requestUserPermission() {
+export async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
   const enabled =
     authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
     authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-  // if (enabled) {
-  //   console.log('Firebase authorization:', authStatus);
-  // }
+  return enabled;
 }
 
-export const checkToken = async () => {
+export const fetchFCMToken = async () => {
   const fcmToken = await messaging().getToken();
-  // if (fcmToken) {
-  //   console.log(fcmToken);
-  // }
   return fcmToken;
-  // await AsyncStorage.setItem("fcmToken", fcmToken);
 };
 
 export default async function getNotification(remoteMessage: any) {
@@ -28,9 +24,17 @@ export default async function getNotification(remoteMessage: any) {
     importance: AndroidImportance.HIGH,
   });
 
+  let isIOS = Platform.OS === 'ios' ? true : false;
+  let decodedAndroidMsg;
+  let decodedIOSMsg;
+  if (isIOS) {
+    decodedIOSMsg = decodeForNotifications(remoteMessage?.notification?.body);
+  } else {
+    decodedAndroidMsg = decodeForNotifications(remoteMessage?.data?.sub_title);
+  }
   await notifee.displayNotification({
     title: remoteMessage?.data?.title,
-    body: remoteMessage?.data?.sub_title,
+    body: isIOS ? decodedIOSMsg : decodedAndroidMsg,
     data: remoteMessage?.data,
     id: remoteMessage?.messageId,
     android: {
@@ -41,14 +45,7 @@ export default async function getNotification(remoteMessage: any) {
         id: 'default',
         launchActivity: 'default',
       },
-      // fullScreenAction: {
-      //   id: 'full-screen',
-      // },
-      // category: AndroidCategory.REMINDER,
       importance: AndroidImportance.HIGH,
     },
   });
 }
-
-checkToken();
-requestUserPermission();

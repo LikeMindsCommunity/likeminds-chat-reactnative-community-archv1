@@ -9,14 +9,13 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import {useDispatch} from 'react-redux';
 import {myClient} from '../..';
 import {getNameInitials} from '../../commonFuctions';
 import HomeFeedExplore from '../../components/HomeFeedExplore';
 import HomeFeedItem from '../../components/HomeFeedItem';
 import STYLES from '../../constants/Styles';
 import {onValue, ref} from '@firebase/database';
-import {AppDispatch, useAppDispatch, useAppSelector} from '../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {
   getHomeFeedData,
   getInvites,
@@ -28,15 +27,7 @@ import {
 import styles from './styles';
 import {SET_PAGE} from '../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
-import messaging from '@react-native-firebase/messaging';
-import notifee, {
-  AndroidCategory,
-  AndroidImportance,
-  EventType,
-} from '@notifee/react-native';
-import {useNavigation} from '@react-navigation/native';
-import getNotification from '../../notifications';
-// import {onValue, ref} from 'firebase/database';
+import {fetchFCMToken, requestUserPermission} from '../../notifications';
 
 interface Props {
   navigation: any;
@@ -48,8 +39,8 @@ const HomeFeed = ({navigation}: Props) => {
   const [invitePage, setInvitePage] = useState(1);
   const [FCMToken, setFCMToken] = useState('');
   const [accessToken, setAccessToken] = useState('');
-  // const navigation = useNavigation();
   const dispatch = useAppDispatch();
+
   const {myChatrooms, unseenCount, totalCount, page, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
@@ -102,9 +93,8 @@ const HomeFeed = ({navigation}: Props) => {
     });
   };
 
-  const pushAPI = async (fcmToken: any) => {
+  const pushAPI = async (fcmToken: any, accessToken: any) => {
     const deviceID = await getUniqueId();
-    // console.log('getDeviceId()', deviceID);
     try {
       const response = await fetch(
         'https://betaauth.likeminds.community/user/device/push',
@@ -114,10 +104,8 @@ const HomeFeed = ({navigation}: Props) => {
             Accept: 'application/json',
             'Content-Type': 'application/json',
             'x-device-id': `${deviceID}`,
-            'x-platform-code': 'rn',
-            // Authorization: `${accessToken}`,
-            Authorization:
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6ImUyNTc1ZDA3LTA4NzItNDIzOS05NjU2LWY4ZGEyMDZhYTNhZiIsImFwaV9rZXkiOiI0NWM0NjlkYy0wNmUxLTRmMDUtOTE0ZS1kZDAyNDE5ZWI1M2YiLCJleHAiOjE2ODAwNzAwNzgsInVzZXJfdW5pcXVlX2lkIjoiNjBkMTk5MjctOGI2Ni00Zjc4LWFmOTEtYzYwMDU5NTA4NDdjIn0.NvaRjgIe6C_WQjo5H7z79_5uYXOFhGIHW0PU3QWB534',
+            'x-platform-code': Platform.OS === 'ios' ? 'ios' : 'an',
+            Authorization: `${accessToken}`,
           },
           body: JSON.stringify({
             token: fcmToken,
@@ -125,7 +113,6 @@ const HomeFeed = ({navigation}: Props) => {
         },
       );
       let res = await response.json();
-      // console.log('res pushAPI ==', res);
     } catch (error) {
       Alert.alert(`${error}`);
     }
@@ -136,21 +123,12 @@ const HomeFeed = ({navigation}: Props) => {
       // user_unique_id: '',
       // user_name: '',
       // is_guest: false,
-      // user_unique_id: '53208f29-5d15-473e-ab70-5fd77605be0f',
-      // user_name: 'Ankit Garg SDK',
-      // user_unique_id: '0992885d-a170-494b-80c5-ecaef0cb2a24',
-      // user_name: 'Ankit',
-      user_unique_id: '60d19927-8b66-4f78-af91-c6005950847c',
-      user_name: 'Earfuls12',
+      user_unique_id: '42cf76c0-3dc0-4d7f-9e4e-f671bf9086e6',
+      user_name: 'Loki',
 
       is_guest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
-    // let res1 = await myClient.inviteAction({
-    //   channel_id: `27908`,
-    //   invite_status: 2,
-    // });
-    // console.log('res11 =', res);
 
     if (!!res) {
       await dispatch(
@@ -194,26 +172,22 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const token = async () => {
-      async function requestUserPermission() {
-        const authStatus = await messaging().requestPermission();
-        const enabled =
-          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-        if (enabled) {
-          // console.log('Authorization status:', authStatus);
-          let fcmToken = await messaging().getToken();
-          if (!!fcmToken) {
-            // console.log('fcmToken ==', fcmToken);
-            pushAPI(fcmToken);
-            setFCMToken(fcmToken);
-          }
+      const isPermissionEnabled = await requestUserPermission();
+      if (isPermissionEnabled) {
+        let fcmToken = await fetchFCMToken();
+        if (!!fcmToken) {
+          setFCMToken(fcmToken);
         }
       }
-      requestUserPermission();
     };
     token();
   }, []);
+
+  useEffect(() => {
+    if (FCMToken && accessToken) {
+      pushAPI(FCMToken, accessToken);
+    }
+  }, [FCMToken, accessToken]);
 
   useEffect(() => {
     if (!!user) {
@@ -258,11 +232,6 @@ const HomeFeed = ({navigation}: Props) => {
         dispatch({type: SET_PAGE, body: newPage});
         loadData(newPage);
       }
-      // if (myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
-      //   const newPage = page + 1;
-      //   dispatch({type: SET_PAGE, body: newPage});
-      //   loadData(newPage);
-      // }
     }
   };
 
@@ -279,6 +248,7 @@ const HomeFeed = ({navigation}: Props) => {
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
         dispatch(getHomeFeedData({page: 1}, false) as any);
+        dispatch({type: SET_PAGE, body: 1});
       }
     });
   }, []);

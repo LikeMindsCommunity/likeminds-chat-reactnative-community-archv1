@@ -84,8 +84,9 @@ export function getNameInitials(name: string) {
 
   return initials;
 }
-// test string = '<<Sanjay kumar 🤖|route://member/1260>> <<Ishaan Jain|route://member/1003>> Hey google.com';
 
+// naruto: naruto|route://member_profile/88226?member_id=__id__&community_id=__community__>>
+// test string = '<<Sanjay kumar 🤖|route://member/1260>> <<Ishaan Jain|route://member/1003>> Hey google.com';
 // This decode function helps us to decode tagged messages like the above test string in to readable format.
 // This function has two responses: one for Homefeed screen and other is for chat screen(Pressable ones are for chat screen).
 export const decode = (
@@ -98,12 +99,9 @@ export const decode = (
   }
   let arr: any[] = [];
   let parts = text?.split(REGEX_USER_SPLITTING);
-  // const {isLongPress} = useAppSelector(state => state.chatroom);
 
   if (!!parts) {
     for (const matchResult of parts) {
-      // let memberName;
-      // let tag;
       if (!!matchResult.match(REGEX_USER_TAGGING)) {
         let match = REGEX_USER_TAGGING.exec(matchResult);
         if (match !== null) {
@@ -177,6 +175,38 @@ export const decode = (
   }
 };
 
+export const decodeForNotifications = (text: string | undefined) => {
+  if (!text) {
+    return;
+  }
+  let arr: any[] = [];
+  let parts = text?.split(/(?:<<)?([\w\s🤖@]+\|route:\/\/\S+>>)/g);
+  const TEMP_REGEX_USER_TAGGING =
+    /(?:<<)?((?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>)/g;
+
+  if (!!parts) {
+    for (const matchResult of parts) {
+      if (!!matchResult.match(TEMP_REGEX_USER_TAGGING)) {
+        let match = TEMP_REGEX_USER_TAGGING.exec(matchResult);
+        if (match !== null) {
+          const {name, route} = match?.groups!;
+          arr.push({key: name, route: route});
+        }
+      } else {
+        arr.push({key: matchResult, route: null});
+      }
+    }
+    let decodedText = '';
+    for (let i = 0; i < arr.length; i++) {
+      decodedText = decodedText + arr[i].key;
+    }
+    return decodedText;
+  } else {
+    return text;
+  }
+};
+
+// This functions formatted the copied messages.
 export function decodeStr(text: string | undefined) {
   if (!text) {
     return;
