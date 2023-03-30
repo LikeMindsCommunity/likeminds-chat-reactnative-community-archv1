@@ -14,7 +14,6 @@ import * as RootNavigation from './RootNavigation';
 
 notifee.onBackgroundEvent(async ({type, detail}) => {
   let routes = getRoute(detail?.notification?.data?.route);
-  console;
 
   if (type === EventType.PRESS) {
     if (!!RootNavigation) {
@@ -32,7 +31,7 @@ export const myClient = new LikeMinds({
   apiKey: '',
 });
 
-function HeadlessCheck({isHeadless}) {
+function HeadlessCheck({ isHeadless }) {
   if (isHeadless) {
     // App has been launched in the background by iOS, ignore
     return null;
