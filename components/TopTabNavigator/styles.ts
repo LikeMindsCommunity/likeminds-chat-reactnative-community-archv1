@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     marginRight: STYLES.$MARGINS.SMALL,
   },
   container: {
-    marginTop: StatusBar.currentHeight,
+    // marginTop: StatusBar.currentHeight,
   },
   scene: {
     flex: 1,

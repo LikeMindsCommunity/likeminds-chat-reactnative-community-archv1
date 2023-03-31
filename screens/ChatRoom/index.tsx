@@ -32,12 +32,15 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
 import {getHomeFeedData} from '../../store/actions/homefeed';
 import {
+  ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
   LONG_PRESSED,
+  REJECT_INVITE_SUCCESS,
   SELECTED_MESSAGES,
   SET_EXPLORE_FEED_PAGE,
   SET_PAGE,
+  SHOW_TOAST,
 } from '../../store/types/types';
 import {
   START_CHATROOM_LOADING,
@@ -73,7 +76,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
 
-  const {chatroomID} = route.params;
+  const {chatroomID, isInvited} = route.params;
 
   const dispatch = useAppDispatch();
   const {
@@ -189,6 +192,53 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ),
       headerRight: () => {
         let len = selectedMessages.length;
+        let communityManagerState = 1;
+        let userCanDeleteParticularMessageArr: any = [];
+        let selectedMessagesIDArr: any = [];
+        let isCopy = false;
+        let isDelete = false;
+        for (let i = 0; i < selectedMessages.length; i++) {
+          if (!!!selectedMessages[i]?.deleted_by && !isCopy) {
+            isCopy = true;
+          }
+
+          if (
+            selectedMessages[i]?.member?.id === user?.id &&
+            !!!selectedMessages[i]?.deleted_by
+          ) {
+            userCanDeleteParticularMessageArr = [
+              ...userCanDeleteParticularMessageArr,
+              true,
+            ];
+            selectedMessagesIDArr = [
+              ...selectedMessagesIDArr,
+              selectedMessages[i]?.id,
+            ];
+          } else {
+            userCanDeleteParticularMessageArr = [
+              ...userCanDeleteParticularMessageArr,
+              false,
+            ];
+            selectedMessagesIDArr = [
+              ...selectedMessagesIDArr,
+              selectedMessages[i]?.id,
+            ];
+          }
+        }
+
+        if (userCanDeleteParticularMessageArr.includes(false)) {
+          if (
+            user?.state === communityManagerState &&
+            userCanDeleteParticularMessageArr.length === 1 &&
+            !!!selectedMessages[0]?.deleted_by
+          ) {
+            isDelete = true;
+          } else {
+            isDelete = false;
+          }
+        } else {
+          isDelete = true;
+        }
         return (
           <View style={styles.selectedHeadingContainer}>
             {len === 1 &&
@@ -227,7 +277,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   style={styles.threeDots}
                 />
               </TouchableOpacity>
-            ) : len > 1 ? (
+            ) : len > 1 && isCopy ? (
               <TouchableOpacity
                 onPress={() => {
                   const output = copySelectedMessages(selectedMessages);
@@ -242,37 +292,34 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 />
               </TouchableOpacity>
             ) : null}
-            {len === 1 &&
-              !!!selectedMessages[0].deleted_by &&
-              (selectedMessages[0]?.member?.id === user?.id ||
-                chatroomDetails?.chatroom?.member?.state === 1) && (
-                <TouchableOpacity
-                  onPress={async () => {
-                    const res = await myClient
-                      .deleteMsg({
-                        conversation_ids: [selectedMessages[0]?.id],
-                        reason: 'none',
-                      })
-                      .then(async () => {
-                        dispatch({type: SELECTED_MESSAGES, body: []});
-                        dispatch({type: LONG_PRESSED, body: false});
-                        setInitialHeader();
-                        let payload = {
-                          chatroomID: chatroomID,
-                          page: conversations.length * 2,
-                        };
-                        await dispatch(getConversations(payload, false) as any);
-                      })
-                      .catch(() => {
-                        Alert.alert('Delete message failed');
-                      });
-                  }}>
-                  <Image
-                    source={require('../../assets/images/delete_icon3x.png')}
-                    style={styles.threeDots}
-                  />
-                </TouchableOpacity>
-              )}
+            {isDelete && (
+              <TouchableOpacity
+                onPress={async () => {
+                  const res = await myClient
+                    .deleteMsg({
+                      conversation_ids: selectedMessagesIDArr,
+                      reason: 'none',
+                    })
+                    .then(async () => {
+                      dispatch({type: SELECTED_MESSAGES, body: []});
+                      dispatch({type: LONG_PRESSED, body: false});
+                      setInitialHeader();
+                      let payload = {
+                        chatroomID: chatroomID,
+                        page: conversations.length * 2,
+                      };
+                      await dispatch(getConversations(payload, false) as any);
+                    })
+                    .catch(() => {
+                      Alert.alert('Delete message failed');
+                    });
+                }}>
+                <Image
+                  source={require('../../assets/images/delete_icon3x.png')}
+                  style={styles.threeDots}
+                />
+              </TouchableOpacity>
+            )}
             {len === 1 && !!!selectedMessages[0].deleted_by && (
               <TouchableOpacity
                 onPress={() => {
@@ -302,15 +349,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         showLoaderVal != undefined && showLoaderVal == false ? false : true,
       ) as any,
     );
-    await myClient.markReadFn({chatroom_id: chatroomID});
-    const res = await myClient.crSeenFn({
-      collabcard_id: chatroomID,
-      // community_id: community?.id,
-      member_id: user?.id,
-      collabcard_type: chatroomDetails?.chatroom?.type,
-    });
-    dispatch({type: SET_PAGE, body: 1});
-    await dispatch(getHomeFeedData({page: 1}, false) as any);
+    if (!isInvited) {
+      await myClient.markReadFn({chatroom_id: chatroomID});
+      const res = await myClient.crSeenFn({
+        collabcard_id: chatroomID,
+        // community_id: community?.id,
+        member_id: user?.id,
+        collabcard_type: chatroomDetails?.chatroom?.type,
+      });
+      dispatch({type: SET_PAGE, body: 1});
+      await dispatch(getHomeFeedData({page: 1}, false) as any);
+    }
     return response;
   }
 
@@ -374,8 +423,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       }
     }
 
-    callApi();
-  }, []);
+    if (!!chatroomDetails?.chatroom) {
+      callApi();
+    }
+  }, [chatroomDetails]);
 
   useEffect(() => {
     if (conversations.length > 0) {
@@ -460,10 +511,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           await dispatch(getExploreFeedData(payload2, true) as any);
           dispatch({type: SET_PAGE, body: 1});
           await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({
+            type: CLEAR_CHATROOM_CONVERSATION,
+            body: {conversations: []},
+          });
+          dispatch({
+            type: CLEAR_CHATROOM_DETAILS,
+            body: {chatroomDetails: {}},
+          });
           navigation.goBack();
         } else {
           dispatch({type: SET_PAGE, body: 1});
           await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({
+            type: CLEAR_CHATROOM_CONVERSATION,
+            body: {conversations: []},
+          });
+          dispatch({
+            type: CLEAR_CHATROOM_DETAILS,
+            body: {chatroomDetails: {}},
+          });
           navigation.goBack();
         }
       })
@@ -492,10 +559,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           await dispatch(getExploreFeedData(payload2, true) as any);
           dispatch({type: SET_PAGE, body: 1});
           await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({
+            type: CLEAR_CHATROOM_CONVERSATION,
+            body: {conversations: []},
+          });
+          dispatch({
+            type: CLEAR_CHATROOM_DETAILS,
+            body: {chatroomDetails: {}},
+          });
           navigation.goBack();
         } else {
           dispatch({type: SET_PAGE, body: 1});
           await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({
+            type: CLEAR_CHATROOM_CONVERSATION,
+            body: {conversations: []},
+          });
+          dispatch({
+            type: CLEAR_CHATROOM_DETAILS,
+            body: {chatroomDetails: {}},
+          });
           navigation.goBack();
         }
       })
@@ -616,6 +699,95 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       });
   };
 
+  const showJoinAlert = () =>
+    Alert.alert(
+      'Join this chatroom?',
+      'You are about to join this secret chatroom.',
+      [
+        {
+          text: 'Cancel',
+          // onPress: () => Alert.alert('Cancel Pressed'),
+          style: 'default',
+        },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            let res = await myClient.inviteAction({
+              channel_id: `${chatroomID}`,
+              invite_status: 1,
+            });
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: 'Invitation accepted'},
+            });
+
+            dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
+            dispatch({type: SET_PAGE, body: 1});
+            await dispatch(getChatroom({chatroom_id: chatroomID}) as any);
+            await dispatch(getHomeFeedData({page: 1}, false) as any);
+          },
+          style: 'default',
+        },
+      ],
+      {
+        cancelable: false,
+        // cancelable: true,
+        // onDismiss: () =>
+        //   Alert.alert(
+        //     'This alert was dismissed by tapping outside of the alert dialog.',
+        //   ),
+      },
+    );
+
+  const showRejectAlert = () =>
+    Alert.alert(
+      'Reject Invitation?',
+      'Are you sure you want to reject the invitation to join this chatroom?',
+      [
+        {
+          text: 'Cancel',
+          // onPress: () => Alert.alert('Cancel Pressed'),
+          style: 'cancel',
+        },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            let res = await myClient.inviteAction({
+              channel_id: `${chatroomID}`,
+              invite_status: 2,
+            });
+            // setTimeout(() => {
+            //   console.log('res reject =', res);
+            // }, 2000);
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: 'Invitation rejected'},
+            });
+
+            dispatch({
+              type: CLEAR_CHATROOM_CONVERSATION,
+              body: {conversations: []},
+            });
+            dispatch({
+              type: CLEAR_CHATROOM_DETAILS,
+              body: {chatroomDetails: {}},
+            });
+            dispatch({type: REJECT_INVITE_SUCCESS, body: chatroomID});
+            navigation.goBack();
+          },
+          style: 'default',
+        },
+      ],
+      {
+        cancelable: false,
+        // cancelable: true,
+        // onDismiss: () =>
+        //   Alert.alert(
+        //     'This alert was dismissed by tapping outside of the alert dialog.',
+        //   ),
+      },
+    );
+
   const getItemLayout = (data: any, index: any) => ({
     length: conversations.length,
     offset: conversations.length * index,
@@ -724,7 +896,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         inverted
       />
 
-      {!(Object.keys(chatroomDetails).length === 0)
+      {!(Object.keys(chatroomDetails).length === 0) &&
+      prevRoute?.name === 'ExploreFeed'
         ? !!!chatroomDetails?.chatroom?.follow_status && (
             <TouchableOpacity
               onPress={() => {
@@ -755,6 +928,52 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               setReplyMessage(val);
             }}
           />
+        ) : !(Object.keys(chatroomDetails).length === 0) &&
+          prevRoute?.name === 'HomeFeed' ? (
+          <View style={{padding: 20, backgroundColor: STYLES.$COLORS.TERTIARY}}>
+            <Text
+              style={
+                styles.inviteText
+              }>{`${chatroomDetails?.chatroom?.header} invited you to join this secret group.`}</Text>
+            <View style={{marginTop: 10}}>
+              <TouchableOpacity
+                onPress={() => {
+                  showJoinAlert();
+                }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                  flexGrow: 1,
+                  paddingVertical: 10,
+                }}>
+                <Image
+                  style={styles.emoji}
+                  source={require('../../assets/images/like_icon3x.png')}
+                />
+                <Text style={styles.inviteBtnText}>Accept</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  showRejectAlert();
+                }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                  flexGrow: 1,
+                  paddingVertical: 10,
+                }}>
+                <Image
+                  style={styles.emoji}
+                  source={require('../../assets/images/ban_icon3x.png')}
+                />
+                <Text style={styles.inviteBtnText}>Reject</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         ) : (
           <View style={styles.disabledInput}>
             <Text style={styles.disabledInputText}>Responding is disabled</Text>
@@ -805,7 +1024,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         setModalVisible(false);
                       }
                     }}
-                    key={val + index}
+                    key={val?.id}
                     style={styles.filtersView}>
                     <Text style={styles.filterText}>{val?.title}</Text>
                   </TouchableOpacity>
