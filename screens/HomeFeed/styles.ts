@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
     marginRight: STYLES.$MARGINS.SMALL,
-  },
+  }
 });
 
 export default styles;

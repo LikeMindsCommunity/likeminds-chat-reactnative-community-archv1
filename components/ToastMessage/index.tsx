@@ -5,16 +5,15 @@ import Layout from '../../constants/Layout';
 
 interface Props {
   message: string;
-  isToast:boolean;
+  isToast: boolean;
   onDismiss: () => void;
 }
 
-const ToastMessage = ({isToast,onDismiss,message}: Props) => {
-
+const ToastMessage = ({isToast, onDismiss, message}: Props) => {
   useEffect(() => {
     if (!!isToast) {
       setTimeout(() => {
-        onDismiss()
+        onDismiss();
       }, 2000);
     }
   }, [isToast]);
@@ -26,7 +25,7 @@ const ToastMessage = ({isToast,onDismiss,message}: Props) => {
         transparent={true}
         visible={isToast}
         onRequestClose={() => {
-            onDismiss()
+          onDismiss();
         }}>
         <View style={styles.centeredView}>
           <View style={styles.modalParent}>

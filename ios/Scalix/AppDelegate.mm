@@ -1,4 +1,5 @@
 #import "AppDelegate.h"
+#import <Firebase.h>
 
 #import <React/RCTBundleURLProvider.h>
 
@@ -10,9 +11,18 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
+  [FIRApp configure];
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
+
+-(void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken: (NSData *)deviceToken
+    {
+      [FIRMessaging messaging].APNSToken = deviceToken;
+      NSString *fcmToken = [FIRMessaging messaging].FCMToken;
+      NSLog(@"++APNST deviceToken : %@", deviceToken);
+      NSLog(@"++FCM device token : %@", fcmToken);
+    }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
