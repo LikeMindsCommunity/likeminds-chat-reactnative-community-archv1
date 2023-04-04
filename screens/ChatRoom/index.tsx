@@ -1001,7 +1001,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     onPress={async () => {
                       if (val?.id === 2) {
                         setModalVisible(false);
-                        navigation.navigate('ViewParticipants');
+                        navigation.navigate('ViewParticipants', {
+                          chatroomID: chatroomID,
+                          isSecret: isSecret,
+                        });
                       } else if (val?.id === 9 || val?.id === 15) {
                         if (isSecret) {
                           leaveSecretChatroom();

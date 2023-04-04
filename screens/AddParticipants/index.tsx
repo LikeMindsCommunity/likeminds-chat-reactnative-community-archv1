@@ -12,13 +12,17 @@ import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {myClient} from '../..';
+import {StackActions} from '@react-navigation/native';
 
-const ViewParticipants = ({navigation, route}: any) => {
-  const [participants, setParticipants] = useState({} as any);
+const AddParticipants = ({navigation, route}: any) => {
+  const [participants, setParticipants] = useState([] as any);
+  const [searchedParticipants, setSearchedParticipants] = useState([] as any);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [searchPage, setSearchPage] = useState(1);
   const [isSearch, setIsSearch] = useState(false);
   const [search, setSearch] = useState('');
+  const [selectedParticipants, setSelectedParticipants] = useState([] as any);
 
   const {chatroomID, isSecret} = route.params;
 
@@ -45,7 +49,7 @@ const ViewParticipants = ({navigation, route}: any) => {
                   fontSize: STYLES.$FONT_SIZES.LARGE,
                   fontFamily: STYLES.$FONT_TYPES.BOLD,
                 }}>
-                {'Participants'}
+                {'Add Participants'}
               </Text>
               <Text
                 style={{
@@ -53,7 +57,7 @@ const ViewParticipants = ({navigation, route}: any) => {
                   fontSize: STYLES.$FONT_SIZES.SMALL,
                   fontFamily: STYLES.$FONT_TYPES.LIGHT,
                 }}>
-                {`${participants.length} participants`}
+                {`${selectedParticipants.length} selected`}
               </Text>
             </View>
           ) : null}
@@ -128,18 +132,6 @@ const ViewParticipants = ({navigation, route}: any) => {
     });
   };
 
-  const fetchParticipants = async () => {
-    const res = await myClient.viewParticipants({
-      chatroom_id: chatroomID,
-      is_secret: isSecret,
-      page: 1,
-      page_size: 50,
-      participant_name: search,
-    });
-    setParticipants(res?.participants);
-    console.log('ress --> ', res);
-  };
-
   useLayoutEffect(() => {
     fetchParticipants();
     setInitialHeader();
@@ -162,10 +154,21 @@ const ViewParticipants = ({navigation, route}: any) => {
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      fetchParticipants();
+      if (isSearch) {
+        searchParticipants();
+      } else {
+        fetchParticipants();
+      }
     }, 500);
     return () => clearTimeout(delay);
   }, [search]);
+
+  useEffect(() => {
+    // setInitialHeader();
+    if (!isSearch) {
+      setInitialHeader();
+    }
+  }, [selectedParticipants]);
 
   useEffect(() => {
     // setInitialHeader();
@@ -176,16 +179,44 @@ const ViewParticipants = ({navigation, route}: any) => {
     }
   }, [isSearch]);
 
-  async function updateData(newPage: number) {
-    let payload = {
+  const fetchParticipants = async () => {
+    const res = await myClient.getAllMembers({page: 1});
+    setParticipants(res?.members);
+  };
+
+  const searchParticipants = async () => {
+    const res = await myClient.searchMembers({
+      search: search,
+      search_type: 'name',
+      page: searchPage,
+      page_size: 20,
+    });
+    setSearchedParticipants(res?.members);
+  };
+
+  const sendInvites = async () => {
+    const res = await myClient.sendInvites({
       chatroom_id: chatroomID,
-      is_secret: isSecret,
-      page: newPage,
-      page_size: 50,
-      participant_name: search,
-    };
-    let response = myClient.viewParticipants(payload);
-    return response;
+      is_secret: true,
+      chatroom_participants: selectedParticipants,
+    });
+    const popAction = StackActions.pop(2);
+    navigation.dispatch(popAction);
+  };
+
+  async function updateData(newPage: number) {
+    if (isSearch) {
+      const res = await myClient.searchMembers({
+        search: search,
+        search_type: 'name',
+        page: newPage,
+        page_size: 20,
+      });
+      return res;
+    } else {
+      const res = await myClient.getAllMembers({page: newPage});
+      return res;
+    }
   }
 
   const loadData = async (newPage: number) => {
@@ -193,7 +224,12 @@ const ViewParticipants = ({navigation, route}: any) => {
     setTimeout(async () => {
       const res = await updateData(newPage);
       if (!!res) {
-        setParticipants([...participants, res?.participants]);
+        if (isSearch) {
+          setSearchedParticipants([...searchedParticipants, res?.members]);
+        } else {
+          setParticipants([...participants, res?.members]);
+        }
+
         setIsLoading(false);
       }
     }, 1500);
@@ -207,9 +243,13 @@ const ViewParticipants = ({navigation, route}: any) => {
         arr?.length > 0 &&
         arr?.length === 50 * page
       ) {
-        let newPage = page + 1;
+        let newPage = isSearch ? searchPage + 1 : page + 1;
         loadData(newPage);
-        setPage(newPage);
+        if (isSearch) {
+          setSearchPage(newPage);
+        } else {
+          setPage(newPage);
+        }
       }
     }
   };
@@ -225,60 +265,42 @@ const ViewParticipants = ({navigation, route}: any) => {
   return (
     <View style={styles.page}>
       <FlatList
-        data={participants}
-        ListHeaderComponent={() =>
-          isSecret ? (
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate('AddParticipants', {
-                  chatroomID: chatroomID,
-                  isSecret: isSecret,
-                });
-              }}
-              style={styles.participants}>
-              <View
-                style={{
-                  height: 50,
-                  width: 50,
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: '#4c4edc',
-                  borderRadius: 30,
-                  marginRight: 10,
-                }}>
-                <Image
-                  source={require('../../assets/images/participants3x.png')}
-                  style={styles.icon}
-                />
-              </View>
-
-              <View style={styles.infoContainer}>
-                <Text style={styles.title} numberOfLines={1}>
-                  {'Add Participants'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ) : null
-        }
+        data={isSearch ? searchedParticipants : participants}
         renderItem={({item}: any) => {
           return (
-            <View key={item?.id} style={styles.participants}>
-              <Image
-                source={
-                  !!item?.image_url
-                    ? {uri: item?.image_url}
-                    : require('../../assets/images/default_pic.png')
+            <TouchableOpacity
+              onPress={() => {
+                if (!selectedParticipants.includes(item?.id)) {
+                  setSelectedParticipants([...selectedParticipants, item?.id]);
+                } else {
+                  let filteredArr = selectedParticipants.filter((val: any) => {
+                    return val !== item?.id;
+                  });
+                  setSelectedParticipants([...filteredArr]);
                 }
-                style={styles.avatar}
-              />
+              }}
+              key={item?.id}
+              style={styles.participants}>
+              <View>
+                <Image
+                  source={
+                    !!item?.image_url
+                      ? {uri: item?.image_url}
+                      : require('../../assets/images/default_pic.png')
+                  }
+                  style={styles.avatar}
+                />
+                {selectedParticipants.includes(item?.id) ? (
+                  <View style={styles.selected}></View>
+                ) : null}
+              </View>
+
               <View style={styles.infoContainer}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
                 </Text>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         }}
         onEndReached={handleLoadMore}
@@ -286,8 +308,23 @@ const ViewParticipants = ({navigation, route}: any) => {
         ListFooterComponent={renderFooter}
         keyExtractor={(item: any) => item?.id.toString()}
       />
+      <TouchableOpacity
+        onPress={() => {
+          if (selectedParticipants.length > 0) {
+            sendInvites();
+          }
+        }}
+        style={{
+          height: 70,
+          width: 70,
+          borderRadius: 50,
+          backgroundColor: 'blue',
+          position: 'absolute',
+          right: 15,
+          bottom: 30,
+        }}></TouchableOpacity>
     </View>
   );
 };
 
-export default ViewParticipants;
+export default AddParticipants;
