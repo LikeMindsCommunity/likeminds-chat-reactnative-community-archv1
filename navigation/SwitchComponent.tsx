@@ -32,6 +32,7 @@ import notifee, {
 import {getRoute} from '../notifications/routes';
 import {navigationRef} from '../RootNavigation';
 import getNotification from '../notifications';
+import ViewParticipants from '../screens/ViewParticipants';
 
 const Stack = createNativeStackNavigator();
 
@@ -100,6 +101,7 @@ const SwitchComponent = () => {
           <Stack.Screen name="ChatRoom" component={ChatRoom} />
           <Stack.Screen name="Report" component={ReportScreen} />
           <Stack.Screen name="ImageScreen" component={ImageScreen} />
+          <Stack.Screen name="ViewParticipants" component={ViewParticipants} />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastMessage
