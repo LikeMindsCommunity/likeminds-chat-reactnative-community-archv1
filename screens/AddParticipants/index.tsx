@@ -13,6 +13,8 @@ import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {myClient} from '../..';
 import {StackActions} from '@react-navigation/native';
+import {SHOW_TOAST} from '../../store/types/types';
+import {useAppDispatch} from '../../store';
 
 const AddParticipants = ({navigation, route}: any) => {
   const [participants, setParticipants] = useState([] as any);
@@ -25,6 +27,7 @@ const AddParticipants = ({navigation, route}: any) => {
   const [selectedParticipants, setSelectedParticipants] = useState([] as any);
 
   const {chatroomID, isSecret} = route.params;
+  const dispatch = useAppDispatch();
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -202,6 +205,10 @@ const AddParticipants = ({navigation, route}: any) => {
     });
     const popAction = StackActions.pop(2);
     navigation.dispatch(popAction);
+    dispatch({
+      type: SHOW_TOAST,
+      body: {isToast: true, msg: 'Invitation sent'},
+    });
   };
 
   async function updateData(newPage: number) {
@@ -291,7 +298,12 @@ const AddParticipants = ({navigation, route}: any) => {
                   style={styles.avatar}
                 />
                 {selectedParticipants.includes(item?.id) ? (
-                  <View style={styles.selected}></View>
+                  <View style={styles.selected}>
+                    <Image
+                      source={require('../../assets/images/white_tick3x.png')}
+                      style={styles.smallIcon}
+                    />
+                  </View>
                 ) : null}
               </View>
 
@@ -314,15 +326,12 @@ const AddParticipants = ({navigation, route}: any) => {
             sendInvites();
           }
         }}
-        style={{
-          height: 70,
-          width: 70,
-          borderRadius: 50,
-          backgroundColor: 'blue',
-          position: 'absolute',
-          right: 15,
-          bottom: 30,
-        }}></TouchableOpacity>
+        style={styles.sendBtn}>
+        <Image
+          source={require('../../assets/images/send_arrow3x.png')}
+          style={styles.sendIcon}
+        />
+      </TouchableOpacity>
     </View>
   );
 };

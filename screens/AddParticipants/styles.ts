@@ -19,6 +19,16 @@ export const styles = StyleSheet.create({
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
     marginRight: STYLES.$MARGINS.SMALL,
   },
+  smallIcon: {
+    width: 15,
+    height: 15,
+    resizeMode: 'contain',
+  },
+  sendIcon: {
+    width: 25,
+    height: 25,
+    resizeMode: 'contain',
+  },
   icon: {
     width: 30,
     height: 30,
@@ -78,5 +88,18 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     right: 5,
     bottom: 0,
+  },
+  sendBtn: {
+    height: 60,
+    width: 60,
+    borderRadius: 50,
+    backgroundColor: STYLES.$COLORS.PRIMARY,
+    position: 'absolute',
+    right: 15,
+    bottom: 30,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

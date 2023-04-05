@@ -137,7 +137,6 @@ const ViewParticipants = ({navigation, route}: any) => {
       participant_name: search,
     });
     setParticipants(res?.participants);
-    console.log('ress --> ', res);
   };
 
   useLayoutEffect(() => {
