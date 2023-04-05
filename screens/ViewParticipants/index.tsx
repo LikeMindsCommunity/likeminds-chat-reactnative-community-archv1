@@ -12,6 +12,7 @@ import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {myClient} from '../..';
+import { useAppSelector } from '../../store';
 
 const ViewParticipants = ({navigation, route}: any) => {
   const [participants, setParticipants] = useState({} as any);
@@ -21,6 +22,7 @@ const ViewParticipants = ({navigation, route}: any) => {
   const [search, setSearch] = useState('');
 
   const {chatroomID, isSecret} = route.params;
+  const user = useAppSelector(state => state.homefeed.user);
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -226,7 +228,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       <FlatList
         data={participants}
         ListHeaderComponent={() =>
-          isSecret ? (
+          (isSecret && user?.state === 1) ? (
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('AddParticipants', {
