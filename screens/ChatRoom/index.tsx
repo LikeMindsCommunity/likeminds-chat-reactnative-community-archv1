@@ -1,4 +1,4 @@
-import {CommonActions} from '@react-navigation/native';
+import {CommonActions, useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {
   View,
@@ -77,6 +77,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
 
   const {chatroomID, isInvited} = route.params;
+  const isFocused = useIsFocused();
 
   const dispatch = useAppDispatch();
   const {
@@ -88,8 +89,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     stateArr,
   } = useAppSelector(state => state.chatroom);
 
-  const routes = navigation.getState()?.routes;
-  const prevRoute = routes[routes.length - 2];
+  let routes = navigation.getState()?.routes;
+  let prevRoute = routes[routes.length - 2];
 
   const {user, community} = useAppSelector(state => state.homefeed);
   let isSecret = chatroomDetails?.chatroom?.is_secret;
@@ -453,6 +454,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (isFocused) {
+      routes = navigation.getState()?.routes;
+      prevRoute = routes[routes.length - 2];
+    }
+  }, [isFocused]);
 
   const loadData = async (newPage: number) => {
     setIsLoading(true);
@@ -1001,7 +1009,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     onPress={async () => {
                       if (val?.id === 2) {
                         setModalVisible(false);
-                        navigation.navigate('ViewParticipants');
+                        navigation.navigate('ViewParticipants', {
+                          chatroomID: chatroomID,
+                          isSecret: isSecret,
+                        });
                       } else if (val?.id === 9 || val?.id === 15) {
                         if (isSecret) {
                           leaveSecretChatroom();
