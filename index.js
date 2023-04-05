@@ -29,6 +29,8 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 
 export const myClient = new LikeMinds({
   apiKey: '',
+  xVersionCode:'4',
+  xPlatformCode: 'rn',
 });
 
 function HeadlessCheck({ isHeadless }) {
