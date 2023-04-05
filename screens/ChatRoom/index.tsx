@@ -94,7 +94,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {user, community} = useAppSelector(state => state.homefeed);
   let isSecret = chatroomDetails?.chatroom?.is_secret;
 
-  let notIncludedActionsID = [2, 3];
+  let notIncludedActionsID = [3];
   let filteredChatroomActions = chatroomDetails?.chatroom_actions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
@@ -999,11 +999,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 return (
                   <TouchableOpacity
                     onPress={async () => {
-                      // if(val?.id === 2){
-                      //   navigation.navigate('ViewParticipants')
-                      //   setModalVisible(false)
-                      // }
-                      if (val?.id === 9 || val?.id === 15) {
+                      if (val?.id === 2) {
+                        setModalVisible(false);
+                        navigation.navigate('ViewParticipants');
+                      } else if (val?.id === 9 || val?.id === 15) {
                         if (isSecret) {
                           leaveSecretChatroom();
                         } else if (!isSecret) {
