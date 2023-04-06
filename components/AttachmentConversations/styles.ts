@@ -94,5 +94,6 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     fontStyle: 'italic',
-  }
+  },
+  displayRow: {flexDirection: 'row', alignItems: 'center', gap: 10},
 });

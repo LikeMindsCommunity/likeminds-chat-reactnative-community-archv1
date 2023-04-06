@@ -1,4 +1,4 @@
-import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {View, Text, Image, TouchableOpacity, Pressable} from 'react-native';
 import React, {useState} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
@@ -6,13 +6,16 @@ import {decode} from '../../commonFuctions';
 import ReplyConversations from '../ReplyConversations';
 import AttachmentConversations from '../AttachmentConversations';
 import ReactionGridModal from '../ReactionGridModal';
-import {useAppSelector} from '../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
+import {SET_POSITION} from '../../store/types/types';
 
 interface Messages {
   item: any;
   isIncluded: boolean;
   onScrollToIndex: any;
   navigation: any;
+  openKeyboard: any;
+  longPressOpenKeyboard: any;
 }
 
 const Messages = ({
@@ -20,12 +23,16 @@ const Messages = ({
   isIncluded,
   onScrollToIndex,
   navigation,
+  openKeyboard,
+  longPressOpenKeyboard,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
   const [modalVisible, setModalVisible] = useState(false);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
   const stateArr = [1, 2, 3, 7, 8, 9]; //states for person started, left, joined, added, removed messages.
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
+
+  const dispatch = useAppDispatch();
 
   let reactionArr: any = [];
   let defaultReactionArrLen = item?.reactions?.length;
@@ -74,6 +81,13 @@ const Messages = ({
             item={item}
             isTypeSent={isTypeSent}
             onScrollToIndex={onScrollToIndex}
+            openKeyboard={() => {
+              openKeyboard();
+            }}
+            longPressOpenKeyboard={() => {
+              longPressOpenKeyboard();
+            }}
+            reactionArr={reactionArr}
           />
         ) : item?.attachment_count > 0 ? (
           <AttachmentConversations
@@ -81,6 +95,12 @@ const Messages = ({
             isIncluded={isIncluded}
             item={item}
             isTypeSent={isTypeSent}
+            openKeyboard={() => {
+              openKeyboard();
+            }}
+            longPressOpenKeyboard={() => {
+              longPressOpenKeyboard();
+            }}
           />
         ) : (
           <View>
@@ -90,26 +110,58 @@ const Messages = ({
               </View>
             ) : (
               <View
-                style={[
-                  styles.message,
-                  isTypeSent ? styles.sentMessage : styles.receivedMessage,
-                  isIncluded
-                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
-                    : null,
-                ]}>
-                {!!(item?.member?.id === user?.id) ? null : (
-                  <Text style={styles.messageInfo} numberOfLines={1}>
-                    {item?.member?.name}
-                    {!!item?.member?.custom_title ? (
-                      <Text
-                        style={
-                          styles.messageCustomTitle
-                        }>{` • ${item?.member?.custom_title}`}</Text>
-                    ) : null}
-                  </Text>
-                )}
-                <Text>{decode(item?.answer, true)}</Text>
-                <Text style={styles.messageDate}>{item?.created_at}</Text>
+                style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                <View
+                  style={[
+                    styles.message,
+                    isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                    isIncluded
+                      ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                      : null,
+                  ]}>
+                  {!!(item?.member?.id === user?.id) ? null : (
+                    <Text style={styles.messageInfo} numberOfLines={1}>
+                      {item?.member?.name}
+                      {!!item?.member?.custom_title ? (
+                        <Text
+                          style={
+                            styles.messageCustomTitle
+                          }>{` • ${item?.member?.custom_title}`}</Text>
+                      ) : null}
+                    </Text>
+                  )}
+                  <Text>{decode(item?.answer, true)}</Text>
+                  <Text style={styles.messageDate}>{item?.created_at}</Text>
+                </View>
+                {reactionArr.length > 0 ||
+                item?.answer.split('').length > 100 ? (
+                  <Pressable
+                    onLongPress={event => {
+                      const {pageX, pageY} = event.nativeEvent;
+                      dispatch({
+                        type: SET_POSITION,
+                        body: {pageX: pageX, pageY: pageY},
+                      });
+                      longPressOpenKeyboard();
+                    }}
+                    onPress={event => {
+                      const {pageX, pageY} = event.nativeEvent;
+                      dispatch({
+                        type: SET_POSITION,
+                        body: {pageX: pageX, pageY: pageY},
+                      });
+                      openKeyboard();
+                    }}>
+                    <Image
+                      style={{
+                        height: 25,
+                        width: 25,
+                        resizeMode: 'contain',
+                      }}
+                      source={require('../../assets/images/add_more_emojis3x.png')}
+                    />
+                  </Pressable>
+                ) : null}
               </View>
             )}
           </View>

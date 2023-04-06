@@ -203,6 +203,7 @@ const AddParticipants = ({navigation, route}: any) => {
       is_secret: true,
       chatroom_participants: selectedParticipants,
     });
+    console.log('sendInvites', res);
     const popAction = StackActions.pop(2);
     navigation.dispatch(popAction);
     dispatch({
@@ -311,11 +312,11 @@ const AddParticipants = ({navigation, route}: any) => {
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
                   {!!item?.custom_title ? (
-                      <Text
-                        style={
-                          styles.messageCustomTitle
-                        }>{` • ${item?.custom_title}`}</Text>
-                    ) : null}
+                    <Text
+                      style={
+                        styles.messageCustomTitle
+                      }>{` • ${item?.custom_title}`}</Text>
+                  ) : null}
                 </Text>
               </View>
             </TouchableOpacity>

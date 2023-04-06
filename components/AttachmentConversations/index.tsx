@@ -1,9 +1,20 @@
-import {View, Text, Image, TouchableOpacity, Linking} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Linking,
+  Pressable,
+} from 'react-native';
 import React, {useState} from 'react';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
-import {LONG_PRESSED, SELECTED_MESSAGES} from '../../store/types/types';
+import {
+  LONG_PRESSED,
+  SELECTED_MESSAGES,
+  SET_POSITION,
+} from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 
 interface AttachmentConversations {
@@ -11,6 +22,8 @@ interface AttachmentConversations {
   isTypeSent: boolean;
   isIncluded: boolean;
   navigation: any;
+  openKeyboard: any;
+  longPressOpenKeyboard: any;
 }
 
 const AttachmentConversations = ({
@@ -18,45 +31,77 @@ const AttachmentConversations = ({
   isTypeSent,
   isIncluded,
   navigation,
+  openKeyboard,
+  longPressOpenKeyboard,
 }: AttachmentConversations) => {
+  const dispatch = useAppDispatch();
   return (
-    <View
-      style={[
-        styles.attachmentMessage,
-        isTypeSent ? styles.sentMessage : styles.receivedMessage,
-        isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
-      ]}>
-      {item?.attachments[0]?.type === 'image' ? (
-        <ImageConversations
-          isIncluded={isIncluded}
-          item={item}
-          isTypeSent={isTypeSent}
-          navigation={navigation}
-        />
-      ) : item?.attachments[0]?.type === 'pdf' ? (
-        <PDFConversations
-          isIncluded={isIncluded}
-          item={item}
-          isTypeSent={isTypeSent}
-        />
-      ) : item?.attachments[0]?.type === 'video' ? (
-        <VideoConversations
-          isIncluded={isIncluded}
-          item={item}
-          isTypeSent={isTypeSent}
-        />
-      ) : item?.attachments[0]?.type === 'audio' ? (
-        <View>
-          <Text style={styles.deletedMsg}>
-            This message is not supported in this app yet.
-          ›</Text>
-        </View>
-      ) : null}
+    <View style={styles.displayRow}>
+      <View
+        style={[
+          styles.attachmentMessage,
+          isTypeSent ? styles.sentMessage : styles.receivedMessage,
+          isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
+        ]}>
+        {item?.attachments[0]?.type === 'image' ? (
+          <ImageConversations
+            isIncluded={isIncluded}
+            item={item}
+            isTypeSent={isTypeSent}
+            navigation={navigation}
+          />
+        ) : item?.attachments[0]?.type === 'pdf' ? (
+          <PDFConversations
+            isIncluded={isIncluded}
+            item={item}
+            isTypeSent={isTypeSent}
+          />
+        ) : item?.attachments[0]?.type === 'video' ? (
+          <VideoConversations
+            isIncluded={isIncluded}
+            item={item}
+            isTypeSent={isTypeSent}
+          />
+        ) : item?.attachments[0]?.type === 'audio' ? (
+          <View>
+            <Text style={styles.deletedMsg}>
+              This message is not supported in this app yet. ›
+            </Text>
+          </View>
+        ) : null}
 
-      <View style={styles.messageText as any}>
-        {decode(item?.answer, true)}
+        <View style={styles.messageText as any}>
+          {decode(item?.answer, true)}
+        </View>
+        <Text style={styles.messageDate}>{item?.created_at}</Text>
       </View>
-      <Text style={styles.messageDate}>{item?.created_at}</Text>
+
+      <Pressable
+        onLongPress={event => {
+          const {pageX, pageY} = event.nativeEvent;
+          dispatch({
+            type: SET_POSITION,
+            body: {pageX: pageX, pageY: pageY},
+          });
+          longPressOpenKeyboard();
+        }}
+        onPress={event => {
+          const {pageX, pageY} = event.nativeEvent;
+          dispatch({
+            type: SET_POSITION,
+            body: {pageX: pageX, pageY: pageY},
+          });
+          openKeyboard();
+        }}>
+        <Image
+          style={{
+            height: 25,
+            width: 25,
+            resizeMode: 'contain',
+          }}
+          source={require('../../assets/images/add_more_emojis3x.png')}
+        />
+      </Pressable>
     </View>
   );
 };
@@ -86,7 +131,12 @@ export const VideoConversations = ({
           {!isFullList ? (
             <View>
               <TouchableOpacity
-                onLongPress={() => {
+                onLongPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   dispatch({type: LONG_PRESSED, body: true});
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isIncluded) {
@@ -107,7 +157,12 @@ export const VideoConversations = ({
                     }
                   }
                 }}
-                onPress={() => {
+                onPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isLongPress) {
                     if (isIncluded) {
@@ -150,7 +205,12 @@ export const VideoConversations = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onLongPress={() => {
+                onLongPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   dispatch({type: LONG_PRESSED, body: true});
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isIncluded) {
@@ -171,7 +231,12 @@ export const VideoConversations = ({
                     }
                   }
                 }}
-                onPress={() => {
+                onPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isLongPress) {
                     if (isIncluded) {
@@ -217,7 +282,12 @@ export const VideoConversations = ({
           ) : (
             item?.attachments.map((val: any, index: number) => (
               <TouchableOpacity
-                onLongPress={() => {
+                onLongPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   dispatch({type: LONG_PRESSED, body: true});
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isIncluded) {
@@ -238,7 +308,12 @@ export const VideoConversations = ({
                     }
                   }
                 }}
-                onPress={() => {
+                onPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isLongPress) {
                     if (isIncluded) {
@@ -286,7 +361,12 @@ export const VideoConversations = ({
         </View>
       ) : (
         <TouchableOpacity
-          onLongPress={() => {
+          onLongPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             dispatch({type: LONG_PRESSED, body: true});
             let isStateIncluded = stateArr.includes(item?.state);
             if (isIncluded) {
@@ -307,7 +387,12 @@ export const VideoConversations = ({
               }
             }
           }}
-          onPress={() => {
+          onPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             let isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
@@ -351,7 +436,12 @@ export const VideoConversations = ({
       )}
       {item.attachment_count > 2 && !isFullList && (
         <TouchableOpacity
-          onLongPress={() => {
+          onLongPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             dispatch({type: LONG_PRESSED, body: true});
             let isStateIncluded = stateArr.includes(item?.state);
             if (isIncluded) {
@@ -372,7 +462,12 @@ export const VideoConversations = ({
               }
             }
           }}
-          onPress={() => {
+          onPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             let isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
@@ -430,7 +525,12 @@ export const PDFConversations = ({
           {!isFullList ? (
             <View>
               <TouchableOpacity
-                onLongPress={() => {
+                onLongPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   dispatch({type: LONG_PRESSED, body: true});
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isIncluded) {
@@ -451,7 +551,12 @@ export const PDFConversations = ({
                     }
                   }
                 }}
-                onPress={() => {
+                onPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isLongPress) {
                     if (isIncluded) {
@@ -494,7 +599,12 @@ export const PDFConversations = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onLongPress={() => {
+                onLongPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   dispatch({type: LONG_PRESSED, body: true});
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isIncluded) {
@@ -515,7 +625,12 @@ export const PDFConversations = ({
                     }
                   }
                 }}
-                onPress={() => {
+                onPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isLongPress) {
                     if (isIncluded) {
@@ -561,7 +676,12 @@ export const PDFConversations = ({
           ) : (
             item?.attachments.map((val: any, index: number) => (
               <TouchableOpacity
-                onLongPress={() => {
+                onLongPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   dispatch({type: LONG_PRESSED, body: true});
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isIncluded) {
@@ -582,7 +702,12 @@ export const PDFConversations = ({
                     }
                   }
                 }}
-                onPress={() => {
+                onPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
                   let isStateIncluded = stateArr.includes(item?.state);
                   if (isLongPress) {
                     if (isIncluded) {
@@ -630,7 +755,12 @@ export const PDFConversations = ({
         </View>
       ) : (
         <TouchableOpacity
-          onLongPress={() => {
+          onLongPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             dispatch({type: LONG_PRESSED, body: true});
             let isStateIncluded = stateArr.includes(item?.state);
             if (isIncluded) {
@@ -651,7 +781,12 @@ export const PDFConversations = ({
               }
             }
           }}
-          onPress={() => {
+          onPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             let isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
@@ -695,7 +830,12 @@ export const PDFConversations = ({
       )}
       {item.attachment_count > 2 && !isFullList && (
         <TouchableOpacity
-          onLongPress={() => {
+          onLongPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             dispatch({type: LONG_PRESSED, body: true});
             let isStateIncluded = stateArr.includes(item?.state);
             if (isIncluded) {
@@ -716,7 +856,12 @@ export const PDFConversations = ({
               }
             }
           }}
-          onPress={() => {
+          onPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             let isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
@@ -778,7 +923,12 @@ export const ImageConversations = ({
     <View>
       {item?.attachment_count === 1 ? (
         <TouchableOpacity
-          onLongPress={() => {
+          onLongPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             dispatch({type: LONG_PRESSED, body: true});
             let isStateIncluded = stateArr.includes(item?.state);
             if (isIncluded) {
@@ -796,7 +946,12 @@ export const ImageConversations = ({
               }
             }
           }}
-          onPress={() => {
+          onPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             let isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
@@ -837,7 +992,12 @@ export const ImageConversations = ({
         <View style={styles.doubleImgParent}>
           <TouchableOpacity
             style={styles.touchableImg}
-            onLongPress={() => {
+            onLongPress={event => {
+              const {pageX, pageY} = event.nativeEvent;
+              dispatch({
+                type: SET_POSITION,
+                body: {pageX: pageX, pageY: pageY},
+              });
               dispatch({type: LONG_PRESSED, body: true});
               let isStateIncluded = stateArr.includes(item?.state);
               if (isIncluded) {
@@ -855,7 +1015,12 @@ export const ImageConversations = ({
                 }
               }
             }}
-            onPress={() => {
+            onPress={event => {
+              const {pageX, pageY} = event.nativeEvent;
+              dispatch({
+                type: SET_POSITION,
+                body: {pageX: pageX, pageY: pageY},
+              });
               let isStateIncluded = stateArr.includes(item?.state);
               if (isLongPress) {
                 if (isIncluded) {
@@ -894,7 +1059,12 @@ export const ImageConversations = ({
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.touchableImg}
-            onLongPress={() => {
+            onLongPress={event => {
+              const {pageX, pageY} = event.nativeEvent;
+              dispatch({
+                type: SET_POSITION,
+                body: {pageX: pageX, pageY: pageY},
+              });
               dispatch({type: LONG_PRESSED, body: true});
               let isStateIncluded = stateArr.includes(item?.state);
               if (isIncluded) {
@@ -912,7 +1082,12 @@ export const ImageConversations = ({
                 }
               }
             }}
-            onPress={() => {
+            onPress={event => {
+              const {pageX, pageY} = event.nativeEvent;
+              dispatch({
+                type: SET_POSITION,
+                body: {pageX: pageX, pageY: pageY},
+              });
               let isStateIncluded = stateArr.includes(item?.state);
               if (isLongPress) {
                 if (isIncluded) {
@@ -952,7 +1127,12 @@ export const ImageConversations = ({
         </View>
       ) : item?.attachment_count === 3 ? (
         <TouchableOpacity
-          onLongPress={() => {
+          onLongPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             dispatch({type: LONG_PRESSED, body: true});
             let isStateIncluded = stateArr.includes(item?.state);
             if (isIncluded) {
@@ -970,7 +1150,12 @@ export const ImageConversations = ({
               }
             }
           }}
-          onPress={() => {
+          onPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             let isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
@@ -1019,7 +1204,12 @@ export const ImageConversations = ({
         </TouchableOpacity>
       ) : item?.attachment_count > 3 ? (
         <TouchableOpacity
-          onLongPress={() => {
+          onLongPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             dispatch({type: LONG_PRESSED, body: true});
             let isStateIncluded = stateArr.includes(item?.state);
             if (isIncluded) {
@@ -1037,7 +1227,12 @@ export const ImageConversations = ({
               }
             }
           }}
-          onPress={() => {
+          onPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
             let isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
