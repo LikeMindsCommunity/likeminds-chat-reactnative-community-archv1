@@ -124,9 +124,9 @@ const InputBox = ({
       obj.id = Date.now();
       obj.chatroom_id = chatroomDetails?.chatroom.id;
       obj.community_id = community?.id;
-      obj.date = `${
-        time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
-      } ${months[time.getMonth()]} ${time.getFullYear()}`;
+      obj.date = `${time.getDate()} ${
+        months[time.getMonth()]
+      } ${time.getFullYear()}`;
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
