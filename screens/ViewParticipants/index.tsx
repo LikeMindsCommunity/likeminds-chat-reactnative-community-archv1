@@ -12,7 +12,7 @@ import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {myClient} from '../..';
-import { useAppSelector } from '../../store';
+import {useAppSelector} from '../../store';
 
 const ViewParticipants = ({navigation, route}: any) => {
   const [participants, setParticipants] = useState({} as any);
@@ -135,7 +135,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       chatroom_id: chatroomID,
       is_secret: isSecret,
       page: 1,
-      page_size: 50,
+      page_size: 10,
       participant_name: search,
     });
     setParticipants(res?.participants);
@@ -182,7 +182,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       chatroom_id: chatroomID,
       is_secret: isSecret,
       page: newPage,
-      page_size: 50,
+      page_size: 10,
       participant_name: search,
     };
     let response = myClient.viewParticipants(payload);
@@ -194,7 +194,7 @@ const ViewParticipants = ({navigation, route}: any) => {
     setTimeout(async () => {
       const res = await updateData(newPage);
       if (!!res) {
-        setParticipants([...participants, res?.participants]);
+        setParticipants([...participants, ...res?.participants]);
         setIsLoading(false);
       }
     }, 1500);
@@ -206,7 +206,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       if (
         arr?.length % 10 === 0 &&
         arr?.length > 0 &&
-        arr?.length === 50 * page
+        arr?.length === 10 * page
       ) {
         let newPage = page + 1;
         loadData(newPage);
@@ -228,7 +228,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       <FlatList
         data={participants}
         ListHeaderComponent={() =>
-          (isSecret && user?.state === 1) ? (
+          isSecret && user?.state === 1 ? (
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('AddParticipants', {
@@ -277,6 +277,12 @@ const ViewParticipants = ({navigation, route}: any) => {
               <View style={styles.infoContainer}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
+                  {!!item?.custom_title ? (
+                      <Text
+                        style={
+                          styles.messageCustomTitle
+                        }>{` • ${item?.custom_title}`}</Text>
+                    ) : null}
                 </Text>
               </View>
             </View>
