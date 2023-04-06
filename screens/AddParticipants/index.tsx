@@ -310,6 +310,12 @@ const AddParticipants = ({navigation, route}: any) => {
               <View style={styles.infoContainer}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
+                  {!!item?.custom_title ? (
+                      <Text
+                        style={
+                          styles.messageCustomTitle
+                        }>{` • ${item?.custom_title}`}</Text>
+                    ) : null}
                 </Text>
               </View>
             </TouchableOpacity>

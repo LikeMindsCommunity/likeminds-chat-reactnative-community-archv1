@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
   },
   title: {
     fontSize: STYLES.$FONT_SIZES.LARGE,
-    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
   },
   participantsTitle: {
@@ -66,5 +66,10 @@ export const styles = StyleSheet.create({
     marginBottom: 2,
     // backgroundColor: 'pink',
     width: Layout.window.width - 150
+  },
+  messageCustomTitle: {
+    color: STYLES.$COLORS.SECONDARY,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
   },
 });
