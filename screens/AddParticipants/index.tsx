@@ -192,7 +192,7 @@ const AddParticipants = ({navigation, route}: any) => {
       search: search,
       search_type: 'name',
       page: searchPage,
-      page_size: 20,
+      page_size: 10,
     });
     setSearchedParticipants(res?.members);
   };
@@ -217,7 +217,7 @@ const AddParticipants = ({navigation, route}: any) => {
         search: search,
         search_type: 'name',
         page: newPage,
-        page_size: 20,
+        page_size: 10,
       });
       return res;
     } else {
@@ -232,14 +232,14 @@ const AddParticipants = ({navigation, route}: any) => {
       const res = await updateData(newPage);
       if (!!res) {
         if (isSearch) {
-          setSearchedParticipants([...searchedParticipants, res?.members]);
+          setSearchedParticipants([...searchedParticipants, ...res?.members]);
         } else {
-          setParticipants([...participants, res?.members]);
+          setParticipants([...participants, ...res?.members]);
         }
 
         setIsLoading(false);
       }
-    }, 1500);
+    }, 500);
   };
 
   const handleLoadMore = async () => {
@@ -248,7 +248,7 @@ const AddParticipants = ({navigation, route}: any) => {
       if (
         arr?.length % 10 === 0 &&
         arr?.length > 0 &&
-        arr?.length === 50 * page
+        arr?.length === 10 * page
       ) {
         let newPage = isSearch ? searchPage + 1 : page + 1;
         loadData(newPage);
