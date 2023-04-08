@@ -7,7 +7,11 @@ import ReplyConversations from '../ReplyConversations';
 import AttachmentConversations from '../AttachmentConversations';
 import ReactionGridModal from '../ReactionGridModal';
 import {useAppDispatch, useAppSelector} from '../../store';
-import {SET_POSITION} from '../../store/types/types';
+import {
+  LONG_PRESSED,
+  SELECTED_MESSAGES,
+  SET_POSITION,
+} from '../../store/types/types';
 
 interface Messages {
   item: any;
@@ -27,6 +31,9 @@ const Messages = ({
   longPressOpenKeyboard,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
+  const {selectedMessages, isLongPress} = useAppSelector(
+    state => state.chatroom,
+  );
   const [modalVisible, setModalVisible] = useState(false);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
   const stateArr = [1, 2, 3, 7, 8, 9]; //states for person started, left, joined, added, removed messages.
@@ -207,17 +214,65 @@ const Messages = ({
       {!item?.deleted_by ? (
         reactionLen > 0 && reactionLen <= 2 ? (
           <View
-            style={
+            style={[
               isTypeSent
                 ? styles.reactionSentParent
-                : styles.reactionReceivedParent
-            }>
+                : styles.reactionReceivedParent,
+            ]}>
             {reactionArr.map((val: any, index: any) => (
               <TouchableOpacity
-                onPress={() => {
-                  setModalVisible(true);
+                onLongPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
+                  longPressOpenKeyboard();
                 }}
-                style={styles.reaction}
+                onPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
+                  let isStateIncluded = stateArr.includes(item?.state);
+                  if (isLongPress) {
+                    if (isIncluded) {
+                      const filterdMessages = selectedMessages.filter(
+                        (val: any) =>
+                          val?.id !== item?.id &&
+                          !stateArr.includes(val?.state),
+                      );
+                      if (filterdMessages.length > 0) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                      } else {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...filterdMessages],
+                        });
+                        dispatch({type: LONG_PRESSED, body: false});
+                      }
+                    } else {
+                      if (!isStateIncluded) {
+                        dispatch({
+                          type: SELECTED_MESSAGES,
+                          body: [...selectedMessages, item],
+                        });
+                      }
+                    }
+                  } else {
+                    setModalVisible(true);
+                  }
+                }}
+                style={[
+                  styles.reaction,
+                  isIncluded
+                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                    : {backgroundColor: 'white'},
+                ]}
                 key={val + index}>
                 <Text>{val?.reaction}</Text>
                 <Text style={styles.messageText}>{val?.memberArr?.length}</Text>
@@ -232,30 +287,171 @@ const Messages = ({
                 : styles.reactionReceivedParent
             }>
             <TouchableOpacity
-              onPress={() => {
-                setModalVisible(true);
+              onLongPress={event => {
+                const {pageX, pageY} = event.nativeEvent;
+                dispatch({
+                  type: SET_POSITION,
+                  body: {pageX: pageX, pageY: pageY},
+                });
+                longPressOpenKeyboard();
               }}
-              style={styles.reaction}>
+              onPress={event => {
+                const {pageX, pageY} = event.nativeEvent;
+                dispatch({
+                  type: SET_POSITION,
+                  body: {pageX: pageX, pageY: pageY},
+                });
+                let isStateIncluded = stateArr.includes(item?.state);
+                if (isLongPress) {
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    if (filterdMessages.length > 0) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...filterdMessages],
+                      });
+                    } else {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...filterdMessages],
+                      });
+                      dispatch({type: LONG_PRESSED, body: false});
+                    }
+                  } else {
+                    if (!isStateIncluded) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
+                    }
+                  }
+                } else {
+                  setModalVisible(true);
+                }
+              }}
+              style={[
+                styles.reaction,
+                isIncluded
+                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                  : {backgroundColor: 'white'},
+              ]}>
               <Text>{reactionArr[0]?.reaction}</Text>
               <Text style={styles.messageText}>
                 {reactionArr[0]?.memberArr?.length}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => {
-                setModalVisible(true);
+              onLongPress={event => {
+                const {pageX, pageY} = event.nativeEvent;
+                dispatch({
+                  type: SET_POSITION,
+                  body: {pageX: pageX, pageY: pageY},
+                });
+                longPressOpenKeyboard();
               }}
-              style={styles.reaction}>
+              onPress={event => {
+                const {pageX, pageY} = event.nativeEvent;
+                dispatch({
+                  type: SET_POSITION,
+                  body: {pageX: pageX, pageY: pageY},
+                });
+                let isStateIncluded = stateArr.includes(item?.state);
+                if (isLongPress) {
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    if (filterdMessages.length > 0) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...filterdMessages],
+                      });
+                    } else {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...filterdMessages],
+                      });
+                      dispatch({type: LONG_PRESSED, body: false});
+                    }
+                  } else {
+                    if (!isStateIncluded) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
+                    }
+                  }
+                } else {
+                  setModalVisible(true);
+                }
+              }}
+              style={[
+                styles.reaction,
+                isIncluded
+                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                  : {backgroundColor: 'white'},
+              ]}>
               <Text>{reactionArr[1]?.reaction}</Text>
               <Text style={styles.messageText}>
                 {reactionArr[1]?.memberArr?.length}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => {
-                setModalVisible(true);
+              onLongPress={event => {
+                const {pageX, pageY} = event.nativeEvent;
+                dispatch({
+                  type: SET_POSITION,
+                  body: {pageX: pageX, pageY: pageY},
+                });
+                longPressOpenKeyboard();
               }}
-              style={styles.moreReaction}>
+              onPress={event => {
+                const {pageX, pageY} = event.nativeEvent;
+                dispatch({
+                  type: SET_POSITION,
+                  body: {pageX: pageX, pageY: pageY},
+                });
+                let isStateIncluded = stateArr.includes(item?.state);
+                if (isLongPress) {
+                  if (isIncluded) {
+                    const filterdMessages = selectedMessages.filter(
+                      (val: any) =>
+                        val?.id !== item?.id && !stateArr.includes(val?.state),
+                    );
+                    if (filterdMessages.length > 0) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...filterdMessages],
+                      });
+                    } else {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...filterdMessages],
+                      });
+                      dispatch({type: LONG_PRESSED, body: false});
+                    }
+                  } else {
+                    if (!isStateIncluded) {
+                      dispatch({
+                        type: SELECTED_MESSAGES,
+                        body: [...selectedMessages, item],
+                      });
+                    }
+                  }
+                } else {
+                  setModalVisible(true);
+                }
+              }}
+              style={[
+                styles.moreReaction,
+                isIncluded
+                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                  : {backgroundColor: STYLES.$COLORS.TERTIARY},
+              ]}>
               <View>
                 <Image
                   style={{
