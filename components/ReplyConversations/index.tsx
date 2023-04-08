@@ -101,6 +101,52 @@ const ReplyConversations = ({
   const dispatch = useAppDispatch();
   const {conversations, selectedMessages, stateArr, isLongPress} =
     useAppSelector(state => state.chatroom);
+
+  const handleLongPress = (event: any) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    longPressOpenKeyboard();
+  };
+
+  const handleOnPress = () => {
+    let isStateIncluded = stateArr.includes(item?.state);
+    if (isLongPress) {
+      if (isIncluded) {
+        const filterdMessages = selectedMessages.filter(
+          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+        );
+        if (filterdMessages.length > 0) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+        } else {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+          dispatch({type: LONG_PRESSED, body: false});
+        }
+      } else {
+        if (!isStateIncluded) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...selectedMessages, item],
+          });
+        }
+      }
+    } else {
+      let index = conversations.findIndex(
+        (element: any) => element?.id === item?.reply_conversation_object?.id,
+      );
+      if (index >= 0) {
+        onScrollToIndex(index);
+      }
+    }
+  };
   return (
     <View
       style={[
@@ -115,53 +161,7 @@ const ReplyConversations = ({
           isTypeSent ? styles.sentMessage : styles.receivedMessage,
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
-        <TouchableOpacity
-          onLongPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            longPressOpenKeyboard();
-          }}
-          onPress={() => {
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isLongPress) {
-              if (isIncluded) {
-                const filterdMessages = selectedMessages.filter(
-                  (val: any) =>
-                    val?.id !== item?.id && !stateArr.includes(val?.state),
-                );
-                if (filterdMessages.length > 0) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...filterdMessages],
-                  });
-                } else {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...filterdMessages],
-                  });
-                  dispatch({type: LONG_PRESSED, body: false});
-                }
-              } else {
-                if (!isStateIncluded) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...selectedMessages, item],
-                  });
-                }
-              }
-            } else {
-              let index = conversations.findIndex(
-                (element: any) =>
-                  element?.id === item?.reply_conversation_object?.id,
-              );
-              if (index >= 0) {
-                onScrollToIndex(index);
-              }
-            }
-          }}>
+        <TouchableOpacity onLongPress={handleLongPress} onPress={handleOnPress}>
           <ReplyBox
             isIncluded={isIncluded}
             item={item?.reply_conversation_object}
@@ -175,14 +175,7 @@ const ReplyConversations = ({
       {(reactionArr.length > 0 || item?.answer?.split('').length > 100) &&
       !isTypeSent ? (
         <Pressable
-          onLongPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            longPressOpenKeyboard();
-          }}
+          onLongPress={handleLongPress}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({

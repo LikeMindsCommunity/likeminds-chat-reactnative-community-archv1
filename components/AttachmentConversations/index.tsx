@@ -137,6 +137,52 @@ export const VideoConversations = ({
     state => state.chatroom,
   );
   const [isFullList, setIsFullList] = useState(false);
+
+  const handleLongPress = (event: any) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    longPressOpenKeyboard();
+  };
+
+  const handleOnPress = (event: any, url: string) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    let isStateIncluded = stateArr.includes(item?.state);
+    if (isLongPress) {
+      if (isIncluded) {
+        const filterdMessages = selectedMessages.filter(
+          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+        );
+        if (filterdMessages.length > 0) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+        } else {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+          dispatch({type: LONG_PRESSED, body: false});
+        }
+      } else {
+        if (!isStateIncluded) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...selectedMessages, item],
+          });
+        }
+      }
+    } else {
+      Linking.openURL(url);
+    }
+  };
   return (
     <View>
       {item?.attachment_count > 1 ? (
@@ -144,51 +190,9 @@ export const VideoConversations = ({
           {!isFullList ? (
             <View>
               <TouchableOpacity
-                onLongPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  longPressOpenKeyboard();
-                }}
+                onLongPress={handleLongPress}
                 onPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isLongPress) {
-                    if (isIncluded) {
-                      const filterdMessages = selectedMessages.filter(
-                        (val: any) =>
-                          val?.id !== item?.id &&
-                          !stateArr.includes(val?.state),
-                      );
-                      if (filterdMessages.length > 0) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                      } else {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                        dispatch({type: LONG_PRESSED, body: false});
-                      }
-                    } else {
-                      if (!isStateIncluded) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...selectedMessages, item],
-                        });
-                      }
-                    }
-                  } else {
-                    Linking.openURL(item?.attachments[0]?.url);
-                  }
+                  handleOnPress(event, item?.attachments[0]?.url);
                 }}
                 style={styles.alignRow}>
                 <Image
@@ -200,51 +204,9 @@ export const VideoConversations = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onLongPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  longPressOpenKeyboard();
-                }}
+                onLongPress={handleLongPress}
                 onPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isLongPress) {
-                    if (isIncluded) {
-                      const filterdMessages = selectedMessages.filter(
-                        (val: any) =>
-                          val?.id !== item?.id &&
-                          !stateArr.includes(val?.state),
-                      );
-                      if (filterdMessages.length > 0) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                      } else {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                        dispatch({type: LONG_PRESSED, body: false});
-                      }
-                    } else {
-                      if (!isStateIncluded) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...selectedMessages, item],
-                        });
-                      }
-                    }
-                  } else {
-                    Linking.openURL(item?.attachments[1]?.url);
-                  }
+                  handleOnPress(event, item?.attachments[1]?.url);
                 }}
                 style={styles.alignRow}>
                 <Image
@@ -259,51 +221,9 @@ export const VideoConversations = ({
           ) : (
             item?.attachments.map((val: any, index: number) => (
               <TouchableOpacity
-                onLongPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  longPressOpenKeyboard();
-                }}
+                onLongPress={handleLongPress}
                 onPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isLongPress) {
-                    if (isIncluded) {
-                      const filterdMessages = selectedMessages.filter(
-                        (val: any) =>
-                          val?.id !== item?.id &&
-                          !stateArr.includes(val?.state),
-                      );
-                      if (filterdMessages.length > 0) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                      } else {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                        dispatch({type: LONG_PRESSED, body: false});
-                      }
-                    } else {
-                      if (!isStateIncluded) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...selectedMessages, item],
-                        });
-                      }
-                    }
-                  } else {
-                    Linking.openURL(val?.url);
-                  }
+                  handleOnPress(event, val?.url);
                 }}
                 key={val + index}
                 style={styles.alignRow}>
@@ -320,50 +240,9 @@ export const VideoConversations = ({
         </View>
       ) : (
         <TouchableOpacity
-          onLongPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            longPressOpenKeyboard();
-          }}
+          onLongPress={handleLongPress}
           onPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isLongPress) {
-              if (isIncluded) {
-                const filterdMessages = selectedMessages.filter(
-                  (val: any) =>
-                    val?.id !== item?.id && !stateArr.includes(val?.state),
-                );
-                if (filterdMessages.length > 0) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...filterdMessages],
-                  });
-                } else {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...filterdMessages],
-                  });
-                  dispatch({type: LONG_PRESSED, body: false});
-                }
-              } else {
-                if (!isStateIncluded) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...selectedMessages, item],
-                  });
-                }
-              }
-            } else {
-              Linking.openURL(item?.attachments[0]?.url);
-            }
+            handleOnPress(event, item?.attachments[0]?.url);
           }}
           style={styles.alignRow}>
           <Image
@@ -377,14 +256,7 @@ export const VideoConversations = ({
       )}
       {item.attachment_count > 2 && !isFullList && (
         <TouchableOpacity
-          onLongPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            longPressOpenKeyboard();
-          }}
+          onLongPress={handleLongPress}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
@@ -442,6 +314,51 @@ export const PDFConversations = ({
     state => state.chatroom,
   );
   const [isFullList, setIsFullList] = useState(false);
+  const handleLongPress = (event: any) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    longPressOpenKeyboard();
+  };
+
+  const handleOnPress = (event: any, url: string) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    let isStateIncluded = stateArr.includes(item?.state);
+    if (isLongPress) {
+      if (isIncluded) {
+        const filterdMessages = selectedMessages.filter(
+          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+        );
+        if (filterdMessages.length > 0) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+        } else {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+          dispatch({type: LONG_PRESSED, body: false});
+        }
+      } else {
+        if (!isStateIncluded) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...selectedMessages, item],
+          });
+        }
+      }
+    } else {
+      Linking.openURL(url);
+    }
+  };
   return (
     <View>
       {item?.attachment_count > 1 ? (
@@ -449,51 +366,9 @@ export const PDFConversations = ({
           {!isFullList ? (
             <View>
               <TouchableOpacity
-                onLongPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  longPressOpenKeyboard();
-                }}
+                onLongPress={handleLongPress}
                 onPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isLongPress) {
-                    if (isIncluded) {
-                      const filterdMessages = selectedMessages.filter(
-                        (val: any) =>
-                          val?.id !== item?.id &&
-                          !stateArr.includes(val?.state),
-                      );
-                      if (filterdMessages.length > 0) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                      } else {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                        dispatch({type: LONG_PRESSED, body: false});
-                      }
-                    } else {
-                      if (!isStateIncluded) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...selectedMessages, item],
-                        });
-                      }
-                    }
-                  } else {
-                    Linking.openURL(item?.attachments[0]?.url);
-                  }
+                  handleOnPress(event, item?.attachments[0]?.url);
                 }}
                 style={styles.alignRow}>
                 <Image
@@ -505,51 +380,9 @@ export const PDFConversations = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onLongPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  longPressOpenKeyboard();
-                }}
+                onLongPress={handleLongPress}
                 onPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isLongPress) {
-                    if (isIncluded) {
-                      const filterdMessages = selectedMessages.filter(
-                        (val: any) =>
-                          val?.id !== item?.id &&
-                          !stateArr.includes(val?.state),
-                      );
-                      if (filterdMessages.length > 0) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                      } else {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                        dispatch({type: LONG_PRESSED, body: false});
-                      }
-                    } else {
-                      if (!isStateIncluded) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...selectedMessages, item],
-                        });
-                      }
-                    }
-                  } else {
-                    Linking.openURL(item?.attachments[1]?.url);
-                  }
+                  handleOnPress(event, item?.attachments[1]?.url);
                 }}
                 style={styles.alignRow}>
                 <Image
@@ -564,51 +397,9 @@ export const PDFConversations = ({
           ) : (
             item?.attachments.map((val: any, index: number) => (
               <TouchableOpacity
-                onLongPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  longPressOpenKeyboard();
-                }}
+                onLongPress={handleLongPress}
                 onPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isLongPress) {
-                    if (isIncluded) {
-                      const filterdMessages = selectedMessages.filter(
-                        (val: any) =>
-                          val?.id !== item?.id &&
-                          !stateArr.includes(val?.state),
-                      );
-                      if (filterdMessages.length > 0) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                      } else {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                        dispatch({type: LONG_PRESSED, body: false});
-                      }
-                    } else {
-                      if (!isStateIncluded) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...selectedMessages, item],
-                        });
-                      }
-                    }
-                  } else {
-                    Linking.openURL(val?.url);
-                  }
+                  handleOnPress(event, val?.url);
                 }}
                 key={val + index}
                 style={styles.alignRow}>
@@ -625,50 +416,9 @@ export const PDFConversations = ({
         </View>
       ) : (
         <TouchableOpacity
-          onLongPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            longPressOpenKeyboard();
-          }}
+          onLongPress={handleLongPress}
           onPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isLongPress) {
-              if (isIncluded) {
-                const filterdMessages = selectedMessages.filter(
-                  (val: any) =>
-                    val?.id !== item?.id && !stateArr.includes(val?.state),
-                );
-                if (filterdMessages.length > 0) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...filterdMessages],
-                  });
-                } else {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...filterdMessages],
-                  });
-                  dispatch({type: LONG_PRESSED, body: false});
-                }
-              } else {
-                if (!isStateIncluded) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...selectedMessages, item],
-                  });
-                }
-              }
-            } else {
-              Linking.openURL(item?.attachments[0]?.url);
-            }
+            handleOnPress(event, item?.attachments[0]?.url);
           }}
           style={styles.alignRow}>
           <Image
@@ -682,14 +432,7 @@ export const PDFConversations = ({
       )}
       {item.attachment_count > 2 && !isFullList && (
         <TouchableOpacity
-          onLongPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            longPressOpenKeyboard();
-          }}
+          onLongPress={handleLongPress}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
@@ -755,54 +498,59 @@ export const ImageConversations = ({
   const {selectedMessages, stateArr, isLongPress} = useAppSelector(
     state => state.chatroom,
   );
+  const handleLongPress = (event: any) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    longPressOpenKeyboard();
+  };
+
+  const handleOnPress = (event: any, url: string) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    let isStateIncluded = stateArr.includes(item?.state);
+    if (isLongPress) {
+      if (isIncluded) {
+        const filterdMessages = selectedMessages.filter(
+          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+        );
+        if (filterdMessages.length > 0) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+        } else {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+          dispatch({type: LONG_PRESSED, body: false});
+        }
+      } else {
+        if (!isStateIncluded) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...selectedMessages, item],
+          });
+        }
+      }
+    } else {
+      Linking.openURL(url);
+    }
+  };
+
   return (
     <View>
       {item?.attachment_count === 1 ? (
         <TouchableOpacity
-          onLongPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            longPressOpenKeyboard();
-          }}
+          onLongPress={handleLongPress}
           onPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isLongPress) {
-              if (isIncluded) {
-                const filterdMessages = selectedMessages.filter(
-                  (val: any) =>
-                    val?.id !== item?.id && !stateArr.includes(val?.state),
-                );
-                if (filterdMessages.length > 0) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...filterdMessages],
-                  });
-                } else {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...filterdMessages],
-                  });
-                  dispatch({type: LONG_PRESSED, body: false});
-                }
-              } else {
-                if (!isStateIncluded) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...selectedMessages, item],
-                  });
-                }
-              }
-            } else {
-              Linking.openURL(item?.attachments[0]?.url);
-            }
+            handleOnPress(event, item?.attachments[0]?.url);
           }}>
           <Image
             style={styles.singleImg}
@@ -813,50 +561,9 @@ export const ImageConversations = ({
         <View style={styles.doubleImgParent}>
           <TouchableOpacity
             style={styles.touchableImg}
-            onLongPress={event => {
-              const {pageX, pageY} = event.nativeEvent;
-              dispatch({
-                type: SET_POSITION,
-                body: {pageX: pageX, pageY: pageY},
-              });
-              longPressOpenKeyboard();
-            }}
+            onLongPress={handleLongPress}
             onPress={event => {
-              const {pageX, pageY} = event.nativeEvent;
-              dispatch({
-                type: SET_POSITION,
-                body: {pageX: pageX, pageY: pageY},
-              });
-              let isStateIncluded = stateArr.includes(item?.state);
-              if (isLongPress) {
-                if (isIncluded) {
-                  const filterdMessages = selectedMessages.filter(
-                    (val: any) =>
-                      val?.id !== item?.id && !stateArr.includes(val?.state),
-                  );
-                  if (filterdMessages.length > 0) {
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                    dispatch({type: LONG_PRESSED, body: false});
-                  }
-                } else {
-                  if (!isStateIncluded) {
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...selectedMessages, item],
-                    });
-                  }
-                }
-              } else {
-                Linking.openURL(item?.attachments[0]?.url);
-              }
+              handleOnPress(event, item?.attachments[0]?.url);
             }}>
             <Image
               source={{uri: item.attachments[0].url}}
@@ -865,50 +572,9 @@ export const ImageConversations = ({
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.touchableImg}
-            onLongPress={event => {
-              const {pageX, pageY} = event.nativeEvent;
-              dispatch({
-                type: SET_POSITION,
-                body: {pageX: pageX, pageY: pageY},
-              });
-              longPressOpenKeyboard();
-            }}
+            onLongPress={handleLongPress}
             onPress={event => {
-              const {pageX, pageY} = event.nativeEvent;
-              dispatch({
-                type: SET_POSITION,
-                body: {pageX: pageX, pageY: pageY},
-              });
-              let isStateIncluded = stateArr.includes(item?.state);
-              if (isLongPress) {
-                if (isIncluded) {
-                  const filterdMessages = selectedMessages.filter(
-                    (val: any) =>
-                      val?.id !== item?.id && !stateArr.includes(val?.state),
-                  );
-                  if (filterdMessages.length > 0) {
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                    dispatch({type: LONG_PRESSED, body: false});
-                  }
-                } else {
-                  if (!isStateIncluded) {
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...selectedMessages, item],
-                    });
-                  }
-                }
-              } else {
-                Linking.openURL(item?.attachments[0]?.url);
-              }
+              handleOnPress(event, item?.attachments[0]?.url);
             }}>
             <Image
               source={{uri: item.attachments[1].url}}
@@ -918,14 +584,7 @@ export const ImageConversations = ({
         </View>
       ) : item?.attachment_count === 3 ? (
         <TouchableOpacity
-          onLongPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            longPressOpenKeyboard();
-          }}
+          onLongPress={handleLongPress}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
@@ -980,14 +639,7 @@ export const ImageConversations = ({
         </TouchableOpacity>
       ) : item?.attachment_count > 3 ? (
         <TouchableOpacity
-          onLongPress={event => {
-            const {pageX, pageY} = event.nativeEvent;
-            dispatch({
-              type: SET_POSITION,
-              body: {pageX: pageX, pageY: pageY},
-            });
-            longPressOpenKeyboard();
-          }}
+          onLongPress={handleLongPress}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
