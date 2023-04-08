@@ -15,6 +15,7 @@ import {
   Modal,
   BackHandler,
   ScrollView,
+  Platform,
 } from 'react-native';
 import {myClient} from '../..';
 import {copySelectedMessages} from '../../commonFuctions';
@@ -52,6 +53,7 @@ import {
 import {getExploreFeedData} from '../../store/actions/explorefeed';
 import Layout from '../../constants/Layout';
 import EmojiPicker, {EmojiKeyboard} from 'rn-emoji-keyboard';
+import {dummyData} from '../../assets/dummyRes/dummyData';
 interface Data {
   id: string;
   title: string;
@@ -830,6 +832,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       );
       if (isReactedArr.length > 0) {
         // Reacted different emoji
+        console.log('isReactedArr ==', isReactedArr, val);
         if (isReactedArr[0].reaction !== val) {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
             element?.member?.id === user?.id
@@ -844,6 +847,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 }
               : element,
           );
+          console.log('resultArr =', resultArr);
           changedMsg = {
             ...selectedMessages[0],
             reactions: resultArr,
@@ -905,6 +909,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ],
       };
     }
+
+    // console.log('changedMsg ==', changedMsg);
     dispatch({
       type: REACTION_SENT,
       body: {
@@ -988,6 +994,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }
       }
     } else if (emojiClicked) {
+      dispatch({type: LONG_PRESSED, body: true});
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
           (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
@@ -1026,6 +1033,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     <View style={styles.container}>
       <FlatList
         ref={flatlistRef}
+        // data={dummyData?.my_chatrooms}
         data={conversations}
         keyExtractor={item => {
           return item?.id?.toString();
@@ -1095,7 +1103,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         getItemLayout={(data, index) => {
-          console.log('data -- getItemLayout ==', data);
+          // console.log('data -- getItemLayout ==', data);
           const output = getItemLayout(data, index);
           return output;
         }}
@@ -1287,11 +1295,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               style={[
                 styles.reactionModalView,
                 {
-                  // left: 20,
-                  // right:20,
                   top:
                     position.y > Layout.window.height / 2
-                      ? position.y - 150
+                      ? Platform.OS === 'ios'
+                        ? position.y - 150
+                        : position.y - 100
                       : position.y - 10,
                 },
               ]}>

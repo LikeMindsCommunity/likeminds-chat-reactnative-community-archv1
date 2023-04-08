@@ -110,7 +110,12 @@ const Messages = ({
               </View>
             ) : (
               <View
-                style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                style={[
+                  styles.alignMessage,
+                  {
+                    justifyContent: isTypeSent ? 'flex-end' : 'flex-start',
+                  },
+                ]}>
                 <View
                   style={[
                     styles.message,
@@ -133,8 +138,9 @@ const Messages = ({
                   <Text>{decode(item?.answer, true)}</Text>
                   <Text style={styles.messageDate}>{item?.created_at}</Text>
                 </View>
-                {reactionArr.length > 0 ||
-                item?.answer.split('').length > 100 ? (
+                {(reactionArr.length > 0 ||
+                  item?.answer?.split('').length > 100) &&
+                !isTypeSent ? (
                   <Pressable
                     onLongPress={event => {
                       const {pageX, pageY} = event.nativeEvent;

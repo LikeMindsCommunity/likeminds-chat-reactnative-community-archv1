@@ -36,7 +36,13 @@ const AttachmentConversations = ({
 }: AttachmentConversations) => {
   const dispatch = useAppDispatch();
   return (
-    <View style={styles.displayRow}>
+    <View
+      style={[
+        styles.displayRow,
+        {
+          justifyContent: isTypeSent ? 'flex-end' : 'flex-start',
+        },
+      ]}>
       <View
         style={[
           styles.attachmentMessage,
@@ -49,18 +55,21 @@ const AttachmentConversations = ({
             item={item}
             isTypeSent={isTypeSent}
             navigation={navigation}
+            longPressOpenKeyboard={longPressOpenKeyboard}
           />
         ) : item?.attachments[0]?.type === 'pdf' ? (
           <PDFConversations
             isIncluded={isIncluded}
             item={item}
             isTypeSent={isTypeSent}
+            longPressOpenKeyboard={longPressOpenKeyboard}
           />
         ) : item?.attachments[0]?.type === 'video' ? (
           <VideoConversations
             isIncluded={isIncluded}
             item={item}
             isTypeSent={isTypeSent}
+            longPressOpenKeyboard={longPressOpenKeyboard}
           />
         ) : item?.attachments[0]?.type === 'audio' ? (
           <View>
@@ -76,32 +85,34 @@ const AttachmentConversations = ({
         <Text style={styles.messageDate}>{item?.created_at}</Text>
       </View>
 
-      <Pressable
-        onLongPress={event => {
-          const {pageX, pageY} = event.nativeEvent;
-          dispatch({
-            type: SET_POSITION,
-            body: {pageX: pageX, pageY: pageY},
-          });
-          longPressOpenKeyboard();
-        }}
-        onPress={event => {
-          const {pageX, pageY} = event.nativeEvent;
-          dispatch({
-            type: SET_POSITION,
-            body: {pageX: pageX, pageY: pageY},
-          });
-          openKeyboard();
-        }}>
-        <Image
-          style={{
-            height: 25,
-            width: 25,
-            resizeMode: 'contain',
+      {!isTypeSent ? (
+        <Pressable
+          onLongPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
+            longPressOpenKeyboard();
           }}
-          source={require('../../assets/images/add_more_emojis3x.png')}
-        />
-      </Pressable>
+          onPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
+            openKeyboard();
+          }}>
+          <Image
+            style={{
+              height: 25,
+              width: 25,
+              resizeMode: 'contain',
+            }}
+            source={require('../../assets/images/add_more_emojis3x.png')}
+          />
+        </Pressable>
+      ) : null}
     </View>
   );
 };
@@ -112,12 +123,14 @@ interface PDFConversations {
   item: any;
   isTypeSent: boolean;
   isIncluded: boolean;
+  longPressOpenKeyboard: any;
 }
 
 export const VideoConversations = ({
   item,
   isTypeSent,
   isIncluded,
+  longPressOpenKeyboard,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress} = useAppSelector(
@@ -137,25 +150,7 @@ export const VideoConversations = ({
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  dispatch({type: LONG_PRESSED, body: true});
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isIncluded) {
-                    const filterdMessages = selectedMessages.filter(
-                      (val: any) =>
-                        val?.id !== item?.id && !stateArr.includes(val?.state),
-                    );
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    if (!isStateIncluded) {
-                      dispatch({
-                        type: SELECTED_MESSAGES,
-                        body: [...selectedMessages, item],
-                      });
-                    }
-                  }
+                  longPressOpenKeyboard();
                 }}
                 onPress={event => {
                   const {pageX, pageY} = event.nativeEvent;
@@ -211,25 +206,7 @@ export const VideoConversations = ({
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  dispatch({type: LONG_PRESSED, body: true});
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isIncluded) {
-                    const filterdMessages = selectedMessages.filter(
-                      (val: any) =>
-                        val?.id !== item?.id && !stateArr.includes(val?.state),
-                    );
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    if (!isStateIncluded) {
-                      dispatch({
-                        type: SELECTED_MESSAGES,
-                        body: [...selectedMessages, item],
-                      });
-                    }
-                  }
+                  longPressOpenKeyboard();
                 }}
                 onPress={event => {
                   const {pageX, pageY} = event.nativeEvent;
@@ -288,25 +265,7 @@ export const VideoConversations = ({
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  dispatch({type: LONG_PRESSED, body: true});
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isIncluded) {
-                    const filterdMessages = selectedMessages.filter(
-                      (val: any) =>
-                        val?.id !== item?.id && !stateArr.includes(val?.state),
-                    );
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    if (!isStateIncluded) {
-                      dispatch({
-                        type: SELECTED_MESSAGES,
-                        body: [...selectedMessages, item],
-                      });
-                    }
-                  }
+                  longPressOpenKeyboard();
                 }}
                 onPress={event => {
                   const {pageX, pageY} = event.nativeEvent;
@@ -367,25 +326,7 @@ export const VideoConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            dispatch({type: LONG_PRESSED, body: true});
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isIncluded) {
-              const filterdMessages = selectedMessages.filter(
-                (val: any) =>
-                  val?.id !== item?.id && !stateArr.includes(val?.state),
-              );
-              dispatch({
-                type: SELECTED_MESSAGES,
-                body: [...filterdMessages],
-              });
-            } else {
-              if (!isStateIncluded) {
-                dispatch({
-                  type: SELECTED_MESSAGES,
-                  body: [...selectedMessages, item],
-                });
-              }
-            }
+            longPressOpenKeyboard();
           }}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
@@ -442,25 +383,7 @@ export const VideoConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            dispatch({type: LONG_PRESSED, body: true});
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isIncluded) {
-              const filterdMessages = selectedMessages.filter(
-                (val: any) =>
-                  val?.id !== item?.id && !stateArr.includes(val?.state),
-              );
-              dispatch({
-                type: SELECTED_MESSAGES,
-                body: [...filterdMessages],
-              });
-            } else {
-              if (!isStateIncluded) {
-                dispatch({
-                  type: SELECTED_MESSAGES,
-                  body: [...selectedMessages, item],
-                });
-              }
-            }
+            longPressOpenKeyboard();
           }}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
@@ -512,6 +435,7 @@ export const PDFConversations = ({
   item,
   isTypeSent,
   isIncluded,
+  longPressOpenKeyboard,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress} = useAppSelector(
@@ -531,25 +455,7 @@ export const PDFConversations = ({
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  dispatch({type: LONG_PRESSED, body: true});
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isIncluded) {
-                    const filterdMessages = selectedMessages.filter(
-                      (val: any) =>
-                        val?.id !== item?.id && !stateArr.includes(val?.state),
-                    );
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    if (!isStateIncluded) {
-                      dispatch({
-                        type: SELECTED_MESSAGES,
-                        body: [...selectedMessages, item],
-                      });
-                    }
-                  }
+                  longPressOpenKeyboard();
                 }}
                 onPress={event => {
                   const {pageX, pageY} = event.nativeEvent;
@@ -605,25 +511,7 @@ export const PDFConversations = ({
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  dispatch({type: LONG_PRESSED, body: true});
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isIncluded) {
-                    const filterdMessages = selectedMessages.filter(
-                      (val: any) =>
-                        val?.id !== item?.id && !stateArr.includes(val?.state),
-                    );
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    if (!isStateIncluded) {
-                      dispatch({
-                        type: SELECTED_MESSAGES,
-                        body: [...selectedMessages, item],
-                      });
-                    }
-                  }
+                  longPressOpenKeyboard();
                 }}
                 onPress={event => {
                   const {pageX, pageY} = event.nativeEvent;
@@ -682,25 +570,7 @@ export const PDFConversations = ({
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  dispatch({type: LONG_PRESSED, body: true});
-                  let isStateIncluded = stateArr.includes(item?.state);
-                  if (isIncluded) {
-                    const filterdMessages = selectedMessages.filter(
-                      (val: any) =>
-                        val?.id !== item?.id && !stateArr.includes(val?.state),
-                    );
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    if (!isStateIncluded) {
-                      dispatch({
-                        type: SELECTED_MESSAGES,
-                        body: [...selectedMessages, item],
-                      });
-                    }
-                  }
+                  longPressOpenKeyboard();
                 }}
                 onPress={event => {
                   const {pageX, pageY} = event.nativeEvent;
@@ -761,25 +631,7 @@ export const PDFConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            dispatch({type: LONG_PRESSED, body: true});
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isIncluded) {
-              const filterdMessages = selectedMessages.filter(
-                (val: any) =>
-                  val?.id !== item?.id && !stateArr.includes(val?.state),
-              );
-              dispatch({
-                type: SELECTED_MESSAGES,
-                body: [...filterdMessages],
-              });
-            } else {
-              if (!isStateIncluded) {
-                dispatch({
-                  type: SELECTED_MESSAGES,
-                  body: [...selectedMessages, item],
-                });
-              }
-            }
+            longPressOpenKeyboard();
           }}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
@@ -836,25 +688,7 @@ export const PDFConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            dispatch({type: LONG_PRESSED, body: true});
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isIncluded) {
-              const filterdMessages = selectedMessages.filter(
-                (val: any) =>
-                  val?.id !== item?.id && !stateArr.includes(val?.state),
-              );
-              dispatch({
-                type: SELECTED_MESSAGES,
-                body: [...filterdMessages],
-              });
-            } else {
-              if (!isStateIncluded) {
-                dispatch({
-                  type: SELECTED_MESSAGES,
-                  body: [...selectedMessages, item],
-                });
-              }
-            }
+            longPressOpenKeyboard();
           }}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
@@ -907,6 +741,7 @@ interface ImageConversations {
   isTypeSent: boolean;
   isIncluded: boolean;
   navigation: any;
+  longPressOpenKeyboard: any;
 }
 
 export const ImageConversations = ({
@@ -914,6 +749,7 @@ export const ImageConversations = ({
   isTypeSent,
   isIncluded,
   navigation,
+  longPressOpenKeyboard,
 }: ImageConversations) => {
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress} = useAppSelector(
@@ -929,22 +765,7 @@ export const ImageConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            dispatch({type: LONG_PRESSED, body: true});
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isIncluded) {
-              const filterdMessages = selectedMessages.filter(
-                (val: any) =>
-                  val?.id !== item?.id && !stateArr.includes(val?.state),
-              );
-              dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
-            } else {
-              if (!isStateIncluded) {
-                dispatch({
-                  type: SELECTED_MESSAGES,
-                  body: [...selectedMessages, item],
-                });
-              }
-            }
+            longPressOpenKeyboard();
           }}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
@@ -998,22 +819,7 @@ export const ImageConversations = ({
                 type: SET_POSITION,
                 body: {pageX: pageX, pageY: pageY},
               });
-              dispatch({type: LONG_PRESSED, body: true});
-              let isStateIncluded = stateArr.includes(item?.state);
-              if (isIncluded) {
-                const filterdMessages = selectedMessages.filter(
-                  (val: any) =>
-                    val?.id !== item?.id && !stateArr.includes(val?.state),
-                );
-                dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
-              } else {
-                if (!isStateIncluded) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...selectedMessages, item],
-                  });
-                }
-              }
+              longPressOpenKeyboard();
             }}
             onPress={event => {
               const {pageX, pageY} = event.nativeEvent;
@@ -1065,22 +871,7 @@ export const ImageConversations = ({
                 type: SET_POSITION,
                 body: {pageX: pageX, pageY: pageY},
               });
-              dispatch({type: LONG_PRESSED, body: true});
-              let isStateIncluded = stateArr.includes(item?.state);
-              if (isIncluded) {
-                const filterdMessages = selectedMessages.filter(
-                  (val: any) =>
-                    val?.id !== item?.id && !stateArr.includes(val?.state),
-                );
-                dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
-              } else {
-                if (!isStateIncluded) {
-                  dispatch({
-                    type: SELECTED_MESSAGES,
-                    body: [...selectedMessages, item],
-                  });
-                }
-              }
+              longPressOpenKeyboard();
             }}
             onPress={event => {
               const {pageX, pageY} = event.nativeEvent;
@@ -1133,22 +924,7 @@ export const ImageConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            dispatch({type: LONG_PRESSED, body: true});
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isIncluded) {
-              const filterdMessages = selectedMessages.filter(
-                (val: any) =>
-                  val?.id !== item?.id && !stateArr.includes(val?.state),
-              );
-              dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
-            } else {
-              if (!isStateIncluded) {
-                dispatch({
-                  type: SELECTED_MESSAGES,
-                  body: [...selectedMessages, item],
-                });
-              }
-            }
+            longPressOpenKeyboard();
           }}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
@@ -1210,22 +986,7 @@ export const ImageConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            dispatch({type: LONG_PRESSED, body: true});
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isIncluded) {
-              const filterdMessages = selectedMessages.filter(
-                (val: any) =>
-                  val?.id !== item?.id && !stateArr.includes(val?.state),
-              );
-              dispatch({type: SELECTED_MESSAGES, body: [...filterdMessages]});
-            } else {
-              if (!isStateIncluded) {
-                dispatch({
-                  type: SELECTED_MESSAGES,
-                  body: [...selectedMessages, item],
-                });
-              }
-            }
+            longPressOpenKeyboard();
           }}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;

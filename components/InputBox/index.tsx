@@ -106,9 +106,9 @@ const InputBox = ({
         replyObj.id = Date.now();
         replyObj.chatroom_id = chatroomDetails?.chatroom.id;
         replyObj.community_id = community?.id;
-        replyObj.date = `${time.getDate()} ${
-          months[time.getMonth()]
-        } ${time.getFullYear()}`;
+        replyObj.date = `${
+          time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
+        } ${months[time.getMonth()]} ${time.getFullYear()}`;
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;

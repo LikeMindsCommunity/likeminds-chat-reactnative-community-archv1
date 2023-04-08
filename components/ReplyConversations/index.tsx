@@ -102,7 +102,13 @@ const ReplyConversations = ({
   const {conversations, selectedMessages, stateArr, isLongPress} =
     useAppSelector(state => state.chatroom);
   return (
-    <View style={styles.displayRow}>
+    <View
+      style={[
+        styles.displayRow,
+        {
+          justifyContent: isTypeSent ? 'flex-end' : 'flex-start',
+        },
+      ]}>
       <View
         style={[
           styles.replyMessage,
@@ -110,26 +116,13 @@ const ReplyConversations = ({
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
         <TouchableOpacity
-          onLongPress={() => {
-            dispatch({type: LONG_PRESSED, body: true});
-            let isStateIncluded = stateArr.includes(item?.state);
-            if (isIncluded) {
-              const filterdMessages = selectedMessages.filter(
-                (val: any) =>
-                  val?.id !== item?.id && !stateArr.includes(val?.state),
-              );
-              dispatch({
-                type: SELECTED_MESSAGES,
-                body: [...filterdMessages],
-              });
-            } else {
-              if (!isStateIncluded) {
-                dispatch({
-                  type: SELECTED_MESSAGES,
-                  body: [...selectedMessages, item],
-                });
-              }
-            }
+          onLongPress={event => {
+            const {pageX, pageY} = event.nativeEvent;
+            dispatch({
+              type: SET_POSITION,
+              body: {pageX: pageX, pageY: pageY},
+            });
+            longPressOpenKeyboard();
           }}
           onPress={() => {
             let isStateIncluded = stateArr.includes(item?.state);
@@ -179,7 +172,8 @@ const ReplyConversations = ({
         </View>
         <Text style={styles.messageDate}>{item?.created_at}</Text>
       </View>
-      {reactionArr.length > 0 || item?.answer.split('').length > 100 ? (
+      {(reactionArr.length > 0 || item?.answer?.split('').length > 100) &&
+      !isTypeSent ? (
         <Pressable
           onLongPress={event => {
             const {pageX, pageY} = event.nativeEvent;
