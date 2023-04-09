@@ -1,5 +1,5 @@
 import {View, Text, Image, TouchableOpacity, Pressable} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {decode} from '../../commonFuctions';
@@ -20,6 +20,7 @@ interface Messages {
   navigation: any;
   openKeyboard: any;
   longPressOpenKeyboard: any;
+  removeReaction: any;
 }
 
 const Messages = ({
@@ -29,42 +30,55 @@ const Messages = ({
   navigation,
   openKeyboard,
   longPressOpenKeyboard,
+  removeReaction,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
   const {selectedMessages, isLongPress} = useAppSelector(
     state => state.chatroom,
   );
   const [modalVisible, setModalVisible] = useState(false);
+  const [reactionArr, setReactionArr] = useState([] as any);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
   const stateArr = [1, 2, 3, 7, 8, 9]; //states for person started, left, joined, added, removed messages.
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
-
-  let reactionArr: any = [];
   let defaultReactionArrLen = item?.reactions?.length;
-  for (let i = 0; i < defaultReactionArrLen; i++) {
-    if (defaultReactionArrLen > 0) {
-      let isIncuded = reactionArr.some(
-        (val: any) => val['reaction'] === item?.reactions[i]?.reaction,
-      );
-      if (isIncuded) {
-        let index = reactionArr.findIndex(
+
+  useEffect(() => {
+    let tempArr = [] as any;
+    if (defaultReactionArrLen === 0) {
+      setReactionArr([]);
+    }
+    for (let i = 0; i < defaultReactionArrLen; i++) {
+      if (defaultReactionArrLen > 0) {
+        let isIncuded = tempArr.some(
           (val: any) => val['reaction'] === item?.reactions[i]?.reaction,
         );
-        reactionArr[index].memberArr = [
-          ...reactionArr[index]?.memberArr,
-          item?.reactions[i]?.member,
-        ];
-      } else {
-        let obj = {
-          reaction: item?.reactions[i]?.reaction,
-          memberArr: [item?.reactions[i]?.member],
-        };
-        reactionArr = [...reactionArr, obj];
+        if (isIncuded) {
+          let index = tempArr.findIndex(
+            (val: any) => val['reaction'] === item?.reactions[i]?.reaction,
+          );
+          tempArr[index].memberArr = [
+            ...tempArr[index]?.memberArr,
+            item?.reactions[i]?.member,
+          ];
+          setReactionArr([...tempArr] as any);
+          // reactionArr[index].memberArr = [
+          //   ...reactionArr[index]?.memberArr,
+          //   item?.reactions[i]?.member,
+          // ];
+        } else {
+          let obj = {
+            reaction: item?.reactions[i]?.reaction,
+            memberArr: [item?.reactions[i]?.member],
+          };
+          tempArr = [...tempArr, obj];
+          setReactionArr([...tempArr] as any);
+        }
       }
     }
-  }
+  }, [item?.reactions]);
 
   const reactionLen = reactionArr.length;
 
@@ -263,7 +277,7 @@ const Messages = ({
             {reactionArr.map((val: any, index: any) => (
               <TouchableOpacity
                 onLongPress={handleLongPress}
-                onPress={handleOnPress}
+                onPress={handleReactionOnPress}
                 style={[
                   styles.reaction,
                   isIncluded
@@ -341,6 +355,9 @@ const Messages = ({
         modalVisible={modalVisible}
         setModalVisible={val => {
           setModalVisible(val);
+        }}
+        removeReaction={() => {
+          removeReaction();
         }}
       />
     </View>

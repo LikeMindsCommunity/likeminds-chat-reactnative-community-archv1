@@ -77,7 +77,7 @@ export function chatroomReducer(state = initialState, action: any) {
       );
 
       let arr = [...(state?.conversations as any)];
-      if (index !== undefined) {
+      if (index !== undefined || index !== -1) {
         arr[index] = changedMsg;
       }
       return {...state, conversations: [...arr]};

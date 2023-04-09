@@ -362,16 +362,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ) as any,
     );
     if (!isInvited) {
-      console.log('markReadFn ==');
       const response = await myClient.markReadFn({chatroom_id: chatroomID});
-      console.log('markReadFn ==', response);
       const res = await myClient.crSeenFn({
         collabcard_id: chatroomID,
         // community_id: community?.id,
         member_id: user?.id,
         collabcard_type: chatroomDetails?.chatroom?.type,
       });
-      console.log('crSeenFn ==', res);
       dispatch({type: SET_PAGE, body: 1});
       await dispatch(getHomeFeedData({page: 1}, false) as any);
     }
@@ -832,7 +829,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       );
       if (isReactedArr.length > 0) {
         // Reacted different emoji
-        console.log('isReactedArr ==', isReactedArr, val);
         if (isReactedArr[0].reaction !== val) {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
             element?.member?.id === user?.id
@@ -847,7 +843,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 }
               : element,
           );
-          console.log('resultArr =', resultArr);
           changedMsg = {
             ...selectedMessages[0],
             reactions: resultArr,
@@ -924,10 +919,37 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     sendReactionAPI(previousMsg?.id, val);
   };
 
+  const removeReaction = (item: any) => {
+    let previousMsg = item;
+    let changedMsg;
+    if (item?.reactions.length > 0) {
+      let index = item?.reactions.findIndex(
+        (val: any) => val?.member?.id === user?.id,
+      );
+      let tempArr = [...item?.reactions];
+
+      if (index !== undefined || index !== -1) {
+        tempArr.splice(index, 1);
+      }
+
+      changedMsg = {
+        ...item,
+        reactions: tempArr,
+      };
+
+      dispatch({
+        type: REACTION_SENT,
+        body: {
+          previousMsg: previousMsg,
+          changedMsg: changedMsg,
+        },
+      });
+    }
+    // sendReactionAPI(previousMsg?.id, val);
+  };
+
   const handlePick = (emojiObject: any) => {
-    console.log('emoji ==', emojiObject);
     sendReaction(emojiObject?.emoji);
-    console.log('emoji ==>', emojiObject);
     dispatch({type: SELECTED_MESSAGES, body: []});
     dispatch({type: LONG_PRESSED, body: false});
     setIsOpen(false);
@@ -1089,6 +1111,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   }}
                   longPressOpenKeyboard={() => {
                     handleLongPress(isStateIncluded, isIncluded, item);
+                  }}
+                  removeReaction={() => {
+                    removeReaction(item);
                   }}
                 />
               </Pressable>

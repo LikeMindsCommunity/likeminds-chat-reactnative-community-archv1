@@ -203,7 +203,6 @@ const AddParticipants = ({navigation, route}: any) => {
       is_secret: true,
       chatroom_participants: selectedParticipants,
     });
-    console.log('sendInvites', res);
     const popAction = StackActions.pop(2);
     navigation.dispatch(popAction);
     dispatch({
