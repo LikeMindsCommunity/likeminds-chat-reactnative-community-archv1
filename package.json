@@ -20,7 +20,7 @@
     "@react-navigation/native-stack": "^6.9.8",
     "@reduxjs/toolkit": "^1.9.2",
     "firebase": "^9.17.1",
-    "likeminds-chat-rn-beta": "^1.0.51",
+    "likeminds-chat-rn-beta": "^1.0.52",
     "react": "18.2.0",
     "react-native": "0.71.1",
     "react-native-device-info": "^10.4.0",

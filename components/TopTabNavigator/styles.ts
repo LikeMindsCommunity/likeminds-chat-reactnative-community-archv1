@@ -34,11 +34,13 @@ export const styles = StyleSheet.create({
   alignRow: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   alignColumn: {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
     paddingVertical: 2,
+    gap: 5,
   },
 });
