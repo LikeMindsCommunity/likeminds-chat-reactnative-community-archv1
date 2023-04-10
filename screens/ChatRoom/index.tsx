@@ -817,7 +817,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       conversation_id: consversationID,
       reaction: reaction,
     });
-    console.log('reaction ==', res);
+  };
+
+  const removeReactionAPI = async (consversationID: any, reaction: any) => {
+    const res = await myClient.removeAction({
+      chatroom_id: chatroomID,
+      conversation_id: consversationID,
+      reaction: reaction,
+    });
   };
 
   const sendReaction = (val: any) => {
@@ -922,11 +929,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const removeReaction = (item: any) => {
     let previousMsg = item;
     let changedMsg;
+    let val;
     if (item?.reactions.length > 0) {
       let index = item?.reactions.findIndex(
         (val: any) => val?.member?.id === user?.id,
       );
       let tempArr = [...item?.reactions];
+
+      val = tempArr[index];
 
       if (index !== undefined || index !== -1) {
         tempArr.splice(index, 1);
@@ -945,7 +955,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         },
       });
     }
-    // sendReactionAPI(previousMsg?.id, val);
+    removeReactionAPI(previousMsg?.id, val?.reaction);
   };
 
   const handlePick = (emojiObject: any) => {

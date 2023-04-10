@@ -4,21 +4,25 @@ import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
 import Layout from '../../constants/Layout';
+import {useAppSelector} from '../../store';
 
 interface PeopleWhoReactedDefault {
   item: any;
   removeReaction: () => void;
+  user: any;
 }
 
 interface PeopleWhoReacted {
   item: any;
   title: any;
   removeReaction: () => void;
+  user: any;
 }
 
 export const PeopleWhoReactedDefault = ({
   item,
   removeReaction,
+  user,
 }: PeopleWhoReactedDefault) => {
   return (
     <ScrollView
@@ -40,13 +44,15 @@ export const PeopleWhoReactedDefault = ({
               </View>
               <View style={styles.alignColumn}>
                 <Text style={styles.textHeading}>{val?.member?.name}</Text>
-                <Text
-                  onPress={() => {
-                    removeReaction();
-                  }}
-                  style={styles.text}>
-                  Tap to remove
-                </Text>
+                {val?.member?.id === user?.id ? (
+                  <Text
+                    onPress={() => {
+                      removeReaction();
+                    }}
+                    style={styles.text}>
+                    Tap to remove
+                  </Text>
+                ) : null}
               </View>
             </View>
             <View>
@@ -63,6 +69,7 @@ export const PeopleWhoReacted = ({
   item,
   title,
   removeReaction,
+  user,
 }: PeopleWhoReacted) => {
   return (
     <View>
@@ -83,13 +90,15 @@ export const PeopleWhoReacted = ({
                 </View>
                 <View style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.name}</Text>
-                  <Text
-                    onPress={() => {
-                      removeReaction();
-                    }}
-                    style={styles.text}>
-                    Tap to remove
-                  </Text>
+                  {val?.id === user?.id ? (
+                    <Text
+                      onPress={() => {
+                        removeReaction();
+                      }}
+                      style={styles.text}>
+                      Tap to remove
+                    </Text>
+                  ) : null}
                 </View>
               </View>
               <View>
@@ -128,10 +137,12 @@ export default function MyTabs({
   defaultReactionArr,
   removeReaction,
 }: MyTabs) {
+  const {user} = useAppSelector(state => state.homefeed);
   const [state, setState] = useState({
     index: 0,
     routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
   });
+
   useLayoutEffect(() => {
     let initialState = {
       index: 0,
@@ -153,6 +164,7 @@ export default function MyTabs({
       setState(initialState as any);
     }
   }, [reactionArr]);
+
   return (
     <TabView
       navigationState={state}
@@ -164,6 +176,7 @@ export default function MyTabs({
               <PeopleWhoReactedDefault
                 item={defaultReactionArr}
                 removeReaction={removeReaction}
+                user={user}
               />
             );
           default:
@@ -172,6 +185,7 @@ export default function MyTabs({
                 title={route?.title}
                 item={route?.val}
                 removeReaction={removeReaction}
+                user={user}
               />
             );
         }
