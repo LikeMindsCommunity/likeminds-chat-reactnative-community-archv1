@@ -70,4 +70,5 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
   },
+  displayRow: {flexDirection: 'row', alignItems: 'center', gap: 10},
 });

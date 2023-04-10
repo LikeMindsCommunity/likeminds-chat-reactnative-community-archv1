@@ -1,8 +1,12 @@
-import {GET_EXPLORE_FEED_CHAT_SUCCESS, SET_EXPLORE_FEED_PAGE, UPDATE_EXPLORE_FEED_CHAT_SUCCESS} from '../types/types';
+import {
+  GET_EXPLORE_FEED_CHAT_SUCCESS,
+  SET_EXPLORE_FEED_PAGE,
+  UPDATE_EXPLORE_FEED_CHAT_SUCCESS,
+} from '../types/types';
 
 const initialState = {
   exploreChatrooms: [],
-  page:1
+  page: 1,
 };
 
 export function explorefeedReducer(state = initialState, action: any) {
@@ -20,7 +24,10 @@ export function explorefeedReducer(state = initialState, action: any) {
     }
     case UPDATE_EXPLORE_FEED_CHAT_SUCCESS: {
       const {chatrooms = []} = action.body;
-      return {...state, exploreChatrooms: [...state.exploreChatrooms,...chatrooms]};
+      return {
+        ...state,
+        exploreChatrooms: [...state.exploreChatrooms, ...chatrooms],
+      };
     }
     default:
       return state;

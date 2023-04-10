@@ -33,7 +33,7 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case GET_INVITES_SUCCESS: {
-      const {user_invites} = action.body;
+      const {user_invites = []} = action.body;
       return {
         ...state,
         invitedChatrooms: user_invites,
@@ -60,7 +60,7 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case UPDATE_INVITES_SUCCESS: {
-      const {user_invites} = action.body;
+      const {user_invites = []} = action.body;
       return {
         ...state,
         invitedChatrooms: [...state.invitedChatrooms, ...user_invites],
@@ -81,11 +81,11 @@ export function homefeedReducer(state = initialState, action: any) {
       return {...state, myChatrooms: [...state.myChatrooms, ...my_chatrooms]};
     }
     case INIT_API_SUCCESS: {
-      const {community} = action.body;
+      const {community = {}} = action.body;
       return {...state, community: community};
     }
     case PROFILE_DATA_SUCCESS: {
-      const {member} = action.body;
+      const {member = {}} = action.body;
       return {...state, user: member};
     }
     case SHOW_TOAST: {
