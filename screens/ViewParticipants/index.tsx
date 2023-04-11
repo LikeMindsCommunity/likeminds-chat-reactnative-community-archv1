@@ -8,17 +8,22 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
-import {styles} from './styles';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { styles } from './styles';
 import STYLES from '../../constants/Styles';
-import {myClient} from '../..';
+import { myClient } from '../..';
+import { useAppSelector } from '../../store';
 
-const ViewParticipants = ({navigation, chatroomID}: any) => {
+const ViewParticipants = ({ navigation, route }: any) => {
   const [participants, setParticipants] = useState({} as any);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [isSearch, setIsSearch] = useState(false);
   const [search, setSearch] = useState('');
+  const [totalChatroomCount, setTotalChatroomCount] = useState('');
+
+  const { chatroomID, isSecret } = route.params;
+  const user = useAppSelector(state => state.homefeed.user);
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -51,7 +56,7 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
                   fontSize: STYLES.$FONT_SIZES.SMALL,
                   fontFamily: STYLES.$FONT_TYPES.LIGHT,
                 }}>
-                {`${participants.length} participants`}
+                {`${totalChatroomCount} participants`}
               </Text>
             </View>
           ) : null}
@@ -111,7 +116,7 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
       ),
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => {}}
+          onPress={() => { }}
           style={{
             justifyContent: 'center',
             alignItems: 'center',
@@ -128,14 +133,28 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
 
   const fetchParticipants = async () => {
     const res = await myClient.viewParticipants({
-      chatroom_id: 759590,
-      is_secret: false,
+      chatroom_id: chatroomID,
+      is_secret: isSecret,
       page: 1,
-      page_size: 50,
+      page_size: 10,
       participant_name: search,
     });
+    console.log('res ==>', res?.participants.length)
+    setTotalChatroomCount(res?.total_participants_count)
     setParticipants(res?.participants);
-    console.log('ress --> ', res);
+
+    if (!!res && res?.participants.length === 10) {
+      const response = await myClient.viewParticipants({
+        chatroom_id: chatroomID,
+        is_secret: isSecret,
+        page: 2,
+        page_size: 10,
+        participant_name: search,
+      });
+      console.log('response ==>', response?.participants.length)
+      setParticipants((participants: any) => ([...participants, ...response?.participants]));
+      setPage(2);
+    }
   };
 
   useLayoutEffect(() => {
@@ -160,7 +179,9 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      fetchParticipants();
+      if (!!isSearch) {
+        fetchParticipants();
+      }
     }, 500);
     return () => clearTimeout(delay);
   }, [search]);
@@ -176,10 +197,10 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
 
   async function updateData(newPage: number) {
     let payload = {
-      chatroom_id: 759590,
-      is_secret: false,
+      chatroom_id: chatroomID,
+      is_secret: isSecret,
       page: newPage,
-      page_size: 50,
+      page_size: 10,
       participant_name: search,
     };
     let response = myClient.viewParticipants(payload);
@@ -191,7 +212,7 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
     setTimeout(async () => {
       const res = await updateData(newPage);
       if (!!res) {
-        setParticipants([...participants, res?.participants]);
+        setParticipants([...participants, ...res?.participants]);
         setIsLoading(false);
       }
     }, 1500);
@@ -203,7 +224,7 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
       if (
         arr?.length % 10 === 0 &&
         arr?.length > 0 &&
-        arr?.length === 50 * page
+        arr?.length === 10 * page
       ) {
         let newPage = page + 1;
         loadData(newPage);
@@ -214,7 +235,7 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
 
   const renderFooter = () => {
     return isLoading ? (
-      <View style={{paddingVertical: 20}}>
+      <View style={{ paddingVertical: 20 }}>
         <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
       </View>
     ) : null;
@@ -224,40 +245,49 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
     <View style={styles.page}>
       <FlatList
         data={participants}
-        ListHeaderComponent={() => (
-          <TouchableOpacity style={styles.participants}>
-            <View
-              style={{
-                height: 50,
-                width: 50,
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#4c4edc',
-                borderRadius: 30,
-                marginRight: 10,
-              }}>
-              <Image
-                source={require('../../assets/images/participants3x.png')}
-                style={styles.icon}
-              />
-            </View>
+        ListHeaderComponent={() =>
+          isSecret && user?.state === 1 && participants.length > 0 ? (
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('AddParticipants', {
+                  chatroomID: chatroomID,
+                  isSecret: isSecret,
+                });
+              }}
+              style={styles.participants}>
+              <View
+                style={{
+                  height: 50,
+                  width: 50,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: '#4c4edc',
+                  borderRadius: 30,
+                  marginRight: 10,
+                }}>
+                <Image
+                  source={require('../../assets/images/participants3x.png')}
+                  style={styles.icon}
+                />
+              </View>
 
-            <View style={styles.infoContainer}>
-              <Text style={styles.title} numberOfLines={1}>
-                {'Add Participants'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        renderItem={({item}: any) => {
+              <View style={styles.infoContainer}>
+                <Text style={styles.title} numberOfLines={1}>
+                  {'Add Participants'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ) : null
+        }
+        renderItem={({ item }: any) => {
           return (
             <View key={item?.id} style={styles.participants}>
               <Image
                 source={
                   !!item?.image_url
-                    ? {uri: item?.image_url}
+                    ? { uri: item?.image_url }
                     : require('../../assets/images/default_pic.png')
                 }
                 style={styles.avatar}
@@ -265,6 +295,12 @@ const ViewParticipants = ({navigation, chatroomID}: any) => {
               <View style={styles.infoContainer}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
+                  {!!item?.custom_title ? (
+                    <Text
+                      style={
+                        styles.messageCustomTitle
+                      }>{` • ${item?.custom_title}`}</Text>
+                  ) : null}
                 </Text>
               </View>
             </View>

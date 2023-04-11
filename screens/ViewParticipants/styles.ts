@@ -1,4 +1,4 @@
-import {Platform, StyleSheet} from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import STYLES from '../../constants/Styles';
 import Layout from '../../constants/Layout';
 
@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
   },
   title: {
     fontSize: STYLES.$FONT_SIZES.LARGE,
-    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
   },
   participantsTitle: {
@@ -45,9 +45,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 15,
   },
-  backBtn: {height: 40, width: 40, resizeMode: 'contain'},
-  search: {height: 20, width: 20, resizeMode: 'contain'},
-  chatRoomInfo: {gap: 5},
+  backBtn: { height: 40, width: 40, resizeMode: 'contain' },
+  search: { height: 20, width: 20, resizeMode: 'contain' },
+  chatRoomInfo: { gap: 5 },
   participants: {
     display: 'flex',
     flexDirection: 'row',
@@ -66,5 +66,10 @@ export const styles = StyleSheet.create({
     marginBottom: 2,
     // backgroundColor: 'pink',
     width: Layout.window.width - 150
+  },
+  messageCustomTitle: {
+    color: STYLES.$COLORS.SECONDARY,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
   },
 });

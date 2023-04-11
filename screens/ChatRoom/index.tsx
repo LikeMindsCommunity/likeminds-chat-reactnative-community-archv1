@@ -1,5 +1,5 @@
-import {CommonActions} from '@react-navigation/native';
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import { CommonActions } from '@react-navigation/native';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -15,22 +15,22 @@ import {
   Modal,
   BackHandler,
 } from 'react-native';
-import {myClient} from '../..';
-import {copySelectedMessages} from '../../commonFuctions';
+import { myClient } from '../..';
+import { copySelectedMessages } from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
 import ToastMessage from '../../components/ToastMessage';
 import STYLES from '../../constants/Styles';
-import {useAppDispatch, useAppSelector} from '../../store';
+import { useAppDispatch, useAppSelector } from '../../store';
 import {
   getChatroom,
   getConversations,
   paginatedConversations,
 } from '../../store/actions/chatroom';
-import {styles} from './styles';
+import { styles } from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {DataSnapshot, onValue, ref} from 'firebase/database';
-import {getHomeFeedData} from '../../store/actions/homefeed';
+import { DataSnapshot, onValue, ref } from 'firebase/database';
+import { getHomeFeedData } from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
@@ -46,7 +46,7 @@ import {
   START_CHATROOM_LOADING,
   STOP_CHATROOM_LOADING,
 } from '../../store/types/loader';
-import {getExploreFeedData} from '../../store/actions/explorefeed';
+import { getExploreFeedData } from '../../store/actions/explorefeed';
 interface Data {
   id: string;
   title: string;
@@ -57,7 +57,7 @@ interface ChatRoom {
   route: any;
 }
 
-const ChatRoom = ({navigation, route}: ChatRoom) => {
+const ChatRoom = ({ navigation, route }: ChatRoom) => {
   const flatlistRef = useRef<FlatList>(null);
 
   const db = myClient.fbInstance();
@@ -76,7 +76,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
 
-  const {chatroomID, isInvited} = route.params;
+  const { chatroomID, isInvited } = route.params;
 
   const dispatch = useAppDispatch();
   const {
@@ -91,7 +91,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const routes = navigation.getState()?.routes;
   const prevRoute = routes[routes.length - 2];
 
-  const {user, community} = useAppSelector(state => state.homefeed);
+  const { user, community } = useAppSelector(state => state.homefeed);
   let isSecret = chatroomDetails?.chatroom?.is_secret;
 
   let notIncludedActionsID = [3];
@@ -108,11 +108,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             onPress={() => {
               dispatch({
                 type: CLEAR_CHATROOM_CONVERSATION,
-                body: {conversations: []},
+                body: { conversations: [] },
               });
               dispatch({
                 type: CLEAR_CHATROOM_DETAILS,
-                body: {chatroomDetails: {}},
+                body: { chatroomDetails: {} },
               });
               navigation.goBack();
             }}>
@@ -169,8 +169,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         <View style={styles.headingContainer}>
           <TouchableOpacity
             onPress={() => {
-              dispatch({type: SELECTED_MESSAGES, body: []});
-              dispatch({type: LONG_PRESSED, body: false});
+              dispatch({ type: SELECTED_MESSAGES, body: [] });
+              dispatch({ type: LONG_PRESSED, body: false });
               setInitialHeader();
             }}>
             <Image
@@ -251,8 +251,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       setReplyChatID(selectedMessages[0]?.id);
                       setIsReply(true);
                       setReplyMessage(selectedMessages[0]);
-                      dispatch({type: SELECTED_MESSAGES, body: []});
-                      dispatch({type: LONG_PRESSED, body: false});
+                      dispatch({ type: SELECTED_MESSAGES, body: [] });
+                      dispatch({ type: LONG_PRESSED, body: false });
                       setInitialHeader();
                     }
                   }}>
@@ -268,8 +268,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 onPress={() => {
                   const output = copySelectedMessages(selectedMessages);
                   Clipboard.setString(output);
-                  dispatch({type: SELECTED_MESSAGES, body: []});
-                  dispatch({type: LONG_PRESSED, body: false});
+                  dispatch({ type: SELECTED_MESSAGES, body: [] });
+                  dispatch({ type: LONG_PRESSED, body: false });
                   setInitialHeader();
                 }}>
                 <Image
@@ -282,8 +282,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 onPress={() => {
                   const output = copySelectedMessages(selectedMessages);
                   Clipboard.setString(output);
-                  dispatch({type: SELECTED_MESSAGES, body: []});
-                  dispatch({type: LONG_PRESSED, body: false});
+                  dispatch({ type: SELECTED_MESSAGES, body: [] });
+                  dispatch({ type: LONG_PRESSED, body: false });
                   setInitialHeader();
                 }}>
                 <Image
@@ -301,8 +301,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       reason: 'none',
                     })
                     .then(async () => {
-                      dispatch({type: SELECTED_MESSAGES, body: []});
-                      dispatch({type: LONG_PRESSED, body: false});
+                      dispatch({ type: SELECTED_MESSAGES, body: [] });
+                      dispatch({ type: LONG_PRESSED, body: false });
                       setInitialHeader();
                       let payload = {
                         chatroomID: chatroomID,
@@ -342,7 +342,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   async function fetchData(showLoaderVal?: boolean) {
-    let payload = {chatroomID: chatroomID, page: 100};
+    let payload = { chatroomID: chatroomID, page: 100 };
     let response = await dispatch(
       getConversations(
         payload,
@@ -350,21 +350,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ) as any,
     );
     if (!isInvited) {
-      await myClient.markReadFn({chatroom_id: chatroomID});
+      await myClient.markReadFn({ chatroom_id: chatroomID });
       const res = await myClient.crSeenFn({
         collabcard_id: chatroomID,
         // community_id: community?.id,
         member_id: user?.id,
         collabcard_type: chatroomDetails?.chatroom?.type,
       });
-      dispatch({type: SET_PAGE, body: 1});
-      await dispatch(getHomeFeedData({page: 1}, false) as any);
+      dispatch({ type: SET_PAGE, body: 1 });
+      await dispatch(getHomeFeedData({ page: 1 }, false) as any);
     }
     return response;
   }
 
   async function fetchChatroomDetails() {
-    let payload = {chatroom_id: chatroomID};
+    let payload = { chatroom_id: chatroomID };
     let response = await dispatch(getChatroom(payload) as any);
     return response;
   }
@@ -389,15 +389,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   useEffect(() => {
     const backAction = () => {
-      dispatch({type: SELECTED_MESSAGES, body: []});
-      dispatch({type: LONG_PRESSED, body: false});
+      dispatch({ type: SELECTED_MESSAGES, body: [] });
+      dispatch({ type: LONG_PRESSED, body: false });
       dispatch({
         type: CLEAR_CHATROOM_CONVERSATION,
-        body: {conversations: []},
+        body: { conversations: [] },
       });
       dispatch({
         type: CLEAR_CHATROOM_DETAILS,
-        body: {chatroomDetails: {}},
+        body: { chatroomDetails: {} },
       });
       setInitialHeader();
       return null;
@@ -482,7 +482,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const renderFooter = () => {
     return isLoading ? (
-      <View style={{paddingVertical: 20}}>
+      <View style={{ paddingVertical: 20 }}>
         <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
       </View>
     ) : null;
@@ -502,34 +502,34 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .leaveChatroom(payload)
       .then(async () => {
         if (prevRoute?.name === 'ExploreFeed') {
-          dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
+          dispatch({ type: SET_EXPLORE_FEED_PAGE, body: 1 });
           let payload2 = {
             community_id: community?.id,
             order_type: 0,
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({ type: SET_PAGE, body: 1 });
+          await dispatch(getHomeFeedData({ page: 1 }) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
-            body: {conversations: []},
+            body: { conversations: [] },
           });
           dispatch({
             type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
+            body: { chatroomDetails: {} },
           });
           navigation.goBack();
         } else {
-          dispatch({type: SET_PAGE, body: 1});
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({ type: SET_PAGE, body: 1 });
+          await dispatch(getHomeFeedData({ page: 1 }) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
-            body: {conversations: []},
+            body: { conversations: [] },
           });
           dispatch({
             type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
+            body: { chatroomDetails: {} },
           });
           navigation.goBack();
         }
@@ -550,34 +550,34 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .leaveSecretChatroom(payload)
       .then(async () => {
         if (prevRoute?.name === 'ExploreFeed') {
-          dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
+          dispatch({ type: SET_EXPLORE_FEED_PAGE, body: 1 });
           let payload2 = {
             community_id: community?.id,
             order_type: 0,
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({ type: SET_PAGE, body: 1 });
+          await dispatch(getHomeFeedData({ page: 1 }) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
-            body: {conversations: []},
+            body: { conversations: [] },
           });
           dispatch({
             type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
+            body: { chatroomDetails: {} },
           });
           navigation.goBack();
         } else {
-          dispatch({type: SET_PAGE, body: 1});
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({ type: SET_PAGE, body: 1 });
+          await dispatch(getHomeFeedData({ page: 1 }) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
-            body: {conversations: []},
+            body: { conversations: [] },
           });
           dispatch({
             type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
+            body: { chatroomDetails: {} },
           });
           navigation.goBack();
         }
@@ -598,26 +598,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .leaveChatroom(payload)
       .then(async () => {
         if (prevRoute?.name === 'ExploreFeed') {
-          dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
+          dispatch({ type: SET_EXPLORE_FEED_PAGE, body: 1 });
           let payload2 = {
             community_id: community?.id,
             order_type: 0,
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({ type: SET_PAGE, body: 1 });
+          await dispatch(getHomeFeedData({ page: 1 }) as any);
         } else {
-          dispatch({type: SET_PAGE, body: 1});
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({ type: SET_PAGE, body: 1 });
+          await dispatch(getHomeFeedData({ page: 1 }) as any);
         }
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
             routes:
               prevRoute?.name === 'ExploreFeed'
-                ? [{name: 'HomeFeed'}, {name: prevRoute?.name}]
-                : [{name: prevRoute?.name}],
+                ? [{ name: 'HomeFeed' }, { name: prevRoute?.name }]
+                : [{ name: prevRoute?.name }],
           }),
         );
       })
@@ -637,25 +637,25 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .leaveChatroom(payload)
       .then(async () => {
-        let payload = {chatroom_id: chatroomID};
+        let payload = { chatroom_id: chatroomID };
         await dispatch(getChatroom(payload) as any);
 
-        let payload1 = {chatroomID: chatroomID, page: 100};
+        let payload1 = { chatroomID: chatroomID, page: 100 };
         await dispatch(getConversations(payload1, true) as any);
 
         if (prevRoute?.name === 'ExploreFeed') {
-          dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
+          dispatch({ type: SET_EXPLORE_FEED_PAGE, body: 1 });
           let payload2 = {
             community_id: community?.id,
             order_type: 0,
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({ type: SET_PAGE, body: 1 });
+          await dispatch(getHomeFeedData({ page: 1 }) as any);
         } else {
-          dispatch({type: SET_PAGE, body: 1});
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          dispatch({ type: SET_PAGE, body: 1 });
+          await dispatch(getHomeFeedData({ page: 1 }) as any);
         }
       })
       .catch(() => {
@@ -718,13 +718,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             });
             dispatch({
               type: SHOW_TOAST,
-              body: {isToast: true, msg: 'Invitation accepted'},
+              body: { isToast: true, msg: 'Invitation accepted' },
             });
 
-            dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
-            dispatch({type: SET_PAGE, body: 1});
-            await dispatch(getChatroom({chatroom_id: chatroomID}) as any);
-            await dispatch(getHomeFeedData({page: 1}, false) as any);
+            dispatch({ type: ACCEPT_INVITE_SUCCESS, body: chatroomID });
+            dispatch({ type: SET_PAGE, body: 1 });
+            await dispatch(getChatroom({ chatroom_id: chatroomID }) as any);
+            await dispatch(getHomeFeedData({ page: 1 }, false) as any);
           },
           style: 'default',
         },
@@ -761,18 +761,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             // }, 2000);
             dispatch({
               type: SHOW_TOAST,
-              body: {isToast: true, msg: 'Invitation rejected'},
+              body: { isToast: true, msg: 'Invitation rejected' },
             });
 
             dispatch({
               type: CLEAR_CHATROOM_CONVERSATION,
-              body: {conversations: []},
+              body: { conversations: [] },
             });
             dispatch({
               type: CLEAR_CHATROOM_DETAILS,
-              body: {chatroomDetails: {}},
+              body: { chatroomDetails: {} },
             });
-            dispatch({type: REJECT_INVITE_SUCCESS, body: chatroomID});
+            dispatch({ type: REJECT_INVITE_SUCCESS, body: chatroomID });
             navigation.goBack();
           },
           style: 'default',
@@ -800,7 +800,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ref={flatlistRef}
         data={conversations}
         keyExtractor={item => item?.id?.toString()}
-        renderItem={({item, index}) => {
+        renderItem={({ item, index }) => {
           let isStateIncluded = stateArr.includes(item?.state);
           let isIncluded = selectedMessages.some(
             (val: any) =>
@@ -809,7 +809,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           return (
             <View>
               {index < conversations.length &&
-              conversations[index]?.date !== conversations[index + 1]?.date ? (
+                conversations[index]?.date !== conversations[index + 1]?.date ? (
                 <View style={[styles.statusMessage]}>
                   <Text
                     style={{
@@ -823,7 +823,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               ) : null}
               <Pressable
                 onLongPress={() => {
-                  dispatch({type: LONG_PRESSED, body: true});
+                  dispatch({ type: LONG_PRESSED, body: true });
                   if (isIncluded) {
                     const filterdMessages = selectedMessages.filter(
                       (val: any) =>
@@ -860,7 +860,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                           type: SELECTED_MESSAGES,
                           body: [...filterdMessages],
                         });
-                        dispatch({type: LONG_PRESSED, body: false});
+                        dispatch({ type: LONG_PRESSED, body: false });
                       }
                     } else {
                       if (!isStateIncluded) {
@@ -872,10 +872,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     }
                   }
                 }}
-                style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
+                style={isIncluded ? { backgroundColor: '#d7e6f7' } : null}>
                 <Messages
                   onScrollToIndex={(index: any) => {
-                    flatlistRef.current?.scrollToIndex({animated: true, index});
+                    flatlistRef.current?.scrollToIndex({ animated: true, index });
                   }}
                   isIncluded={isIncluded}
                   item={item}
@@ -897,25 +897,25 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       />
 
       {!(Object.keys(chatroomDetails).length === 0) &&
-      prevRoute?.name === 'ExploreFeed'
+        prevRoute?.name === 'ExploreFeed'
         ? !!!chatroomDetails?.chatroom?.follow_status && (
-            <TouchableOpacity
-              onPress={() => {
-                joinSecretChatroom();
-              }}
-              style={[styles.joinBtnContainer, {alignSelf: 'center'}]}>
-              <Image
-                source={require('../../assets/images/join_group3x.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.join}>{'Join'}</Text>
-            </TouchableOpacity>
-          )
+          <TouchableOpacity
+            onPress={() => {
+              joinSecretChatroom();
+            }}
+            style={[styles.joinBtnContainer, { alignSelf: 'center' }]}>
+            <Image
+              source={require('../../assets/images/join_group3x.png')}
+              style={styles.icon}
+            />
+            <Text style={styles.join}>{'Join'}</Text>
+          </TouchableOpacity>
+        )
         : null}
 
       {!(Object.keys(chatroomDetails).length === 0) ? (
         chatroomDetails?.chatroom?.member_can_message &&
-        chatroomDetails?.chatroom?.follow_status ? (
+          chatroomDetails?.chatroom?.follow_status ? (
           <InputBox
             isReply={isReply}
             replyChatID={replyChatID}
@@ -930,12 +930,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           />
         ) : !(Object.keys(chatroomDetails).length === 0) &&
           prevRoute?.name === 'HomeFeed' ? (
-          <View style={{padding: 20, backgroundColor: STYLES.$COLORS.TERTIARY}}>
+          <View style={{ padding: 20, backgroundColor: STYLES.$COLORS.TERTIARY }}>
             <Text
               style={
                 styles.inviteText
               }>{`${chatroomDetails?.chatroom?.header} invited you to join this secret group.`}</Text>
-            <View style={{marginTop: 10}}>
+            <View style={{ marginTop: 10 }}>
               <TouchableOpacity
                 onPress={() => {
                   showJoinAlert();
@@ -994,14 +994,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }}>
         <Pressable style={styles.centeredView} onPress={handleModalClose}>
           <View>
-            <Pressable onPress={() => {}} style={[styles.modalView]}>
+            <Pressable onPress={() => { }} style={[styles.modalView]}>
               {filteredChatroomActions?.map((val: any, index: any) => {
                 return (
                   <TouchableOpacity
                     onPress={async () => {
                       if (val?.id === 2) {
                         setModalVisible(false);
-                        navigation.navigate('ViewParticipants');
+                        navigation.navigate('ViewParticipants', {
+                          chatroomID: chatroomID,
+                          isSecret: isSecret,
+                        });
                       } else if (val?.id === 9 || val?.id === 15) {
                         if (isSecret) {
                           leaveSecretChatroom();
@@ -1043,13 +1046,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }}>
         <Pressable style={styles.centeredView} onPress={handleReportModalClose}>
           <View>
-            <Pressable onPress={() => {}} style={[styles.modalView]}>
+            <Pressable onPress={() => { }} style={[styles.modalView]}>
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate('Report', {
                     convoId: selectedMessages[0].id,
                   });
-                  dispatch({type: SELECTED_MESSAGES, body: []});
+                  dispatch({ type: SELECTED_MESSAGES, body: [] });
                   setReportModalVisible(false);
                   // handleReportModalClose()
                 }}
