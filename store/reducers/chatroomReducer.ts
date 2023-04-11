@@ -7,7 +7,9 @@ import {
   MESSAGE_SENT,
   ON_CONVERSATIONS_CREATE_SUCCESS,
   PAGINATED_CONVERSATIONS_SUCCESS,
+  REACTION_SENT,
   SELECTED_MESSAGES,
+  SET_POSITION,
   UPDATE_CONVERSATIONS,
 } from '../types/types';
 
@@ -18,6 +20,7 @@ const initialState = {
   isLongPress: false,
   selectedMessages: [],
   stateArr: [1, 2, 3, 7, 8, 9], //joined and left chatroom state
+  position: {x: 0, y: 0} as any,
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -66,6 +69,22 @@ export function chatroomReducer(state = initialState, action: any) {
     case MESSAGE_SENT: {
       const messageObj = action.body;
       return {...state, messageSent: messageObj};
+    }
+    case REACTION_SENT: {
+      const {previousMsg, changedMsg} = action.body;
+      let index = state?.conversations.findIndex(
+        (element: any) => element?.id === changedMsg?.id,
+      );
+
+      let arr = [...(state?.conversations as any)];
+      if (index !== undefined || index !== -1) {
+        arr[index] = changedMsg;
+      }
+      return {...state, conversations: [...arr]};
+    }
+    case SET_POSITION: {
+      const {pageX, pageY} = action.body;
+      return {...state, position: {x: pageX, y: pageY}};
     }
     default:
       return state;

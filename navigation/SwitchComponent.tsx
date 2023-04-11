@@ -33,6 +33,7 @@ import {getRoute} from '../notifications/routes';
 import {navigationRef} from '../RootNavigation';
 import getNotification from '../notifications';
 import ViewParticipants from '../screens/ViewParticipants';
+import AddParticipants from '../screens/AddParticipants';
 
 const Stack = createNativeStackNavigator();
 
@@ -102,6 +103,7 @@ const SwitchComponent = () => {
           <Stack.Screen name="Report" component={ReportScreen} />
           <Stack.Screen name="ImageScreen" component={ImageScreen} />
           <Stack.Screen name="ViewParticipants" component={ViewParticipants} />
+          <Stack.Screen name="AddParticipants" component={AddParticipants} />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastMessage

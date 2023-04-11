@@ -1,20 +1,29 @@
 import {View, Image, Text, ScrollView} from 'react-native';
-import React, {useState} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
 import Layout from '../../constants/Layout';
+import {useAppSelector} from '../../store';
 
 interface PeopleWhoReactedDefault {
   item: any;
+  removeReaction: () => void;
+  user: any;
 }
 
 interface PeopleWhoReacted {
   item: any;
   title: any;
+  removeReaction: () => void;
+  user: any;
 }
 
-export const PeopleWhoReactedDefault = ({item}: PeopleWhoReactedDefault) => {
+export const PeopleWhoReactedDefault = ({
+  item,
+  removeReaction,
+  user,
+}: PeopleWhoReactedDefault) => {
   return (
     <ScrollView
       contentContainerStyle={{flexGrow: 1}}
@@ -35,7 +44,15 @@ export const PeopleWhoReactedDefault = ({item}: PeopleWhoReactedDefault) => {
               </View>
               <View style={styles.alignColumn}>
                 <Text style={styles.textHeading}>{val?.member?.name}</Text>
-                <Text style={styles.text}>Tap to remove</Text>
+                {val?.member?.id === user?.id ? (
+                  <Text
+                    onPress={() => {
+                      removeReaction();
+                    }}
+                    style={styles.text}>
+                    Tap to remove
+                  </Text>
+                ) : null}
               </View>
             </View>
             <View>
@@ -48,7 +65,12 @@ export const PeopleWhoReactedDefault = ({item}: PeopleWhoReactedDefault) => {
   );
 };
 
-export const PeopleWhoReacted = ({item, title}: PeopleWhoReacted) => {
+export const PeopleWhoReacted = ({
+  item,
+  title,
+  removeReaction,
+  user,
+}: PeopleWhoReacted) => {
   return (
     <View>
       <ScrollView>
@@ -68,7 +90,15 @@ export const PeopleWhoReacted = ({item, title}: PeopleWhoReacted) => {
                 </View>
                 <View style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.name}</Text>
-                  <Text style={styles.text}>Tap to remove</Text>
+                  {val?.id === user?.id ? (
+                    <Text
+                      onPress={() => {
+                        removeReaction();
+                      }}
+                      style={styles.text}>
+                      Tap to remove
+                    </Text>
+                  ) : null}
                 </View>
               </View>
               <View>
@@ -81,17 +111,6 @@ export const PeopleWhoReacted = ({item, title}: PeopleWhoReacted) => {
     </View>
   );
 };
-
-// const FirstRoute = () => (
-//   <View style={[styles.scene]}>
-//     <PeopleWhoReacted />
-//   </View>
-// );
-// const SecondRoute = () => (
-//   <View style={[styles.scene]}>
-//     <PeopleWhoReacted />
-//   </View>
-// );
 
 const renderTabBar = (props: any) => (
   <TabBar
@@ -110,28 +129,42 @@ const renderTabBar = (props: any) => (
 interface MyTabs {
   reactionArr: any;
   defaultReactionArr: any;
+  removeReaction: () => void;
 }
 
-export default function MyTabs({reactionArr, defaultReactionArr}: MyTabs) {
-  // let allItems: any = [];
-  // for (let i = 0; i < reactionArr.length; i++) {
-  //   allItems = {reactionArr: [...allItems, ...reactionArr[i].memberArr]};
-  // }
-  let initialState = {
+export default function MyTabs({
+  reactionArr,
+  defaultReactionArr,
+  removeReaction,
+}: MyTabs) {
+  const {user} = useAppSelector(state => state.homefeed);
+  const [state, setState] = useState({
     index: 0,
     routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
-  };
-  for (let i = 0; i < reactionArr.length; i++) {
-    initialState.routes = [
-      ...initialState.routes,
-      {
-        key: reactionArr[i].reaction,
-        title: reactionArr[i].reaction,
-        val: reactionArr[i].memberArr,
-      },
-    ];
-  }
-  const [state, setState] = useState(initialState);
+  });
+
+  useLayoutEffect(() => {
+    let initialState = {
+      index: 0,
+      routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
+    };
+    if (reactionArr.length > 0) {
+      for (let i = 0; i < reactionArr.length; i++) {
+        initialState.routes = [
+          ...initialState.routes,
+          {
+            key: reactionArr[i].reaction,
+            title: reactionArr[i].reaction,
+            val: reactionArr[i].memberArr,
+          },
+        ];
+      }
+      setState(initialState as any);
+    } else {
+      setState(initialState as any);
+    }
+  }, [reactionArr]);
+
   return (
     <TabView
       navigationState={state}
@@ -139,11 +172,22 @@ export default function MyTabs({reactionArr, defaultReactionArr}: MyTabs) {
       renderScene={({route}) => {
         switch (route.key) {
           case 'all':
-            return <PeopleWhoReactedDefault item={defaultReactionArr} />;
-          // case 'second':
-          //   return <SecondRoute />;
+            return (
+              <PeopleWhoReactedDefault
+                item={defaultReactionArr}
+                removeReaction={removeReaction}
+                user={user}
+              />
+            );
           default:
-            return <PeopleWhoReacted title={route.title} item={route.val} />;
+            return (
+              <PeopleWhoReacted
+                title={route?.title}
+                item={route?.val}
+                removeReaction={removeReaction}
+                user={user}
+              />
+            );
         }
       }}
       onIndexChange={index => setState({index, routes: state.routes})}

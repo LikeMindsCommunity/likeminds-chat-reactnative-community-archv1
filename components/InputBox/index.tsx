@@ -106,9 +106,9 @@ const InputBox = ({
         replyObj.id = Date.now();
         replyObj.chatroom_id = chatroomDetails?.chatroom.id;
         replyObj.community_id = community?.id;
-        replyObj.date = `${time.getDate()} ${
-          months[time.getMonth()]
-        } ${time.getFullYear()}`;
+        replyObj.date = `${
+          time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
+        } ${months[time.getMonth()]} ${time.getFullYear()}`;
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
@@ -124,9 +124,9 @@ const InputBox = ({
       obj.id = Date.now();
       obj.chatroom_id = chatroomDetails?.chatroom.id;
       obj.community_id = community?.id;
-      obj.date = `${time.getDate()} ${
-        months[time.getMonth()]
-      } ${time.getFullYear()}`;
+      obj.date = `${
+        time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
+      } ${months[time.getMonth()]} ${time.getFullYear()}`;
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
