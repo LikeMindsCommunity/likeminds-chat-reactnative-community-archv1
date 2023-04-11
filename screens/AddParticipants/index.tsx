@@ -8,15 +8,15 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
-import {styles} from './styles';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { styles } from './styles';
 import STYLES from '../../constants/Styles';
-import {myClient} from '../..';
-import {StackActions} from '@react-navigation/native';
-import {SHOW_TOAST} from '../../store/types/types';
-import {useAppDispatch} from '../../store';
+import { myClient } from '../..';
+import { StackActions } from '@react-navigation/native';
+import { SHOW_TOAST } from '../../store/types/types';
+import { useAppDispatch } from '../../store';
 
-const AddParticipants = ({navigation, route}: any) => {
+const AddParticipants = ({ navigation, route }: any) => {
   const [participants, setParticipants] = useState([] as any);
   const [searchedParticipants, setSearchedParticipants] = useState([] as any);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +26,7 @@ const AddParticipants = ({navigation, route}: any) => {
   const [search, setSearch] = useState('');
   const [selectedParticipants, setSelectedParticipants] = useState([] as any);
 
-  const {chatroomID, isSecret} = route.params;
+  const { chatroomID, isSecret } = route.params;
   const dispatch = useAppDispatch();
 
   const setInitialHeader = () => {
@@ -94,6 +94,7 @@ const AddParticipants = ({navigation, route}: any) => {
           <TouchableOpacity
             onPress={() => {
               setSearch('');
+              setSearchPage(1);
               setIsSearch(false);
             }}>
             <Image
@@ -120,7 +121,7 @@ const AddParticipants = ({navigation, route}: any) => {
       ),
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => {}}
+          onPress={() => { }}
           style={{
             justifyContent: 'center',
             alignItems: 'center',
@@ -157,12 +158,17 @@ const AddParticipants = ({navigation, route}: any) => {
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      if (isSearch) {
-        searchParticipants();
-      } else {
-        fetchParticipants();
+      if (!!isSearch) {
+        if (!!search) {
+          searchParticipants();
+        }
       }
     }, 500);
+    if (!!isSearch) {
+      if (!!!search) {
+        setSearchPage(1);
+      }
+    }
     return () => clearTimeout(delay);
   }, [search]);
 
@@ -183,8 +189,13 @@ const AddParticipants = ({navigation, route}: any) => {
   }, [isSearch]);
 
   const fetchParticipants = async () => {
-    const res = await myClient.getAllMembers({page: 1});
+    const res = await myClient.getAllMembers({ page: 1 });
     setParticipants(res?.members);
+    if (!!res && res?.members.length === 10) {
+      const response = await myClient.getAllMembers({ page: 2 });
+      setParticipants((participants: any) => [...participants, ...response?.members]);
+      setPage(2);
+    }
   };
 
   const searchParticipants = async () => {
@@ -195,6 +206,16 @@ const AddParticipants = ({navigation, route}: any) => {
       page_size: 10,
     });
     setSearchedParticipants(res?.members);
+    if (!!res && res?.members.length === 10) {
+      const response = await myClient.searchMembers({
+        search: search,
+        search_type: 'name',
+        page: searchPage + 1,
+        page_size: 10,
+      });
+      setSearchedParticipants((searchedParticipants: any) => [...searchedParticipants, ...response?.members]);
+      setSearchPage(searchPage + 1)
+    }
   };
 
   const sendInvites = async () => {
@@ -207,7 +228,7 @@ const AddParticipants = ({navigation, route}: any) => {
     navigation.dispatch(popAction);
     dispatch({
       type: SHOW_TOAST,
-      body: {isToast: true, msg: 'Invitation sent'},
+      body: { isToast: true, msg: 'Invitation sent' },
     });
   };
 
@@ -221,7 +242,7 @@ const AddParticipants = ({navigation, route}: any) => {
       });
       return res;
     } else {
-      const res = await myClient.getAllMembers({page: newPage});
+      const res = await myClient.getAllMembers({ page: newPage });
       return res;
     }
   }
@@ -247,8 +268,8 @@ const AddParticipants = ({navigation, route}: any) => {
       let arr = participants;
       if (
         arr?.length % 10 === 0 &&
-        arr?.length > 0 &&
-        arr?.length === 10 * page
+          arr?.length > 0 &&
+          isSearch ? arr?.length === 10 * searchPage : arr?.length === 10 * page
       ) {
         let newPage = isSearch ? searchPage + 1 : page + 1;
         loadData(newPage);
@@ -263,7 +284,7 @@ const AddParticipants = ({navigation, route}: any) => {
 
   const renderFooter = () => {
     return isLoading ? (
-      <View style={{paddingVertical: 20}}>
+      <View style={{ paddingVertical: 20 }}>
         <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
       </View>
     ) : null;
@@ -272,8 +293,8 @@ const AddParticipants = ({navigation, route}: any) => {
   return (
     <View style={styles.page}>
       <FlatList
-        data={isSearch ? searchedParticipants : participants}
-        renderItem={({item}: any) => {
+        data={(isSearch && !!search) ? searchedParticipants : participants}
+        renderItem={({ item }: any) => {
           return (
             <TouchableOpacity
               onPress={() => {
@@ -292,7 +313,7 @@ const AddParticipants = ({navigation, route}: any) => {
                 <Image
                   source={
                     !!item?.image_url
-                      ? {uri: item?.image_url}
+                      ? { uri: item?.image_url }
                       : require('../../assets/images/default_pic.png')
                   }
                   style={styles.avatar}
@@ -311,11 +332,11 @@ const AddParticipants = ({navigation, route}: any) => {
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
                   {!!item?.custom_title ? (
-                      <Text
-                        style={
-                          styles.messageCustomTitle
-                        }>{` • ${item?.custom_title}`}</Text>
-                    ) : null}
+                    <Text
+                      style={
+                        styles.messageCustomTitle
+                      }>{` • ${item?.custom_title}`}</Text>
+                  ) : null}
                 </Text>
               </View>
             </TouchableOpacity>
