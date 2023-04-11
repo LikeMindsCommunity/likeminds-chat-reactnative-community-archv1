@@ -139,7 +139,6 @@ const ViewParticipants = ({ navigation, route }: any) => {
       page_size: 10,
       participant_name: search,
     });
-    console.log('res ==>', res?.participants.length)
     setTotalChatroomCount(res?.total_participants_count)
     setParticipants(res?.participants);
 
@@ -151,7 +150,6 @@ const ViewParticipants = ({ navigation, route }: any) => {
         page_size: 10,
         participant_name: search,
       });
-      console.log('response ==>', response?.participants.length)
       setParticipants((participants: any) => ([...participants, ...response?.participants]));
       setPage(2);
     }
