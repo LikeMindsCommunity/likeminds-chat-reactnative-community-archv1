@@ -1,10 +1,10 @@
-import {View, Image, Text, ScrollView} from 'react-native';
-import React, {useLayoutEffect, useState} from 'react';
-import {styles} from './styles';
+import { View, Image, Text, ScrollView } from 'react-native';
+import React, { useLayoutEffect, useState } from 'react';
+import { styles } from './styles';
 import STYLES from '../../constants/Styles';
-import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
+import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import Layout from '../../constants/Layout';
-import {useAppSelector} from '../../store';
+import { useAppSelector } from '../../store';
 
 interface PeopleWhoReactedDefault {
   item: any;
@@ -26,7 +26,7 @@ export const PeopleWhoReactedDefault = ({
 }: PeopleWhoReactedDefault) => {
   return (
     <ScrollView
-      contentContainerStyle={{flexGrow: 1}}
+      contentContainerStyle={{ flexGrow: 1 }}
       keyboardDismissMode="on-drag">
       {item?.map((val: any, index: any) => {
         return (
@@ -36,7 +36,7 @@ export const PeopleWhoReactedDefault = ({
                 <Image
                   source={
                     !!val?.member?.image_url
-                      ? {uri: val?.member?.image_url}
+                      ? { uri: val?.member?.image_url }
                       : require('../../assets/images/default_pic.png')
                   }
                   style={styles.avatar}
@@ -82,7 +82,7 @@ export const PeopleWhoReacted = ({
                   <Image
                     source={
                       !!val?.image_url
-                        ? {uri: val?.image_url}
+                        ? { uri: val?.image_url }
                         : require('../../assets/images/default_pic.png')
                     }
                     style={styles.avatar}
@@ -115,13 +115,13 @@ export const PeopleWhoReacted = ({
 const renderTabBar = (props: any) => (
   <TabBar
     {...props}
-    tabStyle={{width: 70, color: STYLES.$COLORS.SECONDARY}}
+    tabStyle={{ width: 70, color: STYLES.$COLORS.SECONDARY }}
     labelStyle={[
       styles.textHeading,
-      {color: STYLES.$COLORS.LIGHT_BLUE, textTransform: 'capitalize'},
+      { color: STYLES.$COLORS.LIGHT_BLUE, textTransform: 'capitalize' },
     ]}
-    indicatorStyle={{backgroundColor: STYLES.$COLORS.SECONDARY}}
-    style={{backgroundColor: 'white'}}
+    indicatorStyle={{ backgroundColor: STYLES.$COLORS.SECONDARY }}
+    style={{ backgroundColor: 'white' }}
     scrollEnabled={true}
   />
 );
@@ -130,23 +130,26 @@ interface MyTabs {
   reactionArr: any;
   defaultReactionArr: any;
   removeReaction: () => void;
+  selectedReaction?: any
 }
 
 export default function MyTabs({
   reactionArr,
   defaultReactionArr,
   removeReaction,
+  selectedReaction
 }: MyTabs) {
-  const {user} = useAppSelector(state => state.homefeed);
+  const { user } = useAppSelector(state => state.homefeed);
+  let index = reactionArr.findIndex((val: any) => val?.reaction === selectedReaction)
   const [state, setState] = useState({
-    index: 0,
-    routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
+    index: index >= 0 && selectedReaction ? index + 1 : 0,
+    routes: [{ key: 'all', title: `All `, val: defaultReactionArr }],
   });
 
   useLayoutEffect(() => {
     let initialState = {
       index: 0,
-      routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
+      routes: [{ key: 'all', title: `All `, val: defaultReactionArr }],
     };
     if (reactionArr.length > 0) {
       for (let i = 0; i < reactionArr.length; i++) {
@@ -169,7 +172,7 @@ export default function MyTabs({
     <TabView
       navigationState={state}
       renderTabBar={renderTabBar}
-      renderScene={({route}) => {
+      renderScene={({ route }) => {
         switch (route.key) {
           case 'all':
             return (
@@ -190,12 +193,13 @@ export default function MyTabs({
             );
         }
       }}
-      onIndexChange={index => setState({index, routes: state.routes})}
-      initialLayout={{width: Layout.window.width}}
+      onIndexChange={index => setState({ index, routes: state.routes })}
+      initialLayout={{ width: Layout.window.width }}
       style={styles.container}
       overScrollMode={'always'}
-      // pagerStyle={{overflow: 'scroll', height: 150}}
-      // sceneContainerStyle={{overflow:'scroll',height:150}}
+      animationEnabled={true}
+    // pagerStyle={{overflow: 'scroll', height: 150}}
+    // sceneContainerStyle={{overflow:'scroll',height:150}}
     />
   );
 }
