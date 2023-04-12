@@ -74,7 +74,7 @@ const AttachmentConversations = ({
         ) : item?.attachments[0]?.type === 'audio' ? (
           <View>
             <Text style={styles.deletedMsg}>
-              This message is not supported in this app yet. ›
+              This message is not supported in this app yet.
             </Text>
           </View>
         ) : null}
@@ -85,7 +85,7 @@ const AttachmentConversations = ({
         <Text style={styles.messageDate}>{item?.created_at}</Text>
       </View>
 
-      {!isTypeSent ? (
+      {!isTypeSent && !(item?.attachments[0]?.type === 'audio') ? (
         <Pressable
           onLongPress={event => {
             const {pageX, pageY} = event.nativeEvent;
