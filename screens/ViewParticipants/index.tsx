@@ -8,18 +8,23 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
-import {styles} from './styles';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { styles } from './styles';
 import STYLES from '../../constants/Styles';
-import {myClient} from '../..';
-import {useAppSelector} from '../../store';
+import { myClient } from '../..';
+import { useAppSelector } from '../../store';
 
-const ViewParticipants = ({navigation, route}: any) => {
+const ViewParticipants = ({ navigation, route }: any) => {
+
   const [participants, setParticipants] = useState({} as any);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [isSearch, setIsSearch] = useState(false);
   const [search, setSearch] = useState('');
+  const [totalChatroomCount, setTotalChatroomCount] = useState('');
+
+  const { chatroomID, isSecret } = route.params;
+  const user = useAppSelector(state => state.homefeed.user);
 
   const {chatroomID, isSecret} = route.params;
   const user = useAppSelector(state => state.homefeed.user);
@@ -55,7 +60,7 @@ const ViewParticipants = ({navigation, route}: any) => {
                   fontSize: STYLES.$FONT_SIZES.SMALL,
                   fontFamily: STYLES.$FONT_TYPES.LIGHT,
                 }}>
-                {`${participants.length} participants`}
+                {`${totalChatroomCount} participants`}
               </Text>
             </View>
           ) : null}
@@ -115,7 +120,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       ),
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => {}}
+          onPress={() => { }}
           style={{
             justifyContent: 'center',
             alignItems: 'center',
@@ -138,7 +143,20 @@ const ViewParticipants = ({navigation, route}: any) => {
       page_size: 10,
       participant_name: search,
     });
+    setTotalChatroomCount(res?.total_participants_count)
     setParticipants(res?.participants);
+
+    if (!!res && res?.participants.length === 10) {
+      const response = await myClient.viewParticipants({
+        chatroom_id: chatroomID,
+        is_secret: isSecret,
+        page: 2,
+        page_size: 10,
+        participant_name: search,
+      });
+      setParticipants((participants: any) => ([...participants, ...response?.participants]));
+      setPage(2);
+    }
   };
 
   useLayoutEffect(() => {
@@ -163,7 +181,9 @@ const ViewParticipants = ({navigation, route}: any) => {
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      fetchParticipants();
+      if (!!isSearch) {
+        fetchParticipants();
+      }
     }, 500);
     return () => clearTimeout(delay);
   }, [search]);
@@ -217,7 +237,7 @@ const ViewParticipants = ({navigation, route}: any) => {
 
   const renderFooter = () => {
     return isLoading ? (
-      <View style={{paddingVertical: 20}}>
+      <View style={{ paddingVertical: 20 }}>
         <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
       </View>
     ) : null;
@@ -228,7 +248,8 @@ const ViewParticipants = ({navigation, route}: any) => {
       <FlatList
         data={participants}
         ListHeaderComponent={() =>
-          isSecret && user?.state === 1 ? (
+          isSecret && user?.state === 1 && participants.length > 0 ? (
+
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('AddParticipants', {
@@ -263,13 +284,14 @@ const ViewParticipants = ({navigation, route}: any) => {
             </TouchableOpacity>
           ) : null
         }
-        renderItem={({item}: any) => {
+        renderItem={({ item }: any) => {
+
           return (
             <View key={item?.id} style={styles.participants}>
               <Image
                 source={
                   !!item?.image_url
-                    ? {uri: item?.image_url}
+                    ? { uri: item?.image_url }
                     : require('../../assets/images/default_pic.png')
                 }
                 style={styles.avatar}
@@ -278,11 +300,12 @@ const ViewParticipants = ({navigation, route}: any) => {
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
                   {!!item?.custom_title ? (
-                      <Text
-                        style={
-                          styles.messageCustomTitle
-                        }>{` • ${item?.custom_title}`}</Text>
-                    ) : null}
+                    <Text
+                      style={
+                        styles.messageCustomTitle
+                      }>{` • ${item?.custom_title}`}</Text>
+                  ) : null}
+
                 </Text>
               </View>
             </View>
