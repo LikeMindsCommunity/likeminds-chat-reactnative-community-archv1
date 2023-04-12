@@ -13,6 +13,13 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: STYLES.$COLORS.TERTIARY,
   },
+  justifyCenter: {
+    flexDirection: 'row',
+    padding: STYLES.$PADDINGS.MEDIUM,
+    justifyContent: 'center',
+    backgroundColor: STYLES.$COLORS.TERTIARY,
+    flex:1
+  },
   avatar: {
     width: STYLES.$AVATAR.WIDTH,
     height: STYLES.$AVATAR.HEIGHT,
