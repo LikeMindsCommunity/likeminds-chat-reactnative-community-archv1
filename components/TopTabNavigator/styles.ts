@@ -42,5 +42,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 2,
     gap: 5,
+    flexGrow: 1,
   },
 });

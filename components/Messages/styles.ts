@@ -14,6 +14,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     borderRadius: 15,
     backgroundColor: '#fff',
+    minWidth: 100,
     // backgroundColor: 'green',
     // elevation: 20,
     // display: 'flex',
