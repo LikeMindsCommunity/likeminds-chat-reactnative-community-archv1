@@ -17,7 +17,7 @@ const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
 
-  //To navigate onPress notification while android app is in background state.
+  //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
     async function bootstrap() {
       const initialNotification = await notifee.getInitialNotification();
