@@ -1,5 +1,6 @@
 import { CommonActions, useIsFocused } from '@react-navigation/native';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+
 import {
   View,
   Text,
@@ -53,6 +54,7 @@ import {
 import { getExploreFeedData } from '../../store/actions/explorefeed';
 import Layout from '../../constants/Layout';
 import EmojiPicker, { EmojiKeyboard } from 'rn-emoji-keyboard';
+
 interface Data {
   id: string;
   title: string;
@@ -87,6 +89,7 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
 
   const { chatroomID, isInvited } = route.params;
   const isFocused = useIsFocused();
+
 
   const dispatch = useAppDispatch();
   const {
@@ -362,6 +365,7 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
     );
     if (!isInvited) {
       const response = await myClient.markReadFn({ chatroom_id: chatroomID });
+
       const res = await myClient.crSeenFn({
         collabcard_id: chatroomID,
         // community_id: community?.id,

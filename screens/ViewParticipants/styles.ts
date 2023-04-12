@@ -1,4 +1,4 @@
-import {Platform, StyleSheet} from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import STYLES from '../../constants/Styles';
 import Layout from '../../constants/Layout';
 
@@ -45,9 +45,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 15,
   },
-  backBtn: {height: 40, width: 40, resizeMode: 'contain'},
-  search: {height: 20, width: 20, resizeMode: 'contain'},
-  chatRoomInfo: {gap: 5},
+  backBtn: { height: 40, width: 40, resizeMode: 'contain' },
+  search: { height: 20, width: 20, resizeMode: 'contain' },
+  chatRoomInfo: { gap: 5 },
   participants: {
     display: 'flex',
     flexDirection: 'row',
@@ -73,3 +73,4 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
   },
 });
+
