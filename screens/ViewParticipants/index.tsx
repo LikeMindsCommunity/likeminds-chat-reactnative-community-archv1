@@ -23,9 +23,6 @@ const ViewParticipants = ({ navigation, route }: any) => {
   const [search, setSearch] = useState('');
   const [totalChatroomCount, setTotalChatroomCount] = useState('');
 
-  const { chatroomID, isSecret } = route.params;
-  const user = useAppSelector(state => state.homefeed.user);
-
   const {chatroomID, isSecret} = route.params;
   const user = useAppSelector(state => state.homefeed.user);
 
