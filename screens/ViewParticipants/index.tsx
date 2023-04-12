@@ -263,7 +263,7 @@ const ViewParticipants = ({ navigation, route }: any) => {
                   flexDirection: 'row',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  backgroundColor: '#4c4edc',
+                  backgroundColor: STYLES.$COLORS.SECONDARY,
                   borderRadius: 30,
                   marginRight: 10,
                 }}>

@@ -107,4 +107,11 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
   },
+  justifyCenter: {
+    flexDirection: 'row',
+    padding: STYLES.$PADDINGS.MEDIUM,
+    justifyContent: 'center',
+    backgroundColor: STYLES.$COLORS.TERTIARY,
+    flex:1
+  },
 });
