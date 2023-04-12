@@ -1,4 +1,4 @@
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useIsFocused } from '@react-navigation/native';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import {
@@ -52,6 +52,9 @@ import {
   STOP_CHATROOM_LOADING,
 } from '../../store/types/loader';
 import { getExploreFeedData } from '../../store/actions/explorefeed';
+import Layout from '../../constants/Layout';
+import EmojiPicker, { EmojiKeyboard } from 'rn-emoji-keyboard';
+
 interface Data {
   id: string;
   title: string;
@@ -85,6 +88,8 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
   const { chatroomID, isInvited } = route.params;
+  const isFocused = useIsFocused();
+
 
   const dispatch = useAppDispatch();
   const {
@@ -359,7 +364,8 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
       ) as any,
     );
     if (!isInvited) {
-      await myClient.markReadFn({ chatroom_id: chatroomID });
+      const response = await myClient.markReadFn({ chatroom_id: chatroomID });
+
       const res = await myClient.crSeenFn({
         collabcard_id: chatroomID,
         // community_id: community?.id,
@@ -837,14 +843,14 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
             element?.member?.id === user?.id
               ? {
-                  member: {
-                    id: user?.id,
-                    name: user?.name,
-                    image_url: '',
-                  },
-                  reaction: val,
-                  updated_at: Date.now(),
-                }
+                member: {
+                  id: user?.id,
+                  name: user?.name,
+                  image_url: '',
+                },
+                reaction: val,
+                updated_at: Date.now(),
+              }
               : element,
           );
           changedMsg = {
@@ -857,14 +863,14 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
             element?.member?.id === user?.id
               ? {
-                  member: {
-                    id: user?.id,
-                    name: user?.name,
-                    image_url: '',
-                  },
-                  reaction: val,
-                  updated_at: Date.now(),
-                }
+                member: {
+                  id: user?.id,
+                  name: user?.name,
+                  image_url: '',
+                },
+                reaction: val,
+                updated_at: Date.now(),
+              }
               : element,
           );
           changedMsg = {
@@ -917,8 +923,8 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
         changedMsg: changedMsg,
       },
     });
-    dispatch({type: SELECTED_MESSAGES, body: []});
-    dispatch({type: LONG_PRESSED, body: false});
+    dispatch({ type: SELECTED_MESSAGES, body: [] });
+    dispatch({ type: LONG_PRESSED, body: false });
     setIsReact(false);
     sendReactionAPI(previousMsg?.id, val);
   };
@@ -957,8 +963,8 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
 
   const handlePick = (emojiObject: any) => {
     sendReaction(emojiObject?.emoji);
-    dispatch({type: SELECTED_MESSAGES, body: []});
-    dispatch({type: LONG_PRESSED, body: false});
+    dispatch({ type: SELECTED_MESSAGES, body: [] });
+    dispatch({ type: LONG_PRESSED, body: false });
     setIsOpen(false);
   };
 
@@ -967,11 +973,11 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
     isIncluded: any,
     item: any,
   ) => {
-    dispatch({type: LONG_PRESSED, body: true});
+    dispatch({ type: LONG_PRESSED, body: true });
 
     if (isIncluded) {
       const filterdMessages = selectedMessages.filter(
-        (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+        (val: any) => val?.id !== item?.id && !isStateIncluded,
       );
       dispatch({
         type: SELECTED_MESSAGES,
@@ -1012,7 +1018,7 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
             type: SELECTED_MESSAGES,
             body: [...filterdMessages],
           });
-          dispatch({type: LONG_PRESSED, body: false});
+          dispatch({ type: LONG_PRESSED, body: false });
         }
       } else {
         if (!isStateIncluded) {
@@ -1023,7 +1029,7 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
         }
       }
     } else if (emojiClicked) {
-      dispatch({type: LONG_PRESSED, body: true});
+      dispatch({ type: LONG_PRESSED, body: true });
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
           (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
@@ -1038,7 +1044,7 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
             type: SELECTED_MESSAGES,
             body: [...filterdMessages],
           });
-          dispatch({type: LONG_PRESSED, body: false});
+          dispatch({ type: LONG_PRESSED, body: false });
         }
       } else {
         if (!isStateIncluded) {
@@ -1064,12 +1070,14 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
         ref={flatlistRef}
         // data={dummyData?.my_chatrooms}
         data={conversations}
-        keyExtractor={item => item?.id?.toString()}
+        keyExtractor={item => {
+          return item?.id?.toString();
+        }}
         renderItem={({ item, index }) => {
           let isStateIncluded = stateArr.includes(item?.state);
           let isIncluded = selectedMessages.some(
             (val: any) =>
-              val?.id === item?.id && !stateArr.includes(val?.state),
+              val?.id === item?.id && !isStateIncluded,
           );
           return (
             <View>
@@ -1087,55 +1095,21 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
                 </View>
               ) : null}
               <Pressable
-                onLongPress={() => {
-                  dispatch({ type: LONG_PRESSED, body: true });
-                  if (isIncluded) {
-                    const filterdMessages = selectedMessages.filter(
-                      (val: any) =>
-                        val?.id !== item?.id && !stateArr.includes(val?.state),
-                    );
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    if (!isStateIncluded) {
-                      dispatch({
-                        type: SELECTED_MESSAGES,
-                        body: [...selectedMessages, item],
-                      });
-                    }
-                  }
+                onLongPress={event => {
+                  const { pageX, pageY } = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: { pageX: pageX, pageY: pageY },
+                  });
+                  handleLongPress(isStateIncluded, isIncluded, item);
                 }}
-                onPress={() => {
-                  if (isLongPress) {
-                    if (isIncluded) {
-                      const filterdMessages = selectedMessages.filter(
-                        (val: any) =>
-                          val?.id !== item?.id &&
-                          !stateArr.includes(val?.state),
-                      );
-                      if (filterdMessages.length > 0) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                      } else {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                        dispatch({ type: LONG_PRESSED, body: false });
-                      }
-                    } else {
-                      if (!isStateIncluded) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...selectedMessages, item],
-                        });
-                      }
-                    }
-                  }
+                onPress={event => {
+                  const { pageX, pageY } = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: { pageX: pageX, pageY: pageY },
+                  });
+                  handleClick(isStateIncluded, isIncluded, item, false);
                 }}
                 style={isIncluded ? { backgroundColor: '#d7e6f7' } : null}>
                 <Messages
@@ -1355,7 +1329,7 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
           onPress={handleReactionModalClose}>
           <View>
             <Pressable
-              onPress={() => {}}
+              onPress={() => { }}
               style={[
                 styles.reactionModalView,
                 {
@@ -1422,8 +1396,8 @@ const ChatRoom = ({ navigation, route }: ChatRoom) => {
             setIsOpen(false);
           }}>
           <View>
-            <Pressable onPress={() => {}} style={[styles.emojiModalView]}>
-              <View style={{height: 350}}>
+            <Pressable onPress={() => { }} style={[styles.emojiModalView]}>
+              <View style={{ height: 350 }}>
                 <EmojiKeyboard
                   categoryPosition="top"
                   onEmojiSelected={handlePick}

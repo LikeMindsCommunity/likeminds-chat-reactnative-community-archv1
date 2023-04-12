@@ -16,6 +16,7 @@ interface ReactionGridModal {
   reactionArr: any;
   defaultReactionArr: any;
   removeReaction: () => void;
+  selectedReaction?: any;
 }
 
 const ReactionGridModal = ({
@@ -24,6 +25,7 @@ const ReactionGridModal = ({
   reactionArr,
   defaultReactionArr,
   removeReaction,
+  selectedReaction
 }: ReactionGridModal) => {
   const handleModalClose = () => {
     setModalVisible(false);
@@ -45,6 +47,7 @@ const ReactionGridModal = ({
               <MyTabs
                 defaultReactionArr={defaultReactionArr}
                 reactionArr={reactionArr}
+                selectedReaction={selectedReaction}
                 removeReaction={() => {
                   removeReaction();
                 }}

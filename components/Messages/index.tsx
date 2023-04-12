@@ -1,12 +1,12 @@
-import {View, Text, Image, TouchableOpacity, Pressable} from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {styles} from './styles';
+import { View, Text, Image, TouchableOpacity, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { styles } from './styles';
 import STYLES from '../../constants/Styles';
-import {decode} from '../../commonFuctions';
+import { decode } from '../../commonFuctions';
 import ReplyConversations from '../ReplyConversations';
 import AttachmentConversations from '../AttachmentConversations';
 import ReactionGridModal from '../ReactionGridModal';
-import {useAppDispatch, useAppSelector} from '../../store';
+import { useAppDispatch, useAppSelector } from '../../store';
 import {
   LONG_PRESSED,
   SELECTED_MESSAGES,
@@ -32,10 +32,11 @@ const Messages = ({
   longPressOpenKeyboard,
   removeReaction,
 }: Messages) => {
-  const {user} = useAppSelector(state => state.homefeed);
-  const {selectedMessages, isLongPress} = useAppSelector(
+  const { user } = useAppSelector(state => state.homefeed);
+  const { selectedMessages, isLongPress } = useAppSelector(
     state => state.chatroom,
   );
+  const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [reactionArr, setReactionArr] = useState([] as any);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
@@ -83,34 +84,34 @@ const Messages = ({
   const reactionLen = reactionArr.length;
 
   const handleLongPress = (event: any) => {
-    const {pageX, pageY} = event.nativeEvent;
+    const { pageX, pageY } = event.nativeEvent;
     dispatch({
       type: SET_POSITION,
-      body: {pageX: pageX, pageY: pageY},
+      body: { pageX: pageX, pageY: pageY },
     });
     longPressOpenKeyboard();
   };
 
   const handleOnPress = (event: any) => {
-    const {pageX, pageY} = event.nativeEvent;
+    const { pageX, pageY } = event.nativeEvent;
     dispatch({
       type: SET_POSITION,
-      body: {pageX: pageX, pageY: pageY},
+      body: { pageX: pageX, pageY: pageY },
     });
     openKeyboard();
   };
 
-  const handleReactionOnPress = (event: any) => {
-    const {pageX, pageY} = event.nativeEvent;
+  const handleReactionOnPress = (event: any, val?: any) => {
+    const { pageX, pageY } = event.nativeEvent;
     dispatch({
       type: SET_POSITION,
-      body: {pageX: pageX, pageY: pageY},
+      body: { pageX: pageX, pageY: pageY },
     });
     let isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
-          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+          (val: any) => val?.id !== item?.id && !isStateIncluded,
         );
         if (filterdMessages.length > 0) {
           dispatch({
@@ -122,7 +123,7 @@ const Messages = ({
             type: SELECTED_MESSAGES,
             body: [...filterdMessages],
           });
-          dispatch({type: LONG_PRESSED, body: false});
+          dispatch({ type: LONG_PRESSED, body: false });
         }
       } else {
         if (!isStateIncluded) {
@@ -133,6 +134,7 @@ const Messages = ({
         }
       }
     } else {
+      setSelectedReaction(val)
       setModalVisible(true);
     }
   };
@@ -146,7 +148,7 @@ const Messages = ({
               styles.message,
               isTypeSent ? styles.sentMessage : styles.receivedMessage,
               isIncluded
-                ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                ? { backgroundColor: STYLES.$COLORS.SELECTED_BLUE }
                 : null,
             ]}>
             <Text style={styles.deletedMsg}>This message has been deleted</Text>
@@ -197,7 +199,7 @@ const Messages = ({
                     styles.message,
                     isTypeSent ? styles.sentMessage : styles.receivedMessage,
                     isIncluded
-                      ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                      ? { backgroundColor: STYLES.$COLORS.SELECTED_BLUE }
                       : null,
                   ]}>
                   {!!(item?.member?.id === user?.id) ? null : (
@@ -216,7 +218,7 @@ const Messages = ({
                 </View>
                 {(reactionArr.length > 0 ||
                   item?.answer?.split('').length > 100) &&
-                !isTypeSent ? (
+                  !isTypeSent ? (
                   <Pressable
                     onLongPress={handleLongPress}
                     onPress={handleOnPress}>
@@ -243,9 +245,9 @@ const Messages = ({
                   styles.typeSent,
                   isIncluded
                     ? {
-                        borderBottomColor: STYLES.$COLORS.SELECTED_BLUE,
-                        borderLeftColor: STYLES.$COLORS.SELECTED_BLUE,
-                      }
+                      borderBottomColor: STYLES.$COLORS.SELECTED_BLUE,
+                      borderLeftColor: STYLES.$COLORS.SELECTED_BLUE,
+                    }
                     : null,
                 ]}
               />
@@ -255,9 +257,9 @@ const Messages = ({
                   styles.typeReceived,
                   isIncluded
                     ? {
-                        borderBottomColor: STYLES.$COLORS.SELECTED_BLUE,
-                        borderRightColor: STYLES.$COLORS.SELECTED_BLUE,
-                      }
+                      borderBottomColor: STYLES.$COLORS.SELECTED_BLUE,
+                      borderRightColor: STYLES.$COLORS.SELECTED_BLUE,
+                    }
                     : null,
                 ]}
               />
@@ -277,12 +279,14 @@ const Messages = ({
             {reactionArr.map((val: any, index: any) => (
               <TouchableOpacity
                 onLongPress={handleLongPress}
-                onPress={handleReactionOnPress}
+                onPress={(event) => {
+                  handleReactionOnPress(event, val?.reaction)
+                }}
                 style={[
                   styles.reaction,
                   isIncluded
-                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
-                    : {backgroundColor: 'white'},
+                    ? { backgroundColor: STYLES.$COLORS.SELECTED_BLUE }
+                    : { backgroundColor: 'white' },
                 ]}
                 key={val + index}>
                 <Text>{val?.reaction}</Text>
@@ -299,12 +303,14 @@ const Messages = ({
             }>
             <TouchableOpacity
               onLongPress={handleLongPress}
-              onPress={handleReactionOnPress}
+              onPress={(event) => {
+                handleReactionOnPress(event, reactionArr[0]?.reaction)
+              }}
               style={[
                 styles.reaction,
                 isIncluded
-                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
-                  : {backgroundColor: 'white'},
+                  ? { backgroundColor: STYLES.$COLORS.SELECTED_BLUE }
+                  : { backgroundColor: 'white' },
               ]}>
               <Text>{reactionArr[0]?.reaction}</Text>
               <Text style={styles.messageText}>
@@ -313,12 +319,14 @@ const Messages = ({
             </TouchableOpacity>
             <TouchableOpacity
               onLongPress={handleLongPress}
-              onPress={handleReactionOnPress}
+              onPress={(event) => {
+                handleReactionOnPress(event, reactionArr[1]?.reaction)
+              }}
               style={[
                 styles.reaction,
                 isIncluded
-                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
-                  : {backgroundColor: 'white'},
+                  ? { backgroundColor: STYLES.$COLORS.SELECTED_BLUE }
+                  : { backgroundColor: 'white' },
               ]}>
               <Text>{reactionArr[1]?.reaction}</Text>
               <Text style={styles.messageText}>
@@ -327,12 +335,14 @@ const Messages = ({
             </TouchableOpacity>
             <TouchableOpacity
               onLongPress={handleLongPress}
-              onPress={handleReactionOnPress}
+              onPress={(event) => {
+                handleReactionOnPress(event, null)
+              }}
               style={[
                 styles.moreReaction,
                 isIncluded
-                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
-                  : {backgroundColor: STYLES.$COLORS.TERTIARY},
+                  ? { backgroundColor: STYLES.$COLORS.SELECTED_BLUE }
+                  : { backgroundColor: STYLES.$COLORS.TERTIARY },
               ]}>
               <View>
                 <Image
@@ -353,11 +363,13 @@ const Messages = ({
         defaultReactionArr={item?.reactions}
         reactionArr={reactionArr}
         modalVisible={modalVisible}
+        selectedReaction={selectedReaction}
         setModalVisible={val => {
           setModalVisible(val);
         }}
         removeReaction={() => {
           removeReaction();
+          setModalVisible(false)
         }}
       />
     </View>
