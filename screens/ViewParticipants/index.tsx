@@ -8,14 +8,14 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { styles } from './styles';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
+import {styles} from './styles';
 import STYLES from '../../constants/Styles';
-import { myClient } from '../..';
-import { useAppSelector } from '../../store';
+import {myClient} from '../..';
+import {useAppSelector} from '../../store';
+import Layout from '../../constants/Layout';
 
-const ViewParticipants = ({ navigation, route }: any) => {
-
+const ViewParticipants = ({navigation, route}: any) => {
   const [participants, setParticipants] = useState({} as any);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -102,14 +102,7 @@ const ViewParticipants = ({ navigation, route }: any) => {
             value={search}
             onChangeText={setSearch}
             style={[styles.input]}
-            // numberOfLines={6}
-            // multiline={true}
-            // onBlur={() => {
-            //   setIsKeyBoardFocused(false);
-            // }}
-            // onFocus={() => {
-            //   setIsKeyBoardFocused(true);
-            // }}
+            autoFocus={true}
             placeholder="Search..."
             placeholderTextColor="#aaa"
           />
@@ -117,7 +110,7 @@ const ViewParticipants = ({ navigation, route }: any) => {
       ),
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => { }}
+          onPress={() => {}}
           style={{
             justifyContent: 'center',
             alignItems: 'center',
@@ -140,7 +133,7 @@ const ViewParticipants = ({ navigation, route }: any) => {
       page_size: 10,
       participant_name: search,
     });
-    setTotalChatroomCount(res?.total_participants_count)
+    setTotalChatroomCount(res?.total_participants_count);
     setParticipants(res?.participants);
 
     if (!!res && res?.participants.length === 10) {
@@ -151,7 +144,10 @@ const ViewParticipants = ({ navigation, route }: any) => {
         page_size: 10,
         participant_name: search,
       });
-      setParticipants((participants: any) => ([...participants, ...response?.participants]));
+      setParticipants((participants: any) => [
+        ...participants,
+        ...response?.participants,
+      ]);
       setPage(2);
     }
   };
@@ -234,7 +230,7 @@ const ViewParticipants = ({ navigation, route }: any) => {
 
   const renderFooter = () => {
     return isLoading ? (
-      <View style={{ paddingVertical: 20 }}>
+      <View style={{paddingVertical: 20}}>
         <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
       </View>
     ) : null;
@@ -246,7 +242,6 @@ const ViewParticipants = ({ navigation, route }: any) => {
         data={participants}
         ListHeaderComponent={() =>
           isSecret && user?.state === 1 && participants.length > 0 ? (
-
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('AddParticipants', {
@@ -281,14 +276,13 @@ const ViewParticipants = ({ navigation, route }: any) => {
             </TouchableOpacity>
           ) : null
         }
-        renderItem={({ item }: any) => {
-
+        renderItem={({item}: any) => {
           return (
             <View key={item?.id} style={styles.participants}>
               <Image
                 source={
                   !!item?.image_url
-                    ? { uri: item?.image_url }
+                    ? {uri: item?.image_url}
                     : require('../../assets/images/default_pic.png')
                 }
                 style={styles.avatar}
@@ -302,7 +296,6 @@ const ViewParticipants = ({ navigation, route }: any) => {
                         styles.messageCustomTitle
                       }>{` • ${item?.custom_title}`}</Text>
                   ) : null}
-
                 </Text>
               </View>
             </View>
@@ -313,6 +306,11 @@ const ViewParticipants = ({ navigation, route }: any) => {
         ListFooterComponent={renderFooter}
         keyExtractor={(item: any) => item?.id.toString()}
       />
+      {participants.length === 0 && (
+        <View style={[styles.justifyCenter]}>
+          <Text style={styles.title}>No search results found</Text>
+        </View>
+      )}
     </View>
   );
 };
