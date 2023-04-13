@@ -95,7 +95,7 @@ const InputBox = ({
         replyObj.reply_conversation_object = replyMessage;
         replyObj.member.name = user?.name;
         replyObj.member.id = user?.id;
-        replyObj.answer = message;
+        replyObj.answer = message.trim();
         replyObj.created_at = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
           useGrouping: false,
@@ -113,7 +113,7 @@ const InputBox = ({
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
       obj.member.id = user?.id;
-      obj.answer = message;
+      obj.answer = message.trim();
       obj.created_at = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,
         useGrouping: false,
@@ -130,11 +130,11 @@ const InputBox = ({
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
-        body: isReply ? replyObj : obj,
+        body: isReply ? {obj: {...replyObj}} : {obj: {...obj}},
       });
       dispatch({
         type: MESSAGE_SENT,
-        body: isReply ? replyObj?.id : obj?.id,
+        body: isReply ? {id : replyObj?.id} : {id: obj?.id},
       });
       setMessage('');
       setIsReply(false);
