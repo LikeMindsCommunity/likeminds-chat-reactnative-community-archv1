@@ -50,8 +50,8 @@ export function chatroomReducer(state = initialState, action: any) {
       return {...state, conversations: [...state.conversations, ...arr]};
     }
     case UPDATE_CONVERSATIONS: {
-      const message = action.body;
-      return {...state, conversations: [message, ...state.conversations]};
+      const {obj} = action.body;
+      return {...state, conversations: [obj, ...state.conversations]};
     }
 
     case CLEAR_CHATROOM_CONVERSATION: {
@@ -67,7 +67,7 @@ export function chatroomReducer(state = initialState, action: any) {
       return {...state, chatroomDetails: chatroomDetails};
     }
     case MESSAGE_SENT: {
-      const messageObj = action.body;
+      const {id: messageObj} = action.body;
       return {...state, messageSent: messageObj};
     }
     case REACTION_SENT: {
