@@ -1,5 +1,6 @@
-import {CommonActions} from '@react-navigation/native';
+import {CommonActions, useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+
 import {
   View,
   Text,
@@ -14,6 +15,8 @@ import {
   Alert,
   Modal,
   BackHandler,
+  ScrollView,
+  Platform,
 } from 'react-native';
 import {myClient} from '../..';
 import {copySelectedMessages} from '../../commonFuctions';
@@ -36,10 +39,12 @@ import {
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
   LONG_PRESSED,
+  REACTION_SENT,
   REJECT_INVITE_SUCCESS,
   SELECTED_MESSAGES,
   SET_EXPLORE_FEED_PAGE,
   SET_PAGE,
+  SET_POSITION,
   SHOW_TOAST,
 } from '../../store/types/types';
 import {
@@ -47,6 +52,9 @@ import {
   STOP_CHATROOM_LOADING,
 } from '../../store/types/loader';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
+import Layout from '../../constants/Layout';
+import EmojiPicker, {EmojiKeyboard} from 'rn-emoji-keyboard';
+
 interface Data {
   id: string;
   title: string;
@@ -75,8 +83,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [apiRes, setApiRes] = useState();
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
+  const [isReact, setIsReact] = useState(false);
+  const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
   const {chatroomID, isInvited} = route.params;
+  const isFocused = useIsFocused();
 
   const dispatch = useAppDispatch();
   const {
@@ -86,15 +98,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     isLongPress,
     selectedMessages,
     stateArr,
+    position,
   } = useAppSelector(state => state.chatroom);
 
-  const routes = navigation.getState()?.routes;
-  const prevRoute = routes[routes.length - 2];
+  let routes = navigation.getState()?.routes;
+  let prevRoute = routes[routes.length - 2];
 
   const {user, community} = useAppSelector(state => state.homefeed);
   let isSecret = chatroomDetails?.chatroom?.is_secret;
 
-  let notIncludedActionsID = [2, 3];
+  let notIncludedActionsID = [3];
   let filteredChatroomActions = chatroomDetails?.chatroom_actions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
@@ -350,7 +363,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ) as any,
     );
     if (!isInvited) {
-      await myClient.markReadFn({chatroom_id: chatroomID});
+      const response = await myClient.markReadFn({chatroom_id: chatroomID});
+
       const res = await myClient.crSeenFn({
         collabcard_id: chatroomID,
         // community_id: community?.id,
@@ -383,33 +397,43 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   useLayoutEffect(() => {
     // dispatch({type: START_CHATROOM_LOADING});
+    dispatch({type: SELECTED_MESSAGES, body: []});
+    dispatch({type: LONG_PRESSED, body: false});
+    dispatch({
+      type: CLEAR_CHATROOM_CONVERSATION,
+      body: {conversations: []},
+    });
+    dispatch({
+      type: CLEAR_CHATROOM_DETAILS,
+      body: {chatroomDetails: {}},
+    });
     fetchChatroomDetails();
     setInitialHeader();
   }, [navigation]);
 
-  useEffect(() => {
-    const backAction = () => {
-      dispatch({type: SELECTED_MESSAGES, body: []});
-      dispatch({type: LONG_PRESSED, body: false});
-      dispatch({
-        type: CLEAR_CHATROOM_CONVERSATION,
-        body: {conversations: []},
-      });
-      dispatch({
-        type: CLEAR_CHATROOM_DETAILS,
-        body: {chatroomDetails: {}},
-      });
-      setInitialHeader();
-      return null;
-    };
+  // useEffect(() => {
+  //   const backAction = () => {
+  //     dispatch({ type: SELECTED_MESSAGES, body: [] });
+  //     dispatch({ type: LONG_PRESSED, body: false });
+  //     dispatch({
+  //       type: CLEAR_CHATROOM_CONVERSATION,
+  //       body: { conversations: [] },
+  //     });
+  //     dispatch({
+  //       type: CLEAR_CHATROOM_DETAILS,
+  //       body: { chatroomDetails: {} },
+  //     });
+  //     setInitialHeader();
+  //     return null;
+  //   };
 
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction,
-    );
+  //   const backHandler = BackHandler.addEventListener(
+  //     'hardwareBackPress',
+  //     backAction,
+  //   );
 
-    return () => backHandler.remove();
-  }, []);
+  //   return () => backHandler.remove();
+  // }, []);
 
   useEffect(() => {
     setInitialHeader();
@@ -454,6 +478,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   }, []);
 
+  useEffect(() => {
+    if (isFocused) {
+      routes = navigation.getState()?.routes;
+      prevRoute = routes[routes.length - 2];
+    }
+  }, [isFocused]);
+
   const loadData = async (newPage: number) => {
     setIsLoading(true);
     const res = await paginatedData(newPage);
@@ -490,6 +521,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const handleModalClose = () => {
     setModalVisible(false);
+  };
+
+  const handleReactionModalClose = () => {
+    setIsReact(false);
   };
 
   const leaveChatroom = async () => {
@@ -788,9 +823,253 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       },
     );
 
+  const sendReactionAPI = async (consversationID: any, reaction: any) => {
+    const res = await myClient.addAction({
+      chatroom_id: chatroomID,
+      conversation_id: consversationID,
+      reaction: reaction,
+    });
+  };
+
+  const removeReactionAPI = async (consversationID: any, reaction: any) => {
+    const res = await myClient.removeAction({
+      chatroom_id: chatroomID,
+      conversation_id: consversationID,
+      reaction: reaction,
+    });
+  };
+
+  const sendReaction = (val: any) => {
+    let previousMsg = selectedMessages[0];
+    let changedMsg;
+    if (selectedMessages[0]?.reactions.length > 0) {
+      let isReactedArr = selectedMessages[0]?.reactions.filter(
+        (val: any) => val?.member?.id === user?.id,
+      );
+      if (isReactedArr.length > 0) {
+        // Reacted different emoji
+        if (isReactedArr[0].reaction !== val) {
+          const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
+            element?.member?.id === user?.id
+              ? {
+                  member: {
+                    id: user?.id,
+                    name: user?.name,
+                    image_url: '',
+                  },
+                  reaction: val,
+                  updated_at: Date.now(),
+                }
+              : element,
+          );
+          changedMsg = {
+            ...selectedMessages[0],
+            reactions: resultArr,
+          };
+          //API call
+        } else if (isReactedArr[0].reaction === val) {
+          // Reacted same emoji
+          const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
+            element?.member?.id === user?.id
+              ? {
+                  member: {
+                    id: user?.id,
+                    name: user?.name,
+                    image_url: '',
+                  },
+                  reaction: val,
+                  updated_at: Date.now(),
+                }
+              : element,
+          );
+          changedMsg = {
+            ...selectedMessages[0],
+            reactions: resultArr,
+          };
+          // No API call
+        }
+      } else {
+        changedMsg = {
+          ...selectedMessages[0],
+          reactions: [
+            ...selectedMessages[0]?.reactions,
+            {
+              member: {
+                id: user?.id,
+                name: user?.name,
+                image_url: '',
+              },
+              reaction: val,
+              updated_at: Date.now(),
+            },
+          ],
+        };
+        //API call
+      }
+    } else {
+      changedMsg = {
+        ...selectedMessages[0],
+        reactions: [
+          ...selectedMessages[0]?.reactions,
+          {
+            member: {
+              id: user?.id,
+              name: user?.name,
+              image_url: '',
+            },
+            reaction: val,
+            updated_at: Date.now(),
+          },
+        ],
+      };
+    }
+
+    // console.log('changedMsg ==', changedMsg);
+    dispatch({
+      type: REACTION_SENT,
+      body: {
+        previousMsg: previousMsg,
+        changedMsg: changedMsg,
+      },
+    });
+    dispatch({type: SELECTED_MESSAGES, body: []});
+    dispatch({type: LONG_PRESSED, body: false});
+    setIsReact(false);
+    sendReactionAPI(previousMsg?.id, val);
+  };
+
+  const removeReaction = (item: any) => {
+    let previousMsg = item;
+    let changedMsg;
+    let val;
+    if (item?.reactions.length > 0) {
+      let index = item?.reactions.findIndex(
+        (val: any) => val?.member?.id === user?.id,
+      );
+      let tempArr = [...item?.reactions];
+
+      val = tempArr[index];
+
+      if (index !== undefined || index !== -1) {
+        tempArr.splice(index, 1);
+      }
+
+      changedMsg = {
+        ...item,
+        reactions: tempArr,
+      };
+
+      dispatch({
+        type: REACTION_SENT,
+        body: {
+          previousMsg: previousMsg,
+          changedMsg: changedMsg,
+        },
+      });
+    }
+    removeReactionAPI(previousMsg?.id, val?.reaction);
+  };
+
+  const handlePick = (emojiObject: any) => {
+    sendReaction(emojiObject?.emoji);
+    dispatch({type: SELECTED_MESSAGES, body: []});
+    dispatch({type: LONG_PRESSED, body: false});
+    setIsOpen(false);
+  };
+
+  const handleLongPress = (
+    isStateIncluded: any,
+    isIncluded: any,
+    item: any,
+  ) => {
+    dispatch({type: LONG_PRESSED, body: true});
+
+    if (isIncluded) {
+      const filterdMessages = selectedMessages.filter(
+        (val: any) => val?.id !== item?.id && !isStateIncluded,
+      );
+      dispatch({
+        type: SELECTED_MESSAGES,
+        body: [...filterdMessages],
+      });
+    } else {
+      if (!isStateIncluded) {
+        dispatch({
+          type: SELECTED_MESSAGES,
+          body: [...selectedMessages, item],
+        });
+      }
+    }
+
+    if (!isLongPress) {
+      setIsReact(true);
+    }
+  };
+
+  const handleClick = (
+    isStateIncluded: any,
+    isIncluded: any,
+    item: any,
+    emojiClicked: any,
+  ) => {
+    if (isLongPress) {
+      if (isIncluded) {
+        const filterdMessages = selectedMessages.filter(
+          (val: any) => val?.id !== item?.id && !isStateIncluded,
+        );
+        if (filterdMessages.length > 0) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+        } else {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+          dispatch({type: LONG_PRESSED, body: false});
+        }
+      } else {
+        if (!isStateIncluded) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...selectedMessages, item],
+          });
+        }
+      }
+    } else if (emojiClicked) {
+      dispatch({type: LONG_PRESSED, body: true});
+      if (isIncluded) {
+        const filterdMessages = selectedMessages.filter(
+          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+        );
+        if (filterdMessages.length > 0) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+        } else {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+          dispatch({type: LONG_PRESSED, body: false});
+        }
+      } else {
+        if (!isStateIncluded) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...selectedMessages, item],
+          });
+        }
+        setIsReact(true);
+      }
+    }
+  };
+
   const getItemLayout = (data: any, index: any) => ({
-    length: conversations.length,
-    offset: conversations.length * index,
+    length: 85,
+    offset: 85 * index,
     index,
   });
 
@@ -798,13 +1077,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     <View style={styles.container}>
       <FlatList
         ref={flatlistRef}
+        // data={dummyData?.my_chatrooms}
         data={conversations}
-        keyExtractor={item => item?.id?.toString()}
+        keyExtractor={item => {
+          return item?.id?.toString();
+        }}
         renderItem={({item, index}) => {
           let isStateIncluded = stateArr.includes(item?.state);
           let isIncluded = selectedMessages.some(
-            (val: any) =>
-              val?.id === item?.id && !stateArr.includes(val?.state),
+            (val: any) => val?.id === item?.id && !isStateIncluded,
           );
           return (
             <View>
@@ -822,55 +1103,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </View>
               ) : null}
               <Pressable
-                onLongPress={() => {
-                  dispatch({type: LONG_PRESSED, body: true});
-                  if (isIncluded) {
-                    const filterdMessages = selectedMessages.filter(
-                      (val: any) =>
-                        val?.id !== item?.id && !stateArr.includes(val?.state),
-                    );
-                    dispatch({
-                      type: SELECTED_MESSAGES,
-                      body: [...filterdMessages],
-                    });
-                  } else {
-                    if (!isStateIncluded) {
-                      dispatch({
-                        type: SELECTED_MESSAGES,
-                        body: [...selectedMessages, item],
-                      });
-                    }
-                  }
+                onLongPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
+                  handleLongPress(isStateIncluded, isIncluded, item);
                 }}
-                onPress={() => {
-                  if (isLongPress) {
-                    if (isIncluded) {
-                      const filterdMessages = selectedMessages.filter(
-                        (val: any) =>
-                          val?.id !== item?.id &&
-                          !stateArr.includes(val?.state),
-                      );
-                      if (filterdMessages.length > 0) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                      } else {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...filterdMessages],
-                        });
-                        dispatch({type: LONG_PRESSED, body: false});
-                      }
-                    } else {
-                      if (!isStateIncluded) {
-                        dispatch({
-                          type: SELECTED_MESSAGES,
-                          body: [...selectedMessages, item],
-                        });
-                      }
-                    }
-                  }
+                delayLongPress={200}
+                onPress={event => {
+                  const {pageX, pageY} = event.nativeEvent;
+                  dispatch({
+                    type: SET_POSITION,
+                    body: {pageX: pageX, pageY: pageY},
+                  });
+                  handleClick(isStateIncluded, isIncluded, item, false);
                 }}
                 style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
                 <Messages
@@ -880,6 +1128,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   isIncluded={isIncluded}
                   item={item}
                   navigation={navigation}
+                  openKeyboard={() => {
+                    handleClick(isStateIncluded, isIncluded, item, true);
+                  }}
+                  longPressOpenKeyboard={() => {
+                    handleLongPress(isStateIncluded, isIncluded, item);
+                  }}
+                  removeReaction={() => {
+                    removeReaction(item);
+                  }}
                 />
               </Pressable>
             </View>
@@ -892,10 +1149,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
+        getItemLayout={(data, index) => {
+          // console.log('data -- getItemLayout ==', data);
+          const output = getItemLayout(data, index);
+          return output;
+        }}
         // getItemLayout={getItemLayout}
         inverted
       />
-
       {!(Object.keys(chatroomDetails).length === 0) &&
       prevRoute?.name === 'ExploreFeed'
         ? !!!chatroomDetails?.chatroom?.follow_status && (
@@ -912,7 +1173,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </TouchableOpacity>
           )
         : null}
-
       {!(Object.keys(chatroomDetails).length === 0) ? (
         chatroomDetails?.chatroom?.member_can_message &&
         chatroomDetails?.chatroom?.follow_status ? (
@@ -985,6 +1245,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         </View>
       )}
 
+      {/* Chatroom Action Modal */}
       <Modal
         // animationType="slide"
         transparent={true}
@@ -999,11 +1260,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 return (
                   <TouchableOpacity
                     onPress={async () => {
-                      // if(val?.id === 2){
-                      //   navigation.navigate('ViewParticipants')
-                      //   setModalVisible(false)
-                      // }
-                      if (val?.id === 9 || val?.id === 15) {
+                      if (val?.id === 2) {
+                        setModalVisible(false);
+                        navigation.navigate('ViewParticipants', {
+                          chatroomID: chatroomID,
+                          isSecret: isSecret,
+                        });
+                      } else if (val?.id === 9 || val?.id === 15) {
                         if (isSecret) {
                           leaveSecretChatroom();
                         } else if (!isSecret) {
@@ -1035,6 +1298,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         </Pressable>
       </Modal>
 
+      {/* Report Action Modal */}
       <Modal
         // animationType="slide"
         transparent={true}
@@ -1057,6 +1321,97 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 style={styles.filtersView}>
                 <Text style={styles.filterText}>Report Message</Text>
               </TouchableOpacity>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Message Reaction Modal */}
+      <Modal
+        transparent={true}
+        visible={isReact}
+        onRequestClose={() => {
+          setIsReact(false);
+        }}>
+        <Pressable
+          style={styles.reactionCenteredView}
+          onPress={handleReactionModalClose}>
+          <View>
+            <Pressable
+              onPress={() => {}}
+              style={[
+                styles.reactionModalView,
+                {
+                  top:
+                    position.y > Layout.window.height / 2
+                      ? Platform.OS === 'ios'
+                        ? position.y - 150
+                        : position.y - 100
+                      : position.y - 10,
+                },
+              ]}>
+              {reactionArr?.map((val: any, index: any) => {
+                return (
+                  <TouchableOpacity
+                    onPress={() => {
+                      sendReaction(val);
+                    }}
+                    key={val + index}
+                    style={styles.reactionFiltersView}>
+                    <Text style={styles.filterText}>{val}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+              <Pressable
+                style={[
+                  {
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingHorizontal: 10,
+                    marginTop: 8,
+                  },
+                ]}
+                onPress={() => {
+                  setIsOpen(true);
+                  setIsReact(false);
+                }}>
+                <Image
+                  style={{
+                    height: 25,
+                    width: 25,
+                    resizeMode: 'contain',
+                  }}
+                  source={require('../../assets/images/add_more_emojis3x.png')}
+                />
+              </Pressable>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Emoji Keyboard Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isOpen}
+        onRequestClose={() => {
+          setIsOpen(false);
+        }}>
+        <Pressable
+          style={styles.emojiCenteredView}
+          onPress={() => {
+            setIsOpen(false);
+          }}>
+          <View>
+            <Pressable onPress={() => {}} style={[styles.emojiModalView]}>
+              <View style={{height: 350}}>
+                <EmojiKeyboard
+                  categoryPosition="top"
+                  onEmojiSelected={handlePick}
+                />
+              </View>
             </Pressable>
           </View>
         </Pressable>

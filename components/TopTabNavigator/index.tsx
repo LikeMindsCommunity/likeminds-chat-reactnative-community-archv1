@@ -1,56 +1,78 @@
-import {View, Image, Text, ScrollView} from 'react-native';
-import React, {useState} from 'react';
+import {View, Image, Text, ScrollView, TouchableOpacity} from 'react-native';
+import React, {useLayoutEffect, useState} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
 import Layout from '../../constants/Layout';
+import {useAppSelector} from '../../store';
 
 interface PeopleWhoReactedDefault {
   item: any;
+  removeReaction: () => void;
+  user: any;
 }
 
 interface PeopleWhoReacted {
   item: any;
   title: any;
+  removeReaction: () => void;
+  user: any;
 }
 
-export const PeopleWhoReactedDefault = ({item}: PeopleWhoReactedDefault) => {
+export const PeopleWhoReactedDefault = ({
+  item,
+  removeReaction,
+  user,
+}: PeopleWhoReactedDefault) => {
   return (
-    <ScrollView
-      contentContainerStyle={{flexGrow: 1}}
-      keyboardDismissMode="on-drag">
-      {item?.map((val: any, index: any) => {
-        return (
-          <View key={val + index} style={styles.reactionItem}>
-            <View style={styles.alignRow}>
-              <View>
-                <Image
-                  source={
-                    !!val?.member?.image_url
-                      ? {uri: val?.member?.image_url}
-                      : require('../../assets/images/default_pic.png')
-                  }
-                  style={styles.avatar}
-                />
-              </View>
-              <View style={styles.alignColumn}>
-                <Text style={styles.textHeading}>{val?.member?.name}</Text>
-                <Text style={styles.text}>Tap to remove</Text>
+    <View style={{height: '100%'}}>
+      <ScrollView
+        contentContainerStyle={{flexGrow: 1}}
+        keyboardDismissMode="on-drag">
+        {item?.map((val: any, index: any) => {
+          return (
+            <View key={val + index} style={styles.reactionItem}>
+              <View style={styles.alignRow}>
+                <View>
+                  <Image
+                    source={
+                      !!val?.member?.image_url
+                        ? {uri: val?.member?.image_url}
+                        : require('../../assets/images/default_pic.png')
+                    }
+                    style={styles.avatar}
+                  />
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    removeReaction();
+                  }}
+                  style={styles.alignColumn}>
+                  <Text style={styles.textHeading}>{val?.member?.name}</Text>
+                  {val?.member?.id === user?.id ? (
+                    <Text style={styles.text}>Tap to remove</Text>
+                  ) : null}
+                </TouchableOpacity>
+                <View>
+                  <Text>{val?.reaction}</Text>
+                </View>
               </View>
             </View>
-            <View>
-              <Text>{val?.reaction}</Text>
-            </View>
-          </View>
-        );
-      })}
-    </ScrollView>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 };
 
-export const PeopleWhoReacted = ({item, title}: PeopleWhoReacted) => {
+export const PeopleWhoReacted = ({
+  item,
+  title,
+  removeReaction,
+  user,
+}: PeopleWhoReacted) => {
   return (
-    <View>
+    <View style={{height: '100%'}}>
       <ScrollView>
         {item?.map((val: any, index: any) => {
           return (
@@ -66,13 +88,19 @@ export const PeopleWhoReacted = ({item, title}: PeopleWhoReacted) => {
                     style={styles.avatar}
                   />
                 </View>
-                <View style={styles.alignColumn}>
+                <TouchableOpacity
+                  onPress={() => {
+                    removeReaction();
+                  }}
+                  style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.name}</Text>
-                  <Text style={styles.text}>Tap to remove</Text>
+                  {val?.id === user?.id ? (
+                    <Text style={styles.text}>Tap to remove</Text>
+                  ) : null}
+                </TouchableOpacity>
+                <View>
+                  <Text>{title}</Text>
                 </View>
-              </View>
-              <View>
-                <Text>{title}</Text>
               </View>
             </View>
           );
@@ -81,17 +109,6 @@ export const PeopleWhoReacted = ({item, title}: PeopleWhoReacted) => {
     </View>
   );
 };
-
-// const FirstRoute = () => (
-//   <View style={[styles.scene]}>
-//     <PeopleWhoReacted />
-//   </View>
-// );
-// const SecondRoute = () => (
-//   <View style={[styles.scene]}>
-//     <PeopleWhoReacted />
-//   </View>
-// );
 
 const renderTabBar = (props: any) => (
   <TabBar
@@ -110,28 +127,47 @@ const renderTabBar = (props: any) => (
 interface MyTabs {
   reactionArr: any;
   defaultReactionArr: any;
+  removeReaction: () => void;
+  selectedReaction?: any;
 }
 
-export default function MyTabs({reactionArr, defaultReactionArr}: MyTabs) {
-  // let allItems: any = [];
-  // for (let i = 0; i < reactionArr.length; i++) {
-  //   allItems = {reactionArr: [...allItems, ...reactionArr[i].memberArr]};
-  // }
-  let initialState = {
-    index: 0,
+export default function MyTabs({
+  reactionArr,
+  defaultReactionArr,
+  removeReaction,
+  selectedReaction,
+}: MyTabs) {
+  const {user} = useAppSelector(state => state.homefeed);
+  let index = reactionArr.findIndex(
+    (val: any) => val?.reaction === selectedReaction,
+  );
+  const [state, setState] = useState({
+    index: index >= 0 && selectedReaction ? index + 1 : 0,
     routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
-  };
-  for (let i = 0; i < reactionArr.length; i++) {
-    initialState.routes = [
-      ...initialState.routes,
-      {
-        key: reactionArr[i].reaction,
-        title: reactionArr[i].reaction,
-        val: reactionArr[i].memberArr,
-      },
-    ];
-  }
-  const [state, setState] = useState(initialState);
+  });
+
+  useLayoutEffect(() => {
+    let initialState = {
+      index: 0,
+      routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
+    };
+    if (reactionArr.length > 0) {
+      for (let i = 0; i < reactionArr.length; i++) {
+        initialState.routes = [
+          ...initialState.routes,
+          {
+            key: reactionArr[i].reaction,
+            title: reactionArr[i].reaction,
+            val: reactionArr[i].memberArr,
+          },
+        ];
+      }
+      setState(initialState as any);
+    } else {
+      setState(initialState as any);
+    }
+  }, [reactionArr]);
+
   return (
     <TabView
       navigationState={state}
@@ -139,17 +175,30 @@ export default function MyTabs({reactionArr, defaultReactionArr}: MyTabs) {
       renderScene={({route}) => {
         switch (route.key) {
           case 'all':
-            return <PeopleWhoReactedDefault item={defaultReactionArr} />;
-          // case 'second':
-          //   return <SecondRoute />;
+            return (
+              <PeopleWhoReactedDefault
+                item={defaultReactionArr}
+                removeReaction={removeReaction}
+                user={user}
+              />
+            );
           default:
-            return <PeopleWhoReacted title={route.title} item={route.val} />;
+            return (
+              <PeopleWhoReacted
+                title={route?.title}
+                item={route?.val}
+                removeReaction={removeReaction}
+                user={user}
+              />
+            );
         }
       }}
       onIndexChange={index => setState({index, routes: state.routes})}
       initialLayout={{width: Layout.window.width}}
       style={styles.container}
       overScrollMode={'always'}
+      animationEnabled={true}
+      swipeEnabled={true}
       // pagerStyle={{overflow: 'scroll', height: 150}}
       // sceneContainerStyle={{overflow:'scroll',height:150}}
     />

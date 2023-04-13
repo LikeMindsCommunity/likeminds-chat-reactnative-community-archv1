@@ -15,6 +15,8 @@ interface ReactionGridModal {
   setModalVisible: (val: any) => void;
   reactionArr: any;
   defaultReactionArr: any;
+  removeReaction: () => void;
+  selectedReaction?: any;
 }
 
 const ReactionGridModal = ({
@@ -22,6 +24,8 @@ const ReactionGridModal = ({
   setModalVisible,
   reactionArr,
   defaultReactionArr,
+  removeReaction,
+  selectedReaction
 }: ReactionGridModal) => {
   const handleModalClose = () => {
     setModalVisible(false);
@@ -43,6 +47,10 @@ const ReactionGridModal = ({
               <MyTabs
                 defaultReactionArr={defaultReactionArr}
                 reactionArr={reactionArr}
+                selectedReaction={selectedReaction}
+                removeReaction={() => {
+                  removeReaction();
+                }}
               />
             </View>
           </Pressable>
