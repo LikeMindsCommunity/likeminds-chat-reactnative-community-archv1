@@ -161,7 +161,10 @@ const ReplyConversations = ({
           isTypeSent ? styles.sentMessage : styles.receivedMessage,
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
-        <TouchableOpacity onLongPress={handleLongPress} onPress={handleOnPress}>
+        <TouchableOpacity
+          onLongPress={handleLongPress}
+          delayLongPress={200}
+          onPress={handleOnPress}>
           <ReplyBox
             isIncluded={isIncluded}
             item={item?.reply_conversation_object}
@@ -176,6 +179,7 @@ const ReplyConversations = ({
       !isTypeSent ? (
         <Pressable
           onLongPress={handleLongPress}
+          delayLongPress={200}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
