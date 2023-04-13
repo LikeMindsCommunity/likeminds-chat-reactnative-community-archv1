@@ -97,7 +97,7 @@ const HomeFeed = ({navigation}: Props) => {
     const deviceID = await getUniqueId();
     try {
       const response = await fetch(
-        'https://auth.likeminds.community/user/device/push',
+        'https://betaauth.likeminds.community/user/device/push',
         {
           method: 'POST',
           headers: {
