@@ -223,7 +223,11 @@ const HomeFeed = ({navigation}: Props) => {
           return invitePage + 1;
         });
         setIsLoading(false);
-      } else if (myChatrooms?.length > 0 && myChatrooms?.length % 10 === 0) {
+      } else if (
+        myChatrooms?.length > 0 &&
+        myChatrooms?.length % 10 === 0 &&
+        myChatrooms?.length === 10 * page
+      ) {
         const newPage = page + 1;
         dispatch({type: SET_PAGE, body: newPage});
         loadData(newPage);

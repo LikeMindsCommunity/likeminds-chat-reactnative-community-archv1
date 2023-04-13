@@ -89,6 +89,10 @@ export const styles = StyleSheet.create({
     // alignItems: 'center',
     // marginTop: 20,
   },
+  emojiCenteredView: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   modalView: {
     position: 'absolute',
     right: 10,
@@ -107,7 +111,46 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  filtersView: {paddingHorizontal: 10, paddingVertical: 20},
+  reactionCenteredView: {
+    flex: 1,
+    // justifyContent: 'center',
+    alignItems: 'center',
+    // marginTop: 20,
+  },
+  reactionModalView: {
+    // position: 'absolute',
+    // right: 10,
+    // marginLeft: 10,
+    marginTop: Platform.OS === 'ios' ? 45 : 10,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    // width: 200,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    padding: 5,
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    display: 'flex',
+    flexDirection: 'row',
+    // alignItems:'center',
+    // justifyContent:'center'
+  },
+  emojiModalView: {
+    // marginTop: Platform.OS === 'ios' ? 45 : 10,
+  },
+  reactionFiltersView: {
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  filtersView: {
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+  },
+
   filterText: {
     fontSize: STYLES.$FONT_SIZES.LARGE,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,

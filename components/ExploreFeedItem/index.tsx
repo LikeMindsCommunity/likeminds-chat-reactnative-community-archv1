@@ -109,7 +109,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           </View>
         )}
 
-        {external_seen && !pinned && (
+        {!external_seen && !pinned && (
           <View style={styles.newBadge}>
             <Text style={styles.newBadgeText}>New</Text>
           </View>
