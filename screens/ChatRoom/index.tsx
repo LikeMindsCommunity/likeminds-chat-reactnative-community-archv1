@@ -1015,7 +1015,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
-          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+          (val: any) => val?.id !== item?.id && !isStateIncluded,
         );
         if (filterdMessages.length > 0) {
           dispatch({
@@ -1111,6 +1111,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   });
                   handleLongPress(isStateIncluded, isIncluded, item);
                 }}
+                delayLongPress={200}
                 onPress={event => {
                   const {pageX, pageY} = event.nativeEvent;
                   dispatch({

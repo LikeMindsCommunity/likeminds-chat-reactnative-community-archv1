@@ -95,6 +95,7 @@ const AttachmentConversations = ({
             });
             longPressOpenKeyboard();
           }}
+          delayLongPress={200}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
@@ -191,6 +192,7 @@ export const VideoConversations = ({
             <View>
               <TouchableOpacity
                 onLongPress={handleLongPress}
+                delayLongPress={200}
                 onPress={event => {
                   handleOnPress(event, item?.attachments[0]?.url);
                 }}
@@ -205,6 +207,7 @@ export const VideoConversations = ({
               </TouchableOpacity>
               <TouchableOpacity
                 onLongPress={handleLongPress}
+                delayLongPress={200}
                 onPress={event => {
                   handleOnPress(event, item?.attachments[1]?.url);
                 }}
@@ -222,6 +225,7 @@ export const VideoConversations = ({
             item?.attachments.map((val: any, index: number) => (
               <TouchableOpacity
                 onLongPress={handleLongPress}
+                delayLongPress={200}
                 onPress={event => {
                   handleOnPress(event, val?.url);
                 }}
@@ -241,6 +245,7 @@ export const VideoConversations = ({
       ) : (
         <TouchableOpacity
           onLongPress={handleLongPress}
+          delayLongPress={200}
           onPress={event => {
             handleOnPress(event, item?.attachments[0]?.url);
           }}
@@ -257,6 +262,7 @@ export const VideoConversations = ({
       {item.attachment_count > 2 && !isFullList && (
         <TouchableOpacity
           onLongPress={handleLongPress}
+          delayLongPress={200}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
@@ -367,6 +373,7 @@ export const PDFConversations = ({
             <View>
               <TouchableOpacity
                 onLongPress={handleLongPress}
+                delayLongPress={200}
                 onPress={event => {
                   handleOnPress(event, item?.attachments[0]?.url);
                 }}
@@ -381,6 +388,7 @@ export const PDFConversations = ({
               </TouchableOpacity>
               <TouchableOpacity
                 onLongPress={handleLongPress}
+                delayLongPress={200}
                 onPress={event => {
                   handleOnPress(event, item?.attachments[1]?.url);
                 }}
@@ -398,6 +406,7 @@ export const PDFConversations = ({
             item?.attachments.map((val: any, index: number) => (
               <TouchableOpacity
                 onLongPress={handleLongPress}
+                delayLongPress={200}
                 onPress={event => {
                   handleOnPress(event, val?.url);
                 }}
@@ -417,6 +426,7 @@ export const PDFConversations = ({
       ) : (
         <TouchableOpacity
           onLongPress={handleLongPress}
+          delayLongPress={200}
           onPress={event => {
             handleOnPress(event, item?.attachments[0]?.url);
           }}
@@ -433,6 +443,7 @@ export const PDFConversations = ({
       {item.attachment_count > 2 && !isFullList && (
         <TouchableOpacity
           onLongPress={handleLongPress}
+          delayLongPress={200}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
@@ -549,6 +560,7 @@ export const ImageConversations = ({
       {item?.attachment_count === 1 ? (
         <TouchableOpacity
           onLongPress={handleLongPress}
+          delayLongPress={200}
           onPress={event => {
             handleOnPress(event, item?.attachments[0]?.url);
           }}>
@@ -562,6 +574,7 @@ export const ImageConversations = ({
           <TouchableOpacity
             style={styles.touchableImg}
             onLongPress={handleLongPress}
+            delayLongPress={200}
             onPress={event => {
               handleOnPress(event, item?.attachments[0]?.url);
             }}>
@@ -573,6 +586,7 @@ export const ImageConversations = ({
           <TouchableOpacity
             style={styles.touchableImg}
             onLongPress={handleLongPress}
+            delayLongPress={200}
             onPress={event => {
               handleOnPress(event, item?.attachments[0]?.url);
             }}>
@@ -585,6 +599,7 @@ export const ImageConversations = ({
       ) : item?.attachment_count === 3 ? (
         <TouchableOpacity
           onLongPress={handleLongPress}
+          delayLongPress={200}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
@@ -640,6 +655,7 @@ export const ImageConversations = ({
       ) : item?.attachment_count > 3 ? (
         <TouchableOpacity
           onLongPress={handleLongPress}
+          delayLongPress={200}
           onPress={event => {
             const {pageX, pageY} = event.nativeEvent;
             dispatch({
