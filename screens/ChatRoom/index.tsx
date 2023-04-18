@@ -791,9 +791,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               channel_id: `${chatroomID}`,
               invite_status: 2,
             });
-            // setTimeout(() => {
-            //   console.log('res reject =', res);
-            // }, 2000);
             dispatch({
               type: SHOW_TOAST,
               body: {isToast: true, msg: 'Invitation rejected'},
@@ -924,7 +921,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       };
     }
 
-    // console.log('changedMsg ==', changedMsg);
     dispatch({
       type: REACTION_SENT,
       body: {
@@ -1150,11 +1146,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         getItemLayout={(data, index) => {
-          // console.log('data -- getItemLayout ==', data);
           const output = getItemLayout(data, index);
           return output;
         }}
-        // getItemLayout={getItemLayout}
         inverted
       />
       {!(Object.keys(chatroomDetails).length === 0) &&

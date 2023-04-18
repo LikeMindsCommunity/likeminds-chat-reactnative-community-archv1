@@ -35,7 +35,7 @@ function detectLinks(message: string, isLongPress?: boolean) {
     return (
       <Text>
         {parts?.map((val: any, index: any) => (
-          <Text>
+          <Text key={val + index}>
             {regex.test(val) ? (
               <Text
                 onPress={async () => {
@@ -122,7 +122,7 @@ export const decode = (
               // fontSize: STYLES.$FONT_SIZES.MEDIUM,
               fontFamily: STYLES.$FONT_TYPES.LIGHT,
             }}
-            key={index + val}>
+            key={val.key + index}>
             {!!val.route ? (
               <Text
                 onPress={() => {
@@ -153,7 +153,7 @@ export const decode = (
               // fontSize: STYLES.$FONT_SIZES.MEDIUM,
               fontFamily: STYLES.$FONT_TYPES.LIGHT,
             }}
-            key={index + val}>
+            key={val.key + index}>
             {!!val.route ? (
               <Text
                 style={{

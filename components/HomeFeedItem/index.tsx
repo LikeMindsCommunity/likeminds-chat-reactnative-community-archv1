@@ -20,6 +20,7 @@ import {
   SHOW_TOAST,
 } from '../../store/types/types';
 import {styles} from './styles';
+import STYLES from '../../constants/Styles';
 
 interface Props {
   avatar: string;
@@ -31,10 +32,11 @@ interface Props {
   lastConversation: any;
   navigation: any;
   chatroomID: number;
-  lastConvoMember: string;
-  isSecret: boolean;
+  lastConvoMember?: string;
+  isSecret?: boolean;
   deletedBy?: number;
-  inviteReceiver: any;
+  inviteReceiver?: any;
+  dm_message?: any;
 }
 
 const HomeFeedItem: React.FC<Props> = ({
@@ -51,6 +53,7 @@ const HomeFeedItem: React.FC<Props> = ({
   isSecret,
   deletedBy,
   inviteReceiver,
+  dm_message,
 }) => {
   // let dateOrTime = getFullDate(time);
   const dispatch = useAppDispatch();
@@ -227,14 +230,25 @@ const HomeFeedItem: React.FC<Props> = ({
         {opacity: pressed ? 0.5 : 1.0},
         styles.itemContainer,
       ]}>
-      <Image
-        source={
-          !!avatar
-            ? {uri: avatar}
-            : require('../../assets/images/default_pic.png')
-        }
-        style={styles.avatar}
-      />
+      <View>
+        <Image
+          source={
+            !!avatar
+              ? {uri: avatar}
+              : require('../../assets/images/default_pic.png')
+          }
+          style={styles.avatar}
+        />
+        {dm_message ? (
+          <View style={styles.dmAvatarBubble}>
+            <Image
+              source={require('../../assets/images/dm_message_bubble3x.png')}
+              style={styles.dmAvatarBubbleImg}
+            />
+          </View>
+        ) : null}
+      </View>
+
       <View style={styles.infoContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.title} numberOfLines={1}>
@@ -258,7 +272,11 @@ const HomeFeedItem: React.FC<Props> = ({
                 }>{`This message has been deleted`}</Text>
             ) : (
               <Text>
-                <Text style={styles.lastMessage}>{`${lastConvoMember}: `}</Text>
+                {!!lastConvoMember ? (
+                  <Text
+                    style={styles.lastMessage}>{`${lastConvoMember}: `}</Text>
+                ) : null}
+
                 <Text>
                   {!!lastConversation?.has_files
                     ? getFeedIcon(lastConversation?.attachments)

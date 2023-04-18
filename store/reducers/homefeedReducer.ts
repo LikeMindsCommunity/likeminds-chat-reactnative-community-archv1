@@ -1,24 +1,29 @@
 import {
   ACCEPT_INVITE_SUCCESS,
+  GET_DMFEED_CHAT_SUCCESS,
   GET_HOMEFEED_CHAT_SUCCESS,
   GET_INVITES_SUCCESS,
   INIT_API_SUCCESS,
   PROFILE_DATA_SUCCESS,
   REJECT_INVITE_SUCCESS,
+  SET_DM_PAGE,
   SET_PAGE,
   SHOW_TOAST,
+  UPDATE_DMFEED_CHAT_SUCCESS,
   UPDATE_HOMEFEED_CHAT_SUCCESS,
   UPDATE_INVITES_SUCCESS,
 } from '../types/types';
 
 const initialState = {
   myChatrooms: [] as any,
+  myDMChatrooms: [] as any,
   invitedChatrooms: [] as any,
   user: {} as any,
   community: {} as any,
   unseenCount: null,
   totalCount: null,
   page: 1 as number,
+  dmPage: 1 as number,
   isToast: false as boolean,
   toastMessage: '' as string,
 };
@@ -30,6 +35,13 @@ export function homefeedReducer(state = initialState, action: any) {
       return {
         ...state,
         page: page,
+      };
+    }
+    case SET_DM_PAGE: {
+      const page = action.body;
+      return {
+        ...state,
+        dmPage: page,
       };
     }
     case GET_INVITES_SUCCESS: {
@@ -79,6 +91,18 @@ export function homefeedReducer(state = initialState, action: any) {
     case UPDATE_HOMEFEED_CHAT_SUCCESS: {
       const {my_chatrooms = []} = action.body;
       return {...state, myChatrooms: [...state.myChatrooms, ...my_chatrooms]};
+    }
+    case GET_DMFEED_CHAT_SUCCESS: {
+      const {dm_chatrooms} =
+        action.body;
+      return {
+        ...state,
+        myDMChatrooms: dm_chatrooms,
+      };
+    }
+    case UPDATE_DMFEED_CHAT_SUCCESS: {
+      const {dm_chatrooms = []} = action.body;
+      return {...state, myDMChatrooms: [...state.myDMChatrooms, ...dm_chatrooms]};
     }
     case INIT_API_SUCCESS: {
       const {community = {}} = action.body;

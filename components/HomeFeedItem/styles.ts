@@ -86,7 +86,7 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.TERTIARY,
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
-    marginTop: Platform.OS === 'ios' ? 2 : -1
+    marginTop: Platform.OS === 'ios' ? 2 : -1,
     // padding: 5,
     // backgroundColor:'yellow'
   },
@@ -95,8 +95,24 @@ export const styles = StyleSheet.create({
     width: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth:2,
-    borderRadius:50,
-    borderColor:'grey'
-  }
+    borderWidth: 2,
+    borderRadius: 50,
+    borderColor: 'grey',
+  },
+  dmAvatarBubble: {
+    backgroundColor: STYLES.$COLORS.SECONDARY,
+    height: 25,
+    width: 25,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    bottom: -2,
+    right: 5,
+  },
+  dmAvatarBubbleImg: {
+    height: 13,
+    width: 13,
+    resizeMode: 'contain',
+  },
 });
