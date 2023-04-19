@@ -34,6 +34,7 @@ import {navigationRef} from '../RootNavigation';
 import getNotification from '../notifications';
 import ViewParticipants from '../screens/ViewParticipants';
 import AddParticipants from '../screens/AddParticipants';
+import DmAllMembers from '../screens/DmAllMembers';
 
 const Stack = createNativeStackNavigator();
 
@@ -104,6 +105,7 @@ const SwitchComponent = () => {
           <Stack.Screen name="ImageScreen" component={ImageScreen} />
           <Stack.Screen name="ViewParticipants" component={ViewParticipants} />
           <Stack.Screen name="AddParticipants" component={AddParticipants} />
+          <Stack.Screen name="DmAllMembers" component={DmAllMembers} />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastMessage

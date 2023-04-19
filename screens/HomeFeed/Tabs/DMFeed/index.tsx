@@ -172,6 +172,9 @@ const DMFeed = ({navigation}: Props) => {
       />
       {showDM ? (
         <Pressable
+          onPress={() => {
+            navigation.navigate('DmAllMembers');
+          }}
           style={({pressed}) => [{opacity: pressed ? 0.5 : 1.0}, styles.fab]}>
           <Image
             style={styles.fabImg}
