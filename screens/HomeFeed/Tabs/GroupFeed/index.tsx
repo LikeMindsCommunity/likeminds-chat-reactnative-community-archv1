@@ -173,11 +173,12 @@ const GroupFeed = ({navigation}: Props) => {
             unreadCount: item?.unseen_conversation_count!,
             pinned: false,
             lastConversation: item?.last_conversation!,
-            lastConvoMember: item?.last_conversation?.member?.name!,
+            lastConversationMember: item?.last_conversation?.member?.name!,
             chatroomID: item?.chatroom?.id!,
             isSecret: item?.chatroom?.is_secret,
             deletedBy: item?.last_conversation?.deleted_by,
             inviteReceiver: item?.invite_receiver,
+            chatroomType: item?.chatroom?.type,
           };
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}

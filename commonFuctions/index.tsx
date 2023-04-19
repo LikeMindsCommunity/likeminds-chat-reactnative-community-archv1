@@ -36,6 +36,7 @@ function detectLinks(message: string, isLongPress?: boolean) {
       <Text>
         {parts?.map((val: any, index: any) => (
           <Text key={val + index}>
+            {/* key should be unique so we are passing `val(abc) + index(number) = abc2` to make it unique */}
             {regex.test(val) ? (
               <Text
                 onPress={async () => {
@@ -119,10 +120,11 @@ export const decode = (
           <Text
             style={{
               color: STYLES.$COLORS.PRIMARY,
-              // fontSize: STYLES.$FONT_SIZES.MEDIUM,
               fontFamily: STYLES.$FONT_TYPES.LIGHT,
             }}
             key={val.key + index}>
+            {/* key should be unique so we are passing `val(abc) + index(number) = abc2` to make it unique */}
+
             {!!val.route ? (
               <Text
                 onPress={() => {
@@ -134,7 +136,6 @@ export const decode = (
                   color: STYLES.$COLORS.LIGHT_BLUE,
                   fontSize: STYLES.$FONT_SIZES.MEDIUM,
                   fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                  // marginBottom: -3,
                 }}>
                 {val.key}
               </Text>
@@ -150,7 +151,6 @@ export const decode = (
           <Text
             style={{
               color: STYLES.$COLORS.PRIMARY,
-              // fontSize: STYLES.$FONT_SIZES.MEDIUM,
               fontFamily: STYLES.$FONT_TYPES.LIGHT,
             }}
             key={val.key + index}>
@@ -158,7 +158,6 @@ export const decode = (
               <Text
                 style={{
                   color: STYLES.$COLORS.PRIMARY,
-                  // fontSize: STYLES.$FONT_SIZES.MEDIUM,
                   fontFamily: STYLES.$FONT_TYPES.BOLD,
                 }}>
                 {val.key}
