@@ -59,8 +59,6 @@ const DMFeed = ({navigation}: Props) => {
       if (!!res) {
         let response = await myClient.dmStatus({
           req_from: 'dm_feed',
-          // member_id?: user?.id
-          // chatroom_id?: cha
         });
         if (!!response) {
           setShowDM(response?.show_dm);
@@ -86,6 +84,7 @@ const DMFeed = ({navigation}: Props) => {
     token();
   }, []);
 
+  //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {
     let payload = {
       community_id: community?.id,
@@ -95,6 +94,7 @@ const DMFeed = ({navigation}: Props) => {
     return response;
   }
 
+  // function shows loader in between calling the API and getting the response
   const loadData = async (newPage: number) => {
     setIsLoading(true);
     setTimeout(async () => {
@@ -105,6 +105,7 @@ const DMFeed = ({navigation}: Props) => {
     }, 1500);
   };
 
+  //function checks the pagination logic, if it verifies the condition then call loadData
   const handleLoadMore = async () => {
     if (!isLoading) {
       if (
@@ -128,7 +129,7 @@ const DMFeed = ({navigation}: Props) => {
   };
 
   useEffect(() => {
-    const query = ref(db, '/collabcards');
+    const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
         dispatch(
@@ -161,7 +162,8 @@ const DMFeed = ({navigation}: Props) => {
             lastConversation: item?.last_conversation!,
             chatroomID: item?.chatroom?.id!,
             deletedBy: item?.last_conversation?.deleted_by,
-            dm_message: true,
+            isSecret: item?.chatroom?.is_secret,
+            chatroomType: item?.chatroom?.type,
           };
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}

@@ -32,11 +32,11 @@ interface Props {
   lastConversation: any;
   navigation: any;
   chatroomID: number;
-  lastConvoMember?: string;
-  isSecret?: boolean;
+  lastConversationMember?: string;
+  isSecret: boolean;
   deletedBy?: number;
   inviteReceiver?: any;
-  dm_message?: any;
+  chatroomType: number;
 }
 
 const HomeFeedItem: React.FC<Props> = ({
@@ -49,11 +49,11 @@ const HomeFeedItem: React.FC<Props> = ({
   lastConversation,
   navigation,
   chatroomID,
-  lastConvoMember,
+  lastConversationMember,
   isSecret,
   deletedBy,
   inviteReceiver,
-  dm_message,
+  chatroomType,
 }) => {
   // let dateOrTime = getFullDate(time);
   const dispatch = useAppDispatch();
@@ -65,7 +65,6 @@ const HomeFeedItem: React.FC<Props> = ({
       [
         {
           text: 'Cancel',
-          // onPress: () => Alert.alert('Cancel Pressed'),
           style: 'default',
         },
         {
@@ -88,11 +87,6 @@ const HomeFeedItem: React.FC<Props> = ({
       ],
       {
         cancelable: false,
-        // cancelable: true,
-        // onDismiss: () =>
-        //   Alert.alert(
-        //     'This alert was dismissed by tapping outside of the alert dialog.',
-        //   ),
       },
     );
 
@@ -103,7 +97,6 @@ const HomeFeedItem: React.FC<Props> = ({
       [
         {
           text: 'Cancel',
-          // onPress: () => Alert.alert('Cancel Pressed'),
           style: 'default',
         },
         {
@@ -125,11 +118,6 @@ const HomeFeedItem: React.FC<Props> = ({
       ],
       {
         cancelable: false,
-        // cancelable: true,
-        // onDismiss: () =>
-        //   Alert.alert(
-        //     'This alert was dismissed by tapping outside of the alert dialog.',
-        //   ),
       },
     );
 
@@ -239,7 +227,7 @@ const HomeFeedItem: React.FC<Props> = ({
           }
           style={styles.avatar}
         />
-        {dm_message ? (
+        {chatroomType === 10 ? (
           <View style={styles.dmAvatarBubble}>
             <Image
               source={require('../../assets/images/dm_message_bubble3x.png')}
@@ -272,9 +260,11 @@ const HomeFeedItem: React.FC<Props> = ({
                 }>{`This message has been deleted`}</Text>
             ) : (
               <Text>
-                {!!lastConvoMember ? (
+                {chatroomType !== 10 ? (
                   <Text
-                    style={styles.lastMessage}>{`${lastConvoMember}: `}</Text>
+                    style={
+                      styles.lastMessage
+                    }>{`${lastConversationMember}: `}</Text>
                 ) : null}
 
                 <Text>

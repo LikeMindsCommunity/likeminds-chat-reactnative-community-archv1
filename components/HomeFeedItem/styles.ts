@@ -44,7 +44,6 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     width: '85%',
-    // width: 240,
   },
   deletedMessage: {
     color: STYLES.$COLORS.PRIMARY,
@@ -52,7 +51,6 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     fontStyle: 'italic',
     width: '85%',
-    // width: 240,
   },
   attachment_msg: {
     color: STYLES.$COLORS.PRIMARY,
@@ -87,8 +85,6 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
     marginTop: Platform.OS === 'ios' ? 2 : -1,
-    // padding: 5,
-    // backgroundColor:'yellow'
   },
   inviteIcon: {
     height: 40,
