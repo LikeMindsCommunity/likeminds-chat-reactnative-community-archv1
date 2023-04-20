@@ -283,14 +283,26 @@ const DmAllMembers = ({navigation, route}: any) => {
     ) : null;
   };
 
-  //   const onUserClicked = async (memberID: any) => {
-  //     const res = await myClient.canDmFeed({
-  //       community_id: community?.id,
-  //       req_from: user?.id,
-  //       member_id: memberID,
-  //     });
-  //     console.log('canDmFeed', res, community?.id, memberID);
-  //   };
+  const onUserClicked = async (memberID: any) => {
+    const res = await myClient.reqDmFeed({
+      member_id: memberID,
+    });
+    console.log('canDmFeed', res, community?.id, memberID);
+
+    if (!!res?.is_request_dm_limit_exceeded === false) {
+      if (res?.chatroom_id !== null) {
+        navigation.navigate('ChatRoom', {chatroomID: res?.chatroom_id});
+      } else {
+        let payload = {
+          community_id: community?.id,
+          member_id: memberID,
+        };
+        const response = await myClient.onCreateDM(payload);
+        console.log('response onCreate =', response);
+      }
+    } else {
+    }
+  };
 
   return (
     <View style={styles.page}>
@@ -300,7 +312,7 @@ const DmAllMembers = ({navigation, route}: any) => {
           return (
             <TouchableOpacity
               onPress={() => {
-                // onUserClicked(item?.id);
+                onUserClicked(item?.id);
               }}
               key={item?.id}
               style={styles.participants}>
