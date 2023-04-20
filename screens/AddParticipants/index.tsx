@@ -209,7 +209,6 @@ const AddParticipants = ({navigation, route}: any) => {
       page_size: 10,
     });
     setSearchPage(1);
-    console.log('search ==', search, searchPage, res?.members.length);
     setSearchedParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
       const response = await myClient.searchMembers({
