@@ -287,10 +287,10 @@ const DmAllMembers = ({navigation, route}: any) => {
     const res = await myClient.reqDmFeed({
       member_id: memberID,
     });
-    console.log('canDmFeed', res, community?.id, memberID);
+    // console.log('canDmFeed', res, community?.id, memberID);
 
     if (!!res?.is_request_dm_limit_exceeded === false) {
-      if (res?.chatroom_id !== null) {
+      if (res?.chatroom_id !== undefined) {
         navigation.navigate('ChatRoom', {chatroomID: res?.chatroom_id});
       } else {
         let payload = {
@@ -298,7 +298,15 @@ const DmAllMembers = ({navigation, route}: any) => {
           member_id: memberID,
         };
         const response = await myClient.onCreateDM(payload);
-        console.log('response onCreate =', response);
+        if (!!response?.chatroom?.chatroom_with_user?.id) {
+          navigation.navigate('ChatRoom', {
+            chatroomID:
+              user?.id !== response?.chatroom?.chatroom_with_user?.id
+                ? response?.chatroom?.chatroom_with_user?.id
+                : response?.chatroom?.member?.id!,
+          });
+        }
+        // console.log('response onCreate =', response);
       }
     } else {
     }
