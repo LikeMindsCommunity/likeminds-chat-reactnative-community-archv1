@@ -10,6 +10,7 @@ import {
   REACTION_SENT,
   SELECTED_MESSAGES,
   SET_POSITION,
+  UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
 } from '../types/types';
 
@@ -65,6 +66,19 @@ export function chatroomReducer(state = initialState, action: any) {
     case CLEAR_CHATROOM_DETAILS: {
       const {chatroomDetails} = action.body;
       return {...state, chatroomDetails: chatroomDetails};
+    }
+    case UPDATE_CHAT_REQUEST_STATE: {
+      const {chatRequestState} = action.body;
+      return {
+        ...state,
+        chatroomDetails: {
+          ...state.chatroomDetails,
+          chatroom: {
+            ...state.chatroomDetails.chatroom,
+            chat_request_state: chatRequestState,
+          },
+        },
+      };
     }
     case MESSAGE_SENT: {
       const {id: messageObj} = action.body;

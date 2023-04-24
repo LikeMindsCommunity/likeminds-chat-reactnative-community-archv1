@@ -8,19 +8,16 @@ import {
   Modal,
   Pressable,
   Keyboard,
+  Alert,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
-import {MESSAGE_SENT, UPDATE_CONVERSATIONS} from '../../store/types/types';
+import {MESSAGE_SENT, SHOW_TOAST, UPDATE_CHAT_REQUEST_STATE, UPDATE_CONVERSATIONS} from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
-// import database from '@react-native-firebase/database';
-
-// let addItem = (payload: any) => {
-//   database().ref('/users').push(payload);
-// };
+import {myClient} from '../..';
 
 interface InputBox {
   isReply: boolean;
@@ -29,6 +26,8 @@ interface InputBox {
   replyMessage: any;
   setIsReply: any;
   setReplyMessage: any;
+  chatRequestState?: any;
+  chatroomType?: any;
 }
 
 const InputBox = ({
@@ -38,6 +37,8 @@ const InputBox = ({
   replyMessage,
   setIsReply,
   setReplyMessage,
+  chatRequestState,
+  chatroomType,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
@@ -88,6 +89,8 @@ const InputBox = ({
     let time = new Date(Date.now());
     let hr = time.getHours();
     let min = time.getMinutes();
+
+    // check if message is empty string or not
     if (!!message.trim()) {
       let replyObj = chatSchema.reply;
       if (isReply) {
@@ -134,7 +137,7 @@ const InputBox = ({
       });
       dispatch({
         type: MESSAGE_SENT,
-        body: isReply ? {id : replyObj?.id} : {id: obj?.id},
+        body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
       setMessage('');
       setIsReply(false);
@@ -144,20 +147,62 @@ const InputBox = ({
 
       // -- Code for local message handling ended
 
-      let payload = {
-        chatroom_id: chatroomID,
-        created_at: new Date(Date.now()),
-        has_files: false,
-        text: message.trim(),
-        // attachment_count?: any;
-        replied_conversation_id: replyMessage?.id,
-      };
-      let response = await dispatch(onConversationsCreate(payload) as any);
-      // addItem(payload);
-      // if (!!response) {
-      //   setMessage('');
-      // }
+      // condition for request DM for the first time
+      if (chatroomType === 10 && chatRequestState === null) {
+        let response = await myClient.requestDmAction({
+          chatroom_id: chatroomID,
+          chat_request_state: 0,
+          text: message.trim(),
+        });
+
+        dispatch({
+          type: SHOW_TOAST,
+          body: {isToast: true, msg: 'Direct messaging request sent'},
+        });
+
+        //dispatching redux action for local handling of chatRequestState
+        dispatch({
+          type: UPDATE_CHAT_REQUEST_STATE,
+          body: {chatRequestState: 0},
+        });
+        console.log('response requestDmAction ==', response);
+      } else {
+        let payload = {
+          chatroom_id: chatroomID,
+          created_at: new Date(Date.now()),
+          has_files: false,
+          text: message.trim(),
+          // attachment_count?: any;
+          replied_conversation_id: replyMessage?.id,
+        };
+        let response = await dispatch(onConversationsCreate(payload) as any);
+      }
+
     }
+  };
+
+  // function 
+  const sendDmRequest = () => {
+    Alert.alert(
+      'Send DM request?',
+      'A direct messaging request would be sent to this member. You would be able to send further messages only once your request is approved.',
+      [
+        {
+          text: 'Cancel',
+          style: 'default',
+        },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            onSend();
+          },
+          style: 'default',
+        },
+      ],
+      {
+        cancelable: false,
+      },
+    );
   };
 
   return (
@@ -242,7 +287,15 @@ const InputBox = ({
           </View>
         </View>
 
-        <TouchableOpacity onPressOut={onSend} style={styles.sendButton}>
+        <TouchableOpacity
+          onPressOut={() => {
+            if (chatroomType === 10 && chatRequestState === null) {
+              sendDmRequest();
+            } else {
+              onSend();
+            }
+          }}
+          style={styles.sendButton}>
           <Image
             source={require('../../assets/images/send_button3x.png')}
             style={styles.emoji}

@@ -1273,10 +1273,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             <View style={styles.disabledInput}>
               <Text style={styles.disabledInputText}>
                 Direct messaging among members has been disabled by the
-                community manager
+                community manager.
               </Text>
             </View>
-          ) : showDM === true ? (
+          ) : showDM === true &&
+            (chatroomDetails?.chatroom?.chat_request_state === 0 ||
+              chatroomDetails?.chatroom?.chat_request_state === 2) ? (
+            <View style={styles.disabledInput}>
+              <Text style={styles.disabledInputText}>
+                Messaging would be enabled once your request is approved.
+              </Text>
+            </View>
+          ) : (showDM === true &&
+              chatroomDetails?.chatroom?.chat_request_state === 1) ||
+            chatroomDetails?.chatroom?.chat_request_state === null ? (
             <InputBox
               isReply={isReply}
               replyChatID={replyChatID}
@@ -1288,6 +1298,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               setReplyMessage={(val: any) => {
                 setReplyMessage(val);
               }}
+              chatRequestState={chatroomDetails?.chatroom?.chat_request_state}
+              chatroomType={chatroomDetails?.chatroom?.type}
             />
           ) : (
             <View style={styles.disabledInput}>
