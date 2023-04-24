@@ -1267,7 +1267,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           )}
         </View>
-      ) : (
+      ) : chatroomDetails?.chatroom?.type === 10 ? (
         <View>
           {showDM === false ? (
             <View style={styles.disabledInput}>
@@ -1295,7 +1295,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           )}
         </View>
-      )}
+      ) : null}
       {/* Chatroom Action Modal */}
       <Modal
         // animationType="slide"
