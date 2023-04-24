@@ -84,7 +84,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
   const [isReact, setIsReact] = useState(false);
-  const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [showDM, setShowDM] = useState<any>(null);
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
   const {chatroomID, isInvited} = route.params;
@@ -142,7 +143,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   fontSize: STYLES.$FONT_SIZES.LARGE,
                   fontFamily: STYLES.$FONT_TYPES.BOLD,
                 }}>
-                {chatroomDetails?.chatroom?.header}
+                {chatroomDetails?.chatroom?.type === 10
+                  ? user?.id !==
+                    chatroomDetails?.chatroom?.chatroom_with_user?.id
+                    ? chatroomDetails?.chatroom?.chatroom_with_user?.name
+                    : chatroomDetails?.chatroom?.member?.name!
+                  : chatroomDetails?.chatroom?.header}
               </Text>
               <Text
                 style={{
@@ -380,6 +386,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchChatroomDetails() {
     let payload = {chatroom_id: chatroomID};
     let response = await dispatch(getChatroom(payload) as any);
+    console.log('fetchChatroomDetails ==', response);
     return response;
   }
 
@@ -441,6 +448,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   useEffect(() => {
     async function callApi() {
+      if (
+        chatroomDetails?.chatroom.type == 10 &&
+        chatroomDetails?.chatroom.is_private_member == true
+      ) {
+        let response = await myClient.canDmFeed({
+          req_from: 'chatroom',
+          chatroom_id: chatroomDetails?.chatroom?.id,
+          community_id: community?.id,
+          member_id: chatroomDetails?.chatroom?.chatroom_with_user?.id,
+        });
+        if (!!response?.cta) {
+          setShowDM(response?.show_dm);
+        }
+        console.log(' dmStatus in chatroom =', response);
+      }
       let res = await fetchData(false);
       if (!!res) {
         // dispatch({type: STOP_CHATROOM_LOADING});
@@ -1151,94 +1173,129 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }}
         inverted
       />
-      {!(Object.keys(chatroomDetails).length === 0) &&
-      prevRoute?.name === 'ExploreFeed'
-        ? !!!chatroomDetails?.chatroom?.follow_status && (
-            <TouchableOpacity
-              onPress={() => {
-                joinSecretChatroom();
-              }}
-              style={[styles.joinBtnContainer, {alignSelf: 'center'}]}>
-              <Image
-                source={require('../../assets/images/join_group3x.png')}
-                style={styles.icon}
+
+      {chatroomDetails?.chatroom?.type !== 10 ? (
+        <View>
+          {!(Object.keys(chatroomDetails).length === 0) &&
+          prevRoute?.name === 'ExploreFeed'
+            ? !!!chatroomDetails?.chatroom?.follow_status && (
+                <TouchableOpacity
+                  onPress={() => {
+                    joinSecretChatroom();
+                  }}
+                  style={[styles.joinBtnContainer, {alignSelf: 'center'}]}>
+                  <Image
+                    source={require('../../assets/images/join_group3x.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.join}>{'Join'}</Text>
+                </TouchableOpacity>
+              )
+            : null}
+          {!(Object.keys(chatroomDetails).length === 0) ? (
+            chatroomDetails?.chatroom?.member_can_message &&
+            chatroomDetails?.chatroom?.follow_status ? (
+              <InputBox
+                isReply={isReply}
+                replyChatID={replyChatID}
+                chatroomID={chatroomID}
+                replyMessage={replyMessage}
+                setIsReply={(val: any) => {
+                  setIsReply(val);
+                }}
+                setReplyMessage={(val: any) => {
+                  setReplyMessage(val);
+                }}
               />
-              <Text style={styles.join}>{'Join'}</Text>
-            </TouchableOpacity>
-          )
-        : null}
-      {!(Object.keys(chatroomDetails).length === 0) ? (
-        chatroomDetails?.chatroom?.member_can_message &&
-        chatroomDetails?.chatroom?.follow_status ? (
-          <InputBox
-            isReply={isReply}
-            replyChatID={replyChatID}
-            chatroomID={chatroomID}
-            replyMessage={replyMessage}
-            setIsReply={(val: any) => {
-              setIsReply(val);
-            }}
-            setReplyMessage={(val: any) => {
-              setReplyMessage(val);
-            }}
-          />
-        ) : !(Object.keys(chatroomDetails).length === 0) &&
-          prevRoute?.name === 'HomeFeed' ? (
-          <View style={{padding: 20, backgroundColor: STYLES.$COLORS.TERTIARY}}>
-            <Text
-              style={
-                styles.inviteText
-              }>{`${chatroomDetails?.chatroom?.header} invited you to join this secret group.`}</Text>
-            <View style={{marginTop: 10}}>
-              <TouchableOpacity
-                onPress={() => {
-                  showJoinAlert();
-                }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 10,
-                  flexGrow: 1,
-                  paddingVertical: 10,
-                }}>
-                <Image
-                  style={styles.emoji}
-                  source={require('../../assets/images/like_icon3x.png')}
-                />
-                <Text style={styles.inviteBtnText}>Accept</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  showRejectAlert();
-                }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 10,
-                  flexGrow: 1,
-                  paddingVertical: 10,
-                }}>
-                <Image
-                  style={styles.emoji}
-                  source={require('../../assets/images/ban_icon3x.png')}
-                />
-                <Text style={styles.inviteBtnText}>Reject</Text>
-              </TouchableOpacity>
+            ) : !(Object.keys(chatroomDetails).length === 0) &&
+              prevRoute?.name === 'HomeFeed' ? (
+              <View
+                style={{padding: 20, backgroundColor: STYLES.$COLORS.TERTIARY}}>
+                <Text
+                  style={
+                    styles.inviteText
+                  }>{`${chatroomDetails?.chatroom?.header} invited you to join this secret group.`}</Text>
+                <View style={{marginTop: 10}}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      showJoinAlert();
+                    }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 10,
+                      flexGrow: 1,
+                      paddingVertical: 10,
+                    }}>
+                    <Image
+                      style={styles.emoji}
+                      source={require('../../assets/images/like_icon3x.png')}
+                    />
+                    <Text style={styles.inviteBtnText}>Accept</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      showRejectAlert();
+                    }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 10,
+                      flexGrow: 1,
+                      paddingVertical: 10,
+                    }}>
+                    <Image
+                      style={styles.emoji}
+                      source={require('../../assets/images/ban_icon3x.png')}
+                    />
+                    <Text style={styles.inviteBtnText}>Reject</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.disabledInput}>
+                <Text style={styles.disabledInputText}>
+                  Responding is disabled
+                </Text>
+              </View>
+            )
+          ) : (
+            <View style={styles.disabledInput}>
+              <Text style={styles.disabledInputText}>Loading...</Text>
             </View>
-          </View>
-        ) : (
-          <View style={styles.disabledInput}>
-            <Text style={styles.disabledInputText}>Responding is disabled</Text>
-          </View>
-        )
+          )}
+        </View>
       ) : (
-        <View style={styles.disabledInput}>
-          <Text style={styles.disabledInputText}>Loading...</Text>
+        <View>
+          {showDM === false ? (
+            <View style={styles.disabledInput}>
+              <Text style={styles.disabledInputText}>
+                Direct messaging among members has been disabled by the
+                community manager
+              </Text>
+            </View>
+          ) : showDM === true ? (
+            <InputBox
+              isReply={isReply}
+              replyChatID={replyChatID}
+              chatroomID={chatroomID}
+              replyMessage={replyMessage}
+              setIsReply={(val: any) => {
+                setIsReply(val);
+              }}
+              setReplyMessage={(val: any) => {
+                setReplyMessage(val);
+              }}
+            />
+          ) : (
+            <View style={styles.disabledInput}>
+              <Text style={styles.disabledInputText}>Loading...</Text>
+            </View>
+          )}
         </View>
       )}
-
       {/* Chatroom Action Modal */}
       <Modal
         // animationType="slide"
