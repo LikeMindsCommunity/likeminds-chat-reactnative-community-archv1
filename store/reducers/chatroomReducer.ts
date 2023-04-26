@@ -20,7 +20,7 @@ const initialState = {
   messageSent: '' as any,
   isLongPress: false,
   selectedMessages: [],
-  stateArr: [1, 2, 3, 7, 8, 9], //joined and left chatroom state
+  stateArr: [1, 2, 3, 7, 8, 9, 20, 19], //states for person started, left, joined, added, removed messages, aceept DM, reject DM.
   position: {x: 0, y: 0} as any,
 };
 

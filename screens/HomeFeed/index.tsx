@@ -221,7 +221,7 @@ const HomeFeed = ({navigation}: Props) => {
           />
         </Tab.Navigator>
       ) : community?.hide_dm_tab === true ? (
-        <GroupFeed />
+        <GroupFeed navigation={navigation} />
       ) : null}
     </View>
   );

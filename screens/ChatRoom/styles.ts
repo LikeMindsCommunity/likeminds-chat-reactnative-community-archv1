@@ -184,12 +184,13 @@ export const styles = StyleSheet.create({
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
   },
   inviteText: {
-    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.MSG,
+    lineHeight: 20
   },
   inviteBtnText: {
-    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
   },

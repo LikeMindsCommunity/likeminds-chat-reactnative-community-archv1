@@ -46,6 +46,7 @@ import {
   SET_PAGE,
   SET_POSITION,
   SHOW_TOAST,
+  UPDATE_CHAT_REQUEST_STATE,
 } from '../../store/types/types';
 import {
   START_CHATROOM_LOADING,
@@ -1091,6 +1092,142 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     index,
   });
 
+  // this function calls API to approve DM request
+  const onApprove = async () => {
+    let response = await myClient.requestDmAction({
+      chatroom_id: chatroomID,
+      chat_request_state: 1,
+    });
+    console.log('requestDmAction approve =', response, {
+      chatroom_id: chatroomID,
+      chat_request_state: 1,
+    });
+    fetchData();
+
+    //dispatching redux action for local handling of chatRequestState
+    dispatch({
+      type: UPDATE_CHAT_REQUEST_STATE,
+      body: {chatRequestState: 1},
+    });
+  };
+
+    // this function calls API to reject DM request
+  const onReject = async () => {
+    let response = await myClient.requestDmAction({
+      chatroom_id: chatroomID,
+      chat_request_state: 2,
+    });
+
+    console.log('requestDmAction reject =', response);
+
+    fetchData();
+
+    //dispatching redux action for local handling of chatRequestState
+    dispatch({
+      type: UPDATE_CHAT_REQUEST_STATE,
+      body: {chatRequestState: 2},
+    });
+  };
+
+    // this function calls API to approve DM request on click TapToUndo
+  const onTapToUndo = async () => {
+    let response = await myClient.blockCR({
+      chatroom_id: chatroomID,
+      status: 1,
+    });
+
+    console.log('onTapToUndo reject =', response);
+    fetchData();
+
+    //dispatching redux action for local handling of chatRequestState
+    dispatch({
+      type: UPDATE_CHAT_REQUEST_STATE,
+      body: {chatRequestState: 1},
+    });
+  };
+
+    // this function shows confirm alert popup to approve DM request
+  const handleDMApproveClick = () => {
+    Alert.alert(
+      'Approve DM request?',
+      'Member will be able to send you messages and get notified of the same.',
+      [
+        {
+          text: 'Cancel',
+          style: 'default',
+        },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            onApprove();
+          },
+          style: 'default',
+        },
+      ],
+      {
+        cancelable: false,
+      },
+    );
+  };
+
+      // this function shows confirm alert popup to reject DM request
+  const handleDMRejectClick = () => {
+    Alert.alert(
+      'Approve DM request?',
+      'Member will be able to send you messages and get notified of the same.',
+      [
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            onReject();
+          },
+          style: 'default',
+        },
+        {
+          text: 'Cancel',
+          style: 'default',
+        },
+        {
+          text: 'Report and Reject',
+          onPress: async () => {
+            onReject();
+            navigation.navigate('Report', {
+              conversationID: chatroomID,
+            });
+          },
+          style: 'default',
+        },
+      ],
+      {
+        cancelable: false,
+      },
+    );
+  };
+
+      // this function shows confirm alert popup to approve DM request on click TapToUndo
+  const handleDMTapToUndoClick = () => {
+    Alert.alert(
+      'Approve DM request?',
+      'Member will be able to send you messages and get notified of the same.',
+      [
+        {
+          text: 'Cancel',
+          style: 'default',
+        },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            onTapToUndo();
+          },
+          style: 'default',
+        },
+      ],
+      {
+        cancelable: false,
+      },
+    );
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -1154,6 +1291,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   }}
                   removeReaction={() => {
                     removeReaction(item);
+                  }}
+                  handleTapToUndo={() => {
+                    handleDMTapToUndoClick();
                   }}
                 />
               </Pressable>
@@ -1269,6 +1409,60 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         </View>
       ) : chatroomDetails?.chatroom?.type === 10 ? (
         <View>
+          {chatroomDetails?.chatroom?.chat_request_state === 0 &&
+          (chatroomDetails?.chatroom?.chat_requested_by !== null
+            ? chatroomDetails?.chatroom?.chat_requested_by[0]?.id !== user?.id
+            : null) ? (
+            <View
+              style={{
+                padding: 20,
+                backgroundColor: STYLES.$COLORS.TERTIARY,
+                marginTop: 10,
+              }}>
+              <Text
+                style={
+                  styles.inviteText
+                }>{`The sender has sent you a direct messaging request. Approve or respond with a message to get connected. Rejecting this request will not notify the sender.`}</Text>
+              <View style={{marginTop: 10}}>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleDMApproveClick();
+                  }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    flexGrow: 1,
+                    paddingVertical: 10,
+                  }}>
+                  <Image
+                    style={styles.emoji}
+                    source={require('../../assets/images/like_icon3x.png')}
+                  />
+                  <Text style={styles.inviteBtnText}>Approve</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleDMRejectClick();
+                  }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    flexGrow: 1,
+                    paddingVertical: 10,
+                  }}>
+                  <Image
+                    style={styles.emoji}
+                    source={require('../../assets/images/ban_icon3x.png')}
+                  />
+                  <Text style={styles.inviteBtnText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
           {showDM === false ? (
             <View style={styles.disabledInput}>
               <Text style={styles.disabledInputText}>
@@ -1375,7 +1569,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate('Report', {
-                    convoId: selectedMessages[0].id,
+                    conversationID: selectedMessages[0].id,
                   });
                   dispatch({type: SELECTED_MESSAGES, body: []});
                   setReportModalVisible(false);

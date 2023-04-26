@@ -21,6 +21,7 @@ interface Messages {
   openKeyboard: any;
   longPressOpenKeyboard: any;
   removeReaction: any;
+  handleTapToUndo: any;
 }
 
 const Messages = ({
@@ -31,16 +32,15 @@ const Messages = ({
   openKeyboard,
   longPressOpenKeyboard,
   removeReaction,
+  handleTapToUndo,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
-  const {selectedMessages, isLongPress} = useAppSelector(
-    state => state.chatroom,
-  );
+  const {selectedMessages, isLongPress, stateArr, conversations} =
+    useAppSelector(state => state.chatroom);
   const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [reactionArr, setReactionArr] = useState([] as any);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
-  const stateArr = [1, 2, 3, 7, 8, 9]; //states for person started, left, joined, added, removed messages.
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
@@ -183,8 +183,29 @@ const Messages = ({
         ) : (
           <View>
             {isItemIncludedInStateArr ? (
-              <View style={[styles.statusMessage]}>
-                <Text>{decode(item?.answer, true)}</Text>
+              <View>
+                {/* state 19 is for the reject DM state message */}
+                {item.state === 19 &&
+                conversations[0].state === 19 &&
+                (item?.chat_requested_by !== null
+                  ? item?.chat_requested_by[0]?.id !== user?.id
+                  : null) ? (
+                  <Pressable
+                    onPress={() => {
+                      handleTapToUndo();
+                    }}
+                    style={[styles.statusMessage]}>
+                    <Text
+                      style={{
+                        color: STYLES.$COLORS.PRIMARY,
+                        fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                      }}>{`${item?.answer} Tap to undo.`}</Text>
+                  </Pressable>
+                ) : (
+                  <View style={[styles.statusMessage]}>
+                    <Text>{decode(item?.answer, true)}</Text>
+                  </View>
+                )}
               </View>
             ) : (
               <View
