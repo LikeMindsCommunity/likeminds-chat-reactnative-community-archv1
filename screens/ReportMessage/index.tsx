@@ -24,6 +24,8 @@ const ReportScreen = ({navigation, route}: Props) => {
   const [otherReason, setOtherReason] = useState('');
   const [selectedId, setSelectedId] = useState(-1);
 
+  const {conversationID, isDM = false} = route.params;
+
   const dispatch = useAppDispatch();
 
   const setInitialHeader = () => {
@@ -72,7 +74,7 @@ const ReportScreen = ({navigation, route}: Props) => {
     const getTags = async () => {
       try {
         const res = await myClient.getReportTags({
-          type: 0,
+          type: isDM === true ? 1 : 0,
         });
         setReasons(res.report_tags);
       } catch (error) {
@@ -81,10 +83,11 @@ const ReportScreen = ({navigation, route}: Props) => {
     };
     getTags();
   }, []);
+
   const reportMessage = async () => {
     try {
       const call = await myClient.pushReport({
-        conversation_id: route.params.conversationID,
+        conversation_id: conversationID,
         tag_id: selectedId,
         reason: otherReason != '' ? otherReason : undefined,
       });

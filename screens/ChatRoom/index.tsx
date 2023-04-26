@@ -1199,6 +1199,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             onReject();
             navigation.navigate('Report', {
               conversationID: chatroomID,
+              isDM: chatroomDetails?.chatroom?.type === 10 ? true : false
             });
           },
           style: 'default',
