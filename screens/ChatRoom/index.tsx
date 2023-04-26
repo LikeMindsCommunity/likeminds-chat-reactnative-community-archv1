@@ -33,7 +33,7 @@ import {
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
-import {getHomeFeedData} from '../../store/actions/homefeed';
+import {getDMFeedData, getHomeFeedData} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
@@ -379,7 +379,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         collabcard_type: chatroomDetails?.chatroom?.type,
       });
       dispatch({type: SET_PAGE, body: 1});
-      await dispatch(getHomeFeedData({page: 1}, false) as any);
+      if (chatroomDetails?.chatroom.type === 10) {
+        dispatch(
+          getDMFeedData({community_id: community?.id, page: 1}, false) as any,
+        );
+      } else {
+        await dispatch(getHomeFeedData({page: 1}, false) as any);
+      }
     }
     return response;
   }
@@ -1111,7 +1117,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
-    // this function calls API to reject DM request
+  // this function calls API to reject DM request
   const onReject = async () => {
     let response = await myClient.requestDmAction({
       chatroom_id: chatroomID,
@@ -1129,7 +1135,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
-    // this function calls API to approve DM request on click TapToUndo
+  // this function calls API to approve DM request on click TapToUndo
   const onTapToUndo = async () => {
     let response = await myClient.blockCR({
       chatroom_id: chatroomID,
@@ -1146,7 +1152,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
-    // this function shows confirm alert popup to approve DM request
+  // this function shows confirm alert popup to approve DM request
   const handleDMApproveClick = () => {
     Alert.alert(
       'Approve DM request?',
@@ -1170,7 +1176,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     );
   };
 
-      // this function shows confirm alert popup to reject DM request
+  // this function shows confirm alert popup to reject DM request
   const handleDMRejectClick = () => {
     Alert.alert(
       'Approve DM request?',
@@ -1204,7 +1210,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     );
   };
 
-      // this function shows confirm alert popup to approve DM request on click TapToUndo
+  // this function shows confirm alert popup to approve DM request on click TapToUndo
   const handleDMTapToUndoClick = () => {
     Alert.alert(
       'Approve DM request?',
