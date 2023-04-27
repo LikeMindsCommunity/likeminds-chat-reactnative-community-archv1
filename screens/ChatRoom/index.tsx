@@ -736,7 +736,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
     myClient
       .muteNotification(payload)
-      .then(() => {
+      .then(res => {
+        console.log('muteNotifications', res);
         fetchChatroomDetails();
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
@@ -1152,6 +1153,38 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
+  // this function calls API to block a member
+  const blockMember = () => {
+    let payload = {
+      chatroom_id: chatroomID,
+      status: 0,
+    };
+    myClient.blockCR(payload).then(res => {
+      console.log('blockCR', res);
+      fetchChatroomDetails();
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: 'Member blocked'},
+      });
+    });
+  };
+
+  // this function calls API to unblock a member
+  const unblockMember = () => {
+    let payload = {
+      chatroom_id: chatroomID,
+      status: 1,
+    };
+    myClient.blockCR(payload).then(res => {
+      console.log('unblock', res);
+      fetchChatroomDetails();
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: 'Member unblocked'},
+      });
+    });
+  };
+
   // this function shows confirm alert popup to approve DM request
   const handleDMApproveClick = () => {
     Alert.alert(
@@ -1199,7 +1232,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             onReject();
             navigation.navigate('Report', {
               conversationID: chatroomID,
-              isDM: chatroomDetails?.chatroom?.type === 10 ? true : false
+              isDM: chatroomDetails?.chatroom?.type === 10 ? true : false,
             });
           },
           style: 'default',
@@ -1212,10 +1245,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   // this function shows confirm alert popup to approve DM request on click TapToUndo
-  const handleDMTapToUndoClick = () => {
+  const handleBlockMember = () => {
     Alert.alert(
-      'Approve DM request?',
-      'Member will be able to send you messages and get notified of the same.',
+      'Block direct messaging?',
+      `Are you sure you do not want to receive new messages from ${
+        chatroomDetails?.chatroom?.type === 10
+          ? user?.id !== chatroomDetails?.chatroom?.chatroom_with_user?.id
+            ? chatroomDetails?.chatroom?.chatroom_with_user?.name
+            : chatroomDetails?.chatroom?.member?.name!
+          : chatroomDetails?.chatroom?.header
+      }?`,
       [
         {
           text: 'Cancel',
@@ -1224,7 +1263,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         {
           text: 'Confirm',
           onPress: async () => {
-            onTapToUndo();
+            blockMember();
           },
           style: 'default',
         },
@@ -1234,6 +1273,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       },
     );
   };
+
+  console.log('chatroomDetails ==?', chatroomDetails?.chatroom_actions);
 
   return (
     <View style={styles.container}>
@@ -1300,7 +1341,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     removeReaction(item);
                   }}
                   handleTapToUndo={() => {
-                    handleDMTapToUndoClick();
+                    onTapToUndo();
                   }}
                 />
               </Pressable>
@@ -1417,7 +1458,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ) : chatroomDetails?.chatroom?.type === 10 ? (
         <View>
           {chatroomDetails?.chatroom?.chat_request_state === 0 &&
-          (chatroomDetails?.chatroom?.chat_requested_by !== null
+          (!!chatroomDetails?.chatroom?.chat_requested_by
             ? chatroomDetails?.chatroom?.chat_requested_by[0]?.id !== user?.id
             : null) ? (
             <View
@@ -1548,6 +1589,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         setModalVisible(false);
                       } else if (val?.id === 8) {
                         await unmuteNotifications();
+                        setModalVisible(false);
+                      } else if (val?.id === 27) {
+                        await handleBlockMember();
+                        setModalVisible(false);
+                      } else if (val?.id === 28) {
+                        await unblockMember();
                         setModalVisible(false);
                       }
                     }}

@@ -187,7 +187,7 @@ const Messages = ({
                 {/* state 19 is for the reject DM state message */}
                 {item.state === 19 &&
                 conversations[0].state === 19 &&
-                (item?.chat_requested_by !== null
+                (!!item?.chat_requested_by
                   ? item?.chat_requested_by[0]?.id !== user?.id
                   : null) ? (
                   <Pressable
