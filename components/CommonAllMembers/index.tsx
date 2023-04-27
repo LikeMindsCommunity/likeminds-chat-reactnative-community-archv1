@@ -15,6 +15,7 @@ import {myClient} from '../..';
 import {StackActions} from '@react-navigation/native';
 import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
+import {CHATROOM} from '../../constants/Screens';
 
 const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
   const [participants, setParticipants] = useState([] as any);
@@ -146,6 +147,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
     });
   };
 
+  //useLayoutEffect calls to fetch API before UI loads
   useLayoutEffect(() => {
     if (isDM) {
       fetchDMParticipants();
@@ -156,8 +158,8 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
     setInitialHeader();
   }, [navigation]);
 
+  //to update header when we have API data, initially header will be printed but it's details that comes from API will not be shown as API is async call.
   useEffect(() => {
-    // setInitialHeader();
     if (!!isSearch) {
       setSearchHeader();
     } else {
@@ -165,12 +167,14 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
     }
   }, [participants]);
 
+  // when we type something to search, this useEffect will update search Header with that searched letter.
   useEffect(() => {
     if (!!isSearch) {
       setSearchHeader();
     }
   }, [search]);
 
+  // debouncing logic for search API call.
   useEffect(() => {
     if (!!isSearch) {
       if (!!!search) {
@@ -182,6 +186,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
       setIsEmptyMessageShow(false);
     }
 
+    //debouncing logic
     const delay = setTimeout(() => {
       if (!!isSearch) {
         if (!!search) {
@@ -193,12 +198,14 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
     return () => clearTimeout(delay);
   }, [search]);
 
+  // to update count of selected participants on header
   useEffect(() => {
     if (!isSearch && !!!isDM) {
       setInitialHeader();
     }
   }, [selectedParticipants]);
 
+  // for changing header when we search and when we don't search.
   useEffect(() => {
     if (!!isSearch) {
       setSearchHeader();
@@ -348,6 +355,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
     }
   };
 
+  //pagination loader in the footer
   const renderFooter = () => {
     return isLoading ? (
       <View style={{paddingVertical: 20}}>
@@ -364,7 +372,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
     console.log('reqDmFeed', res);
     if (res?.is_request_dm_limit_exceeded === false) {
       if (res?.chatroom_id !== undefined) {
-        navigation.navigate('ChatRoom', {chatroomID: res?.chatroom_id});
+        navigation.navigate(CHATROOM, {chatroomID: res?.chatroom_id});
       } else {
         let payload = {
           community_id: community?.id,
@@ -372,7 +380,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
         };
         const response = await myClient.onCreateDM(payload);
         if (!!response?.chatroom?.id) {
-          navigation.navigate('ChatRoom', {
+          navigation.navigate(CHATROOM, {
             chatroomID: response?.chatroom?.id,
           });
         }

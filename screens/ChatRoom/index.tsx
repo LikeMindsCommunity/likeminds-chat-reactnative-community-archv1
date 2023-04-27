@@ -54,6 +54,7 @@ import {
 import {getExploreFeedData} from '../../store/actions/explorefeed';
 import Layout from '../../constants/Layout';
 import EmojiPicker, {EmojiKeyboard} from 'rn-emoji-keyboard';
+import {EXPLORE_FEED, HOMEFEED, REPORT, VIEW_PARTICIPANTS} from '../../constants/Screens';
 
 interface Data {
   id: string;
@@ -536,7 +537,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .leaveChatroom(payload)
       .then(async () => {
-        if (prevRoute?.name === 'ExploreFeed') {
+        if (prevRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
           let payload2 = {
             community_id: community?.id,
@@ -584,7 +585,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .leaveSecretChatroom(payload)
       .then(async () => {
-        if (prevRoute?.name === 'ExploreFeed') {
+        if (prevRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
           let payload2 = {
             community_id: community?.id,
@@ -632,7 +633,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .leaveChatroom(payload)
       .then(async () => {
-        if (prevRoute?.name === 'ExploreFeed') {
+        if (prevRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
           let payload2 = {
             community_id: community?.id,
@@ -650,8 +651,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           CommonActions.reset({
             index: 0,
             routes:
-              prevRoute?.name === 'ExploreFeed'
-                ? [{name: 'HomeFeed'}, {name: prevRoute?.name}]
+              prevRoute?.name === EXPLORE_FEED
+                ? [{name: HOMEFEED}, {name: prevRoute?.name}]
                 : [{name: prevRoute?.name}],
           }),
         );
@@ -678,7 +679,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let payload1 = {chatroomID: chatroomID, page: 100};
         await dispatch(getConversations(payload1, true) as any);
 
-        if (prevRoute?.name === 'ExploreFeed') {
+        if (prevRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
           let payload2 = {
             community_id: community?.id,
@@ -1152,7 +1153,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         inverted
       />
       {!(Object.keys(chatroomDetails).length === 0) &&
-      prevRoute?.name === 'ExploreFeed'
+      prevRoute?.name === EXPLORE_FEED
         ? !!!chatroomDetails?.chatroom?.follow_status && (
             <TouchableOpacity
               onPress={() => {
@@ -1183,7 +1184,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             }}
           />
         ) : !(Object.keys(chatroomDetails).length === 0) &&
-          prevRoute?.name === 'HomeFeed' ? (
+          prevRoute?.name === HOMEFEED ? (
           <View style={{padding: 20, backgroundColor: STYLES.$COLORS.TERTIARY}}>
             <Text
               style={
@@ -1256,7 +1257,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     onPress={async () => {
                       if (val?.id === 2) {
                         setModalVisible(false);
-                        navigation.navigate('ViewParticipants', {
+                        navigation.navigate(VIEW_PARTICIPANTS, {
                           chatroomID: chatroomID,
                           isSecret: isSecret,
                         });
@@ -1305,7 +1306,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             <Pressable onPress={() => {}} style={[styles.modalView]}>
               <TouchableOpacity
                 onPress={() => {
-                  navigation.navigate('Report', {
+                  navigation.navigate(REPORT, {
                     convoId: selectedMessages[0].id,
                   });
                   dispatch({type: SELECTED_MESSAGES, body: []});
