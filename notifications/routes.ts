@@ -1,3 +1,4 @@
+import {CHATROOM, HOMEFEED} from '../constants/Screens';
 import {ROUTE_CHATROOM} from './constants';
 
 export function getRoute(route: any) {
@@ -13,9 +14,9 @@ export function getRoute(route: any) {
   switch (navigationRoute[1]) {
     case ROUTE_CHATROOM:
       let paramsKey = Object.keys(params);
-      return {route: 'ChatRoom', params: {chatroomID: params[paramsKey[0]]}};
+      return {route: CHATROOM, params: {chatroomID: params[paramsKey[0]]}};
 
     default:
-      return {route: 'HomeFeed', params: {}};
+      return {route: HOMEFEED, params: {}};
   }
 }
