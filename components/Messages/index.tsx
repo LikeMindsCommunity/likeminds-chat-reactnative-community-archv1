@@ -35,17 +35,25 @@ const Messages = ({
   handleTapToUndo,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
-  const {selectedMessages, isLongPress, stateArr, conversations} =
-    useAppSelector(state => state.chatroom);
+  const {
+    selectedMessages,
+    isLongPress,
+    stateArr,
+    conversations,
+    chatroomDetails,
+  } = useAppSelector(state => state.chatroom);
+
   const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [reactionArr, setReactionArr] = useState([] as any);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
+  const chatRequestedBy = chatroomDetails?.chatroom?.chat_requested_by;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
   let defaultReactionArrLen = item?.reactions?.length;
 
+  //this useEffect update setReactionArr in format of { reaction: 👌, memberArr: []}
   useEffect(() => {
     let tempArr = [] as any;
     if (defaultReactionArrLen === 0) {
@@ -65,10 +73,6 @@ const Messages = ({
             item?.reactions[i]?.member,
           ];
           setReactionArr([...tempArr] as any);
-          // reactionArr[index].memberArr = [
-          //   ...reactionArr[index]?.memberArr,
-          //   item?.reactions[i]?.member,
-          // ];
         } else {
           let obj = {
             reaction: item?.reactions[i]?.reaction,
@@ -83,6 +87,7 @@ const Messages = ({
 
   const reactionLen = reactionArr.length;
 
+  // function handles event on longPress action on a message
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -92,6 +97,7 @@ const Messages = ({
     longPressOpenKeyboard();
   };
 
+  // function handles event on Press action on a message
   const handleOnPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -101,6 +107,7 @@ const Messages = ({
     openKeyboard();
   };
 
+  // function handles event on Press reaction below a message
   const handleReactionOnPress = (event: any, val?: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -138,7 +145,7 @@ const Messages = ({
       setModalVisible(true);
     }
   };
-  // const reactionLen = 8;
+
   return (
     <View style={styles.messageParent}>
       <View>
@@ -187,8 +194,9 @@ const Messages = ({
                 {/* state 19 is for the reject DM state message */}
                 {item.state === 19 &&
                 conversations[0].state === 19 &&
-                (item?.chat_requested_by !== null
-                  ? item?.chat_requested_by[0]?.id !== user?.id
+                conversations[0]?.id === item?.id &&
+                (!!chatRequestedBy
+                  ? chatRequestedBy[0]?.id === user?.id
                   : null) ? (
                   <Pressable
                     onPress={() => {
