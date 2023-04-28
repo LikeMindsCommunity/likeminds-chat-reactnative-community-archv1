@@ -14,7 +14,12 @@ import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
-import {MESSAGE_SENT, SHOW_TOAST, UPDATE_CHAT_REQUEST_STATE, UPDATE_CONVERSATIONS} from '../../store/types/types';
+import {
+  MESSAGE_SENT,
+  SHOW_TOAST,
+  UPDATE_CHAT_REQUEST_STATE,
+  UPDATE_CONVERSATIONS,
+} from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../..';
@@ -177,11 +182,10 @@ const InputBox = ({
         };
         let response = await dispatch(onConversationsCreate(payload) as any);
       }
-
     }
   };
 
-  // function 
+  // function calls a confirm alert which will further call onSend function onConfirm.
   const sendDmRequest = () => {
     Alert.alert(
       'Send DM request?',
