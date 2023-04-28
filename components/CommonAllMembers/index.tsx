@@ -370,21 +370,29 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
       member_id: memberID,
     });
     console.log('reqDmFeed', res);
-    if (res?.is_request_dm_limit_exceeded === false) {
-      if (res?.chatroom_id !== undefined) {
-        navigation.navigate(CHATROOM, {chatroomID: res?.chatroom_id});
-      } else {
-        let payload = {
-          community_id: community?.id,
-          member_id: memberID,
-        };
-        const response = await myClient.onCreateDM(payload);
-        if (!!response?.chatroom?.id) {
-          navigation.navigate(CHATROOM, {
-            chatroomID: response?.chatroom?.id,
-          });
-        }
+    if (res?.success === false) {
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: `${res?.error_message}`},
+      });
+    } else if (!!res?.chatroom_id) {
+      navigation.navigate(CHATROOM, {chatroomID: res?.chatroom_id});
+    } else if (res?.is_request_dm_limit_exceeded === false) {
+      let payload = {
+        community_id: community?.id,
+        member_id: memberID,
+      };
+      const response = await myClient.onCreateDM(payload);
+      if (!!response?.chatroom?.id) {
+        navigation.navigate(CHATROOM, {
+          chatroomID: response?.chatroom?.id,
+        });
       }
+    } else {
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: `DM request limit exceeded`},
+      });
     }
   };
 
