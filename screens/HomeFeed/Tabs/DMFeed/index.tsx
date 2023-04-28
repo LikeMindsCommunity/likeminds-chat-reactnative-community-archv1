@@ -31,6 +31,7 @@ import styles from './styles';
 import {SET_DM_PAGE} from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
+import {DM_ALL_MEMBERS} from '../../../../constants/Screens';
 
 interface Props {
   navigation: any;
@@ -174,6 +175,9 @@ const DMFeed = ({navigation}: Props) => {
       />
       {showDM ? (
         <Pressable
+          onPress={() => {
+            navigation.navigate(DM_ALL_MEMBERS);
+          }}
           style={({pressed}) => [{opacity: pressed ? 0.5 : 1.0}, styles.fab]}>
           <Image
             style={styles.fabImg}

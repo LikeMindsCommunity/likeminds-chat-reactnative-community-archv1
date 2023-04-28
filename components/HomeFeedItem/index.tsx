@@ -21,6 +21,7 @@ import {
 } from '../../store/types/types';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
+import {CHATROOM} from '../../constants/Screens';
 
 interface Props {
   avatar: string;
@@ -209,7 +210,7 @@ const HomeFeedItem: React.FC<Props> = ({
   return (
     <Pressable
       onPress={() => {
-        navigation.navigate('ChatRoom', {
+        navigation.navigate(CHATROOM, {
           chatroomID: chatroomID,
           isInvited: !!inviteReceiver ? true : false,
         });
