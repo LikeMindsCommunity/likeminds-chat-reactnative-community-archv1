@@ -171,7 +171,6 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 0},
         });
-        console.log('response requestDmAction ==', response);
       } else {
         let payload = {
           chatroom_id: chatroomID,

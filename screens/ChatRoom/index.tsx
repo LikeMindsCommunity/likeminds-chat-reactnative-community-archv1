@@ -62,6 +62,9 @@ import {
   VIEW_PARTICIPANTS,
 } from '../../constants/Screens';
 import {
+  APPROVE_DM_REQUEST,
+  APPROVE_REQUEST_MESSAGE,
+  BLOCK_DM_REQUEST,
   DM_REQUEST_SENT_MESSAGE,
   JOIN_CHATROOM,
   JOIN_CHATROOM_MESSAGE,
@@ -113,15 +116,34 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     stateArr,
     position,
   } = useAppSelector(state => state.chatroom);
+  const {user, community} = useAppSelector(state => state.homefeed);
 
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.follow_status;
   let memberCanMessage = chatroomDetails?.chatroom?.member_can_message;
 
+  {
+    /* `{? = then}`, `{: = else}`  */
+  }
+  {
+    /* 
+      if DM ? 
+        if userID !=== chatroomWithUserID ? 
+          chatroomWithUserName 
+        : memberName
+      : chatroomHeaderName  
+  */
+  }
+  let chatroomName =
+    chatroomType === 10
+      ? user?.id !== chatroomDetails?.chatroom?.chatroom_with_user?.id
+        ? chatroomDetails?.chatroom?.chatroom_with_user?.name
+        : chatroomDetails?.chatroom?.member?.name!
+      : chatroomDetails?.chatroom?.header;
+
   let routes = navigation.getState()?.routes;
   let previousRoute = routes[routes.length - 2];
 
-  const {user, community} = useAppSelector(state => state.homefeed);
   let isSecret = chatroomDetails?.chatroom?.is_secret;
 
   let notIncludedActionsID = [3];
@@ -161,20 +183,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   fontSize: STYLES.$FONT_SIZES.LARGE,
                   fontFamily: STYLES.$FONT_TYPES.BOLD,
                 }}>
-                {/* `{? = then}`, `{: = else}`  */}
-                {/* 
-                    if DM ? 
-                      if userID !=== chatroomWithUserID ? 
-                        chatroomWithUserName 
-                      : memberName
-                    : chatroomHeader 
-                */}
-                {chatroomType === 10
-                  ? user?.id !==
-                    chatroomDetails?.chatroom?.chatroom_with_user?.id
-                    ? chatroomDetails?.chatroom?.chatroom_with_user?.name
-                    : chatroomDetails?.chatroom?.member?.name!
-                  : chatroomDetails?.chatroom?.header}
+                {chatroomName}
               </Text>
               <Text
                 style={{
@@ -488,7 +497,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         if (!!response?.cta) {
           setShowDM(response?.show_dm);
         }
-        console.log(' dmStatus in chatroom =', response);
       }
       let res = await fetchData(false);
       if (!!res) {
@@ -770,7 +778,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
     myClient
       .muteNotification(payload)
-      .then(() => {
+      .then(res => {
         fetchChatroomDetails();
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
@@ -1127,10 +1135,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroom_id: chatroomID,
       chat_request_state: 1,
     });
-    console.log('requestDmAction approve =', response, {
-      chatroom_id: chatroomID,
-      chat_request_state: 1,
-    });
     fetchData();
 
     //dispatching redux action for local handling of chatRequestState
@@ -1146,8 +1150,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroom_id: chatroomID,
       chat_request_state: 2,
     });
-
-    console.log('requestDmAction reject =', response);
 
     fetchData();
 
@@ -1165,7 +1167,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       status: 1,
     });
 
-    console.log('onTapToUndo reject =', response);
     fetchData();
 
     //dispatching redux action for local handling of chatRequestState
@@ -1175,11 +1176,41 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
+  // this function calls API to block a member
+  const blockMember = () => {
+    let payload = {
+      chatroom_id: chatroomID,
+      status: 0,
+    };
+    myClient.blockCR(payload).then(res => {
+      fetchChatroomDetails();
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: 'Member blocked'},
+      });
+    });
+  };
+
+  // this function calls API to unblock a member
+  const unblockMember = () => {
+    let payload = {
+      chatroom_id: chatroomID,
+      status: 1,
+    };
+    myClient.blockCR(payload).then(res => {
+      fetchChatroomDetails();
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: 'Member unblocked'},
+      });
+    });
+  };
+
   // this function shows confirm alert popup to approve DM request
   const handleDMApproveClick = () => {
     Alert.alert(
-      'Approve DM request?',
-      'Member will be able to send you messages and get notified of the same.',
+      APPROVE_DM_REQUEST,
+      APPROVE_REQUEST_MESSAGE,
       [
         {
           text: 'Cancel',
@@ -1202,8 +1233,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function shows confirm alert popup to reject DM request
   const handleDMRejectClick = () => {
     Alert.alert(
-      'Approve DM request?',
-      'Member will be able to send you messages and get notified of the same.',
+      APPROVE_DM_REQUEST,
+      APPROVE_REQUEST_MESSAGE,
       [
         {
           text: 'Confirm',
@@ -1235,10 +1266,23 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   // this function shows confirm alert popup to approve DM request on click TapToUndo
-  const handleDMTapToUndoClick = () => {
+  const handleBlockMember = () => {
+    {
+      /* `{? = then}`, `{: = else}`  */
+    }
+    // Logic for alert message name
+    {
+      /* 
+       if DM ? 
+        if userID !=== chatroomWithUserID ? 
+          chatroomWithUserName 
+        : memberName
+      : chatroomHeaderName              
+    */
+    }
     Alert.alert(
-      'Approve DM request?',
-      'Member will be able to send you messages and get notified of the same.',
+      BLOCK_DM_REQUEST,
+      `Are you sure you do not want to receive new messages from ${chatroomName}?`,
       [
         {
           text: 'Cancel',
@@ -1247,7 +1291,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         {
           text: 'Confirm',
           onPress: async () => {
-            onTapToUndo();
+            blockMember();
           },
           style: 'default',
         },
@@ -1323,7 +1367,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     removeReaction(item);
                   }}
                   handleTapToUndo={() => {
-                    handleDMTapToUndoClick();
+                    onTapToUndo();
                   }}
                 />
               </Pressable>
@@ -1443,7 +1487,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 : null (FALSE) )
           */}
           {chatroomDetails?.chatroom?.chat_request_state === 0 &&
-          (chatroomDetails?.chatroom?.chat_requested_by !== null
+          (!!chatroomDetails?.chatroom?.chat_requested_by
             ? chatroomDetails?.chatroom?.chat_requested_by[0]?.id !== user?.id
             : null) ? (
             <View
@@ -1571,6 +1615,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         setModalVisible(false);
                       } else if (val?.id === 8) {
                         await unmuteNotifications();
+                        setModalVisible(false);
+                      } else if (val?.id === 21) {
+                        //View Profile code
+                      } else if (val?.id === 27) {
+                        await handleBlockMember();
+                        setModalVisible(false);
+                      } else if (val?.id === 28) {
+                        await unblockMember();
                         setModalVisible(false);
                       }
                     }}

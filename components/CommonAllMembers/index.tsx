@@ -235,7 +235,6 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
       page: 1,
       member_state: 4,
     });
-    console.log('res fetchDMParticipants =', res);
     setParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
       const response = await myClient.dmAllMembers({
