@@ -21,6 +21,7 @@ interface Messages {
   openKeyboard: any;
   longPressOpenKeyboard: any;
   removeReaction: any;
+  handleTapToUndo: any;
 }
 
 const Messages = ({
@@ -31,21 +32,28 @@ const Messages = ({
   openKeyboard,
   longPressOpenKeyboard,
   removeReaction,
+  handleTapToUndo,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
-  const {selectedMessages, isLongPress} = useAppSelector(
-    state => state.chatroom,
-  );
+  const {
+    selectedMessages,
+    isLongPress,
+    stateArr,
+    conversations,
+    chatroomDetails,
+  } = useAppSelector(state => state.chatroom);
+
   const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [reactionArr, setReactionArr] = useState([] as any);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
-  const stateArr = [1, 2, 3, 7, 8, 9]; //states for person started, left, joined, added, removed messages.
+  const chatRequestedBy = chatroomDetails?.chatroom?.chat_requested_by;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
   let defaultReactionArrLen = item?.reactions?.length;
 
+  //this useEffect update setReactionArr in format of { reaction: 👌, memberArr: []}
   useEffect(() => {
     let tempArr = [] as any;
     if (defaultReactionArrLen === 0) {
@@ -65,10 +73,6 @@ const Messages = ({
             item?.reactions[i]?.member,
           ];
           setReactionArr([...tempArr] as any);
-          // reactionArr[index].memberArr = [
-          //   ...reactionArr[index]?.memberArr,
-          //   item?.reactions[i]?.member,
-          // ];
         } else {
           let obj = {
             reaction: item?.reactions[i]?.reaction,
@@ -83,6 +87,7 @@ const Messages = ({
 
   const reactionLen = reactionArr.length;
 
+  // function handles event on longPress action on a message
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -92,6 +97,7 @@ const Messages = ({
     longPressOpenKeyboard();
   };
 
+  // function handles event on Press action on a message
   const handleOnPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -101,6 +107,7 @@ const Messages = ({
     openKeyboard();
   };
 
+  // function handles event on Press reaction below a message
   const handleReactionOnPress = (event: any, val?: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -138,7 +145,7 @@ const Messages = ({
       setModalVisible(true);
     }
   };
-  // const reactionLen = 8;
+
   return (
     <View style={styles.messageParent}>
       <View>
@@ -183,8 +190,36 @@ const Messages = ({
         ) : (
           <View>
             {isItemIncludedInStateArr ? (
-              <View style={[styles.statusMessage]}>
-                <Text>{decode(item?.answer, true)}</Text>
+              <View>
+                {/* state 19 is for the reject DM state message */}
+                {/* Logic is when to show TAP TO UNDO => 
+                      Item's state == 19 && 
+                      conversation array's first element's ID == 19 && 
+                      conversations[0]?.id == item?.id && 
+                      chatRequestBy user should be same as user (when we reject DM chat request by changes to the person who rejected the request)
+                */}
+                {item.state === 19 &&
+                conversations[0].state === 19 &&
+                conversations[0]?.id === item?.id &&
+                (!!chatRequestedBy
+                  ? chatRequestedBy[0]?.id === user?.id
+                  : null) ? (
+                  <Pressable
+                    onPress={() => {
+                      handleTapToUndo();
+                    }}
+                    style={[styles.statusMessage]}>
+                    <Text
+                      style={{
+                        color: STYLES.$COLORS.PRIMARY,
+                        fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                      }}>{`${item?.answer} Tap to undo.`}</Text>
+                  </Pressable>
+                ) : (
+                  <View style={[styles.statusMessage]}>
+                    <Text>{decode(item?.answer, true)}</Text>
+                  </View>
+                )}
               </View>
             ) : (
               <View

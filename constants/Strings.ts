@@ -8,3 +8,5 @@ export const JOIN_CHATROOM_MESSAGE =
 export const REJECT_INVITATION = 'Reject Invitation?';
 export const REJECT_INVITATION_MESSAGE =
   'Are you sure you want to reject the invitation to join this chatroom?';
+export const DM_REQUEST_SENT_MESSAGE =
+  'The sender has sent you a direct messaging request. Approve or respond with a message to get connected. Rejecting this request will not notify the sender.';

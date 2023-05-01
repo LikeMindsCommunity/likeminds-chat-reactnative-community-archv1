@@ -369,7 +369,6 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
     const res = await myClient.reqDmFeed({
       member_id: memberID,
     });
-    console.log('reqDmFeed', res);
     if (res?.success === false) {
       dispatch({
         type: SHOW_TOAST,
@@ -385,11 +384,18 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
           member_id: memberID,
         };
         const response = await myClient.onCreateDM(payload);
-        let createdChatroomID = response?.chatroom?.id;
-        if (!!createdChatroomID) {
-          navigation.navigate(CHATROOM, {
-            chatroomID: createdChatroomID,
+        if (response?.success === false) {
+          dispatch({
+            type: SHOW_TOAST,
+            body: {isToast: true, msg: `${response?.error_message}`},
           });
+        } else {
+          let createdChatroomID = response?.chatroom?.id;
+          if (!!createdChatroomID) {
+            navigation.navigate(CHATROOM, {
+              chatroomID: createdChatroomID,
+            });
+          }
         }
       } else {
         dispatch({
