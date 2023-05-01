@@ -113,6 +113,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let filteredChatroomActions = chatroomDetails?.chatroom_actions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
+
   const setInitialHeader = () => {
     navigation.setOptions({
       title: '',
@@ -379,7 +380,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         collabcard_type: chatroomDetails?.chatroom?.type,
       });
       dispatch({type: SET_PAGE, body: 1});
-      if (chatroomDetails?.chatroom.type === 10) {
+      if (chatroomDetails?.chatroom?.type === 10) {
         dispatch(
           getDMFeedData({community_id: community?.id, page: 1}, false) as any,
         );
@@ -456,7 +457,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     async function callApi() {
       if (
-        chatroomDetails?.chatroom.type == 10 &&
+        chatroomDetails?.chatroom?.type == 10 &&
         chatroomDetails?.chatroom.is_private_member == true
       ) {
         let response = await myClient.canDmFeed({
@@ -1273,8 +1274,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       },
     );
   };
-
-  console.log('chatroomDetails ==?', chatroomDetails?.chatroom_actions);
 
   return (
     <View style={styles.container}>
