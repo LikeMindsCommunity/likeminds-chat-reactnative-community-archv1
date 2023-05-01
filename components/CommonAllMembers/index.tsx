@@ -389,12 +389,13 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
             type: SHOW_TOAST,
             body: {isToast: true, msg: `${response?.error_message}`},
           });
-        }
-        let createdChatroomID = response?.chatroom?.id;
-        if (!!createdChatroomID) {
-          navigation.navigate(CHATROOM, {
-            chatroomID: createdChatroomID,
-          });
+        } else {
+          let createdChatroomID = response?.chatroom?.id;
+          if (!!createdChatroomID) {
+            navigation.navigate(CHATROOM, {
+              chatroomID: createdChatroomID,
+            });
+          }
         }
       } else {
         dispatch({

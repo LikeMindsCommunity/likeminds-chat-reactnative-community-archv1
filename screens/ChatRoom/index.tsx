@@ -62,6 +62,7 @@ import {
   VIEW_PARTICIPANTS,
 } from '../../constants/Screens';
 import {
+  DM_REQUEST_SENT_MESSAGE,
   JOIN_CHATROOM,
   JOIN_CHATROOM_MESSAGE,
   REJECT_INVITATION,
@@ -1434,6 +1435,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         </View>
       ) : chatroomType === 10 ? (
         <View>
+          {/* `{? = then}`, `{: = else}`  */}
+          {/* 
+              if chat_request_state === 0 (Not requested yet) &&
+              (chat_requested_by !== null
+                ? chat_requested_by[0]?.id !== user?.id (TRUE or FALSE)
+                : null (FALSE) )
+          */}
           {chatroomDetails?.chatroom?.chat_request_state === 0 &&
           (chatroomDetails?.chatroom?.chat_requested_by !== null
             ? chatroomDetails?.chatroom?.chat_requested_by[0]?.id !== user?.id
@@ -1444,10 +1452,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 backgroundColor: STYLES.$COLORS.TERTIARY,
                 marginTop: 10,
               }}>
-              <Text
-                style={
-                  styles.inviteText
-                }>{`The sender has sent you a direct messaging request. Approve or respond with a message to get connected. Rejecting this request will not notify the sender.`}</Text>
+              <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>
               <View style={{marginTop: 10}}>
                 <TouchableOpacity
                   onPress={() => {
