@@ -16,6 +16,7 @@ import {
   SET_POSITION,
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
+import {IMAGE_SCREEN} from '../../constants/Screens';
 
 interface AttachmentConversations {
   item: any;
@@ -634,7 +635,7 @@ export const ImageConversations = ({
                 }
               }
             } else {
-              navigation.navigate('ImageScreen', {
+              navigation.navigate(IMAGE_SCREEN, {
                 attachments: item?.attachments,
               });
             }
@@ -690,7 +691,7 @@ export const ImageConversations = ({
                 }
               }
             } else {
-              navigation.navigate('ImageScreen', {
+              navigation.navigate(IMAGE_SCREEN, {
                 attachments: item?.attachments,
               });
             }
