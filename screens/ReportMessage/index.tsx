@@ -95,7 +95,6 @@ const ReportScreen = ({navigation, route}: Props) => {
         type: SHOW_TOAST,
         body: {isToast: true, msg: 'Reported succesfully'},
       });
-      console.log('pushReport =', call);
     } catch (error) {
       //  Alert.alert('API failed')
     }

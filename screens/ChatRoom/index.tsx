@@ -488,7 +488,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         if (!!response?.cta) {
           setShowDM(response?.show_dm);
         }
-        console.log(' dmStatus in chatroom =', response);
       }
       let res = await fetchData(false);
       if (!!res) {
@@ -771,7 +770,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     myClient
       .muteNotification(payload)
       .then(res => {
-        console.log('muteNotifications', res);
         fetchChatroomDetails();
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
@@ -1128,10 +1126,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroom_id: chatroomID,
       chat_request_state: 1,
     });
-    console.log('requestDmAction approve =', response, {
-      chatroom_id: chatroomID,
-      chat_request_state: 1,
-    });
     fetchData();
 
     //dispatching redux action for local handling of chatRequestState
@@ -1147,8 +1141,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroom_id: chatroomID,
       chat_request_state: 2,
     });
-
-    console.log('requestDmAction reject =', response);
 
     fetchData();
 
@@ -1166,7 +1158,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       status: 1,
     });
 
-    console.log('onTapToUndo reject =', response);
     fetchData();
 
     //dispatching redux action for local handling of chatRequestState
@@ -1183,7 +1174,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       status: 0,
     };
     myClient.blockCR(payload).then(res => {
-      console.log('blockCR', res);
       fetchChatroomDetails();
       dispatch({
         type: SHOW_TOAST,
@@ -1199,7 +1189,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       status: 1,
     };
     myClient.blockCR(payload).then(res => {
-      console.log('unblock', res);
       fetchChatroomDetails();
       dispatch({
         type: SHOW_TOAST,
