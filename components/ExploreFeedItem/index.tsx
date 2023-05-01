@@ -5,9 +5,10 @@ import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
 import {getHomeFeedData} from '../../store/actions/homefeed';
-import { SET_EXPLORE_FEED_PAGE, SET_PAGE } from '../../store/types/types';
+import {SET_EXPLORE_FEED_PAGE, SET_PAGE} from '../../store/types/types';
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
+import {CHATROOM} from '../../constants/Screens';
 
 interface Props {
   avatar: string;
@@ -67,7 +68,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
         }
-        dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1})
+        dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
         await dispatch(getExploreFeedData(payload) as any);
         dispatch({type: SET_PAGE, body: 1});
         await dispatch(
@@ -88,7 +89,7 @@ const ExploreFeedItem: React.FC<Props> = ({
   return (
     <TouchableOpacity
       onPress={() => {
-        navigation.navigate('ChatRoom', {chatroomID: chatroomID});
+        navigation.navigate(CHATROOM, {chatroomID: chatroomID});
       }}
       style={styles.itemContainer}>
       <View>
