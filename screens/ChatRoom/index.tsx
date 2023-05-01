@@ -1611,6 +1611,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       } else if (val?.id === 8) {
                         await unmuteNotifications();
                         setModalVisible(false);
+                      } else if (val?.id === 21) {
+                        //View Profile code
                       } else if (val?.id === 27) {
                         await handleBlockMember();
                         setModalVisible(false);
