@@ -10,7 +10,8 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 15,
+    gap: 20,
+    marginTop: -5,
   },
   selectedHeadingContainer: {
     display: 'flex',
@@ -187,11 +188,33 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.MSG,
-    lineHeight: 20
+    lineHeight: 20,
   },
   inviteBtnText: {
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
   },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+    marginRight: STYLES.$MARGINS.SMALL,
+  },
+  alignRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 5,
+  },
+  profile: {
+    width: 45,
+    height: 45,
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 5,
+  },
+  headerRight: {marginTop: -5},
 });

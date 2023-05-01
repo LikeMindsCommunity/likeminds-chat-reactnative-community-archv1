@@ -141,6 +141,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         : chatroomDetails?.chatroom?.member?.name!
       : chatroomDetails?.chatroom?.header;
 
+  let chatroomProfile =
+    chatroomType === 10
+      ? user?.id !== chatroomDetails?.chatroom?.chatroom_with_user?.id
+        ? chatroomDetails?.chatroom?.chatroom_with_user?.image_url
+        : chatroomDetails?.chatroom?.member?.image_url!
+      : null;
   let routes = navigation.getState()?.routes;
   let previousRoute = routes[routes.length - 2];
 
@@ -176,30 +182,50 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             />
           </TouchableOpacity>
           {!(Object.keys(chatroomDetails).length === 0) ? (
-            <View style={styles.chatRoomInfo}>
-              <Text
-                style={{
-                  color: STYLES.$COLORS.PRIMARY,
-                  fontSize: STYLES.$FONT_SIZES.LARGE,
-                  fontFamily: STYLES.$FONT_TYPES.BOLD,
-                }}>
-                {chatroomName}
-              </Text>
-              <Text
-                style={{
-                  color: STYLES.$COLORS.MSG,
-                  fontSize: STYLES.$FONT_SIZES.SMALL,
-                  fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                }}>
-                {`${chatroomDetails?.chatroom?.participants_count} participants`}
-              </Text>
+            <View style={styles.alignRow}>
+              {chatroomType === 10 ? (
+                <View style={styles.profile}>
+                  <Image
+                    source={
+                      !!chatroomProfile
+                        ? {uri: chatroomProfile}
+                        : require('../../assets/images/default_pic.png')
+                    }
+                    style={styles.avatar}
+                  />
+                </View>
+              ) : null}
+
+              <View style={styles.chatRoomInfo}>
+                <Text
+                  ellipsizeMode="tail"
+                  numberOfLines={1}
+                  style={{
+                    color: STYLES.$COLORS.PRIMARY,
+                    fontSize: STYLES.$FONT_SIZES.LARGE,
+                    fontFamily: STYLES.$FONT_TYPES.BOLD,
+                    maxWidth: 150,
+                  }}>
+                  {chatroomName}
+                </Text>
+                {chatroomType !== 10 ? (
+                  <Text
+                    style={{
+                      color: STYLES.$COLORS.MSG,
+                      fontSize: STYLES.$FONT_SIZES.SMALL,
+                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                    }}>
+                    {`${chatroomDetails?.chatroom?.participants_count} participants`}
+                  </Text>
+                ) : null}
+              </View>
             </View>
           ) : null}
         </View>
       ),
       headerRight: () =>
         filteredChatroomActions?.length > 0 && (
-          <View>
+          <View style={styles.headerRight}>
             {!!chatroomDetails ? (
               <TouchableOpacity
                 onPress={() => {
@@ -481,13 +507,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setInitialHeader();
   }, [chatroomDetails]);
 
-  // this useEffect call API to show DM tab or not.
+  // this useEffect call API to InputBox based on showDM key.
   useEffect(() => {
     async function callApi() {
-      if (
-        chatroomType == 10 &&
-        chatroomDetails?.chatroom.is_private_member == true
-      ) {
+      if (chatroomType == 10) {
         let response = await myClient.canDmFeed({
           req_from: 'chatroom',
           chatroom_id: chatroomID,
@@ -1301,7 +1324,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       },
     );
   };
-
   return (
     <View style={styles.container}>
       <FlatList
