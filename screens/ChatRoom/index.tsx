@@ -62,6 +62,9 @@ import {
   VIEW_PARTICIPANTS,
 } from '../../constants/Screens';
 import {
+  APPROVE_DM_REQUEST,
+  APPROVE_REQUEST_MESSAGE,
+  BLOCK_DM_REQUEST,
   DM_REQUEST_SENT_MESSAGE,
   JOIN_CHATROOM,
   JOIN_CHATROOM_MESSAGE,
@@ -113,15 +116,34 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     stateArr,
     position,
   } = useAppSelector(state => state.chatroom);
+  const {user, community} = useAppSelector(state => state.homefeed);
 
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.follow_status;
   let memberCanMessage = chatroomDetails?.chatroom?.member_can_message;
 
+  {
+    /* `{? = then}`, `{: = else}`  */
+  }
+  {
+    /* 
+      if DM ? 
+        if userID !=== chatroomWithUserID ? 
+          chatroomWithUserName 
+        : memberName
+      : chatroomHeaderName  
+  */
+  }
+  let chatroomName =
+    chatroomType === 10
+      ? user?.id !== chatroomDetails?.chatroom?.chatroom_with_user?.id
+        ? chatroomDetails?.chatroom?.chatroom_with_user?.name
+        : chatroomDetails?.chatroom?.member?.name!
+      : chatroomDetails?.chatroom?.header;
+
   let routes = navigation.getState()?.routes;
   let previousRoute = routes[routes.length - 2];
 
-  const {user, community} = useAppSelector(state => state.homefeed);
   let isSecret = chatroomDetails?.chatroom?.is_secret;
 
   let notIncludedActionsID = [3];
@@ -161,20 +183,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   fontSize: STYLES.$FONT_SIZES.LARGE,
                   fontFamily: STYLES.$FONT_TYPES.BOLD,
                 }}>
-                {/* `{? = then}`, `{: = else}`  */}
-                {/* 
-                    if DM ? 
-                      if userID !=== chatroomWithUserID ? 
-                        chatroomWithUserName 
-                      : memberName
-                    : chatroomHeader 
-                */}
-                {chatroomType === 10
-                  ? user?.id !==
-                    chatroomDetails?.chatroom?.chatroom_with_user?.id
-                    ? chatroomDetails?.chatroom?.chatroom_with_user?.name
-                    : chatroomDetails?.chatroom?.member?.name!
-                  : chatroomDetails?.chatroom?.header}
+                {chatroomName}
               </Text>
               <Text
                 style={{
@@ -1200,8 +1209,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function shows confirm alert popup to approve DM request
   const handleDMApproveClick = () => {
     Alert.alert(
-      'Approve DM request?',
-      'Member will be able to send you messages and get notified of the same.',
+      APPROVE_DM_REQUEST,
+      APPROVE_REQUEST_MESSAGE,
       [
         {
           text: 'Cancel',
@@ -1224,8 +1233,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function shows confirm alert popup to reject DM request
   const handleDMRejectClick = () => {
     Alert.alert(
-      'Approve DM request?',
-      'Member will be able to send you messages and get notified of the same.',
+      APPROVE_DM_REQUEST,
+      APPROVE_REQUEST_MESSAGE,
       [
         {
           text: 'Confirm',
@@ -1258,15 +1267,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function shows confirm alert popup to approve DM request on click TapToUndo
   const handleBlockMember = () => {
+    {
+      /* `{? = then}`, `{: = else}`  */
+    }
+    // Logic for alert message name
+    {
+      /* 
+       if DM ? 
+        if userID !=== chatroomWithUserID ? 
+          chatroomWithUserName 
+        : memberName
+      : chatroomHeaderName              
+    */
+    }
     Alert.alert(
-      'Block direct messaging?',
-      `Are you sure you do not want to receive new messages from ${
-        chatroomDetails?.chatroom?.type === 10
-          ? user?.id !== chatroomDetails?.chatroom?.chatroom_with_user?.id
-            ? chatroomDetails?.chatroom?.chatroom_with_user?.name
-            : chatroomDetails?.chatroom?.member?.name!
-          : chatroomDetails?.chatroom?.header
-      }?`,
+      BLOCK_DM_REQUEST,
+      `Are you sure you do not want to receive new messages from ${chatroomName}?`,
       [
         {
           text: 'Cancel',
