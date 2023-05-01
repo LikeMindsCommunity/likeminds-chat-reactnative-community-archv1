@@ -192,6 +192,12 @@ const Messages = ({
             {isItemIncludedInStateArr ? (
               <View>
                 {/* state 19 is for the reject DM state message */}
+                {/* Logic is when to show TAP TO UNDO => 
+                      Item's state == 19 && 
+                      conversation array's first element's ID == 19 && 
+                      conversations[0]?.id == item?.id && 
+                      chatRequestBy user should be same as user (when we reject DM chat request by changes to the person who rejected the request)
+                */}
                 {item.state === 19 &&
                 conversations[0].state === 19 &&
                 conversations[0]?.id === item?.id &&
