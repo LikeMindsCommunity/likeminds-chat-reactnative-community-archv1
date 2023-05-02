@@ -1,4 +1,8 @@
-import {CommonActions, useIsFocused} from '@react-navigation/native';
+import {
+  CommonActions,
+  StackActions,
+  useIsFocused,
+} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {
@@ -74,6 +78,7 @@ import {
   REJECT_INVITATION,
   REJECT_INVITATION_MESSAGE,
 } from '../../constants/Strings';
+import {DM_ALL_MEMBERS} from '../../constants/Screens';
 
 interface Data {
   id: string;
@@ -190,7 +195,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 type: CLEAR_CHATROOM_DETAILS,
                 body: {chatroomDetails: {}},
               });
-              navigation.goBack();
+              if (chatroomType === 10) {
+                if (previousRoute?.name === DM_ALL_MEMBERS) {
+                  const popAction = StackActions.pop(2);
+                  navigation.dispatch(popAction);
+                } else {
+                  navigation.goBack();
+                }
+              } else {
+                navigation.goBack();
+              }
             }}>
             <Image
               source={require('../../assets/images/back_arrow3x.png')}
