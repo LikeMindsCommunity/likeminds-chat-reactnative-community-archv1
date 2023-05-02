@@ -123,6 +123,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.follow_status;
   let memberCanMessage = chatroomDetails?.chatroom?.member_can_message;
+  let chatroomWithUser = chatroomDetails?.chatroom?.chatroom_with_user;
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -138,8 +139,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
   let chatroomName =
     chatroomType === 10
-      ? user?.id !== chatroomDetails?.chatroom?.chatroom_with_user?.id
-        ? chatroomDetails?.chatroom?.chatroom_with_user?.name
+      ? user?.id !== chatroomWithUser?.id
+        ? chatroomWithUser?.name
         : chatroomDetails?.chatroom?.member?.name!
       : chatroomDetails?.chatroom?.header;
 
@@ -157,8 +158,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
   let chatroomProfile =
     chatroomType === 10
-      ? user?.id !== chatroomDetails?.chatroom?.chatroom_with_user?.id
-        ? chatroomDetails?.chatroom?.chatroom_with_user?.image_url
+      ? user?.id !== chatroomWithUser?.id
+        ? chatroomWithUser?.image_url
         : chatroomDetails?.chatroom?.member?.image_url!
       : null;
   let routes = navigation.getState()?.routes;
@@ -529,7 +530,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           req_from: 'chatroom',
           chatroom_id: chatroomID,
           community_id: community?.id,
-          member_id: chatroomDetails?.chatroom?.chatroom_with_user?.id,
+          member_id: chatroomWithUser?.id,
         });
         if (!!response?.cta) {
           setShowDM(response?.show_dm);
