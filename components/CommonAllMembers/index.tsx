@@ -31,7 +31,6 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
   const dispatch = useAppDispatch();
 
   const {user, community} = useAppSelector(state => state.homefeed);
-  let memberState = user?.state;
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -234,14 +233,14 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
     const res = await myClient.dmAllMembers({
       community_id: community?.id,
       page: 1,
-      member_state: memberState,
+      member_state: 4,
     });
     setParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
       const response = await myClient.dmAllMembers({
         community_id: community?.id,
         page: 2,
-        member_state: memberState,
+        member_state: 4,
       });
       setParticipants((participants: any) => [
         ...participants,
@@ -309,7 +308,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
         const res = await myClient.dmAllMembers({
           community_id: community?.id,
           page: newPage,
-          member_state: memberState,
+          member_state: 4,
         });
         return res;
       } else {
