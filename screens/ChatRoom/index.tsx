@@ -168,6 +168,25 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ? chatroomWithUser?.image_url
         : chatroomDetails?.chatroom?.member?.image_url!
       : null;
+
+  {
+    /* `{? = then}`, `{: = else}`  */
+  }
+  {
+    /* 
+              if DM ? 
+                if userID !=== chatroomWithUserID ? 
+                  chatroomWithUserImageURL 
+                : memberImageURL
+              : null  
+          */
+  }
+  let chatroomReceiverMemberState =
+    chatroomType === 10
+      ? user?.id !== chatroomWithUser?.id
+        ? chatroomWithUser?.state
+        : chatroomDetails?.chatroom?.member?.state!
+      : null;
   let routes = navigation.getState()?.routes;
   let previousRoute = routes[routes.length - 2];
 
@@ -1635,6 +1654,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               }}
               chatRequestState={chatroomDetails?.chatroom?.chat_request_state}
               chatroomType={chatroomType}
+              chatroomReceiverMemberState={chatroomReceiverMemberState}
             />
           ) : (
             <View style={styles.disabledInput}>
