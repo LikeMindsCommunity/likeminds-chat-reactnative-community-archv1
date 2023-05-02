@@ -58,6 +58,8 @@ const InputBox = ({
   );
   const {chatroomDetails} = useAppSelector(state => state.chatroom);
 
+  let memberState = user?.state;
+
   const handleModalClose = () => {
     setModalVisible(false);
   };
@@ -95,6 +97,7 @@ const InputBox = ({
     let time = new Date(Date.now());
     let hr = time.getHours();
     let min = time.getMinutes();
+    let ID = Date.now();
 
     // check if message is empty string or not
     if (!!message.trim()) {
@@ -112,7 +115,7 @@ const InputBox = ({
           minimumIntegerDigits: 2,
           useGrouping: false,
         })}`;
-        replyObj.id = Date.now();
+        replyObj.id = ID;
         replyObj.chatroom_id = chatroomDetails?.chatroom.id;
         replyObj.community_id = community?.id;
         replyObj.date = `${
@@ -130,7 +133,7 @@ const InputBox = ({
         minimumIntegerDigits: 2,
         useGrouping: false,
       })}`;
-      obj.id = Date.now();
+      obj.id = ID;
       obj.chatroom_id = chatroomDetails?.chatroom.id;
       obj.community_id = community?.id;
       obj.date = `${
@@ -154,7 +157,11 @@ const InputBox = ({
       // -- Code for local message handling ended
 
       // condition for request DM for the first time
-      if (chatroomType === 10 && chatRequestState === null) {
+      if (
+        chatroomType === 10 && // if DM
+        chatRequestState === null &&
+        memberState === 4 // if Member not CM
+      ) {
         let response = await myClient.requestDmAction({
           chatroom_id: chatroomID,
           chat_request_state: 0,
@@ -177,6 +184,7 @@ const InputBox = ({
           created_at: new Date(Date.now()),
           has_files: false,
           text: message.trim(),
+          temporary_id: ID,
           // attachment_count?: any;
           replied_conversation_id: replyMessage?.id,
         };
@@ -293,7 +301,11 @@ const InputBox = ({
 
         <TouchableOpacity
           onPressOut={() => {
-            if (chatroomType === 10 && chatRequestState === null) {
+            if (
+              chatroomType === 10 && // if DM
+              chatRequestState === null &&
+              memberState === 4 // if Member not CM
+            ) {
               sendDmRequest();
             } else {
               onSend();

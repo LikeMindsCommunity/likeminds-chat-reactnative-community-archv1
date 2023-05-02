@@ -26,6 +26,7 @@ import ToastMessage from '../../components/ToastMessage';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {
+  firebaseConversation,
   getChatroom,
   getConversations,
   paginatedConversations,
@@ -38,6 +39,7 @@ import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  FIREBASE_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
@@ -121,6 +123,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.follow_status;
   let memberCanMessage = chatroomDetails?.chatroom?.member_can_message;
+  let chatroomWithUser = chatroomDetails?.chatroom?.chatroom_with_user;
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -136,11 +139,29 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
   let chatroomName =
     chatroomType === 10
-      ? user?.id !== chatroomDetails?.chatroom?.chatroom_with_user?.id
-        ? chatroomDetails?.chatroom?.chatroom_with_user?.name
+      ? user?.id !== chatroomWithUser?.id
+        ? chatroomWithUser?.name
         : chatroomDetails?.chatroom?.member?.name!
       : chatroomDetails?.chatroom?.header;
 
+  {
+    /* `{? = then}`, `{: = else}`  */
+  }
+  {
+    /* 
+          if DM ? 
+            if userID !=== chatroomWithUserID ? 
+              chatroomWithUserImageURL 
+            : memberImageURL
+          : null  
+      */
+  }
+  let chatroomProfile =
+    chatroomType === 10
+      ? user?.id !== chatroomWithUser?.id
+        ? chatroomWithUser?.image_url
+        : chatroomDetails?.chatroom?.member?.image_url!
+      : null;
   let routes = navigation.getState()?.routes;
   let previousRoute = routes[routes.length - 2];
 
@@ -176,30 +197,50 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             />
           </TouchableOpacity>
           {!(Object.keys(chatroomDetails).length === 0) ? (
-            <View style={styles.chatRoomInfo}>
-              <Text
-                style={{
-                  color: STYLES.$COLORS.PRIMARY,
-                  fontSize: STYLES.$FONT_SIZES.LARGE,
-                  fontFamily: STYLES.$FONT_TYPES.BOLD,
-                }}>
-                {chatroomName}
-              </Text>
-              <Text
-                style={{
-                  color: STYLES.$COLORS.MSG,
-                  fontSize: STYLES.$FONT_SIZES.SMALL,
-                  fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                }}>
-                {`${chatroomDetails?.chatroom?.participants_count} participants`}
-              </Text>
+            <View style={styles.alignRow}>
+              {chatroomType === 10 ? (
+                <View style={styles.profile}>
+                  <Image
+                    source={
+                      !!chatroomProfile
+                        ? {uri: chatroomProfile}
+                        : require('../../assets/images/default_pic.png')
+                    }
+                    style={styles.avatar}
+                  />
+                </View>
+              ) : null}
+
+              <View style={styles.chatRoomInfo}>
+                <Text
+                  ellipsizeMode="tail"
+                  numberOfLines={1}
+                  style={{
+                    color: STYLES.$COLORS.PRIMARY,
+                    fontSize: STYLES.$FONT_SIZES.LARGE,
+                    fontFamily: STYLES.$FONT_TYPES.BOLD,
+                    maxWidth: 150,
+                  }}>
+                  {chatroomName}
+                </Text>
+                {chatroomType !== 10 ? (
+                  <Text
+                    style={{
+                      color: STYLES.$COLORS.MSG,
+                      fontSize: STYLES.$FONT_SIZES.SMALL,
+                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                    }}>
+                    {`${chatroomDetails?.chatroom?.participants_count} participants`}
+                  </Text>
+                ) : null}
+              </View>
             </View>
           ) : null}
         </View>
       ),
       headerRight: () =>
         filteredChatroomActions?.length > 0 && (
-          <View>
+          <View style={styles.headerRight}>
             {!!chatroomDetails ? (
               <TouchableOpacity
                 onPress={() => {
@@ -481,18 +522,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setInitialHeader();
   }, [chatroomDetails]);
 
-  // this useEffect call API to show DM tab or not.
+  // this useEffect call API to InputBox based on showDM key.
   useEffect(() => {
     async function callApi() {
-      if (
-        chatroomType == 10 &&
-        chatroomDetails?.chatroom.is_private_member == true
-      ) {
+      if (chatroomType == 10) {
         let response = await myClient.canDmFeed({
           req_from: 'chatroom',
           chatroom_id: chatroomID,
           community_id: community?.id,
-          member_id: chatroomDetails?.chatroom?.chatroom_with_user?.id,
+          member_id: chatroomWithUser?.id,
         });
         if (!!response?.cta) {
           setShowDM(response?.show_dm);
@@ -518,7 +556,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       });
     }
   }, [messageSent]);
-
   // this useEffect update headers when we longPress or update selectedMessages array.
   useEffect(() => {
     if (selectedMessages.length === 0) {
@@ -531,9 +568,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   //useffect includes firebase realtime listener
   useEffect(() => {
     const query = ref(db, `/collabcards/${chatroomID}`);
-    return onValue(query, (snapshot: DataSnapshot) => {
+    return onValue(query, async (snapshot: DataSnapshot) => {
       if (snapshot.exists()) {
-        fetchData(false);
+        let firebaseData = snapshot.val();
+        let payload = {
+          chatroomID: chatroomID,
+          conversationId: firebaseData?.collabcard?.answer_id,
+        };
+        const res = await dispatch(firebaseConversation(payload, false) as any);
       }
     });
   }, []);
@@ -1301,7 +1343,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       },
     );
   };
-
   return (
     <View style={styles.container}>
       <FlatList
