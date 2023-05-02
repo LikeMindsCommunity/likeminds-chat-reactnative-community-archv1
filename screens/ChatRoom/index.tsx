@@ -143,6 +143,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         : chatroomDetails?.chatroom?.member?.name!
       : chatroomDetails?.chatroom?.header;
 
+  {
+    /* `{? = then}`, `{: = else}`  */
+  }
+  {
+    /* 
+          if DM ? 
+            if userID !=== chatroomWithUserID ? 
+              chatroomWithUserImageURL 
+            : memberImageURL
+          : null  
+      */
+  }
   let chatroomProfile =
     chatroomType === 10
       ? user?.id !== chatroomDetails?.chatroom?.chatroom_with_user?.id
