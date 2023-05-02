@@ -1234,7 +1234,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       status: 1,
     });
 
-    fetchData();
+    await fetchData();
+    await fetchChatroomDetails();
 
     //dispatching redux action for local handling of chatRequestState
     dispatch({
