@@ -44,6 +44,7 @@ import {
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
   SELECTED_MESSAGES,
+  SET_DM_PAGE,
   SET_EXPLORE_FEED_PAGE,
   SET_PAGE,
   SET_POSITION,
@@ -438,6 +439,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setReportModalVisible(false);
   };
 
+  //this function to update page for pagination in redux for GroupFeed or DMFeed
+  const updatePageInRedux = () => {
+    if (chatroomType === 10) {
+      dispatch({type: SET_DM_PAGE, body: 1});
+    } else {
+      dispatch({type: SET_PAGE, body: 1});
+    }
+  };
+
   //this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
     let payload = {chatroomID: chatroomID, page: 100};
@@ -455,7 +465,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         member_id: user?.id,
         collabcard_type: chatroomType,
       });
-      dispatch({type: SET_PAGE, body: 1});
+
+      updatePageInRedux();
 
       //if isDM
       if (chatroomType === 10) {
@@ -657,7 +668,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
@@ -669,7 +680,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
@@ -705,7 +716,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
@@ -717,7 +728,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
@@ -753,10 +764,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
         }
         navigation.dispatch(
@@ -799,10 +810,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
         }
       })
@@ -869,7 +880,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             });
 
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
-            dispatch({type: SET_PAGE, body: 1});
+            updatePageInRedux();
             await dispatch(getChatroom({chatroom_id: chatroomID}) as any);
             await dispatch(getHomeFeedData({page: 1}, false) as any);
           },
