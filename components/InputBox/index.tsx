@@ -58,6 +58,8 @@ const InputBox = ({
   );
   const {chatroomDetails} = useAppSelector(state => state.chatroom);
 
+  let memberState = user?.state;
+
   const handleModalClose = () => {
     setModalVisible(false);
   };
@@ -155,7 +157,11 @@ const InputBox = ({
       // -- Code for local message handling ended
 
       // condition for request DM for the first time
-      if (chatroomType === 10 && chatRequestState === null) {
+      if (
+        chatroomType === 10 && // if DM
+        chatRequestState === null &&
+        memberState === 4 // if Member not CM
+      ) {
         let response = await myClient.requestDmAction({
           chatroom_id: chatroomID,
           chat_request_state: 0,
@@ -295,7 +301,11 @@ const InputBox = ({
 
         <TouchableOpacity
           onPressOut={() => {
-            if (chatroomType === 10 && chatRequestState === null) {
+            if (
+              chatroomType === 10 && // if DM
+              chatRequestState === null &&
+              memberState === 4 // if Member not CM
+            ) {
               sendDmRequest();
             } else {
               onSend();
