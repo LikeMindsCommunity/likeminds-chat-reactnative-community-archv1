@@ -95,6 +95,7 @@ const InputBox = ({
     let time = new Date(Date.now());
     let hr = time.getHours();
     let min = time.getMinutes();
+    let ID = Date.now();
 
     // check if message is empty string or not
     if (!!message.trim()) {
@@ -112,7 +113,7 @@ const InputBox = ({
           minimumIntegerDigits: 2,
           useGrouping: false,
         })}`;
-        replyObj.id = Date.now();
+        replyObj.id = ID;
         replyObj.chatroom_id = chatroomDetails?.chatroom.id;
         replyObj.community_id = community?.id;
         replyObj.date = `${
@@ -130,7 +131,7 @@ const InputBox = ({
         minimumIntegerDigits: 2,
         useGrouping: false,
       })}`;
-      obj.id = Date.now();
+      obj.id = ID;
       obj.chatroom_id = chatroomDetails?.chatroom.id;
       obj.community_id = community?.id;
       obj.date = `${
@@ -177,6 +178,7 @@ const InputBox = ({
           created_at: new Date(Date.now()),
           has_files: false,
           text: message.trim(),
+          temporary_id: ID,
           // attachment_count?: any;
           replied_conversation_id: replyMessage?.id,
         };

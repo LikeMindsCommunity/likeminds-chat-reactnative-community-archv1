@@ -1,6 +1,7 @@
 import {
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
@@ -49,6 +50,25 @@ export function chatroomReducer(state = initialState, action: any) {
       const {conversations = []} = action.body;
       let arr = conversations.reverse();
       return {...state, conversations: [...state.conversations, ...arr]};
+    }
+    case FIREBASE_CONVERSATIONS_SUCCESS: {
+      const data = action.body;
+      const {conversations = []} = data;
+      let temporaryID = conversations[0]?.temporary_id;
+      let index = state.conversations.findIndex(
+        (element: any) => element?.id?.toString() === temporaryID,
+      );
+      let conversationArr: any = [...state.conversations];
+      if (conversations.length > 0) {
+        conversationArr[index] = conversations[0];
+      }
+      return {
+        ...state,
+        conversations:
+          index === -1
+            ? [conversations[0], ...conversationArr]
+            : conversationArr,
+      };
     }
     case UPDATE_CONVERSATIONS: {
       const {obj} = action.body;

@@ -26,6 +26,7 @@ import ToastMessage from '../../components/ToastMessage';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {
+  firebaseConversation,
   getChatroom,
   getConversations,
   paginatedConversations,
@@ -38,6 +39,7 @@ import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  FIREBASE_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
@@ -541,7 +543,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       });
     }
   }, [messageSent]);
-
   // this useEffect update headers when we longPress or update selectedMessages array.
   useEffect(() => {
     if (selectedMessages.length === 0) {
@@ -554,9 +555,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   //useffect includes firebase realtime listener
   useEffect(() => {
     const query = ref(db, `/collabcards/${chatroomID}`);
-    return onValue(query, (snapshot: DataSnapshot) => {
+    return onValue(query, async (snapshot: DataSnapshot) => {
       if (snapshot.exists()) {
-        fetchData(false);
+        let firebaseData = snapshot.val();
+        let payload = {
+          chatroomID: chatroomID,
+          conversationId: firebaseData?.collabcard?.answer_id,
+        };
+        const res = await dispatch(firebaseConversation(payload, false) as any);
       }
     });
   }, []);
