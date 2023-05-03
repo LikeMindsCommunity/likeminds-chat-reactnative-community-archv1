@@ -210,14 +210,28 @@ const Messages = ({
                     }}
                     style={[styles.statusMessage]}>
                     <Text
-                      style={{
-                        color: STYLES.$COLORS.PRIMARY,
-                        fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                      }}>{`${item?.answer} Tap to undo.`}</Text>
+                      style={[
+                        styles.textCenterAlign,
+                        {
+                          color: STYLES.$COLORS.PRIMARY,
+                          fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                        },
+                      ]}>
+                      {`${item?.answer} `}
+                      <Text
+                        style={{
+                          color: STYLES.$COLORS.LIGHT_BLUE,
+                          fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                        }}>
+                        Tap to undo.
+                      </Text>
+                    </Text>
                   </Pressable>
                 ) : (
                   <View style={[styles.statusMessage]}>
-                    <Text>{decode(item?.answer, true)}</Text>
+                    <Text style={styles.textCenterAlign}>
+                      {decode(item?.answer, true)}
+                    </Text>
                   </View>
                 )}
               </View>

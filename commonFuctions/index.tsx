@@ -2,7 +2,7 @@ import React, {Alert, Linking, Text} from 'react-native';
 import STYLES from '../constants/Styles';
 import {useAppSelector} from '../store';
 
-const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
+const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
 

@@ -147,4 +147,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
+  textCenterAlign: {
+    textAlign: 'center',
+  },
 });

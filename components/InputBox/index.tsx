@@ -34,6 +34,7 @@ interface InputBox {
   setReplyMessage: any;
   chatRequestState?: any;
   chatroomType?: any;
+  chatroomReceiverMemberState?: any;
 }
 
 const InputBox = ({
@@ -45,6 +46,7 @@ const InputBox = ({
   setReplyMessage,
   chatRequestState,
   chatroomType,
+  chatroomReceiverMemberState,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
@@ -57,6 +59,9 @@ const InputBox = ({
     state => state.homefeed,
   );
   const {chatroomDetails} = useAppSelector(state => state.chatroom);
+
+  let userState = user?.state;
+  // let receiverState =
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -95,6 +100,7 @@ const InputBox = ({
     let time = new Date(Date.now());
     let hr = time.getHours();
     let min = time.getMinutes();
+    let ID = Date.now();
 
     // check if message is empty string or not
     if (!!message.trim()) {
@@ -112,7 +118,7 @@ const InputBox = ({
           minimumIntegerDigits: 2,
           useGrouping: false,
         })}`;
-        replyObj.id = Date.now();
+        replyObj.id = ID;
         replyObj.chatroom_id = chatroomDetails?.chatroom.id;
         replyObj.community_id = community?.id;
         replyObj.date = `${
@@ -130,7 +136,7 @@ const InputBox = ({
         minimumIntegerDigits: 2,
         useGrouping: false,
       })}`;
-      obj.id = Date.now();
+      obj.id = ID;
       obj.chatroom_id = chatroomDetails?.chatroom.id;
       obj.community_id = community?.id;
       obj.date = `${
@@ -154,7 +160,12 @@ const InputBox = ({
       // -- Code for local message handling ended
 
       // condition for request DM for the first time
-      if (chatroomType === 10 && chatRequestState === null) {
+      if (
+        chatroomType === 10 && // if DM
+        chatRequestState === null &&
+        userState === 4 && // if Member not CM
+        chatroomReceiverMemberState === 4 // if receiver is a member not CM
+      ) {
         let response = await myClient.requestDmAction({
           chatroom_id: chatroomID,
           chat_request_state: 0,
@@ -171,12 +182,24 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 0},
         });
+      } else if (
+        chatroomType === 10 && // if DM
+        chatRequestState === null &&
+        (userState === 1 || // if Member not CM
+          chatroomReceiverMemberState === 1) // if receiver is a member not CM
+      ) {
+        let response = await myClient.requestDmAction({
+          chatroom_id: chatroomID,
+          chat_request_state: 1,
+          text: message.trim(),
+        });
       } else {
         let payload = {
           chatroom_id: chatroomID,
           created_at: new Date(Date.now()),
           has_files: false,
           text: message.trim(),
+          temporary_id: ID,
           // attachment_count?: any;
           replied_conversation_id: replyMessage?.id,
         };
@@ -293,7 +316,12 @@ const InputBox = ({
 
         <TouchableOpacity
           onPressOut={() => {
-            if (chatroomType === 10 && chatRequestState === null) {
+            if (
+              chatroomType === 10 && // if DM
+              chatRequestState === null &&
+              userState === 4 && // if Member not CM
+              chatroomReceiverMemberState === 4 // if receiver is a member not CM
+            ) {
               sendDmRequest();
             } else {
               onSend();
