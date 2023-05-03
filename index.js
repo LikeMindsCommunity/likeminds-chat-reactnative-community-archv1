@@ -29,7 +29,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 
 export const myClient = new LikeMinds({
   apiKey: '',
-  xVersionCode:'6',
+  xVersionCode:'7',
   xPlatformCode: 'rn',
 });
 
