@@ -1,4 +1,8 @@
-import {CommonActions, useIsFocused} from '@react-navigation/native';
+import {
+  CommonActions,
+  StackActions,
+  useIsFocused,
+} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {
@@ -44,6 +48,7 @@ import {
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
   SELECTED_MESSAGES,
+  SET_DM_PAGE,
   SET_EXPLORE_FEED_PAGE,
   SET_PAGE,
   SET_POSITION,
@@ -73,6 +78,7 @@ import {
   REJECT_INVITATION,
   REJECT_INVITATION_MESSAGE,
 } from '../../constants/Strings';
+import {DM_ALL_MEMBERS} from '../../constants/Screens';
 
 interface Data {
   id: string;
@@ -162,6 +168,25 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ? chatroomWithUser?.image_url
         : chatroomDetails?.chatroom?.member?.image_url!
       : null;
+
+  {
+    /* `{? = then}`, `{: = else}`  */
+  }
+  {
+    /* 
+              if DM ? 
+                if userID !=== chatroomWithUserID ? 
+                  chatroomWithUserImageURL 
+                : memberImageURL
+              : null  
+          */
+  }
+  let chatroomReceiverMemberState =
+    chatroomType === 10
+      ? user?.id !== chatroomWithUser?.id
+        ? chatroomWithUser?.state
+        : chatroomDetails?.chatroom?.member?.state!
+      : null;
   let routes = navigation.getState()?.routes;
   let previousRoute = routes[routes.length - 2];
 
@@ -189,7 +214,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 type: CLEAR_CHATROOM_DETAILS,
                 body: {chatroomDetails: {}},
               });
-              navigation.goBack();
+              if (chatroomType === 10) {
+                if (previousRoute?.name === DM_ALL_MEMBERS) {
+                  const popAction = StackActions.pop(2);
+                  navigation.dispatch(popAction);
+                } else {
+                  navigation.goBack();
+                }
+              } else {
+                navigation.goBack();
+              }
             }}>
             <Image
               source={require('../../assets/images/back_arrow3x.png')}
@@ -438,6 +472,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setReportModalVisible(false);
   };
 
+  //this function to update page for pagination in redux for GroupFeed or DMFeed
+  const updatePageInRedux = () => {
+    if (chatroomType === 10) {
+      dispatch({type: SET_DM_PAGE, body: 1});
+    } else {
+      dispatch({type: SET_PAGE, body: 1});
+    }
+  };
+
   //this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
     let payload = {chatroomID: chatroomID, page: 100};
@@ -455,7 +498,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         member_id: user?.id,
         collabcard_type: chatroomType,
       });
-      dispatch({type: SET_PAGE, body: 1});
+
+      updatePageInRedux();
 
       //if isDM
       if (chatroomType === 10) {
@@ -657,7 +701,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
@@ -669,7 +713,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
@@ -705,7 +749,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
@@ -717,7 +761,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
@@ -753,10 +797,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
         }
         navigation.dispatch(
@@ -799,10 +843,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
-          dispatch({type: SET_PAGE, body: 1});
+          updatePageInRedux();
           await dispatch(getHomeFeedData({page: 1}) as any);
         }
       })
@@ -869,7 +913,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             });
 
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
-            dispatch({type: SET_PAGE, body: 1});
+            updatePageInRedux();
             await dispatch(getChatroom({chatroom_id: chatroomID}) as any);
             await dispatch(getHomeFeedData({page: 1}, false) as any);
           },
@@ -1209,7 +1253,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       status: 1,
     });
 
-    fetchData();
+    await fetchData();
+    await fetchChatroomDetails();
 
     //dispatching redux action for local handling of chatRequestState
     dispatch({
@@ -1609,6 +1654,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               }}
               chatRequestState={chatroomDetails?.chatroom?.chat_request_state}
               chatroomType={chatroomType}
+              chatroomReceiverMemberState={chatroomReceiverMemberState}
             />
           ) : (
             <View style={styles.disabledInput}>

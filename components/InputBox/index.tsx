@@ -34,6 +34,7 @@ interface InputBox {
   setReplyMessage: any;
   chatRequestState?: any;
   chatroomType?: any;
+  chatroomReceiverMemberState?: any;
 }
 
 const InputBox = ({
@@ -45,6 +46,7 @@ const InputBox = ({
   setReplyMessage,
   chatRequestState,
   chatroomType,
+  chatroomReceiverMemberState,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
@@ -58,7 +60,8 @@ const InputBox = ({
   );
   const {chatroomDetails} = useAppSelector(state => state.chatroom);
 
-  let memberState = user?.state;
+  let userState = user?.state;
+  // let receiverState =
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -160,7 +163,8 @@ const InputBox = ({
       if (
         chatroomType === 10 && // if DM
         chatRequestState === null &&
-        memberState === 4 // if Member not CM
+        userState === 4 && // if Member not CM
+        chatroomReceiverMemberState === 4 // if receiver is a member not CM
       ) {
         let response = await myClient.requestDmAction({
           chatroom_id: chatroomID,
@@ -177,6 +181,17 @@ const InputBox = ({
         dispatch({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 0},
+        });
+      } else if (
+        chatroomType === 10 && // if DM
+        chatRequestState === null &&
+        (userState === 1 || // if Member not CM
+          chatroomReceiverMemberState === 1) // if receiver is a member not CM
+      ) {
+        let response = await myClient.requestDmAction({
+          chatroom_id: chatroomID,
+          chat_request_state: 1,
+          text: message.trim(),
         });
       } else {
         let payload = {
@@ -304,7 +319,8 @@ const InputBox = ({
             if (
               chatroomType === 10 && // if DM
               chatRequestState === null &&
-              memberState === 4 // if Member not CM
+              userState === 4 && // if Member not CM
+              chatroomReceiverMemberState === 4 // if receiver is a member not CM
             ) {
               sendDmRequest();
             } else {
