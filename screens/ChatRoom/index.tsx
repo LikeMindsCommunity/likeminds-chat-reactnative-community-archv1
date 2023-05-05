@@ -169,24 +169,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         : chatroomDetails?.chatroom?.member?.image_url!
       : null;
 
-  {
-    /* `{? = then}`, `{: = else}`  */
-  }
-  {
-    /* 
-              if DM ? 
-                if userID !=== chatroomWithUserID ? 
-                  chatroomWithUserImageURL 
-                : memberImageURL
-              : null  
-          */
-  }
-  let chatroomReceiverMemberState =
-    chatroomType === 10
-      ? user?.id !== chatroomWithUser?.id
-        ? chatroomWithUser?.state
-        : chatroomDetails?.chatroom?.member?.state!
-      : null;
   let routes = navigation.getState()?.routes;
   let previousRoute = routes[routes.length - 2];
 
@@ -576,6 +558,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           community_id: community?.id,
           member_id: chatroomWithUser?.id,
         });
+        console.log('cta', response);
         if (!!response?.cta) {
           setShowDM(response?.show_dm);
         }
@@ -1388,6 +1371,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       },
     );
   };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -1654,7 +1638,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               }}
               chatRequestState={chatroomDetails?.chatroom?.chat_request_state}
               chatroomType={chatroomType}
-              chatroomReceiverMemberState={chatroomReceiverMemberState}
+              isPrivateMember={chatroomDetails?.chatroom?.is_private_member}
             />
           ) : (
             <View style={styles.disabledInput}>
