@@ -40,6 +40,7 @@ interface Props {
 const DMFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDM, setShowDM] = useState(false);
+  const [showList, setShowList] = useState<any>(null);
   const [FCMToken, setFCMToken] = useState('');
   const dispatch = useAppDispatch();
 
@@ -59,9 +60,20 @@ const DMFeed = ({navigation}: Props) => {
 
       if (!!res) {
         let response = await myClient.dmStatus({
-          req_from: 'dm_feed',
+          req_from: 'dm_feed_v2',
         });
+        console.log('dmStatus', response);
         if (!!response) {
+          const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
+          let routeURL = response?.cta;
+          const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+          if (hasShowList) {
+            const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+            console.log(
+              `The value of the "show_list" parameter is ${showListValue}.`,
+            );
+            setShowList(showListValue);
+          }
           setShowDM(response?.show_dm);
         }
       }
@@ -176,7 +188,7 @@ const DMFeed = ({navigation}: Props) => {
       {showDM ? (
         <Pressable
           onPress={() => {
-            navigation.navigate(DM_ALL_MEMBERS);
+            navigation.navigate(DM_ALL_MEMBERS, {showList: showList});
           }}
           style={({pressed}) => [{opacity: pressed ? 0.5 : 1.0}, styles.fab]}>
           <Image

@@ -17,7 +17,7 @@ import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {CHATROOM} from '../../constants/Screens';
 
-const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
+const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const [participants, setParticipants] = useState([] as any);
   const [searchedParticipants, setSearchedParticipants] = useState([] as any);
   const [isLoading, setIsLoading] = useState(false);
@@ -230,18 +230,24 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
 
   //function fetch all members of the community for DM.
   const fetchDMParticipants = async () => {
-    const res = await myClient.dmAllMembers({
-      community_id: community?.id,
-      page: 1,
-      member_state: 4,
-    });
+    let payload =
+      showList == 1
+        ? {
+            community_id: community?.id,
+            page: 1,
+          }
+        : {
+            community_id: community?.id,
+            page: 1,
+            member_state: 1,
+          };
+    console.log('payload in DM ==', payload, showList);
+    const res = await myClient.dmAllMembers(payload);
+    console.log('fetchDMParticipants', res);
     setParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
-      const response = await myClient.dmAllMembers({
-        community_id: community?.id,
-        page: 2,
-        member_state: 4,
-      });
+      let payload2 = {...payload, page: 2};
+      const response = await myClient.dmAllMembers(payload2);
       setParticipants((participants: any) => [
         ...participants,
         ...response?.members,
@@ -252,21 +258,28 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
 
   //function search members in the community.
   const searchParticipants = async () => {
-    const res = await myClient.searchMembers({
-      search: search,
-      search_type: 'name',
-      page: 1,
-      page_size: 10,
-    });
+    let payload =
+      showList == 1
+        ? {
+            search: search,
+            search_type: 'name',
+            page: 1,
+            page_size: 10,
+          }
+        : {
+            search: search,
+            search_type: 'name',
+            page: 1,
+            page_size: 10,
+            memberState: 1,
+          };
+    console.log('search Payload ==', payload);
+    const res = await myClient.searchMembers(payload);
     setSearchPage(1);
     setSearchedParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
-      const response = await myClient.searchMembers({
-        search: search,
-        search_type: 'name',
-        page: 2,
-        page_size: 10,
-      });
+      let payload2 = {...payload, page: 2};
+      const response = await myClient.searchMembers(payload2);
       setSearchedParticipants((searchedParticipants: any) => [
         ...searchedParticipants,
         ...response?.members,
@@ -296,20 +309,37 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
   //function calls action to update members array with the new data.
   async function updateData(newPage: number) {
     if (isSearch) {
-      const res = await myClient.searchMembers({
-        search: search,
-        search_type: 'name',
-        page: newPage,
-        page_size: 10,
-      });
+      let payload =
+        showList == 1
+          ? {
+              search: search,
+              search_type: 'name',
+              page: newPage,
+              page_size: 10,
+            }
+          : {
+              search: search,
+              search_type: 'name',
+              page: newPage,
+              page_size: 10,
+              memberState: 1,
+            };
+      const res = await myClient.searchMembers(payload);
       return res;
     } else {
       if (isDM) {
-        const res = await myClient.dmAllMembers({
-          community_id: community?.id,
-          page: newPage,
-          member_state: 4,
-        });
+        const res = await myClient.dmAllMembers(
+          showList == 1
+            ? {
+                community_id: community?.id,
+                page: newPage,
+              }
+            : {
+                community_id: community?.id,
+                page: newPage,
+                member_state: 1,
+              },
+        );
         return res;
       } else {
         const res = await myClient.getAllMembers({page: newPage});
