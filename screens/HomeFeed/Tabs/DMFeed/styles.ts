@@ -32,6 +32,24 @@ const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.BOLD,
     color: STYLES.$COLORS.TERTIARY,
   },
+  justifyCenter: {
+    padding: STYLES.$PADDINGS.MEDIUM,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: STYLES.$COLORS.TERTIARY,
+    flex: 1,
+  },
+  title: {
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    color: STYLES.$COLORS.PRIMARY,
+  },
+  subTitle: {
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
+    textAlign: 'center',
+  },
 });
 
 export default styles;
