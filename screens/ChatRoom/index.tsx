@@ -197,16 +197,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 type: CLEAR_CHATROOM_DETAILS,
                 body: {chatroomDetails: {}},
               });
-              if (chatroomType === 10) {
-                if (previousRoute?.name === DM_ALL_MEMBERS) {
-                  const popAction = StackActions.pop(2);
-                  navigation.dispatch(popAction);
-                } else {
-                  navigation.goBack();
-                }
-              } else {
-                navigation.goBack();
-              }
+              backAction();
             }}>
             <Image
               source={require('../../assets/images/back_arrow3x.png')}
@@ -520,29 +511,43 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setInitialHeader();
   }, [navigation]);
 
-  // useEffect(() => {
-  //   const backAction = () => {
-  //     dispatch({ type: SELECTED_MESSAGES, body: [] });
-  //     dispatch({ type: LONG_PRESSED, body: false });
-  //     dispatch({
-  //       type: CLEAR_CHATROOM_CONVERSATION,
-  //       body: { conversations: [] },
-  //     });
-  //     dispatch({
-  //       type: CLEAR_CHATROOM_DETAILS,
-  //       body: { chatroomDetails: {} },
-  //     });
-  //     setInitialHeader();
-  //     return null;
-  //   };
+  //Logic for navigation backAction
+  function backAction() {
+    if (chatroomType === 10) {
+      if (previousRoute?.name === DM_ALL_MEMBERS) {
+        const popAction = StackActions.pop(2);
+        navigation.dispatch(popAction);
+      } else {
+        navigation.goBack();
+      }
+    } else {
+      navigation.goBack();
+    }
+  }
 
-  //   const backHandler = BackHandler.addEventListener(
-  //     'hardwareBackPress',
-  //     backAction,
-  //   );
+  //Navigation gesture back handler for android
+  useEffect(() => {
+    function backActionCall() {
+      if (chatroomType === 10) {
+        if (previousRoute?.name === DM_ALL_MEMBERS) {
+          const popAction = StackActions.pop(2);
+          navigation.dispatch(popAction);
+        } else {
+          navigation.goBack();
+        }
+      } else {
+        navigation.goBack();
+      }
+      return true;
+    }
 
-  //   return () => backHandler.remove();
-  // }, []);
+    const backHandlerAndroid = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backActionCall,
+    );
+
+    return () => backHandlerAndroid.remove();
+  }, []);
 
   // this useEffect update initial header when we get chatroomDetails.
   useEffect(() => {
