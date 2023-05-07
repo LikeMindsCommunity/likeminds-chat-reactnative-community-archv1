@@ -601,7 +601,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     const query = ref(db, `/collabcards/${chatroomID}`);
     return onValue(query, async (snapshot: DataSnapshot) => {
-      if (snapshot.exists()) {
+      if (snapshot.exists() && conversations.length > 0) {
         let firebaseData = snapshot.val();
         let payload = {
           chatroomID: chatroomID,
