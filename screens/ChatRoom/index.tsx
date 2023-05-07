@@ -558,7 +558,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           community_id: community?.id,
           member_id: chatroomWithUser?.id,
         });
-        console.log('cta', response);
         if (!!response?.cta) {
           setShowDM(response?.show_dm);
         }

@@ -241,9 +241,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             page: 1,
             member_state: 1,
           };
-    console.log('payload in DM ==', payload, showList);
     const res = await myClient.dmAllMembers(payload);
-    console.log('fetchDMParticipants', res);
     setParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
       let payload2 = {...payload, page: 2};
@@ -271,9 +269,8 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             search_type: 'name',
             page: 1,
             page_size: 10,
-            memberState: 1,
+            member_states: '[1]',
           };
-    console.log('search Payload ==', payload);
     const res = await myClient.searchMembers(payload);
     setSearchPage(1);
     setSearchedParticipants(res?.members);
@@ -322,7 +319,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
               search_type: 'name',
               page: newPage,
               page_size: 10,
-              memberState: 1,
+              member_states: '[1]',
             };
       const res = await myClient.searchMembers(payload);
       return res;
