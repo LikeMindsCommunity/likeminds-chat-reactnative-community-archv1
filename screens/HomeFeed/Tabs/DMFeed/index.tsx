@@ -40,8 +40,11 @@ interface Props {
 const DMFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDM, setShowDM] = useState(false);
+  const [showList, setShowList] = useState<any>(null);
   const [FCMToken, setFCMToken] = useState('');
   const dispatch = useAppDispatch();
+
+  const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
 
   const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
@@ -59,9 +62,15 @@ const DMFeed = ({navigation}: Props) => {
 
       if (!!res) {
         let response = await myClient.dmStatus({
-          req_from: 'dm_feed',
+          req_from: 'dm_feed_v2',
         });
         if (!!response) {
+          let routeURL = response?.cta;
+          const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+          if (hasShowList) {
+            const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+            setShowList(showListValue);
+          }
           setShowDM(response?.show_dm);
         }
       }
@@ -143,40 +152,51 @@ const DMFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      <FlatList
-        data={chatrooms}
-        renderItem={({item}: any) => {
-          const homeFeedProps = {
-            title:
-              user?.id !== item?.chatroom?.chatroom_with_user?.id
-                ? item?.chatroom?.chatroom_with_user?.name
-                : item?.chatroom?.member?.name!,
-            avatar:
-              user?.id !== item?.chatroom?.chatroom_with_user?.id
-                ? item?.chatroom?.chatroom_with_user?.image_url!
-                : item?.chatroom?.member?.image_url!,
-            lastMessage: item?.last_conversation?.answer!,
-            lastMessageUser: item?.last_conversation?.member?.name!,
-            time: item?.last_conversation_time!,
-            unreadCount: item?.unseen_conversation_count!,
-            pinned: false,
-            lastConversation: item?.last_conversation!,
-            chatroomID: item?.chatroom?.id!,
-            deletedBy: item?.last_conversation?.deleted_by,
-            isSecret: item?.chatroom?.is_secret,
-            chatroomType: item?.chatroom?.type,
-          };
-          return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
-        }}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
-        ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => item?.chatroom?.id.toString()}
-      />
+      {chatrooms?.length === 0 ? (
+        <View style={[styles.justifyCenter]}>
+          <Text style={styles.title}>It's nice to chat with someone</Text>
+          <Text style={styles.subTitle}>
+            Pick a person from FAB button and start your conversation
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={chatrooms}
+          renderItem={({item}: any) => {
+            let chatroomWithUser = item?.chatroom?.chatroom_with_user;
+            let chatroom = item?.chatroom;
+            const homeFeedProps = {
+              title:
+                user?.id !== chatroomWithUser?.id
+                  ? chatroomWithUser?.name
+                  : chatroom?.member?.name!,
+              avatar:
+                user?.id !== chatroomWithUser?.id
+                  ? chatroomWithUser?.image_url!
+                  : chatroom?.member?.image_url!,
+              lastMessage: item?.last_conversation?.answer!,
+              lastMessageUser: item?.last_conversation?.member?.name!,
+              time: item?.last_conversation_time!,
+              unreadCount: item?.unseen_conversation_count!,
+              pinned: false,
+              lastConversation: item?.last_conversation!,
+              chatroomID: chatroom?.id!,
+              deletedBy: item?.last_conversation?.deleted_by,
+              isSecret: chatroom?.is_secret,
+              chatroomType: chatroom?.type,
+            };
+            return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
+          }}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={renderFooter}
+          keyExtractor={(item: any) => item?.chatroom?.id.toString()}
+        />
+      )}
       {showDM ? (
         <Pressable
           onPress={() => {
-            navigation.navigate(DM_ALL_MEMBERS);
+            navigation.navigate(DM_ALL_MEMBERS, {showList: showList});
           }}
           style={({pressed}) => [{opacity: pressed ? 0.5 : 1.0}, styles.fab]}>
           <Image

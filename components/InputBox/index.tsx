@@ -34,7 +34,7 @@ interface InputBox {
   setReplyMessage: any;
   chatRequestState?: any;
   chatroomType?: any;
-  chatroomReceiverMemberState?: any;
+  isPrivateMember?: boolean;
 }
 
 const InputBox = ({
@@ -46,7 +46,7 @@ const InputBox = ({
   setReplyMessage,
   chatRequestState,
   chatroomType,
-  chatroomReceiverMemberState,
+  isPrivateMember,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
@@ -163,8 +163,7 @@ const InputBox = ({
       if (
         chatroomType === 10 && // if DM
         chatRequestState === null &&
-        userState === 4 && // if Member not CM
-        chatroomReceiverMemberState === 4 // if receiver is a member not CM
+        isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
         let response = await myClient.requestDmAction({
           chatroom_id: chatroomID,
@@ -185,13 +184,16 @@ const InputBox = ({
       } else if (
         chatroomType === 10 && // if DM
         chatRequestState === null &&
-        (userState === 1 || // if Member not CM
-          chatroomReceiverMemberState === 1) // if receiver is a member not CM
+        !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
         let response = await myClient.requestDmAction({
           chatroom_id: chatroomID,
           chat_request_state: 1,
           text: message.trim(),
+        });
+        dispatch({
+          type: UPDATE_CHAT_REQUEST_STATE,
+          body: {chatRequestState: 1},
         });
       } else {
         let payload = {
@@ -319,8 +321,7 @@ const InputBox = ({
             if (
               chatroomType === 10 && // if DM
               chatRequestState === null &&
-              userState === 4 && // if Member not CM
-              chatroomReceiverMemberState === 4 // if receiver is a member not CM
+              isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
             ) {
               sendDmRequest();
             } else {
