@@ -130,6 +130,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let chatroomFollowStatus = chatroomDetails?.chatroom?.follow_status;
   let memberCanMessage = chatroomDetails?.chatroom?.member_can_message;
   let chatroomWithUser = chatroomDetails?.chatroom?.chatroom_with_user;
+  let chatRequestState = chatroomDetails?.chatroom?.chat_request_state;
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -1555,7 +1556,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 ? chat_requested_by[0]?.id !== user?.id (TRUE or FALSE)
                 : null (FALSE) )
           */}
-          {chatroomDetails?.chatroom?.chat_request_state === 0 &&
+          {chatRequestState === 0 &&
           (!!chatroomDetails?.chatroom?.chat_requested_by
             ? chatroomDetails?.chatroom?.chat_requested_by[0]?.id !== user?.id
             : null) ? (
@@ -1614,16 +1615,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               </Text>
             </View>
           ) : showDM === true &&
-            (chatroomDetails?.chatroom?.chat_request_state === 0 ||
-              chatroomDetails?.chatroom?.chat_request_state === 2) ? (
+            (chatRequestState === 0 || chatRequestState === 2) ? (
             <View style={styles.disabledInput}>
               <Text style={styles.disabledInputText}>
                 Messaging would be enabled once your request is approved.
               </Text>
             </View>
-          ) : (showDM === true &&
-              chatroomDetails?.chatroom?.chat_request_state === 1) ||
-            chatroomDetails?.chatroom?.chat_request_state === null ? (
+          ) : (showDM === true && chatRequestState === 1) ||
+            chatRequestState === null ? (
             <InputBox
               isReply={isReply}
               replyChatID={replyChatID}
@@ -1635,7 +1634,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               setReplyMessage={(val: any) => {
                 setReplyMessage(val);
               }}
-              chatRequestState={chatroomDetails?.chatroom?.chat_request_state}
+              chatRequestState={chatRequestState}
               chatroomType={chatroomType}
               isPrivateMember={chatroomDetails?.chatroom?.is_private_member}
             />

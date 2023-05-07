@@ -191,6 +191,10 @@ const InputBox = ({
           chat_request_state: 1,
           text: message.trim(),
         });
+        dispatch({
+          type: UPDATE_CHAT_REQUEST_STATE,
+          body: {chatRequestState: 1},
+        });
       } else {
         let payload = {
           chatroom_id: chatroomID,
