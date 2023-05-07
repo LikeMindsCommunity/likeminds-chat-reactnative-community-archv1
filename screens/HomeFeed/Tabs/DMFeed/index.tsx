@@ -44,6 +44,8 @@ const DMFeed = ({navigation}: Props) => {
   const [FCMToken, setFCMToken] = useState('');
   const dispatch = useAppDispatch();
 
+  const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
+
   const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
@@ -63,7 +65,6 @@ const DMFeed = ({navigation}: Props) => {
           req_from: 'dm_feed_v2',
         });
         if (!!response) {
-          const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
           let routeURL = response?.cta;
           const hasShowList = SHOW_LIST_REGEX.test(routeURL);
           if (hasShowList) {
@@ -162,25 +163,27 @@ const DMFeed = ({navigation}: Props) => {
         <FlatList
           data={chatrooms}
           renderItem={({item}: any) => {
+            let chatroomWithUser = item?.chatroom?.chatroom_with_user;
+            let chatroom = item?.chatroom;
             const homeFeedProps = {
               title:
-                user?.id !== item?.chatroom?.chatroom_with_user?.id
-                  ? item?.chatroom?.chatroom_with_user?.name
-                  : item?.chatroom?.member?.name!,
+                user?.id !== chatroomWithUser?.id
+                  ? chatroomWithUser?.name
+                  : chatroom?.member?.name!,
               avatar:
-                user?.id !== item?.chatroom?.chatroom_with_user?.id
-                  ? item?.chatroom?.chatroom_with_user?.image_url!
-                  : item?.chatroom?.member?.image_url!,
+                user?.id !== chatroomWithUser?.id
+                  ? chatroomWithUser?.image_url!
+                  : chatroom?.member?.image_url!,
               lastMessage: item?.last_conversation?.answer!,
               lastMessageUser: item?.last_conversation?.member?.name!,
               time: item?.last_conversation_time!,
               unreadCount: item?.unseen_conversation_count!,
               pinned: false,
               lastConversation: item?.last_conversation!,
-              chatroomID: item?.chatroom?.id!,
+              chatroomID: chatroom?.id!,
               deletedBy: item?.last_conversation?.deleted_by,
-              isSecret: item?.chatroom?.is_secret,
-              chatroomType: item?.chatroom?.type,
+              isSecret: chatroom?.is_secret,
+              chatroomType: chatroom?.type,
             };
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}

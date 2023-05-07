@@ -230,7 +230,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
 
   //function fetch all members of the community for DM.
   const fetchDMParticipants = async () => {
-    let payload =
+    let initialPayload =
       showList == 1
         ? {
             community_id: community?.id,
@@ -241,11 +241,11 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             page: 1,
             member_state: 1,
           };
-    const res = await myClient.dmAllMembers(payload);
+    const res = await myClient.dmAllMembers(initialPayload);
     setParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
-      let payload2 = {...payload, page: 2};
-      const response = await myClient.dmAllMembers(payload2);
+      let changedPayload = {...initialPayload, page: 2};
+      const response = await myClient.dmAllMembers(changedPayload);
       setParticipants((participants: any) => [
         ...participants,
         ...response?.members,
@@ -256,7 +256,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
 
   //function search members in the community.
   const searchParticipants = async () => {
-    let payload =
+    let initialPayload =
       showList == 1
         ? {
             search: search,
@@ -271,12 +271,12 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             page_size: 10,
             member_states: '[1]',
           };
-    const res = await myClient.searchMembers(payload);
+    const res = await myClient.searchMembers(initialPayload);
     setSearchPage(1);
     setSearchedParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
-      let payload2 = {...payload, page: 2};
-      const response = await myClient.searchMembers(payload2);
+      let changedPayload = {...initialPayload, page: 2};
+      const response = await myClient.searchMembers(changedPayload);
       setSearchedParticipants((searchedParticipants: any) => [
         ...searchedParticipants,
         ...response?.members,
@@ -306,7 +306,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   //function calls action to update members array with the new data.
   async function updateData(newPage: number) {
     if (isSearch) {
-      let payload =
+      let initialPayload =
         showList == 1
           ? {
               search: search,
@@ -321,7 +321,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
               page_size: 10,
               member_states: '[1]',
             };
-      const res = await myClient.searchMembers(payload);
+      const res = await myClient.searchMembers(initialPayload);
       return res;
     } else {
       if (isDM) {
