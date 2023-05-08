@@ -449,7 +449,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
       } else {
         Alert.alert(
           'Request limit exceeded',
-          `You can send limited DM requests per week.\nTry again in ${formatTimestamp(
+          `You can send limited DM requests per week.\n\nTry again in ${formatTimestamp(
             res?.new_request_dm_timestamp,
           )}
           `,
