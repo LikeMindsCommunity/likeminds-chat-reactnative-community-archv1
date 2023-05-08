@@ -16,7 +16,12 @@ import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
 import {
+  CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+  CLEAR_SELECTED_IMAGE_TO_VIEW,
   MESSAGE_SENT,
+  SELECTED_IMAGES_TO_UPLOAD,
+  SELECTED_IMAGE_TO_VIEW,
+  SELECTED_MORE_IMAGES_TO_UPLOAD,
   SHOW_TOAST,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
@@ -26,18 +31,24 @@ import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../..';
 import {DM_REQUEST_MESSAGE, SEND_DM_REQUEST} from '../../constants/Strings';
 import {launchImageLibrary} from 'react-native-image-picker';
+import ImagePicker from 'react-native-image-crop-picker';
 import DocumentPicker from 'react-native-document-picker';
+import {useNavigation} from '@react-navigation/native';
+import {IMAGE_UPLOAD} from '../../constants/Screens';
+import STYLES from '../../constants/Styles';
 
 interface InputBox {
-  isReply: boolean;
-  replyChatID: any;
+  isReply?: boolean;
+  replyChatID?: any;
   chatroomID: any;
-  replyMessage: any;
-  setIsReply: any;
-  setReplyMessage: any;
+  replyMessage?: any;
+  setIsReply?: any;
+  setReplyMessage?: any;
   chatRequestState?: any;
   chatroomType?: any;
   chatroomReceiverMemberState?: any;
+  navigation: any;
+  isUploadScreen: boolean;
 }
 
 const InputBox = ({
@@ -50,23 +61,56 @@ const InputBox = ({
   chatRequestState,
   chatroomType,
   chatroomReceiverMemberState,
+  navigation,
+  isUploadScreen,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [fileUri, setFileUri] = useState(null);
-  const [pdfUri, setPdfUri] = useState(null);
+
+  const {selectedImagesToUpload = []} = useAppSelector(state => state.chatroom);
 
   const selectGalley = async () => {
     const options = {
       mediaType: 'mixed',
+      selectionLimit: 0,
     };
     await launchImageLibrary(options as any, response => {
+      let selectedImages: any = response?.assets;
       console.log('Selected image: ', response);
-      setFileUri(response.uri);
+      navigation.navigate(IMAGE_UPLOAD, {
+        selectedImages: response?.assets,
+        chatroomID: chatroomID,
+      });
+
+      if (isUploadScreen === false) {
+        dispatch({
+          type: SELECTED_IMAGES_TO_UPLOAD,
+          body: {images: selectedImages},
+        });
+
+        dispatch({
+          type: SELECTED_IMAGE_TO_VIEW,
+          body: {image: selectedImages[0]},
+        });
+      } else if (isUploadScreen === true) {
+        console.log('isUploadScreen ==', isUploadScreen);
+        dispatch({
+          type: SELECTED_MORE_IMAGES_TO_UPLOAD,
+          body: {images: selectedImages},
+        });
+      }
     });
+    // ImagePicker.openPicker({
+    //   multiple: true,
+    // }).then(images => {
+    //   console.log('Selected image: ', images);
+    //   navigation.navigate(IMAGE_UPLOAD, {
+    //     selectedImages: images,
+    //   });
+    // });
   };
 
   const selectDoc = async () => {
@@ -76,7 +120,6 @@ const InputBox = ({
         allowMultiSelection: true,
       });
       console.log('DocumentPicker pdf ', response);
-      setPdfUri(response?.uri);
     } catch (error) {
       console.log('DocumentPicker Error: ', error);
     }
@@ -147,7 +190,7 @@ const InputBox = ({
           useGrouping: false,
         })}`;
         replyObj.id = ID;
-        replyObj.chatroom_id = chatroomDetails?.chatroom.id;
+        replyObj.chatroom_id = chatroomDetails?.chatroom?.id;
         replyObj.community_id = community?.id;
         replyObj.date = `${
           time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
@@ -165,7 +208,7 @@ const InputBox = ({
         useGrouping: false,
       })}`;
       obj.id = ID;
-      obj.chatroom_id = chatroomDetails?.chatroom.id;
+      obj.chatroom_id = chatroomDetails?.chatroom?.id;
       obj.community_id = community?.id;
       obj.date = `${
         time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
@@ -179,11 +222,22 @@ const InputBox = ({
         type: MESSAGE_SENT,
         body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
-      setMessage('');
-      setIsReply(false);
 
+      if (isUploadScreen) {
+        dispatch({
+          type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+        });
+        dispatch({
+          type: CLEAR_SELECTED_IMAGE_TO_VIEW,
+        });
+      }
+      setMessage('');
       setInputHeight(25);
-      setReplyMessage();
+
+      if (!isUploadScreen) {
+        setIsReply(false);
+        setReplyMessage();
+      }
 
       // -- Code for local message handling ended
 
@@ -222,16 +276,55 @@ const InputBox = ({
           text: message.trim(),
         });
       } else {
-        let payload = {
-          chatroom_id: chatroomID,
-          created_at: new Date(Date.now()),
-          has_files: false,
-          text: message.trim(),
-          temporary_id: ID,
-          // attachment_count?: any;
-          replied_conversation_id: replyMessage?.id,
-        };
-        let response = await dispatch(onConversationsCreate(payload) as any);
+        if (!isUploadScreen) {
+          let payload = {
+            chatroom_id: chatroomID,
+            created_at: new Date(Date.now()),
+            has_files: false,
+            text: message.trim(),
+            temporary_id: ID,
+            // attachment_count?: any;
+            replied_conversation_id: replyMessage?.id,
+          };
+          let response = await dispatch(onConversationsCreate(payload) as any);
+        } else {
+          let payload = {
+            chatroom_id: chatroomID,
+            created_at: new Date(Date.now()),
+            has_files: true,
+            text: message.trim(),
+            temporary_id: ID,
+            attachment_count: selectedImagesToUpload.length,
+            replied_conversation_id: replyMessage?.id,
+          };
+          let response = await dispatch(onConversationsCreate(payload) as any);
+          let selectedFilesCount = selectedImagesToUpload.length;
+          if (response) {
+            for (let i = 0; i < selectedFilesCount; i++) {
+              let uploadMediaPayload = {
+                messageId: response?.conversation?.member_id,
+                chatroomId: chatroomID,
+                file: selectedImagesToUpload[i]?.uri,
+                index: i,
+              };
+              console.log('uploadMediaPayload', uploadMediaPayload);
+              const res = await myClient.uploadMedia(uploadMediaPayload);
+              console.log('uploadMedia', res);
+              if (res) {
+                const uploadRes = await myClient.onUploadFile({
+                  conversation_id: response?.id,
+                  files_count: selectedFilesCount,
+                  index: i,
+                  name: selectedImagesToUpload[i]?.fileName,
+                  type: selectedImagesToUpload[i]?.type,
+                  url: res?.Location,
+                });
+                console.log('uploadRes ==', uploadRes);
+                navigation.goBack();
+              }
+            }
+          }
+        }
       }
     }
   };
@@ -311,7 +404,6 @@ const InputBox = ({
         selectGalley();
       }
     }
-    setModalVisible(false);
   };
 
   // function handles the slection of documents
@@ -330,15 +422,17 @@ const InputBox = ({
       <View
         style={[
           styles.inputContainer,
-          {
-            marginBottom: isKeyBoardFocused
-              ? Platform.OS === 'android'
-                ? 35
-                : 5
-              : Platform.OS === 'ios'
-              ? 20
-              : 5,
-          },
+          !isUploadScreen
+            ? {
+                marginBottom: isKeyBoardFocused
+                  ? Platform.OS === 'android'
+                    ? 35
+                    : 5
+                  : Platform.OS === 'ios'
+                  ? 20
+                  : 5,
+              }
+            : null,
         ]}>
         <View style={isReply ? styles.replyBoxParent : null}>
           {isReply && (
@@ -361,6 +455,11 @@ const InputBox = ({
           <View
             style={[
               styles.textInput,
+              {
+                backgroundColor: !!isUploadScreen
+                  ? STYLES.$BACKGROUND_COLORS.DARK
+                  : STYLES.$BACKGROUND_COLORS.LIGHT,
+              },
               isReply
                 ? {
                     borderWidth: 0,
@@ -376,14 +475,43 @@ const InputBox = ({
               />
             </TouchableOpacity> */}
 
-            <View style={[styles.inputParent]}>
+            {!!isUploadScreen ? (
+              <TouchableOpacity
+                style={styles.addMoreButton}
+                onPress={() => {
+                  selectGalley();
+                }}>
+                <Image
+                  source={require('../../assets/images/addImages3x.png')}
+                  style={styles.emoji}
+                />
+              </TouchableOpacity>
+            ) : null}
+
+            <View
+              style={[
+                styles.inputParent,
+                !!isUploadScreen
+                  ? {
+                      marginHorizontal: 5,
+                    }
+                  : {marginHorizontal: 20},
+              ]}>
               <TextInput
                 value={message}
                 onChangeText={setMessage}
                 onContentSizeChange={event => {
                   setInputHeight(event.nativeEvent.contentSize.height);
                 }}
-                style={[styles.input, {height: Math.max(25, inputHeight)}]}
+                style={[
+                  styles.input,
+                  {height: Math.max(25, inputHeight)},
+                  {
+                    color: !!isUploadScreen
+                      ? STYLES.$BACKGROUND_COLORS.LIGHT
+                      : STYLES.$COLORS.SECONDARY,
+                  },
+                ]}
                 numberOfLines={6}
                 multiline={true}
                 onBlur={() => {
@@ -396,14 +524,16 @@ const InputBox = ({
                 placeholderTextColor="#aaa"
               />
             </View>
-            <TouchableOpacity
-              style={styles.emojiButton}
-              onPress={() => setModalVisible(true)}>
-              <Image
-                source={require('../../assets/images/open_files3x.png')}
-                style={styles.emoji}
-              />
-            </TouchableOpacity>
+            {!isUploadScreen ? (
+              <TouchableOpacity
+                style={styles.emojiButton}
+                onPress={() => setModalVisible(true)}>
+                <Image
+                  source={require('../../assets/images/open_files3x.png')}
+                  style={styles.emoji}
+                />
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
 
@@ -446,7 +576,11 @@ const InputBox = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {
-                    handleGallery();
+                    setModalVisible(false);
+                    setTimeout(() => {
+                      handleGallery();
+                    }, 500);
+                    // handleGallery();
                   }}
                   style={styles.imageStyle}>
                   <Image

@@ -1,6 +1,8 @@
 import {
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+  CLEAR_SELECTED_IMAGE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
@@ -9,7 +11,10 @@ import {
   ON_CONVERSATIONS_CREATE_SUCCESS,
   PAGINATED_CONVERSATIONS_SUCCESS,
   REACTION_SENT,
+  SELECTED_IMAGES_TO_UPLOAD,
+  SELECTED_IMAGE_TO_VIEW,
   SELECTED_MESSAGES,
+  SELECTED_MORE_IMAGES_TO_UPLOAD,
   SET_POSITION,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
@@ -23,6 +28,8 @@ const initialState = {
   selectedMessages: [],
   stateArr: [1, 2, 3, 7, 8, 9, 20, 19, 17], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
   position: {x: 0, y: 0} as any,
+  selectedImagesToUpload: [],
+  selectedImageToView: {} as any,
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -119,6 +126,27 @@ export function chatroomReducer(state = initialState, action: any) {
     case SET_POSITION: {
       const {pageX, pageY} = action.body;
       return {...state, position: {x: pageX, y: pageY}};
+    }
+    case SELECTED_IMAGES_TO_UPLOAD: {
+      const {images} = action.body;
+      return {...state, selectedImagesToUpload: [...images]};
+    }
+    case SELECTED_IMAGE_TO_VIEW: {
+      const {image} = action.body;
+      return {...state, selectedImageToView: image};
+    }
+    case SELECTED_MORE_IMAGES_TO_UPLOAD: {
+      const {images} = action.body;
+      return {
+        ...state,
+        selectedImagesToUpload: [...state.selectedImagesToUpload, ...images],
+      };
+    }
+    case CLEAR_SELECTED_IMAGES_TO_UPLOAD: {
+      return {...state, selectedImagesToUpload: []};
+    }
+    case CLEAR_SELECTED_IMAGE_TO_VIEW: {
+      return {...state, selectedImageToView: {}};
     }
     default:
       return state;

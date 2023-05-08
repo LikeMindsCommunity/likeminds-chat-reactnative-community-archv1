@@ -1502,6 +1502,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 setReplyMessage={(val: any) => {
                   setReplyMessage(val);
                 }}
+                navigation={navigation}
+                isUploadScreen={false}
               />
             ) : !(Object.keys(chatroomDetails).length === 0) &&
               previousRoute?.name === HOMEFEED ? (
@@ -1655,6 +1657,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               chatRequestState={chatroomDetails?.chatroom?.chat_request_state}
               chatroomType={chatroomType}
               chatroomReceiverMemberState={chatroomReceiverMemberState}
+              navigation={navigation}
+              isUploadScreen={false}
             />
           ) : (
             <View style={styles.disabledInput}>
