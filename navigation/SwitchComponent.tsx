@@ -35,6 +35,7 @@ import getNotification from '../notifications';
 import ViewParticipants from '../screens/ViewParticipants';
 import AddParticipants from '../screens/AddParticipants';
 import DmAllMembers from '../screens/DmAllMembers';
+import ImageUpload from '../screens/ImageUpload';
 import {
   ADD_PARTICIPANTS,
   CHATROOM,
@@ -42,6 +43,7 @@ import {
   EXPLORE_FEED,
   HOMEFEED,
   IMAGE_SCREEN,
+  IMAGE_UPLOAD,
   REPORT,
   VIEW_PARTICIPANTS,
 } from '../constants/Screens';
@@ -116,6 +118,11 @@ const SwitchComponent = () => {
           <Stack.Screen name={VIEW_PARTICIPANTS} component={ViewParticipants} />
           <Stack.Screen name={ADD_PARTICIPANTS} component={AddParticipants} />
           <Stack.Screen name={DM_ALL_MEMBERS} component={DmAllMembers} />
+          <Stack.Screen
+            options={{gestureEnabled: Platform.OS === 'ios' ? false : true}}
+            name={IMAGE_UPLOAD}
+            component={ImageUpload}
+          />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastMessage
