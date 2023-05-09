@@ -18,6 +18,7 @@ import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {CHATROOM} from '../../constants/Screens';
 import {REQUEST_DM_LIMIT} from '../../constants/Strings';
+import {formatTime} from '../../commonFuctions';
 
 const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const [participants, setParticipants] = useState([] as any);
@@ -391,25 +392,6 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
       </View>
     ) : null;
   };
-
-  function formatTime(recordedTime: number): string {
-    const date: Date = new Date(recordedTime);
-    const now: Date = new Date();
-
-    const diff: number = date.getTime() - now.getTime();
-    const seconds: number = Math.floor(diff / 1000);
-    const minutes: number = Math.floor(seconds / 60);
-    const hours: number = Math.floor(minutes / 60);
-    const days: number = Math.floor(hours / 24);
-
-    if (days > 0) {
-      return `${days}d ${hours % 24}h ${minutes % 60}m`;
-    } else if (hours > 0) {
-      return `${hours}h ${minutes % 60}m`;
-    } else {
-      return `${minutes}m`;
-    }
-  }
 
   // this function calls when user click for DM on members screen. Here ChatroomID is gonna be clicked chatroomID
   const onUserClicked = async (memberID: any) => {
