@@ -153,10 +153,41 @@ const DMFeed = ({navigation}: Props) => {
   return (
     <View style={styles.page}>
       {chatrooms?.length === 0 ? (
-        <View style={[styles.justifyCenter]}>
-          <Text style={styles.title}>It's nice to chat with someone</Text>
-          <Text style={styles.subTitle}>
-            Pick a person from FAB button and start your conversation
+        <View style={styles.nothingDM}>
+          <View style={[styles.justifyCenter]}>
+            <Image
+              style={styles.nothingImg}
+              source={require('../../../../assets/images/nothing3x.png')}
+            />
+            <Text style={styles.title}>No direct messages</Text>
+            <Text style={styles.subTitle}>
+              You have not sent/received any direct messages with any community
+              members.
+            </Text>
+
+            <Pressable
+              onPress={() => {
+                navigation.navigate(DM_ALL_MEMBERS, {showList: showList});
+              }}
+              style={({pressed}) => [
+                {opacity: pressed ? 0.5 : 1.0},
+                styles.nothingFab,
+              ]}>
+              <Image
+                style={styles.fabImg}
+                source={require('../../../../assets/images/new_message_icon3x.png')}
+              />
+              <Text style={styles.text}>NEW MESSAGE</Text>
+            </Pressable>
+          </View>
+
+          <Text
+            style={[
+              styles.subTitle,
+              {marginBottom: 30, paddingHorizontal: 10},
+            ]}>
+            Direct message is a feature where members can send private messages
+            to other members and community managers.
           </Text>
         </View>
       ) : (
@@ -193,7 +224,7 @@ const DMFeed = ({navigation}: Props) => {
           keyExtractor={(item: any) => item?.chatroom?.id.toString()}
         />
       )}
-      {showDM ? (
+      {showDM && chatrooms?.length > 0 ? (
         <Pressable
           onPress={() => {
             navigation.navigate(DM_ALL_MEMBERS, {showList: showList});
