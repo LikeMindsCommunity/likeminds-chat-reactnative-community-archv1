@@ -7,6 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
   TextInput,
+  Alert,
 } from 'react-native';
 import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {styles} from './styles';
@@ -390,6 +391,25 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
     ) : null;
   };
 
+  function formatTime(recordedTime: number): string {
+    const date: Date = new Date(recordedTime);
+    const now: Date = new Date();
+
+    const diff: number = date.getTime() - now.getTime();
+    const seconds: number = Math.floor(diff / 1000);
+    const minutes: number = Math.floor(seconds / 60);
+    const hours: number = Math.floor(minutes / 60);
+    const days: number = Math.floor(hours / 24);
+
+    if (days > 0) {
+      return `${days}d ${hours % 24}h ${minutes % 60}m`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes % 60}m`;
+    } else {
+      return `${minutes}m`;
+    }
+  }
+
   // this function calls when user click for DM on members screen. Here ChatroomID is gonna be clicked chatroomID
   const onUserClicked = async (memberID: any) => {
     const res = await myClient.reqDmFeed({
@@ -424,10 +444,20 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
           }
         }
       } else {
-        dispatch({
-          type: SHOW_TOAST,
-          body: {isToast: true, msg: `DM request limit exceeded`},
-        });
+        Alert.alert(
+          'Request limit exceeded',
+          `You can only send ${
+            res?.user_dm_limit?.number_in_duration
+          } DM requests per ${
+            res?.user_dm_limit?.duration
+          }.\n\nTry again in ${formatTime(res?.new_request_dm_timestamp)}`,
+          [
+            {
+              text: 'Cancel',
+              style: 'default',
+            },
+          ],
+        );
       }
     }
   };
