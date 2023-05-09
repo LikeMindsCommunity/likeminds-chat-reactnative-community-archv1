@@ -32,6 +32,12 @@ import {SET_DM_PAGE} from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
 import {DM_ALL_MEMBERS} from '../../../../constants/Screens';
+import {
+  DM_INFO,
+  NEW_MESSAGE_BTN_TEXT,
+  NO_DM,
+  NO_DM_TEXT,
+} from '../../../../constants/Strings';
 
 interface Props {
   navigation: any;
@@ -49,6 +55,7 @@ const DMFeed = ({navigation}: Props) => {
   const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
+
   const db = myClient.fbInstance();
   const chatrooms = [...myDMChatrooms];
 
@@ -153,10 +160,37 @@ const DMFeed = ({navigation}: Props) => {
   return (
     <View style={styles.page}>
       {chatrooms?.length === 0 ? (
-        <View style={[styles.justifyCenter]}>
-          <Text style={styles.title}>It's nice to chat with someone</Text>
-          <Text style={styles.subTitle}>
-            Pick a person from FAB button and start your conversation
+        <View style={styles.nothingDM}>
+          <View style={[styles.justifyCenter]}>
+            <Image
+              style={styles.nothingImg}
+              source={require('../../../../assets/images/nothing3x.png')}
+            />
+            <Text style={styles.title}>{NO_DM}</Text>
+            <Text style={styles.subTitle}>{NO_DM_TEXT}</Text>
+
+            <Pressable
+              onPress={() => {
+                navigation.navigate(DM_ALL_MEMBERS, {showList: showList});
+              }}
+              style={({pressed}) => [
+                {opacity: pressed ? 0.5 : 1.0},
+                styles.nothingFab,
+              ]}>
+              <Image
+                style={styles.fabImg}
+                source={require('../../../../assets/images/new_message_icon3x.png')}
+              />
+              <Text style={styles.text}>{NEW_MESSAGE_BTN_TEXT}</Text>
+            </Pressable>
+          </View>
+
+          <Text
+            style={[
+              styles.subTitle,
+              {marginBottom: 30, paddingHorizontal: 10},
+            ]}>
+            {DM_INFO}
           </Text>
         </View>
       ) : (
@@ -193,7 +227,7 @@ const DMFeed = ({navigation}: Props) => {
           keyExtractor={(item: any) => item?.chatroom?.id.toString()}
         />
       )}
-      {showDM ? (
+      {showDM && chatrooms?.length > 0 ? (
         <Pressable
           onPress={() => {
             navigation.navigate(DM_ALL_MEMBERS, {showList: showList});
@@ -203,7 +237,7 @@ const DMFeed = ({navigation}: Props) => {
             style={styles.fabImg}
             source={require('../../../../assets/images/new_message_icon3x.png')}
           />
-          <Text style={styles.text}>NEW MESSAGE</Text>
+          <Text style={styles.text}>{NEW_MESSAGE_BTN_TEXT}</Text>
         </Pressable>
       ) : null}
     </View>
