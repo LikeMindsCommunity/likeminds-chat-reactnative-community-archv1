@@ -49,6 +49,7 @@ const DMFeed = ({navigation}: Props) => {
   const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
+  
   const db = myClient.fbInstance();
   const chatrooms = [...myDMChatrooms];
 
