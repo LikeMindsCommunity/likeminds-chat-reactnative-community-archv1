@@ -17,6 +17,7 @@ import {StackActions} from '@react-navigation/native';
 import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {CHATROOM} from '../../constants/Screens';
+import {REQUEST_DM_LIMIT} from '../../constants/Strings';
 
 const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const [participants, setParticipants] = useState([] as any);
@@ -424,40 +425,43 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
       let clickedChatroomID = res?.chatroom_id;
       if (!!clickedChatroomID) {
         navigation.navigate(CHATROOM, {chatroomID: clickedChatroomID});
-      } else if (res?.is_request_dm_limit_exceeded === false) {
-        let payload = {
-          community_id: community?.id,
-          member_id: memberID,
-        };
-        const response = await myClient.onCreateDM(payload);
-        if (response?.success === false) {
-          dispatch({
-            type: SHOW_TOAST,
-            body: {isToast: true, msg: `${response?.error_message}`},
-          });
-        } else {
-          let createdChatroomID = response?.chatroom?.id;
-          if (!!createdChatroomID) {
-            navigation.navigate(CHATROOM, {
-              chatroomID: createdChatroomID,
-            });
-          }
-        }
       } else {
-        Alert.alert(
-          'Request limit exceeded',
-          `You can only send ${
-            res?.user_dm_limit?.number_in_duration
-          } DM requests per ${
-            res?.user_dm_limit?.duration
-          }.\n\nTry again in ${formatTime(res?.new_request_dm_timestamp)}`,
-          [
-            {
-              text: 'Cancel',
-              style: 'default',
-            },
-          ],
-        );
+        if (res?.is_request_dm_limit_exceeded === false) {
+          let payload = {
+            community_id: community?.id,
+            member_id: memberID,
+          };
+          const response = await myClient.onCreateDM(payload);
+          if (response?.success === false) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: `${response?.error_message}`},
+            });
+          } else {
+            let createdChatroomID = response?.chatroom?.id;
+            if (!!createdChatroomID) {
+              navigation.navigate(CHATROOM, {
+                chatroomID: createdChatroomID,
+              });
+            }
+          }
+        } else {
+          let userDMLimit = res?.user_dm_limit;
+          Alert.alert(
+            REQUEST_DM_LIMIT,
+            `You can only send ${
+              userDMLimit?.number_in_duration
+            } DM requests per ${
+              userDMLimit?.duration
+            }.\n\nTry again in ${formatTime(res?.new_request_dm_timestamp)}`,
+            [
+              {
+                text: 'Cancel',
+                style: 'default',
+              },
+            ],
+          );
+        }
       }
     }
   };

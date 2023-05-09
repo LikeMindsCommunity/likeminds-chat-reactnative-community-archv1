@@ -32,6 +32,12 @@ import {SET_DM_PAGE} from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
 import {DM_ALL_MEMBERS} from '../../../../constants/Screens';
+import {
+  DM_INFO,
+  NEW_MESSAGE_BTN_TEXT,
+  NO_DM,
+  NO_DM_TEXT,
+} from '../../../../constants/Strings';
 
 interface Props {
   navigation: any;
@@ -49,7 +55,7 @@ const DMFeed = ({navigation}: Props) => {
   const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
-  
+
   const db = myClient.fbInstance();
   const chatrooms = [...myDMChatrooms];
 
@@ -160,11 +166,8 @@ const DMFeed = ({navigation}: Props) => {
               style={styles.nothingImg}
               source={require('../../../../assets/images/nothing3x.png')}
             />
-            <Text style={styles.title}>No direct messages</Text>
-            <Text style={styles.subTitle}>
-              You have not sent/received any direct messages with any community
-              members.
-            </Text>
+            <Text style={styles.title}>{NO_DM}</Text>
+            <Text style={styles.subTitle}>{NO_DM_TEXT}</Text>
 
             <Pressable
               onPress={() => {
@@ -178,7 +181,7 @@ const DMFeed = ({navigation}: Props) => {
                 style={styles.fabImg}
                 source={require('../../../../assets/images/new_message_icon3x.png')}
               />
-              <Text style={styles.text}>NEW MESSAGE</Text>
+              <Text style={styles.text}>{NEW_MESSAGE_BTN_TEXT}</Text>
             </Pressable>
           </View>
 
@@ -187,8 +190,7 @@ const DMFeed = ({navigation}: Props) => {
               styles.subTitle,
               {marginBottom: 30, paddingHorizontal: 10},
             ]}>
-            Direct message is a feature where members can send private messages
-            to other members and community managers.
+            {DM_INFO}
           </Text>
         </View>
       ) : (
@@ -235,7 +237,7 @@ const DMFeed = ({navigation}: Props) => {
             style={styles.fabImg}
             source={require('../../../../assets/images/new_message_icon3x.png')}
           />
-          <Text style={styles.text}>NEW MESSAGE</Text>
+          <Text style={styles.text}>{NEW_MESSAGE_BTN_TEXT}</Text>
         </Pressable>
       ) : null}
     </View>

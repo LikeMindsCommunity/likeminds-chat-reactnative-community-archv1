@@ -14,3 +14,11 @@ export const REJECT_INVITATION_MESSAGE =
   'Are you sure you want to reject the invitation to join this chatroom?';
 export const DM_REQUEST_SENT_MESSAGE =
   'The sender has sent you a direct messaging request. Approve or respond with a message to get connected. Rejecting this request will not notify the sender.';
+export const REQUEST_DM_LIMIT = 'Request limit exceeded';
+
+export const NO_DM = 'No direct messages';
+export const NO_DM_TEXT =
+  'You have not sent/received any direct messages with any community members.';
+export const DM_INFO =
+  'Direct message is a feature where members can send private messages to other members and community managers.';
+export const NEW_MESSAGE_BTN_TEXT = 'NEW MESSAGE';
