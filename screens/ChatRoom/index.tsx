@@ -1564,26 +1564,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           (!!chatroomDetails?.chatroom?.chat_requested_by
             ? chatroomDetails?.chatroom?.chat_requested_by[0]?.id !== user?.id
             : null) ? (
-            <View
-              style={{
-                padding: 20,
-                backgroundColor: STYLES.$COLORS.TERTIARY,
-                marginTop: 10,
-              }}>
+            <View style={styles.dmRequestView}>
               <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>
-              <View style={{marginTop: 10}}>
+              <View style={styles.dmRequestButtonBox}>
                 <TouchableOpacity
                   onPress={() => {
                     handleDMApproveClick();
                   }}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 10,
-                    flexGrow: 1,
-                    paddingVertical: 10,
-                  }}>
+                  style={styles.requestMessageTextButton}>
                   <Image
                     style={styles.emoji}
                     source={require('../../assets/images/like_icon3x.png')}
@@ -1594,14 +1582,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   onPress={() => {
                     handleDMRejectClick();
                   }}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 10,
-                    flexGrow: 1,
-                    paddingVertical: 10,
-                  }}>
+                  style={styles.requestMessageTextButton}>
                   <Image
                     style={styles.emoji}
                     source={require('../../assets/images/ban_icon3x.png')}

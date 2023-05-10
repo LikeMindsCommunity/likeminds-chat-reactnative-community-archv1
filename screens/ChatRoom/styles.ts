@@ -202,4 +202,18 @@ export const styles = StyleSheet.create({
   headerRight: {
     marginTop: Platform.OS === 'ios' ? -5 : 0,
   },
+  requestMessageTextButton: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+    flexGrow: 1,
+  },
+  dmRequestView: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: STYLES.$COLORS.TERTIARY,
+    marginTop: 10,
+  },
+  dmRequestButtonBox: {marginTop: 30, gap: 20},
 });
