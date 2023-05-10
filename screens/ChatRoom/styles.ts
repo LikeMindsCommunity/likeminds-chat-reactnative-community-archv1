@@ -39,6 +39,7 @@ export const styles = StyleSheet.create({
     width: 22,
     height: 22,
     resizeMode: 'contain',
+    tintColor: STYLES.$COLORS.SECONDARY,
   },
   input: {
     flex: 1,
