@@ -61,7 +61,6 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.MSG,
-    backgroundColor: 'pink',
   },
   sendButton: {
     padding: 10,
