@@ -72,11 +72,13 @@ import {
   APPROVE_DM_REQUEST,
   APPROVE_REQUEST_MESSAGE,
   BLOCK_DM_REQUEST,
+  COMMUNITY_MANAGER_DISABLED_CHAT,
   DM_REQUEST_SENT_MESSAGE,
   JOIN_CHATROOM,
   JOIN_CHATROOM_MESSAGE,
   REJECT_INVITATION,
   REJECT_INVITATION_MESSAGE,
+  REQUEST_SENT,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 
@@ -1595,16 +1597,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           {showDM === false ? (
             <View style={styles.disabledInput}>
               <Text style={styles.disabledInputText}>
-                Direct messaging among members has been disabled by the
-                community manager.
+                {COMMUNITY_MANAGER_DISABLED_CHAT}
               </Text>
             </View>
           ) : showDM === true &&
             (chatRequestState === 0 || chatRequestState === 2) ? (
             <View style={styles.disabledInput}>
-              <Text style={styles.disabledInputText}>
-                Messaging would be enabled once your request is approved.
-              </Text>
+              <Text style={styles.disabledInputText}>{REQUEST_SENT}</Text>
             </View>
           ) : (showDM === true && chatRequestState === 1) ||
             chatRequestState === null ? (

@@ -49,7 +49,6 @@ export const styles = StyleSheet.create({
   disabledInput: {
     marginVertical: 20,
     marginHorizontal: 10,
-    height: 50,
     paddingVertical: 10,
     paddingHorizontal: 20,
     backgroundColor: '#f2f2f2',
@@ -62,6 +61,7 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.MSG,
+    backgroundColor: 'pink',
   },
   sendButton: {
     padding: 10,

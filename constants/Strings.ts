@@ -22,3 +22,8 @@ export const NO_DM_TEXT =
 export const DM_INFO =
   'Direct message is a feature where members can send private messages to other members and community managers.';
 export const NEW_MESSAGE_BTN_TEXT = 'NEW MESSAGE';
+
+export const REQUEST_SENT =
+  'Messaging would be enabled once your request is approved.';
+export const COMMUNITY_MANAGER_DISABLED_CHAT =
+  'Messaging would be enabled once your request is approved.';
