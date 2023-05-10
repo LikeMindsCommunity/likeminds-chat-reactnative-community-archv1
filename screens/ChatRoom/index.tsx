@@ -81,6 +81,11 @@ import {
   REJECT_INVITATION_MESSAGE,
   REQUEST_SENT,
   REJECT_REQUEST_MESSAGE,
+  CANCEL_BUTTON,
+  CONFIRM_BUTTON,
+  APPROVE_BUTTON,
+  REJECT_BUTTON,
+  REPORT_AND_REJECT_BUTTON,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 
@@ -112,6 +117,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
   const [isReact, setIsReact] = useState(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [DMApproveAlertModalVisible, setDMApproveAlertModalVisible] =
+    useState(false);
+  const [DMRejectAlertModalVisible, setDMRejectAlertModalVisible] =
+    useState(false);
+  const [DMBlockAlertModalVisible, setDMBlockAlertModalVisible] =
+    useState(false);
   const [showDM, setShowDM] = useState<any>(null);
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
@@ -889,11 +900,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       JOIN_CHATROOM_MESSAGE,
       [
         {
-          text: 'Cancel',
+          text: CANCEL_BUTTON,
           style: 'default',
         },
         {
-          text: 'Confirm',
+          text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
               channel_id: `${chatroomID}`,
@@ -923,11 +934,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       REJECT_INVITATION_MESSAGE,
       [
         {
-          text: 'Cancel',
+          text: CANCEL_BUTTON,
           style: 'cancel',
         },
         {
-          text: 'Confirm',
+          text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
               channel_id: `${chatroomID}`,
@@ -1214,6 +1225,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chat_request_state: 1,
     });
     fetchData();
+    fetchChatroomDetails();
 
     //dispatching redux action for local handling of chatRequestState
     dispatch({
@@ -1230,6 +1242,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
 
     fetchData();
+    fetchChatroomDetails();
 
     //dispatching redux action for local handling of chatRequestState
     dispatch({
@@ -1287,99 +1300,43 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function shows confirm alert popup to approve DM request
   const handleDMApproveClick = () => {
-    Alert.alert(
-      APPROVE_DM_REQUEST,
-      APPROVE_REQUEST_MESSAGE,
-      [
-        {
-          text: 'Cancel',
-          style: 'default',
-        },
-        {
-          text: 'Confirm',
-          onPress: async () => {
-            onApprove();
-          },
-          style: 'default',
-        },
-      ],
-      {
-        cancelable: false,
-      },
-    );
+    showDMApproveAlert();
   };
 
   // this function shows confirm alert popup to reject DM request
   const handleDMRejectClick = () => {
-    Alert.alert(
-      REJECT_DM_REQUEST,
-      REJECT_REQUEST_MESSAGE,
-      [
-        {
-          text: 'Reject',
-          onPress: async () => {
-            onReject();
-          },
-          style: 'default',
-        },
-        {
-          text: 'Cancel',
-          style: 'default',
-        },
-        {
-          text: 'Report and Reject',
-          onPress: async () => {
-            onReject();
-            navigation.navigate('Report', {
-              conversationID: chatroomID,
-              isDM: chatroomType === 10 ? true : false,
-            });
-          },
-          style: 'default',
-        },
-      ],
-      {
-        cancelable: false,
-      },
-    );
+    showDMRejectAlert();
   };
 
   // this function shows confirm alert popup to approve DM request on click TapToUndo
   const handleBlockMember = () => {
-    {
-      /* `{? = then}`, `{: = else}`  */
-    }
-    // Logic for alert message name
-    {
-      /* 
-       if DM ? 
-        if userID !=== chatroomWithUserID ? 
-          chatroomWithUserName 
-        : memberName
-      : chatroomHeaderName              
-    */
-    }
-    Alert.alert(
-      BLOCK_DM_REQUEST,
-      `Are you sure you do not want to receive new messages from ${chatroomName}?`,
-      [
-        {
-          text: 'Cancel',
-          style: 'default',
-        },
-        {
-          text: 'Confirm',
-          onPress: async () => {
-            blockMember();
-          },
-          style: 'default',
-        },
-      ],
-      {
-        cancelable: false,
-      },
-    );
+    showDMBlockAlert();
   };
+
+  const showDMApproveAlert = () => {
+    setDMApproveAlertModalVisible(true);
+  };
+
+  const hideDMApproveAlert = () => {
+    setDMApproveAlertModalVisible(false);
+  };
+
+  const showDMRejectAlert = () => {
+    setDMRejectAlertModalVisible(true);
+  };
+
+  const hideDMRejectAlert = () => {
+    setDMRejectAlertModalVisible(false);
+  };
+
+  const showDMBlockAlert = () => {
+    setDMBlockAlertModalVisible(true);
+  };
+
+  const hideDMBlockAlert = () => {
+    setDMBlockAlertModalVisible(false);
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -1538,7 +1495,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       style={styles.emoji}
                       source={require('../../assets/images/ban_icon3x.png')}
                     />
-                    <Text style={styles.inviteBtnText}>Reject</Text>
+                    <Text style={styles.inviteBtnText}>{REJECT_BUTTON}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -1580,7 +1537,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     style={styles.emoji}
                     source={require('../../assets/images/like_icon3x.png')}
                   />
-                  <Text style={styles.inviteBtnText}>Approve</Text>
+                  <Text style={styles.inviteBtnText}>{APPROVE_BUTTON}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {
@@ -1591,7 +1548,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     style={styles.emoji}
                     source={require('../../assets/images/ban_icon3x.png')}
                   />
-                  <Text style={styles.inviteBtnText}>Reject</Text>
+                  <Text style={styles.inviteBtnText}>{REJECT_BUTTON}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1807,6 +1764,112 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               </View>
             </Pressable>
           </View>
+        </Pressable>
+      </Modal>
+
+      {/* APPROVE DM request Modal */}
+      <Modal
+        visible={DMApproveAlertModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={hideDMApproveAlert}>
+        <Pressable style={styles.modal} onPress={hideDMApproveAlert}>
+          <Pressable onPress={() => {}} style={styles.modalContainer}>
+            <Text style={styles.title}>{APPROVE_DM_REQUEST}</Text>
+            <Text style={styles.message}>{APPROVE_REQUEST_MESSAGE}</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={hideDMApproveAlert}>
+                <Text style={[styles.buttonText, styles.cancelButtonText]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.okButton]}
+                onPress={() => {
+                  onApprove();
+                  hideDMApproveAlert();
+                }}>
+                <Text style={styles.buttonText}>{APPROVE_BUTTON}</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* REJECT DM request Modal */}
+      <Modal
+        visible={DMRejectAlertModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={hideDMRejectAlert}>
+        <Pressable style={styles.modal} onPress={hideDMRejectAlert}>
+          <Pressable onPress={() => {}} style={styles.modalContainer}>
+            <Text style={styles.title}>{REJECT_DM_REQUEST}</Text>
+            <Text style={styles.message}>{REJECT_REQUEST_MESSAGE}</Text>
+            <View style={styles.rejectButtonContainer}>
+              <TouchableOpacity
+                style={[styles.rejectButton, styles.cancelButton]}
+                onPress={() => {
+                  onReject();
+                  hideDMRejectAlert();
+                }}>
+                <Text style={[styles.buttonText]}>{REJECT_BUTTON}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.rejectButton, styles.cancelButton]}
+                onPress={hideDMRejectAlert}>
+                <Text style={[styles.buttonText]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.rejectButton, styles.okButton]}
+                onPress={() => {
+                  onReject();
+                  navigation.navigate('Report', {
+                    conversationID: chatroomID,
+                    isDM: chatroomType === 10 ? true : false,
+                  });
+                  hideDMRejectAlert();
+                }}>
+                <Text style={styles.buttonText}>{REPORT_AND_REJECT_BUTTON}</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* BLOCK DM request Modal */}
+      <Modal
+        visible={DMBlockAlertModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={hideDMBlockAlert}>
+        <Pressable style={styles.modal} onPress={hideDMBlockAlert}>
+          <Pressable onPress={() => {}} style={styles.modalContainer}>
+            <Text style={styles.title}>{BLOCK_DM_REQUEST}</Text>
+            <Text
+              style={
+                styles.message
+              }>{`Are you sure you do not want to receive new messages from ${chatroomName}?`}</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={hideDMBlockAlert}>
+                <Text style={[styles.buttonText, styles.cancelButtonText]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.okButton]}
+                onPress={() => {
+                  blockMember();
+                  hideDMBlockAlert();
+                }}>
+                <Text style={styles.buttonText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
         </Pressable>
       </Modal>
 

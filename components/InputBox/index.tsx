@@ -53,6 +53,7 @@ const InputBox = ({
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
 
   const dispatch = useAppDispatch();
   const {myChatrooms, user, community} = useAppSelector(
@@ -212,26 +213,15 @@ const InputBox = ({
 
   // function calls a confirm alert which will further call onSend function onConfirm.
   const sendDmRequest = () => {
-    Alert.alert(
-      SEND_DM_REQUEST,
-      DM_REQUEST_MESSAGE,
-      [
-        {
-          text: 'Cancel',
-          style: 'default',
-        },
-        {
-          text: 'Confirm',
-          onPress: async () => {
-            onSend();
-          },
-          style: 'default',
-        },
-      ],
-      {
-        cancelable: false,
-      },
-    );
+    showDMSentAlert();
+  };
+
+  const showDMSentAlert = () => {
+    setDMSentAlertModalVisible(true);
+  };
+
+  const hideDMSentAlert = () => {
+    setDMSentAlertModalVisible(false);
   };
 
   return (
@@ -242,7 +232,7 @@ const InputBox = ({
           {
             marginBottom: isKeyBoardFocused
               ? Platform.OS === 'android'
-                ? 35
+                ? 45
                 : 5
               : Platform.OS === 'ios'
               ? 20
@@ -369,6 +359,38 @@ const InputBox = ({
           </View>
         </Pressable>
       </Modal>
+
+      {/* SEND DM request Modal */}
+      <Modal
+        visible={DMSentAlertModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={hideDMSentAlert}>
+        <Pressable style={styles.modal} onPress={hideDMSentAlert}>
+          <Pressable onPress={() => {}} style={styles.modalContainer}>
+            <Text style={styles.title}>{SEND_DM_REQUEST}</Text>
+            <Text style={styles.message}>{DM_REQUEST_MESSAGE}</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={hideDMSentAlert}>
+                <Text style={[styles.buttonText, styles.cancelButtonText]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.okButton]}
+                onPress={() => {
+                  onSend();
+                  hideDMSentAlert();
+                }}>
+                <Text style={styles.buttonText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {/* {showEmoji && (
         <View style={styles.emojiPicker}>
           <Emoji name="smile" style={styles.emoji} />
