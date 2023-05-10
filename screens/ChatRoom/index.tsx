@@ -76,9 +76,11 @@ import {
   DM_REQUEST_SENT_MESSAGE,
   JOIN_CHATROOM,
   JOIN_CHATROOM_MESSAGE,
+  REJECT_DM_REQUEST,
   REJECT_INVITATION,
   REJECT_INVITATION_MESSAGE,
   REQUEST_SENT,
+  REJECT_REQUEST_MESSAGE,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 
@@ -1310,11 +1312,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function shows confirm alert popup to reject DM request
   const handleDMRejectClick = () => {
     Alert.alert(
-      APPROVE_DM_REQUEST,
-      APPROVE_REQUEST_MESSAGE,
+      REJECT_DM_REQUEST,
+      REJECT_REQUEST_MESSAGE,
       [
         {
-          text: 'Confirm',
+          text: 'Reject',
           onPress: async () => {
             onReject();
           },
