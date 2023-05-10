@@ -547,7 +547,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     );
 
     return () => backHandlerAndroid.remove();
-  }, []);
+  }, [chatroomType]);
 
   // this useEffect update initial header when we get chatroomDetails.
   useEffect(() => {
@@ -601,7 +601,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     const query = ref(db, `/collabcards/${chatroomID}`);
     return onValue(query, async (snapshot: DataSnapshot) => {
-      if (snapshot.exists() && conversations.length > 0) {
+      if (snapshot.exists()) {
         let firebaseData = snapshot.val();
         let payload = {
           chatroomID: chatroomID,
@@ -1376,7 +1376,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       },
     );
   };
-
   return (
     <View style={styles.container}>
       <FlatList
