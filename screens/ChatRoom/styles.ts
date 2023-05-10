@@ -50,6 +50,7 @@ export const styles = StyleSheet.create({
     marginVertical: 20,
     marginHorizontal: 10,
     paddingVertical: 10,
+    minHeight: 50,
     paddingHorizontal: 20,
     backgroundColor: '#f2f2f2',
     borderRadius: 25,
