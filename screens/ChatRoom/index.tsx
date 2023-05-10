@@ -37,7 +37,7 @@ import {
 } from '../../store/actions/chatroom';
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {DataSnapshot, onValue, ref, set} from 'firebase/database';
+import {DataSnapshot, onValue, ref} from 'firebase/database';
 import {getDMFeedData, getHomeFeedData} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
