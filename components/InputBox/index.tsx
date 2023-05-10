@@ -24,6 +24,7 @@ import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../..';
 import {DM_REQUEST_MESSAGE, SEND_DM_REQUEST} from '../../constants/Strings';
+import SendDMRequestModal from '../../customModals/SendDMRequest';
 
 interface InputBox {
   isReply: boolean;
@@ -361,35 +362,11 @@ const InputBox = ({
       </Modal>
 
       {/* SEND DM request Modal */}
-      <Modal
-        visible={DMSentAlertModalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={hideDMSentAlert}>
-        <Pressable style={styles.modal} onPress={hideDMSentAlert}>
-          <Pressable onPress={() => {}} style={styles.modalContainer}>
-            <Text style={styles.title}>{SEND_DM_REQUEST}</Text>
-            <Text style={styles.message}>{DM_REQUEST_MESSAGE}</Text>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={hideDMSentAlert}>
-                <Text style={[styles.buttonText, styles.cancelButtonText]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.okButton]}
-                onPress={() => {
-                  onSend();
-                  hideDMSentAlert();
-                }}>
-                <Text style={styles.buttonText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <SendDMRequestModal
+        hideDMSentAlert={hideDMSentAlert}
+        DMSentAlertModalVisible={DMSentAlertModalVisible}
+        onSend={onSend}
+      />
 
       {/* {showEmoji && (
         <View style={styles.emojiPicker}>

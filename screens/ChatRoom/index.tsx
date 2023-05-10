@@ -88,6 +88,9 @@ import {
   REPORT_AND_REJECT_BUTTON,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
+import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
+import BlockDMRequestModal from '../../customModals/BlockDMRequest';
+import RejectDMRequestModal from '../../customModals/RejectDMRequest';
 
 interface Data {
   id: string;
@@ -1768,110 +1771,29 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       </Modal>
 
       {/* APPROVE DM request Modal */}
-      <Modal
-        visible={DMApproveAlertModalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={hideDMApproveAlert}>
-        <Pressable style={styles.modal} onPress={hideDMApproveAlert}>
-          <Pressable onPress={() => {}} style={styles.modalContainer}>
-            <Text style={styles.title}>{APPROVE_DM_REQUEST}</Text>
-            <Text style={styles.message}>{APPROVE_REQUEST_MESSAGE}</Text>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={hideDMApproveAlert}>
-                <Text style={[styles.buttonText, styles.cancelButtonText]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.okButton]}
-                onPress={() => {
-                  onApprove();
-                  hideDMApproveAlert();
-                }}>
-                <Text style={styles.buttonText}>{APPROVE_BUTTON}</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <ApproveDMRequestModal
+        hideDMApproveAlert={hideDMApproveAlert}
+        DMApproveAlertModalVisible={DMApproveAlertModalVisible}
+        onApprove={onApprove}
+      />
 
       {/* REJECT DM request Modal */}
-      <Modal
-        visible={DMRejectAlertModalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={hideDMRejectAlert}>
-        <Pressable style={styles.modal} onPress={hideDMRejectAlert}>
-          <Pressable onPress={() => {}} style={styles.modalContainer}>
-            <Text style={styles.title}>{REJECT_DM_REQUEST}</Text>
-            <Text style={styles.message}>{REJECT_REQUEST_MESSAGE}</Text>
-            <View style={styles.rejectButtonContainer}>
-              <TouchableOpacity
-                style={[styles.rejectButton, styles.cancelButton]}
-                onPress={() => {
-                  onReject();
-                  hideDMRejectAlert();
-                }}>
-                <Text style={[styles.buttonText]}>{REJECT_BUTTON}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.rejectButton, styles.cancelButton]}
-                onPress={hideDMRejectAlert}>
-                <Text style={[styles.buttonText]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.rejectButton, styles.okButton]}
-                onPress={() => {
-                  onReject();
-                  navigation.navigate('Report', {
-                    conversationID: chatroomID,
-                    isDM: chatroomType === 10 ? true : false,
-                  });
-                  hideDMRejectAlert();
-                }}>
-                <Text style={styles.buttonText}>{REPORT_AND_REJECT_BUTTON}</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <RejectDMRequestModal
+        hideDMRejectAlert={hideDMRejectAlert}
+        DMRejectAlertModalVisible={DMRejectAlertModalVisible}
+        onReject={onReject}
+        navigation={navigation}
+        chatroomID={chatroomID}
+        chatroomType={chatroomType}
+      />
 
       {/* BLOCK DM request Modal */}
-      <Modal
-        visible={DMBlockAlertModalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={hideDMBlockAlert}>
-        <Pressable style={styles.modal} onPress={hideDMBlockAlert}>
-          <Pressable onPress={() => {}} style={styles.modalContainer}>
-            <Text style={styles.title}>{BLOCK_DM_REQUEST}</Text>
-            <Text
-              style={
-                styles.message
-              }>{`Are you sure you do not want to receive new messages from ${chatroomName}?`}</Text>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={hideDMBlockAlert}>
-                <Text style={[styles.buttonText, styles.cancelButtonText]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.okButton]}
-                onPress={() => {
-                  blockMember();
-                  hideDMBlockAlert();
-                }}>
-                <Text style={styles.buttonText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <BlockDMRequestModal
+        hideDMBlockAlert={hideDMBlockAlert}
+        DMBlockAlertModalVisible={DMBlockAlertModalVisible}
+        blockMember={blockMember}
+        chatroomName={chatroomName}
+      />
 
       <ToastMessage
         message={msg}
