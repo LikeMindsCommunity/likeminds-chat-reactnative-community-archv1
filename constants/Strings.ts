@@ -4,6 +4,10 @@ export const DM_REQUEST_MESSAGE =
 export const APPROVE_DM_REQUEST = 'Approve DM request?';
 export const APPROVE_REQUEST_MESSAGE =
   'Member will be able to send you messages and get notified of the same.';
+
+export const REJECT_DM_REQUEST = 'Reject DM request?';
+export const REJECT_REQUEST_MESSAGE =
+  'Member would be blocked from sending you further messages.\nThe sender will not be notified of this.';
 export const BLOCK_DM_REQUEST = 'Block direct messaging?';
 
 export const JOIN_CHATROOM = 'Join this chatroom?';
