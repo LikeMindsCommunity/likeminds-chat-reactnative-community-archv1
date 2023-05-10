@@ -44,7 +44,6 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     width: '85%',
-    // width: 240,
   },
   deletedMessage: {
     color: STYLES.$COLORS.PRIMARY,
@@ -52,7 +51,6 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     fontStyle: 'italic',
     width: '85%',
-    // width: 240,
   },
   attachment_msg: {
     color: STYLES.$COLORS.PRIMARY,
@@ -86,17 +84,31 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.TERTIARY,
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
-    marginTop: Platform.OS === 'ios' ? 2 : -1
-    // padding: 5,
-    // backgroundColor:'yellow'
+    marginTop: Platform.OS === 'ios' ? 2 : -1,
   },
   inviteIcon: {
     height: 40,
     width: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth:2,
-    borderRadius:50,
-    borderColor:'grey'
-  }
+    borderWidth: 2,
+    borderRadius: 50,
+    borderColor: 'grey',
+  },
+  dmAvatarBubble: {
+    backgroundColor: STYLES.$COLORS.SECONDARY,
+    height: 25,
+    width: 25,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    bottom: -2,
+    right: 5,
+  },
+  dmAvatarBubbleImg: {
+    height: 13,
+    width: 13,
+    resizeMode: 'contain',
+  },
 });

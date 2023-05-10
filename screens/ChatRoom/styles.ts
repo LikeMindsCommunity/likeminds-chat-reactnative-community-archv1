@@ -10,7 +10,8 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 15,
+    gap: 20,
+    marginTop: Platform.OS === 'ios' ? -5 : 0,
   },
   selectedHeadingContainer: {
     display: 'flex',
@@ -29,11 +30,7 @@ export const styles = StyleSheet.create({
 
   inputContainer: {
     flexDirection: 'row',
-    // padding: 10,
-    // backgroundColor: '#fff',
-    // elevation: 2,
     flexGrow: 1,
-    // backgroundColor: 'pink',
   },
   emojiButton: {
     padding: 10,
@@ -69,7 +66,6 @@ export const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#4caf50',
     borderRadius: 5,
-    // elevation: 2,
   },
   sendButtonText: {
     color: '#fff',
@@ -80,14 +76,10 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#f2f2f2',
     padding: 10,
-    // elevation: 2,
   },
 
   centeredView: {
     flex: 1,
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    // marginTop: 20,
   },
   emojiCenteredView: {
     flex: 1,
@@ -100,7 +92,6 @@ export const styles = StyleSheet.create({
     marginTop: Platform.OS === 'ios' ? 45 : 10,
     backgroundColor: 'white',
     borderRadius: 8,
-    // width: 200,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -113,14 +104,9 @@ export const styles = StyleSheet.create({
   },
   reactionCenteredView: {
     flex: 1,
-    // justifyContent: 'center',
     alignItems: 'center',
-    // marginTop: 20,
   },
   reactionModalView: {
-    // position: 'absolute',
-    // right: 10,
-    // marginLeft: 10,
     marginTop: Platform.OS === 'ios' ? 45 : 10,
     backgroundColor: 'white',
     borderRadius: 8,
@@ -136,8 +122,6 @@ export const styles = StyleSheet.create({
     elevation: 5,
     display: 'flex',
     flexDirection: 'row',
-    // alignItems:'center',
-    // justifyContent:'center'
   },
   emojiModalView: {
     // marginTop: Platform.OS === 'ios' ? 45 : 10,
@@ -184,13 +168,37 @@ export const styles = StyleSheet.create({
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
   },
   inviteText: {
-    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.MSG,
+    lineHeight: 20,
   },
   inviteBtnText: {
-    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+    marginRight: STYLES.$MARGINS.SMALL,
+  },
+  alignRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  profile: {
+    width: 45,
+    height: 45,
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 5,
+  },
+  headerRight: {
+    marginTop: Platform.OS === 'ios' ? -5 : 0,
   },
 });

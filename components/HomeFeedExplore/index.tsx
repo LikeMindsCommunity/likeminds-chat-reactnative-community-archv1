@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, Image, TouchableOpacity} from 'react-native';
 import {styles} from './styles';
+import {EXPLORE_FEED} from '../../constants/Screens';
 
 interface Props {
   newCount: number;
@@ -16,7 +17,7 @@ const HomeFeedExplore: React.FC<Props> = ({
   return (
     <TouchableOpacity
       onPress={() => {
-        navigation.navigate('ExploreFeed');
+        navigation.navigate(EXPLORE_FEED);
       }}
       style={styles.itemContainer}>
       <Image

@@ -1,6 +1,7 @@
 import {
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
@@ -10,6 +11,7 @@ import {
   REACTION_SENT,
   SELECTED_MESSAGES,
   SET_POSITION,
+  UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
 } from '../types/types';
 
@@ -19,7 +21,7 @@ const initialState = {
   messageSent: '' as any,
   isLongPress: false,
   selectedMessages: [],
-  stateArr: [1, 2, 3, 7, 8, 9], //joined and left chatroom state
+  stateArr: [1, 2, 3, 7, 8, 9, 20, 19, 17], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
   position: {x: 0, y: 0} as any,
 };
 
@@ -49,6 +51,25 @@ export function chatroomReducer(state = initialState, action: any) {
       let arr = conversations.reverse();
       return {...state, conversations: [...state.conversations, ...arr]};
     }
+    case FIREBASE_CONVERSATIONS_SUCCESS: {
+      const data = action.body;
+      const {conversations = []} = data;
+      let temporaryID = conversations[0]?.temporary_id;
+      let index = state.conversations.findIndex(
+        (element: any) => element?.id?.toString() === temporaryID,
+      );
+      let conversationArr: any = [...state.conversations];
+      if (conversations.length > 0) {
+        conversationArr[index] = conversations[0];
+      }
+      return {
+        ...state,
+        conversations:
+          index === -1
+            ? [conversations[0], ...conversationArr]
+            : conversationArr,
+      };
+    }
     case UPDATE_CONVERSATIONS: {
       const {obj} = action.body;
       return {...state, conversations: [obj, ...state.conversations]};
@@ -65,6 +86,19 @@ export function chatroomReducer(state = initialState, action: any) {
     case CLEAR_CHATROOM_DETAILS: {
       const {chatroomDetails} = action.body;
       return {...state, chatroomDetails: chatroomDetails};
+    }
+    case UPDATE_CHAT_REQUEST_STATE: {
+      const {chatRequestState} = action.body;
+      return {
+        ...state,
+        chatroomDetails: {
+          ...state.chatroomDetails,
+          chatroom: {
+            ...state.chatroomDetails.chatroom,
+            chat_request_state: chatRequestState,
+          },
+        },
+      };
     }
     case MESSAGE_SENT: {
       const {id: messageObj} = action.body;

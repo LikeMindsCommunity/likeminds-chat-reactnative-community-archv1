@@ -112,6 +112,6 @@ export const styles = StyleSheet.create({
     padding: STYLES.$PADDINGS.MEDIUM,
     justifyContent: 'center',
     backgroundColor: STYLES.$COLORS.TERTIARY,
-    flex:1
+    flex: 1,
   },
 });

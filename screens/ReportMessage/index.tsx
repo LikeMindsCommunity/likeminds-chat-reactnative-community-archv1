@@ -1,6 +1,6 @@
 import {useEffect, useLayoutEffect, useState} from 'react';
 import {
-    Alert,
+  Alert,
   Button,
   Image,
   Pressable,
@@ -12,6 +12,8 @@ import {
 import {myClient} from '../..';
 import STYLES from '../../constants/Styles';
 import styles from './styles';
+import {SHOW_TOAST} from '../../store/types/types';
+import {useAppDispatch} from '../../store';
 interface Props {
   navigation: any;
   route: any;
@@ -21,6 +23,10 @@ const ReportScreen = ({navigation, route}: Props) => {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [otherReason, setOtherReason] = useState('');
   const [selectedId, setSelectedId] = useState(-1);
+
+  const {conversationID, isDM = false} = route.params;
+
+  const dispatch = useAppDispatch();
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -68,24 +74,29 @@ const ReportScreen = ({navigation, route}: Props) => {
     const getTags = async () => {
       try {
         const res = await myClient.getReportTags({
-          type: 0,
+          type: isDM === true ? 1 : 0,
         });
         setReasons(res.report_tags);
       } catch (error) {
-    //    Alert.alert('API failed')
+        //    Alert.alert('API failed')
       }
     };
     getTags();
   }, []);
+
   const reportMessage = async () => {
     try {
       const call = await myClient.pushReport({
-        conversation_id: route.params.convoId,
+        conversation_id: conversationID,
         tag_id: selectedId,
         reason: otherReason != '' ? otherReason : undefined,
       });
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: 'Reported succesfully'},
+      });
     } catch (error) {
-    //  Alert.alert('API failed')
+      //  Alert.alert('API failed')
     }
   };
   return (
@@ -108,6 +119,7 @@ const ReportScreen = ({navigation, route}: Props) => {
         {reasons.map((res: any, index: number) => {
           return (
             <Pressable
+              key={res?.id}
               onPress={() => {
                 setSelectedIndex(index);
                 setSelectedId(res.id);

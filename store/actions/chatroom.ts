@@ -15,6 +15,9 @@ import {
   PAGINATED_CONVERSATIONS_SUCCESS,
   PAGINATED_CONVERSATIONS,
   PAGINATED_CONVERSATIONS_FAILED,
+  FIREBASE_CONVERSATIONS,
+  FIREBASE_CONVERSATIONS_SUCCESS,
+  FIREBASE_CONVERSATIONS_FAILED,
 } from '../types/types';
 
 export const getConversations =
@@ -59,8 +62,29 @@ export const paginatedConversations =
     }
   };
 
+export const firebaseConversation =
+  (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
+    try {
+      return await dispatch({
+        type: FIREBASE_CONVERSATIONS_SUCCESS,
+        [CALL_API]: {
+          func: myClient.getConversationsMeta(payload),
+          body: payload,
+          types: [
+            FIREBASE_CONVERSATIONS,
+            FIREBASE_CONVERSATIONS_SUCCESS,
+            FIREBASE_CONVERSATIONS_FAILED,
+          ],
+          showLoader: false,
+        },
+      });
+    } catch (error) {
+      Alert.alert(`${error}`);
+    }
+  };
+
 export const onConversationsCreate =
-  (payload: any, showLoader? : boolean) => async (dispatch: Dispatch) => {
+  (payload: any, showLoader?: boolean) => async (dispatch: Dispatch) => {
     try {
       return await dispatch({
         type: ON_CONVERSATIONS_CREATE_SUCCESS,
@@ -72,7 +96,7 @@ export const onConversationsCreate =
             ON_CONVERSATIONS_CREATE_SUCCESS,
             ON_CONVERSATIONS_CREATE_FAILED,
           ],
-          showLoader: showLoader != undefined ? true : false ,
+          showLoader: showLoader != undefined ? true : false,
         },
       });
     } catch (error) {
