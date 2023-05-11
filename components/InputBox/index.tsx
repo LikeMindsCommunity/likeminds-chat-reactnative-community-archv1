@@ -8,19 +8,23 @@ import {
   Modal,
   Pressable,
   Keyboard,
+  Alert,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
-import {MESSAGE_SENT, UPDATE_CONVERSATIONS} from '../../store/types/types';
+import {
+  MESSAGE_SENT,
+  SHOW_TOAST,
+  UPDATE_CHAT_REQUEST_STATE,
+  UPDATE_CONVERSATIONS,
+} from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
-// import database from '@react-native-firebase/database';
-
-// let addItem = (payload: any) => {
-//   database().ref('/users').push(payload);
-// };
+import {myClient} from '../..';
+import {DM_REQUEST_MESSAGE, SEND_DM_REQUEST} from '../../constants/Strings';
+import SendDMRequestModal from '../../customModals/SendDMRequest';
 
 interface InputBox {
   isReply: boolean;
@@ -29,6 +33,9 @@ interface InputBox {
   replyMessage: any;
   setIsReply: any;
   setReplyMessage: any;
+  chatRequestState?: any;
+  chatroomType?: any;
+  isPrivateMember?: boolean;
 }
 
 const InputBox = ({
@@ -38,18 +45,25 @@ const InputBox = ({
   replyMessage,
   setIsReply,
   setReplyMessage,
+  chatRequestState,
+  chatroomType,
+  isPrivateMember,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
 
   const dispatch = useAppDispatch();
   const {myChatrooms, user, community} = useAppSelector(
     state => state.homefeed,
   );
   const {chatroomDetails} = useAppSelector(state => state.chatroom);
+
+  let userState = user?.state;
+  // let receiverState =
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -88,6 +102,9 @@ const InputBox = ({
     let time = new Date(Date.now());
     let hr = time.getHours();
     let min = time.getMinutes();
+    let ID = Date.now();
+
+    // check if message is empty string or not
     if (!!message.trim()) {
       let replyObj = chatSchema.reply;
       if (isReply) {
@@ -103,7 +120,7 @@ const InputBox = ({
           minimumIntegerDigits: 2,
           useGrouping: false,
         })}`;
-        replyObj.id = Date.now();
+        replyObj.id = ID;
         replyObj.chatroom_id = chatroomDetails?.chatroom.id;
         replyObj.community_id = community?.id;
         replyObj.date = `${
@@ -121,7 +138,7 @@ const InputBox = ({
         minimumIntegerDigits: 2,
         useGrouping: false,
       })}`;
-      obj.id = Date.now();
+      obj.id = ID;
       obj.chatroom_id = chatroomDetails?.chatroom.id;
       obj.community_id = community?.id;
       obj.date = `${
@@ -134,7 +151,7 @@ const InputBox = ({
       });
       dispatch({
         type: MESSAGE_SENT,
-        body: isReply ? {id : replyObj?.id} : {id: obj?.id},
+        body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
       setMessage('');
       setIsReply(false);
@@ -144,20 +161,68 @@ const InputBox = ({
 
       // -- Code for local message handling ended
 
-      let payload = {
-        chatroom_id: chatroomID,
-        created_at: new Date(Date.now()),
-        has_files: false,
-        text: message.trim(),
-        // attachment_count?: any;
-        replied_conversation_id: replyMessage?.id,
-      };
-      let response = await dispatch(onConversationsCreate(payload) as any);
-      // addItem(payload);
-      // if (!!response) {
-      //   setMessage('');
-      // }
+      // condition for request DM for the first time
+      if (
+        chatroomType === 10 && // if DM
+        chatRequestState === null &&
+        isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
+      ) {
+        let response = await myClient.requestDmAction({
+          chatroom_id: chatroomID,
+          chat_request_state: 0,
+          text: message.trim(),
+        });
+
+        dispatch({
+          type: SHOW_TOAST,
+          body: {isToast: true, msg: 'Direct messaging request sent'},
+        });
+
+        //dispatching redux action for local handling of chatRequestState
+        dispatch({
+          type: UPDATE_CHAT_REQUEST_STATE,
+          body: {chatRequestState: 0},
+        });
+      } else if (
+        chatroomType === 10 && // if DM
+        chatRequestState === null &&
+        !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
+      ) {
+        let response = await myClient.requestDmAction({
+          chatroom_id: chatroomID,
+          chat_request_state: 1,
+          text: message.trim(),
+        });
+        dispatch({
+          type: UPDATE_CHAT_REQUEST_STATE,
+          body: {chatRequestState: 1},
+        });
+      } else {
+        let payload = {
+          chatroom_id: chatroomID,
+          created_at: new Date(Date.now()),
+          has_files: false,
+          text: message.trim(),
+          temporary_id: ID,
+          // attachment_count?: any;
+          replied_conversation_id: replyMessage?.id,
+        };
+        let response = await dispatch(onConversationsCreate(payload) as any);
+      }
     }
+  };
+
+  // function calls a confirm alert which will further call onSend function onConfirm.
+  const sendDmRequest = () => {
+    showDMSentAlert();
+  };
+
+  const showDMSentAlert = () => {
+    setDMSentAlertModalVisible(true);
+  };
+
+  const hideDMSentAlert = () => {
+    setDMSentAlertModalVisible(false);
   };
 
   return (
@@ -168,7 +233,7 @@ const InputBox = ({
           {
             marginBottom: isKeyBoardFocused
               ? Platform.OS === 'android'
-                ? 35
+                ? 45
                 : 5
               : Platform.OS === 'ios'
               ? 20
@@ -242,7 +307,19 @@ const InputBox = ({
           </View>
         </View>
 
-        <TouchableOpacity onPressOut={onSend} style={styles.sendButton}>
+        <TouchableOpacity
+          onPressOut={() => {
+            if (
+              chatroomType === 10 && // if DM
+              chatRequestState === null &&
+              isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
+            ) {
+              sendDmRequest();
+            } else {
+              onSend();
+            }
+          }}
+          style={styles.sendButton}>
           <Image
             source={require('../../assets/images/send_button3x.png')}
             style={styles.emoji}
@@ -283,6 +360,14 @@ const InputBox = ({
           </View>
         </Pressable>
       </Modal>
+
+      {/* SEND DM request Modal */}
+      <SendDMRequestModal
+        hideDMSentAlert={hideDMSentAlert}
+        DMSentAlertModalVisible={DMSentAlertModalVisible}
+        onSend={onSend}
+      />
+
       {/* {showEmoji && (
         <View style={styles.emojiPicker}>
           <Emoji name="smile" style={styles.emoji} />

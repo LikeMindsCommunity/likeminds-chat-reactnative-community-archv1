@@ -2,7 +2,7 @@ import React, {Alert, Linking, Text} from 'react-native';
 import STYLES from '../constants/Styles';
 import {useAppSelector} from '../store';
 
-const REGEX_USER_SPLITTING = /(<<[\w\s🤖@]+\|route:\/\/\S+>>)/g;
+const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
 
@@ -35,7 +35,8 @@ function detectLinks(message: string, isLongPress?: boolean) {
     return (
       <Text>
         {parts?.map((val: any, index: any) => (
-          <Text>
+          <Text key={val + index}>
+            {/* key should be unique so we are passing `val(abc) + index(number) = abc2` to make it unique */}
             {regex.test(val) ? (
               <Text
                 onPress={async () => {
@@ -119,10 +120,11 @@ export const decode = (
           <Text
             style={{
               color: STYLES.$COLORS.PRIMARY,
-              // fontSize: STYLES.$FONT_SIZES.MEDIUM,
               fontFamily: STYLES.$FONT_TYPES.LIGHT,
             }}
-            key={index + val}>
+            key={val.key + index}>
+            {/* key should be unique so we are passing `val(abc) + index(number) = abc2` to make it unique */}
+
             {!!val.route ? (
               <Text
                 onPress={() => {
@@ -134,7 +136,6 @@ export const decode = (
                   color: STYLES.$COLORS.LIGHT_BLUE,
                   fontSize: STYLES.$FONT_SIZES.MEDIUM,
                   fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                  // marginBottom: -3,
                 }}>
                 {val.key}
               </Text>
@@ -150,15 +151,13 @@ export const decode = (
           <Text
             style={{
               color: STYLES.$COLORS.PRIMARY,
-              // fontSize: STYLES.$FONT_SIZES.MEDIUM,
               fontFamily: STYLES.$FONT_TYPES.LIGHT,
             }}
-            key={index + val}>
+            key={val.key + index}>
             {!!val.route ? (
               <Text
                 style={{
                   color: STYLES.$COLORS.PRIMARY,
-                  // fontSize: STYLES.$FONT_SIZES.MEDIUM,
                   fontFamily: STYLES.$FONT_TYPES.BOLD,
                 }}>
                 {val.key}
@@ -237,8 +236,8 @@ export function decodeStr(text: string | undefined) {
   }
 }
 
+// this function return copied messages in formatted form using decodeStr
 export function copySelectedMessages(selectedMessages: any) {
-  // const selectedMessages = messages.filter((message:any) => message.isSelected());
   if (selectedMessages?.length === 1 && !!!selectedMessages[0]?.deleted_by) {
     if (!!selectedMessages[0]?.answer) {
       return decodeStr(selectedMessages[0]?.answer);
@@ -259,5 +258,25 @@ export function copySelectedMessages(selectedMessages: any) {
       })
       .join('\n');
     return copiedMessages;
+  }
+}
+
+// this function formats the recordedTime(future) in days hours and minutes
+export function formatTime(recordedTime: number): string {
+  const date: Date = new Date(recordedTime);
+  const now: Date = new Date();
+
+  const diff: number = date.getTime() - now.getTime();
+  const seconds: number = Math.floor(diff / 1000);
+  const minutes: number = Math.floor(seconds / 60);
+  const hours: number = Math.floor(minutes / 60);
+  const days: number = Math.floor(hours / 24);
+
+  if (days > 0) {
+    return `${days}d ${hours % 24}h ${minutes % 60}m`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes % 60}m`;
+  } else {
+    return `${minutes}m`;
   }
 }

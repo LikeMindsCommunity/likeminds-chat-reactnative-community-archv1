@@ -14,6 +14,7 @@ import STYLES from '../../constants/Styles';
 import {myClient} from '../..';
 import {useAppSelector} from '../../store';
 import Layout from '../../constants/Layout';
+import {ADD_PARTICIPANTS} from '../../constants/Screens';
 
 const ViewParticipants = ({navigation, route}: any) => {
   const [participants, setParticipants] = useState({} as any);
@@ -244,7 +245,7 @@ const ViewParticipants = ({navigation, route}: any) => {
           isSecret && user?.state === 1 && participants.length > 0 ? (
             <TouchableOpacity
               onPress={() => {
-                navigation.navigate('AddParticipants', {
+                navigation.navigate(ADD_PARTICIPANTS, {
                   chatroomID: chatroomID,
                   isSecret: isSecret,
                 });

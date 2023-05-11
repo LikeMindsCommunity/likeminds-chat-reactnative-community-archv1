@@ -28,10 +28,15 @@ import styles from './styles';
 import {SET_PAGE} from '../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../notifications';
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import GroupFeed from './Tabs/GroupFeed';
+import DMFeed from './Tabs/DMFeed';
 
 interface Props {
   navigation: any;
 }
+
+const Tab = createMaterialTopTabNavigator();
 
 const HomeFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -41,8 +46,14 @@ const HomeFeed = ({navigation}: Props) => {
   const [accessToken, setAccessToken] = useState('');
   const dispatch = useAppDispatch();
 
-  const {myChatrooms, unseenCount, totalCount, page, invitedChatrooms} =
-    useAppSelector(state => state.homefeed);
+  const {
+    myChatrooms,
+    unseenCount,
+    totalCount,
+    page,
+    invitedChatrooms,
+    community,
+  } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient.fbInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
@@ -80,7 +91,7 @@ const HomeFeed = ({navigation}: Props) => {
             <Text
               style={{
                 color: STYLES.$COLORS.TERTIARY,
-                fontSize: STYLES.$FONT_SIZES.XL,
+                fontSize: STYLES.$FONT_SIZES.LARGE,
                 fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
                 paddingTop:
                   Platform.OS === 'ios' ? 3 : Platform.OS === 'android' ? 0 : 0,
@@ -125,7 +136,6 @@ const HomeFeed = ({navigation}: Props) => {
       is_guest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
-
     if (!!res) {
       await dispatch(
         profileData({
@@ -134,28 +144,6 @@ const HomeFeed = ({navigation}: Props) => {
         }) as any,
       );
       setCommunityId(res.community.id);
-      const invitesRes = await dispatch(
-        getInvites({channel_type: 1, page: 1, page_size: 10}, true) as any,
-      );
-
-      if (!!invitesRes?.user_invites) {
-        if (invitesRes?.user_invites?.length < 10) {
-          let payload = {
-            page: 1,
-          };
-          await dispatch(getHomeFeedData(payload) as any);
-        } else {
-          await dispatch(
-            updateInvites(
-              {channel_type: 1, page: 2, page_size: 10},
-              true,
-            ) as any,
-          );
-          setInvitePage(invitePage => {
-            return invitePage + 1;
-          });
-        }
-      }
       setAccessToken(res?.access_token);
     }
 
@@ -191,102 +179,49 @@ const HomeFeed = ({navigation}: Props) => {
     }
   }, [user]);
 
-  async function updateData(newPage: number) {
-    let payload = {
-      page: newPage,
-    };
-    let response = await dispatch(updateHomeFeedData(payload, false) as any);
-    return response;
-  }
-
-  const loadData = async (newPage: number) => {
-    setIsLoading(true);
-    setTimeout(async () => {
-      const res = await updateData(newPage);
-      if (!!res) {
-        setIsLoading(false);
-      }
-    }, 1500);
-  };
-
-  const handleLoadMore = async () => {
-    if (!isLoading) {
-      if (myChatrooms?.length === 0 && invitedChatrooms === 10 * invitePage) {
-        setIsLoading(true);
-        await dispatch(
-          updateInvites(
-            {channel_type: 1, page: invitePage + 1, page_size: 10},
-            true,
-          ) as any,
-        );
-        setInvitePage(invitePage => {
-          return invitePage + 1;
-        });
-        setIsLoading(false);
-      } else if (
-        myChatrooms?.length > 0 &&
-        myChatrooms?.length % 10 === 0 &&
-        myChatrooms?.length === 10 * page
-      ) {
-        const newPage = page + 1;
-        dispatch({type: SET_PAGE, body: newPage});
-        loadData(newPage);
-      }
-    }
-  };
-
-  const renderFooter = () => {
-    return isLoading ? (
-      <View style={{paddingVertical: 20}}>
-        <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
-      </View>
-    ) : null;
-  };
-
-  useEffect(() => {
-    const query = ref(db, `/community/${communityId}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        dispatch(getHomeFeedData({page: 1}, false) as any);
-        dispatch({type: SET_PAGE, body: 1});
-      }
-    });
-  }, []);
+  const renderLabel = ({route}: any) => (
+    <Text style={styles.font}>{route.title}</Text>
+  );
 
   return (
     <View style={styles.page}>
-      <FlatList
-        data={chatrooms}
-        ListHeaderComponent={() => (
-          <HomeFeedExplore
-            newCount={unseenCount}
-            totalCount={totalCount}
-            navigation={navigation}
+      {community?.hide_dm_tab === false ? (
+        <Tab.Navigator
+          screenOptions={{
+            tabBarLabelStyle: styles.font,
+            tabBarIndicatorStyle: {backgroundColor: STYLES.$COLORS.PRIMARY},
+            // tabBarLabelStyle: {
+            //   fontSize: 10,
+            // },
+          }}>
+          <Tab.Screen
+            name="GroupFeed"
+            options={{
+              tabBarLabel: ({focused}) => (
+                <Text
+                  style={[
+                    styles.font,
+                    {
+                      color: focused
+                        ? STYLES.$COLORS.PRIMARY
+                        : STYLES.$COLORS.MSG,
+                    },
+                  ]}>
+                  Groups
+                </Text>
+              ),
+            }}
+            component={GroupFeed}
           />
-        )}
-        renderItem={({item}: any) => {
-          const homeFeedProps = {
-            title: item?.chatroom?.header!,
-            avatar: item?.chatroom?.chatroom_image_url!,
-            lastMessage: item?.last_conversation?.answer!,
-            lastMessageUser: item?.last_conversation?.member?.name!,
-            time: item?.last_conversation_time!,
-            unreadCount: item?.unseen_conversation_count!,
-            pinned: false,
-            lastConversation: item?.last_conversation!,
-            lastConvoMember: item?.last_conversation?.member?.name!,
-            chatroomID: item?.chatroom?.id!,
-            isSecret: item?.chatroom?.is_secret,
-            deletedBy: item?.last_conversation?.deleted_by,
-            inviteReceiver: item?.invite_receiver,
-          };
-          return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
-        }}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
-        ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => item?.chatroom?.id.toString()}
-      />
+          <Tab.Screen
+            name="DMFeed"
+            options={{tabBarLabel: 'DMs'}}
+            component={DMFeed}
+          />
+        </Tab.Navigator>
+      ) : community?.hide_dm_tab === true ? (
+        <GroupFeed navigation={navigation} />
+      ) : null}
     </View>
   );
 };

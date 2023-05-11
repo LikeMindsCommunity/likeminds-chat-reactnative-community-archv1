@@ -20,6 +20,9 @@ import {
   SHOW_TOAST,
 } from '../../store/types/types';
 import {styles} from './styles';
+import STYLES from '../../constants/Styles';
+import {CHATROOM} from '../../constants/Screens';
+import { CANCEL_BUTTON, CONFIRM_BUTTON } from '../../constants/Strings';
 
 interface Props {
   avatar: string;
@@ -31,10 +34,11 @@ interface Props {
   lastConversation: any;
   navigation: any;
   chatroomID: number;
-  lastConvoMember: string;
+  lastConversationMember?: string;
   isSecret: boolean;
   deletedBy?: number;
-  inviteReceiver: any;
+  inviteReceiver?: any;
+  chatroomType: number;
 }
 
 const HomeFeedItem: React.FC<Props> = ({
@@ -47,10 +51,11 @@ const HomeFeedItem: React.FC<Props> = ({
   lastConversation,
   navigation,
   chatroomID,
-  lastConvoMember,
+  lastConversationMember,
   isSecret,
   deletedBy,
   inviteReceiver,
+  chatroomType,
 }) => {
   // let dateOrTime = getFullDate(time);
   const dispatch = useAppDispatch();
@@ -61,12 +66,11 @@ const HomeFeedItem: React.FC<Props> = ({
       'You are about to join this secret chatroom.',
       [
         {
-          text: 'Cancel',
-          // onPress: () => Alert.alert('Cancel Pressed'),
+          text: CANCEL_BUTTON,
           style: 'default',
         },
         {
-          text: 'Confirm',
+          text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
               channel_id: `${chatroomID}`,
@@ -85,11 +89,6 @@ const HomeFeedItem: React.FC<Props> = ({
       ],
       {
         cancelable: false,
-        // cancelable: true,
-        // onDismiss: () =>
-        //   Alert.alert(
-        //     'This alert was dismissed by tapping outside of the alert dialog.',
-        //   ),
       },
     );
 
@@ -99,12 +98,11 @@ const HomeFeedItem: React.FC<Props> = ({
       'Are you sure you want to reject the invitation to join this chatroom?',
       [
         {
-          text: 'Cancel',
-          // onPress: () => Alert.alert('Cancel Pressed'),
+          text: CANCEL_BUTTON,
           style: 'default',
         },
         {
-          text: 'Confirm',
+          text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
               channel_id: `${chatroomID}`,
@@ -122,11 +120,6 @@ const HomeFeedItem: React.FC<Props> = ({
       ],
       {
         cancelable: false,
-        // cancelable: true,
-        // onDismiss: () =>
-        //   Alert.alert(
-        //     'This alert was dismissed by tapping outside of the alert dialog.',
-        //   ),
       },
     );
 
@@ -218,7 +211,7 @@ const HomeFeedItem: React.FC<Props> = ({
   return (
     <Pressable
       onPress={() => {
-        navigation.navigate('ChatRoom', {
+        navigation.navigate(CHATROOM, {
           chatroomID: chatroomID,
           isInvited: !!inviteReceiver ? true : false,
         });
@@ -227,14 +220,25 @@ const HomeFeedItem: React.FC<Props> = ({
         {opacity: pressed ? 0.5 : 1.0},
         styles.itemContainer,
       ]}>
-      <Image
-        source={
-          !!avatar
-            ? {uri: avatar}
-            : require('../../assets/images/default_pic.png')
-        }
-        style={styles.avatar}
-      />
+      <View>
+        <Image
+          source={
+            !!avatar
+              ? {uri: avatar}
+              : require('../../assets/images/default_pic.png')
+          }
+          style={styles.avatar}
+        />
+        {chatroomType === 10 ? (
+          <View style={styles.dmAvatarBubble}>
+            <Image
+              source={require('../../assets/images/dm_message_bubble3x.png')}
+              style={styles.dmAvatarBubbleImg}
+            />
+          </View>
+        ) : null}
+      </View>
+
       <View style={styles.infoContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.title} numberOfLines={1}>
@@ -258,7 +262,13 @@ const HomeFeedItem: React.FC<Props> = ({
                 }>{`This message has been deleted`}</Text>
             ) : (
               <Text>
-                <Text style={styles.lastMessage}>{`${lastConvoMember}: `}</Text>
+                {chatroomType !== 10 ? (
+                  <Text
+                    style={
+                      styles.lastMessage
+                    }>{`${lastConversationMember}: `}</Text>
+                ) : null}
+
                 <Text>
                   {!!lastConversation?.has_files
                     ? getFeedIcon(lastConversation?.attachments)

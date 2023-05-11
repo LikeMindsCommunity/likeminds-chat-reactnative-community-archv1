@@ -4,6 +4,9 @@ import {
   ACCEPT_INVITE,
   ACCEPT_INVITE_FAILED,
   ACCEPT_INVITE_SUCCESS,
+  GET_DMFEED_CHAT,
+  GET_DMFEED_CHAT_FAILED,
+  GET_DMFEED_CHAT_SUCCESS,
   GET_HOMEFEED_CHAT,
   GET_HOMEFEED_CHAT_FAILED,
   GET_HOMEFEED_CHAT_SUCCESS,
@@ -19,6 +22,9 @@ import {
   REJECT_INVITE,
   REJECT_INVITE_FAILED,
   REJECT_INVITE_SUCCESS,
+  UPDATE_DMFEED_CHAT,
+  UPDATE_DMFEED_CHAT_FAILED,
+  UPDATE_DMFEED_CHAT_SUCCESS,
   UPDATE_HOMEFEED_CHAT,
   UPDATE_HOMEFEED_CHAT_FAILED,
   UPDATE_HOMEFEED_CHAT_SUCCESS,
@@ -189,44 +195,42 @@ export const updateHomeFeedData = (payload: any, showLoader?:boolean) => (async 
   }
 });
 
-// export const getProducts = () => async dispatch => {
-//   try {
-//     return await dispatch({
-//       [CALL_API]: {
-//         url: '/products',
-//         method: 'GET',
-//         types: [GET_PRODUCTS, GET_PRODUCTS_SUCCESS, GET_PRODUCTS_FAILED],
-//         showLoader: true,
-//       },
-//     });
-//   } catch (error) {
-//     Alert.alert(`${error}`);
-//   }
-// };
+export const getDMFeedData = (payload: any, showLoader?:boolean) => (async (dispatch: Dispatch) => {
+  try {
+    return await dispatch({
+      type: GET_DMFEED_CHAT_SUCCESS,
+      [CALL_API]: {
+        func: myClient.DmChatroom(payload),
+        body: payload,
+        types: [
+          GET_DMFEED_CHAT,
+          GET_DMFEED_CHAT_SUCCESS,
+          GET_DMFEED_CHAT_FAILED,
+        ],
+        showLoader: showLoader != undefined ? false : true,
+      },
+    });
+  } catch (error) {
+    Alert.alert(`${error}`);
+  }
+});
 
-// export const getProductDetails = id => async dispatch => {
-//   try {
-//     return await dispatch({
-//       [CALL_API]: {
-//         url: `/products/${id}`,
-//         method: 'GET',
-//         // types: [GET_PRODUCTS, GET_PRODUCTS_SUCCESS, GET_PRODUCTS_FAILED],
-//         showLoader: true,
-//       },
-//     });
-//   } catch (error) {
-//     Alert.alert(`${error}`);
-//   }
-// };
-
-// export const setCategories = name => {
-//   return {type: SET_CATEGORIES_SUCCESS, body: name};
-// };
-
-// export const removeCategories = name => {
-//   return {type: REMOVE_CATEGORIES_SUCCESS, body: name};
-// };
-
-// export function savePreferences(settings) {
-//   return {body: settings, type: SAVE_PREFERENCES};
-// }
+export const updateDMFeedData = (payload: any, showLoader?:boolean) => (async (dispatch: Dispatch) => {
+  try {
+    return await dispatch({
+      type: UPDATE_DMFEED_CHAT_SUCCESS,
+      [CALL_API]: {
+        func: myClient.DmChatroom(payload),
+        body: payload,
+        types: [
+          UPDATE_DMFEED_CHAT,
+          UPDATE_DMFEED_CHAT_SUCCESS,
+          UPDATE_DMFEED_CHAT_FAILED,
+        ],
+        showLoader: showLoader != undefined ? false : true,
+      },
+    });
+  } catch (error) {
+    Alert.alert(`${error}`);
+  }
+});
