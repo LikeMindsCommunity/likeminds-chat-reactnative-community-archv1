@@ -60,9 +60,12 @@ export function chatroomReducer(state = initialState, action: any) {
       let conversationArr: any = [...conversationsList];
 
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
-      let index = conversationsList.findIndex(
-        (element: any) => element?.id?.toString() === temporaryID,
-      );
+      let index = conversationsList.findIndex((element: any) => {
+        return (
+          element?.id?.toString() === temporaryID ||
+          element?.temporary_id?.toString() === temporaryID
+        );
+      });
 
       //replacing the value from the index that matches temporaryID
       if (conversations.length > 0 && index !== -1) {
