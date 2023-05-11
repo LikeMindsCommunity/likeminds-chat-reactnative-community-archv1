@@ -24,6 +24,7 @@ import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../..';
 import {DM_REQUEST_MESSAGE, SEND_DM_REQUEST} from '../../constants/Strings';
+import SendDMRequestModal from '../../customModals/SendDMRequest';
 
 interface InputBox {
   isReply: boolean;
@@ -53,6 +54,7 @@ const InputBox = ({
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
 
   const dispatch = useAppDispatch();
   const {myChatrooms, user, community} = useAppSelector(
@@ -212,26 +214,15 @@ const InputBox = ({
 
   // function calls a confirm alert which will further call onSend function onConfirm.
   const sendDmRequest = () => {
-    Alert.alert(
-      SEND_DM_REQUEST,
-      DM_REQUEST_MESSAGE,
-      [
-        {
-          text: 'Cancel',
-          style: 'default',
-        },
-        {
-          text: 'Confirm',
-          onPress: async () => {
-            onSend();
-          },
-          style: 'default',
-        },
-      ],
-      {
-        cancelable: false,
-      },
-    );
+    showDMSentAlert();
+  };
+
+  const showDMSentAlert = () => {
+    setDMSentAlertModalVisible(true);
+  };
+
+  const hideDMSentAlert = () => {
+    setDMSentAlertModalVisible(false);
   };
 
   return (
@@ -242,7 +233,7 @@ const InputBox = ({
           {
             marginBottom: isKeyBoardFocused
               ? Platform.OS === 'android'
-                ? 35
+                ? 45
                 : 5
               : Platform.OS === 'ios'
               ? 20
@@ -369,6 +360,14 @@ const InputBox = ({
           </View>
         </Pressable>
       </Modal>
+
+      {/* SEND DM request Modal */}
+      <SendDMRequestModal
+        hideDMSentAlert={hideDMSentAlert}
+        DMSentAlertModalVisible={DMSentAlertModalVisible}
+        onSend={onSend}
+      />
+
       {/* {showEmoji && (
         <View style={styles.emojiPicker}>
           <Emoji name="smile" style={styles.emoji} />

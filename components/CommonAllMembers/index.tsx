@@ -17,7 +17,7 @@ import {StackActions} from '@react-navigation/native';
 import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {CHATROOM} from '../../constants/Screens';
-import {REQUEST_DM_LIMIT} from '../../constants/Strings';
+import {CANCEL_BUTTON, REQUEST_DM_LIMIT} from '../../constants/Strings';
 import {formatTime} from '../../commonFuctions';
 
 const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
@@ -438,7 +438,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             }.\n\nTry again in ${formatTime(res?.new_request_dm_timestamp)}`,
             [
               {
-                text: 'Cancel',
+                text: CANCEL_BUTTON,
                 style: 'default',
               },
             ],
