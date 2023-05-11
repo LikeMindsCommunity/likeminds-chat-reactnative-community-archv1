@@ -39,6 +39,7 @@ export const styles = StyleSheet.create({
     width: 22,
     height: 22,
     resizeMode: 'contain',
+    tintColor: STYLES.$COLORS.SECONDARY,
   },
   input: {
     flex: 1,
@@ -48,8 +49,8 @@ export const styles = StyleSheet.create({
   disabledInput: {
     marginVertical: 20,
     marginHorizontal: 10,
-    height: 50,
     paddingVertical: 10,
+    minHeight: 50,
     paddingHorizontal: 20,
     backgroundColor: '#f2f2f2',
     borderRadius: 25,
@@ -201,4 +202,18 @@ export const styles = StyleSheet.create({
   headerRight: {
     marginTop: Platform.OS === 'ios' ? -5 : 0,
   },
+  requestMessageTextButton: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+    flexGrow: 1,
+  },
+  dmRequestView: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: STYLES.$COLORS.TERTIARY,
+    marginTop: 10,
+  },
+  dmRequestButtonBox: {marginTop: 30, gap: 20},
 });

@@ -4,6 +4,10 @@ export const DM_REQUEST_MESSAGE =
 export const APPROVE_DM_REQUEST = 'Approve DM request?';
 export const APPROVE_REQUEST_MESSAGE =
   'Member will be able to send you messages and get notified of the same.';
+
+export const REJECT_DM_REQUEST = 'Reject DM request?';
+export const REJECT_REQUEST_MESSAGE =
+  'Member would be blocked from sending you further messages.\nThe sender will not be notified of this.';
 export const BLOCK_DM_REQUEST = 'Block direct messaging?';
 
 export const JOIN_CHATROOM = 'Join this chatroom?';
@@ -22,3 +26,14 @@ export const NO_DM_TEXT =
 export const DM_INFO =
   'Direct message is a feature where members can send private messages to other members and community managers.';
 export const NEW_MESSAGE_BTN_TEXT = 'NEW MESSAGE';
+
+export const REQUEST_SENT =
+  'Messaging would be enabled once your request is approved.';
+export const COMMUNITY_MANAGER_DISABLED_CHAT =
+  'Messaging would be enabled once your request is approved.';
+
+export const CANCEL_BUTTON = 'Cancel';
+export const APPROVE_BUTTON = 'Approve';
+export const CONFIRM_BUTTON = 'Confirm';
+export const REJECT_BUTTON = 'Reject';
+export const REPORT_AND_REJECT_BUTTON = 'Report and Reject';
