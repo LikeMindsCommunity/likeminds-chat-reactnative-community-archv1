@@ -17,7 +17,7 @@ notifee.onBackgroundEvent(async ({type, detail}) => {
 
   if (type === EventType.PRESS) {
     if (!!RootNavigation) {
-      RootNavigation.navigate(routes.route, routes.params); // e.g. navigate('ChatRoom', {chatroomID: 69285});
+      RootNavigation.navigate(routes.route, routes.params); // e.g. navigate(CHATROOM, {chatroomID: 69285});
     }
   }
 });
@@ -29,11 +29,11 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 
 export const myClient = new LikeMinds({
   apiKey: '',
-  xVersionCode:'6',
+  xVersionCode:'7',
   xPlatformCode: 'rn',
 });
 
-function HeadlessCheck({ isHeadless }) {
+function HeadlessCheck({isHeadless}) {
   if (isHeadless) {
     // App has been launched in the background by iOS, ignore
     return null;

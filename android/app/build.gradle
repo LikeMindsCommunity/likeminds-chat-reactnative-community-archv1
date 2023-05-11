@@ -99,8 +99,8 @@ android {
         applicationId "com.likeminds.chat.sx"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "0.7.1"
+        versionCode 7
+        versionName "0.8.0"
     }
 
     splits {

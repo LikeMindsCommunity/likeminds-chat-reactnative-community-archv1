@@ -63,3 +63,4 @@ yarn-error.log
 .metro-health-check*
 google-services.json
 GoogleService-info.plist
+package-lock.json

@@ -34,6 +34,17 @@ import {navigationRef} from '../RootNavigation';
 import getNotification from '../notifications';
 import ViewParticipants from '../screens/ViewParticipants';
 import AddParticipants from '../screens/AddParticipants';
+import DmAllMembers from '../screens/DmAllMembers';
+import {
+  ADD_PARTICIPANTS,
+  CHATROOM,
+  DM_ALL_MEMBERS,
+  EXPLORE_FEED,
+  HOMEFEED,
+  IMAGE_SCREEN,
+  REPORT,
+  VIEW_PARTICIPANTS,
+} from '../constants/Screens';
 
 const Stack = createNativeStackNavigator();
 
@@ -84,7 +95,7 @@ const SwitchComponent = () => {
             navigation.navigate(
               routes?.route as never,
               routes?.params as never,
-            ); //navigate('ChatRoom', {chatroomID: 69285});
+            ); //navigate(CHATROOM, {chatroomID: 69285});
           }
         }
       }
@@ -96,14 +107,19 @@ const SwitchComponent = () => {
   return (
     <View style={{flex: 1}}>
       <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator initialRouteName="HomeFeed">
-          <Stack.Screen name="HomeFeed" component={HomeFeed} />
-          <Stack.Screen name="ExploreFeed" component={ExploreFeed} />
-          <Stack.Screen name="ChatRoom" component={ChatRoom} />
-          <Stack.Screen name="Report" component={ReportScreen} />
-          <Stack.Screen name="ImageScreen" component={ImageScreen} />
-          <Stack.Screen name="ViewParticipants" component={ViewParticipants} />
-          <Stack.Screen name="AddParticipants" component={AddParticipants} />
+        <Stack.Navigator initialRouteName={HOMEFEED}>
+          <Stack.Screen name={HOMEFEED} component={HomeFeed} />
+          <Stack.Screen name={EXPLORE_FEED} component={ExploreFeed} />
+          <Stack.Screen
+            name={CHATROOM}
+            component={ChatRoom}
+            options={{gestureEnabled: Platform.OS === 'ios' ? false : true}}
+          />
+          <Stack.Screen name={REPORT} component={ReportScreen} />
+          <Stack.Screen name={IMAGE_SCREEN} component={ImageScreen} />
+          <Stack.Screen name={VIEW_PARTICIPANTS} component={ViewParticipants} />
+          <Stack.Screen name={ADD_PARTICIPANTS} component={AddParticipants} />
+          <Stack.Screen name={DM_ALL_MEMBERS} component={DmAllMembers} />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastMessage
