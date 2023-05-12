@@ -55,17 +55,26 @@ export function chatroomReducer(state = initialState, action: any) {
       const data = action.body;
       const {conversations = []} = data;
       let temporaryID = conversations[0]?.temporary_id;
-      let index = state.conversations.findIndex(
-        (element: any) => element?.id?.toString() === temporaryID,
-      );
-      let conversationArr: any = [...state.conversations];
-      if (conversations.length > 0) {
+
+      let conversationsList = [...state.conversations];
+      let conversationArr: any = [...conversationsList];
+
+      // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
+      let index = conversationsList.findIndex((element: any) => {
+        return (
+          element?.id?.toString() === temporaryID || // to check locally handled item id with temporaryID
+          element?.temporary_id?.toString() === temporaryID // to replace the messsage if message is already there by verifying message's temporaryID with conversationMeta temporaryID;
+        );
+      });
+
+      //replacing the value from the index that matches temporaryID
+      if (conversations.length > 0 && index !== -1) {
         conversationArr[index] = conversations[0];
       }
       return {
         ...state,
         conversations:
-          index === -1
+          index === -1 && conversationsList.length > 0 // no such element present already && conversationsList length > 0
             ? [conversations[0], ...conversationArr]
             : conversationArr,
       };
