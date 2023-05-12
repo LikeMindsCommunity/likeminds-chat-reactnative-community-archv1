@@ -91,7 +91,7 @@ const HomeFeed = ({navigation}: Props) => {
             <Text
               style={{
                 color: STYLES.$COLORS.TERTIARY,
-                fontSize: STYLES.$FONT_SIZES.XL,
+                fontSize: STYLES.$FONT_SIZES.LARGE,
                 fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
                 paddingTop:
                   Platform.OS === 'ios' ? 3 : Platform.OS === 'android' ? 0 : 0,
@@ -136,7 +136,6 @@ const HomeFeed = ({navigation}: Props) => {
       is_guest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
-
     if (!!res) {
       await dispatch(
         profileData({

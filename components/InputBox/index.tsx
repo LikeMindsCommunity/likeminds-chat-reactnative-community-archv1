@@ -36,6 +36,7 @@ import DocumentPicker from 'react-native-document-picker';
 import {useNavigation} from '@react-navigation/native';
 import {IMAGE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
+import SendDMRequestModal from '../../customModals/SendDMRequest';
 
 interface InputBox {
   isReply?: boolean;
@@ -46,9 +47,9 @@ interface InputBox {
   setReplyMessage?: any;
   chatRequestState?: any;
   chatroomType?: any;
-  chatroomReceiverMemberState?: any;
   navigation: any;
   isUploadScreen: boolean;
+  isPrivateMember?: boolean;
 }
 
 const InputBox = ({
@@ -60,9 +61,9 @@ const InputBox = ({
   setReplyMessage,
   chatRequestState,
   chatroomType,
-  chatroomReceiverMemberState,
   navigation,
   isUploadScreen,
+  isPrivateMember,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
@@ -70,18 +71,30 @@ const InputBox = ({
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const {selectedImagesToUpload = []} = useAppSelector(state => state.chatroom);
+  const {selectedImagesToUpload = []}: any = useAppSelector(
+    state => state.chatroom,
+  );
+  const [fileUri, setFileUri] = useState(null);
+  const [pdfUri, setPdfUri] = useState(null);
+  const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
+
+  const dispatch = useAppDispatch();
+  const {myChatrooms, user, community}: any = useAppSelector(
+    state => state.homefeed,
+  );
+  const {chatroomDetails}: any = useAppSelector(state => state.chatroom);
+
+  let userState = user?.state;
 
   const selectGalley = async () => {
     const options = {
       mediaType: 'mixed',
       selectionLimit: 0,
     };
-    await launchImageLibrary(options as any, response => {
-      let selectedImages: any = response?.assets;
+    await launchImageLibrary(options as any, (response: any) => {
       console.log('Selected image: ', response);
+      let selectedImages = response?.assets;
       navigation.navigate(IMAGE_UPLOAD, {
-        selectedImages: response?.assets,
         chatroomID: chatroomID,
       });
 
@@ -124,15 +137,6 @@ const InputBox = ({
       console.log('DocumentPicker Error: ', error);
     }
   };
-
-  const dispatch = useAppDispatch();
-  const {myChatrooms, user, community} = useAppSelector(
-    state => state.homefeed,
-  );
-  const {chatroomDetails} = useAppSelector(state => state.chatroom);
-
-  let userState = user?.state;
-  // let receiverState =
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -245,8 +249,7 @@ const InputBox = ({
       if (
         chatroomType === 10 && // if DM
         chatRequestState === null &&
-        userState === 4 && // if Member not CM
-        chatroomReceiverMemberState === 4 // if receiver is a member not CM
+        isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
         let response = await myClient.requestDmAction({
           chatroom_id: chatroomID,
@@ -267,13 +270,16 @@ const InputBox = ({
       } else if (
         chatroomType === 10 && // if DM
         chatRequestState === null &&
-        (userState === 1 || // if Member not CM
-          chatroomReceiverMemberState === 1) // if receiver is a member not CM
+        !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
         let response = await myClient.requestDmAction({
           chatroom_id: chatroomID,
           chat_request_state: 1,
           text: message.trim(),
+        });
+        dispatch({
+          type: UPDATE_CHAT_REQUEST_STATE,
+          body: {chatRequestState: 1},
         });
       } else {
         if (!isUploadScreen) {
@@ -331,26 +337,15 @@ const InputBox = ({
 
   // function calls a confirm alert which will further call onSend function onConfirm.
   const sendDmRequest = () => {
-    Alert.alert(
-      SEND_DM_REQUEST,
-      DM_REQUEST_MESSAGE,
-      [
-        {
-          text: 'Cancel',
-          style: 'default',
-        },
-        {
-          text: 'Confirm',
-          onPress: async () => {
-            onSend();
-          },
-          style: 'default',
-        },
-      ],
-      {
-        cancelable: false,
-      },
-    );
+    showDMSentAlert();
+  };
+
+  const showDMSentAlert = () => {
+    setDMSentAlertModalVisible(true);
+  };
+
+  const hideDMSentAlert = () => {
+    setDMSentAlertModalVisible(false);
   };
 
   // function checks if we have access of storage in Android.
@@ -426,7 +421,7 @@ const InputBox = ({
             ? {
                 marginBottom: isKeyBoardFocused
                   ? Platform.OS === 'android'
-                    ? 35
+                    ? 45
                     : 5
                   : Platform.OS === 'ios'
                   ? 20
@@ -542,8 +537,7 @@ const InputBox = ({
             if (
               chatroomType === 10 && // if DM
               chatRequestState === null &&
-              userState === 4 && // if Member not CM
-              chatroomReceiverMemberState === 4 // if receiver is a member not CM
+              isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
             ) {
               sendDmRequest();
             } else {
@@ -606,6 +600,14 @@ const InputBox = ({
           </View>
         </Pressable>
       </Modal>
+
+      {/* SEND DM request Modal */}
+      <SendDMRequestModal
+        hideDMSentAlert={hideDMSentAlert}
+        DMSentAlertModalVisible={DMSentAlertModalVisible}
+        onSend={onSend}
+      />
+
       {/* {showEmoji && (
         <View style={styles.emojiPicker}>
           <Emoji name="smile" style={styles.emoji} />

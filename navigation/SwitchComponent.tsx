@@ -112,7 +112,11 @@ const SwitchComponent = () => {
         <Stack.Navigator initialRouteName={HOMEFEED}>
           <Stack.Screen name={HOMEFEED} component={HomeFeed} />
           <Stack.Screen name={EXPLORE_FEED} component={ExploreFeed} />
-          <Stack.Screen name={CHATROOM} component={ChatRoom} />
+          <Stack.Screen
+            name={CHATROOM}
+            component={ChatRoom}
+            options={{gestureEnabled: Platform.OS === 'ios' ? false : true}}
+          />
           <Stack.Screen name={REPORT} component={ReportScreen} />
           <Stack.Screen name={IMAGE_SCREEN} component={ImageScreen} />
           <Stack.Screen name={VIEW_PARTICIPANTS} component={ViewParticipants} />

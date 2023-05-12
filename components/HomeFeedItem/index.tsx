@@ -22,6 +22,7 @@ import {
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {CHATROOM} from '../../constants/Screens';
+import { CANCEL_BUTTON, CONFIRM_BUTTON } from '../../constants/Strings';
 
 interface Props {
   avatar: string;
@@ -65,11 +66,11 @@ const HomeFeedItem: React.FC<Props> = ({
       'You are about to join this secret chatroom.',
       [
         {
-          text: 'Cancel',
+          text: CANCEL_BUTTON,
           style: 'default',
         },
         {
-          text: 'Confirm',
+          text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
               channel_id: `${chatroomID}`,
@@ -97,11 +98,11 @@ const HomeFeedItem: React.FC<Props> = ({
       'Are you sure you want to reject the invitation to join this chatroom?',
       [
         {
-          text: 'Cancel',
+          text: CANCEL_BUTTON,
           style: 'default',
         },
         {
-          text: 'Confirm',
+          text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
               channel_id: `${chatroomID}`,

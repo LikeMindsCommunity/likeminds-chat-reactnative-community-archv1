@@ -7,6 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
   TextInput,
+  Alert,
 } from 'react-native';
 import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {styles} from './styles';
@@ -16,8 +17,10 @@ import {StackActions} from '@react-navigation/native';
 import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {CHATROOM} from '../../constants/Screens';
+import {CANCEL_BUTTON, REQUEST_DM_LIMIT} from '../../constants/Strings';
+import {formatTime} from '../../commonFuctions';
 
-const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
+const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const [participants, setParticipants] = useState([] as any);
   const [searchedParticipants, setSearchedParticipants] = useState([] as any);
   const [isLoading, setIsLoading] = useState(false);
@@ -230,18 +233,22 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
 
   //function fetch all members of the community for DM.
   const fetchDMParticipants = async () => {
-    const res = await myClient.dmAllMembers({
-      community_id: community?.id,
-      page: 1,
-      member_state: 4,
-    });
+    let initialPayload =
+      showList == 1
+        ? {
+            community_id: community?.id,
+            page: 1,
+          }
+        : {
+            community_id: community?.id,
+            page: 1,
+            member_state: 1,
+          };
+    const res = await myClient.dmAllMembers(initialPayload);
     setParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
-      const response = await myClient.dmAllMembers({
-        community_id: community?.id,
-        page: 2,
-        member_state: 4,
-      });
+      let changedPayload = {...initialPayload, page: 2};
+      const response = await myClient.dmAllMembers(changedPayload);
       setParticipants((participants: any) => [
         ...participants,
         ...response?.members,
@@ -252,21 +259,27 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
 
   //function search members in the community.
   const searchParticipants = async () => {
-    const res = await myClient.searchMembers({
-      search: search,
-      search_type: 'name',
-      page: 1,
-      page_size: 10,
-    });
+    let initialPayload =
+      showList == 1
+        ? {
+            search: search,
+            search_type: 'name',
+            page: 1,
+            page_size: 10,
+          }
+        : {
+            search: search,
+            search_type: 'name',
+            page: 1,
+            page_size: 10,
+            member_states: '[1]',
+          };
+    const res = await myClient.searchMembers(initialPayload);
     setSearchPage(1);
     setSearchedParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
-      const response = await myClient.searchMembers({
-        search: search,
-        search_type: 'name',
-        page: 2,
-        page_size: 10,
-      });
+      let changedPayload = {...initialPayload, page: 2};
+      const response = await myClient.searchMembers(changedPayload);
       setSearchedParticipants((searchedParticipants: any) => [
         ...searchedParticipants,
         ...response?.members,
@@ -296,20 +309,37 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
   //function calls action to update members array with the new data.
   async function updateData(newPage: number) {
     if (isSearch) {
-      const res = await myClient.searchMembers({
-        search: search,
-        search_type: 'name',
-        page: newPage,
-        page_size: 10,
-      });
+      let initialPayload =
+        showList == 1
+          ? {
+              search: search,
+              search_type: 'name',
+              page: newPage,
+              page_size: 10,
+            }
+          : {
+              search: search,
+              search_type: 'name',
+              page: newPage,
+              page_size: 10,
+              member_states: '[1]',
+            };
+      const res = await myClient.searchMembers(initialPayload);
       return res;
     } else {
       if (isDM) {
-        const res = await myClient.dmAllMembers({
-          community_id: community?.id,
-          page: newPage,
-          member_state: 4,
-        });
+        const res = await myClient.dmAllMembers(
+          showList == 1
+            ? {
+                community_id: community?.id,
+                page: newPage,
+              }
+            : {
+                community_id: community?.id,
+                page: newPage,
+                member_state: 1,
+              },
+        );
         return res;
       } else {
         const res = await myClient.getAllMembers({page: newPage});
@@ -377,30 +407,43 @@ const CommonAllMembers = ({navigation, chatroomID, isDM}: any) => {
       let clickedChatroomID = res?.chatroom_id;
       if (!!clickedChatroomID) {
         navigation.navigate(CHATROOM, {chatroomID: clickedChatroomID});
-      } else if (res?.is_request_dm_limit_exceeded === false) {
-        let payload = {
-          community_id: community?.id,
-          member_id: memberID,
-        };
-        const response = await myClient.onCreateDM(payload);
-        if (response?.success === false) {
-          dispatch({
-            type: SHOW_TOAST,
-            body: {isToast: true, msg: `${response?.error_message}`},
-          });
-        } else {
-          let createdChatroomID = response?.chatroom?.id;
-          if (!!createdChatroomID) {
-            navigation.navigate(CHATROOM, {
-              chatroomID: createdChatroomID,
-            });
-          }
-        }
       } else {
-        dispatch({
-          type: SHOW_TOAST,
-          body: {isToast: true, msg: `DM request limit exceeded`},
-        });
+        if (res?.is_request_dm_limit_exceeded === false) {
+          let payload = {
+            community_id: community?.id,
+            member_id: memberID,
+          };
+          const response = await myClient.onCreateDM(payload);
+          if (response?.success === false) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: `${response?.error_message}`},
+            });
+          } else {
+            let createdChatroomID = response?.chatroom?.id;
+            if (!!createdChatroomID) {
+              navigation.navigate(CHATROOM, {
+                chatroomID: createdChatroomID,
+              });
+            }
+          }
+        } else {
+          let userDMLimit = res?.user_dm_limit;
+          Alert.alert(
+            REQUEST_DM_LIMIT,
+            `You can only send ${
+              userDMLimit?.number_in_duration
+            } DM requests per ${
+              userDMLimit?.duration
+            }.\n\nTry again in ${formatTime(res?.new_request_dm_timestamp)}`,
+            [
+              {
+                text: CANCEL_BUTTON,
+                style: 'default',
+              },
+            ],
+          );
+        }
       }
     }
   };

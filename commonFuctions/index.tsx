@@ -236,8 +236,8 @@ export function decodeStr(text: string | undefined) {
   }
 }
 
+// this function return copied messages in formatted form using decodeStr
 export function copySelectedMessages(selectedMessages: any) {
-  // const selectedMessages = messages.filter((message:any) => message.isSelected());
   if (selectedMessages?.length === 1 && !!!selectedMessages[0]?.deleted_by) {
     if (!!selectedMessages[0]?.answer) {
       return decodeStr(selectedMessages[0]?.answer);
@@ -258,5 +258,25 @@ export function copySelectedMessages(selectedMessages: any) {
       })
       .join('\n');
     return copiedMessages;
+  }
+}
+
+// this function formats the recordedTime(future) in days hours and minutes
+export function formatTime(recordedTime: number): string {
+  const date: Date = new Date(recordedTime);
+  const now: Date = new Date();
+
+  const diff: number = date.getTime() - now.getTime();
+  const seconds: number = Math.floor(diff / 1000);
+  const minutes: number = Math.floor(seconds / 60);
+  const hours: number = Math.floor(minutes / 60);
+  const days: number = Math.floor(hours / 24);
+
+  if (days > 0) {
+    return `${days}d ${hours % 24}h ${minutes % 60}m`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes % 60}m`;
+  } else {
+    return `${minutes}m`;
   }
 }
