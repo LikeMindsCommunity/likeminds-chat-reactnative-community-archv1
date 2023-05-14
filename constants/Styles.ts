@@ -7,7 +7,7 @@ export default {
     JOINED_BTN: '#e9ecf1',
     LIGHT_BLUE: '#0276fa',
     SELECTED_BLUE: '#e8f1fa',
-    RED: 'red'
+    RED: 'red',
   },
   $FONT_SIZES: {
     XS: 10,
@@ -61,5 +61,10 @@ export default {
   },
   $TEXTVIEW_WIDTH: {
     REGULAR: 240,
+  },
+  $STATUS_BAR_STYLE: {
+    default: 'default',
+    'dark-content': 'dark-content',
+    'light-content': 'light-content',
   },
 };

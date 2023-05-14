@@ -1,4 +1,11 @@
-import {View, Text, Alert, PermissionsAndroid, Platform} from 'react-native';
+import {
+  View,
+  Text,
+  Alert,
+  PermissionsAndroid,
+  Platform,
+  StatusBar,
+} from 'react-native';
 import * as React from 'react';
 import {useEffect} from 'react';
 import {
@@ -52,7 +59,9 @@ const Stack = createNativeStackNavigator();
 
 const SwitchComponent = () => {
   const {count, chatroomCount} = useAppSelector(state => state.loader);
-  const {isToast, toastMessage} = useAppSelector(state => state.homefeed);
+  const {isToast, toastMessage, statusBarStyle} = useAppSelector(
+    state => state.homefeed,
+  );
   const dispatch = useAppDispatch();
   if (Platform.OS === 'android') {
     PermissionsAndroid.request(
@@ -108,6 +117,7 @@ const SwitchComponent = () => {
 
   return (
     <View style={{flex: 1}}>
+      <StatusBar barStyle={statusBarStyle} />
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator initialRouteName={HOMEFEED}>
           <Stack.Screen name={HOMEFEED} component={HomeFeed} />

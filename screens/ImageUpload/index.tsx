@@ -16,40 +16,21 @@ import {
   CLEAR_SELECTED_IMAGES_TO_UPLOAD,
   CLEAR_SELECTED_IMAGE_TO_VIEW,
   SELECTED_IMAGE_TO_VIEW,
+  STATUS_BAR_STYLE,
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
+import STYLES from '../../constants/Styles';
 
 const ImageUpload = ({navigation, route}: any) => {
   const {chatroomID} = route?.params;
-  const {selectedImagesToUpload = [], selectedImageToView = {}} =
+  const {selectedImagesToUpload = [], selectedImageToView = {}}: any =
     useAppSelector(state => state.chatroom);
   const dispatch = useAppDispatch();
 
   // Selected header of chatroom screen
   const setInitialHeader = () => {
     navigation.setOptions({
-      title: '',
-      headerShadowVisible: false,
-      // headerStyle: {backgroundColor: 'black'},
-      headerLeft: () => (
-        <View style={styles.headingContainer}>
-          <TouchableOpacity
-            onPress={() => {
-              dispatch({
-                type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
-              });
-              dispatch({
-                type: CLEAR_SELECTED_IMAGE_TO_VIEW,
-              });
-              navigation.goBack();
-            }}>
-            <Image
-              source={require('../../assets/images/blue_back_arrow3x.png')}
-              style={styles.backBtn}
-            />
-          </TouchableOpacity>
-        </View>
-      ),
+      headerShown: false,
     });
   };
 
@@ -66,6 +47,10 @@ const ImageUpload = ({navigation, route}: any) => {
       dispatch({
         type: CLEAR_SELECTED_IMAGE_TO_VIEW,
       });
+      dispatch({
+        type: STATUS_BAR_STYLE,
+        body: {color: STYLES.$STATUS_BAR_STYLE.default},
+      });
       navigation.goBack();
       return true;
     }
@@ -80,24 +65,42 @@ const ImageUpload = ({navigation, route}: any) => {
 
   return (
     <View style={styles.page}>
-      <View style={{flexGrow: 1, display: 'flex'}}>
+      <View style={styles.headingContainer}>
+        <TouchableOpacity
+          style={styles.touchableBackButton}
+          onPress={() => {
+            dispatch({
+              type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+            });
+            dispatch({
+              type: CLEAR_SELECTED_IMAGE_TO_VIEW,
+            });
+            dispatch({
+              type: STATUS_BAR_STYLE,
+              body: {color: STYLES.$STATUS_BAR_STYLE.default},
+            });
+            navigation.goBack();
+          }}>
+          <Image
+            source={require('../../assets/images/blue_back_arrow3x.png')}
+            style={styles.backBtn}
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.selectedImageToView}>
         <Image
           source={{uri: selectedImageToView?.uri}}
           style={styles.mainImage}
         />
       </View>
-      <View style={{position: 'absolute', bottom: 30}}>
+      <View style={styles.bottomBar}>
         <InputBox
           isUploadScreen={true}
           chatroomID={chatroomID}
           navigation={navigation}
         />
         <ScrollView
-          contentContainerStyle={{
-            height: 50,
-            alignSelf: 'flex-end',
-            marginHorizontal: 10,
-          }}
+          contentContainerStyle={styles.bottomListOfImages}
           horizontal={true}
           bounces={false}>
           {selectedImagesToUpload.length > 0 &&
