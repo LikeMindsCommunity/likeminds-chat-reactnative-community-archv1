@@ -6,6 +6,7 @@ import {
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
+  IS_FILE_UPLOADING,
   LONG_PRESSED,
   MESSAGE_SENT,
   ON_CONVERSATIONS_CREATE_SUCCESS,
@@ -30,6 +31,8 @@ const initialState = {
   position: {x: 0, y: 0} as any,
   selectedImagesToUpload: [],
   selectedImageToView: {} as any,
+  isFileUploading: false,
+  fileUploadingID: null,
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -156,6 +159,14 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case CLEAR_SELECTED_IMAGE_TO_VIEW: {
       return {...state, selectedImageToView: {}};
+    }
+    case IS_FILE_UPLOADING: {
+      const {fileUploadingStatus, fileUploadingID} = action.body;
+      return {
+        ...state,
+        isFileUploading: fileUploadingStatus,
+        fileUploadingID: fileUploadingID,
+      };
     }
     default:
       return state;

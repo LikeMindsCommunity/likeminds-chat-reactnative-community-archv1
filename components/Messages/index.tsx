@@ -41,7 +41,7 @@ const Messages = ({
     stateArr,
     conversations,
     chatroomDetails,
-  } = useAppSelector(state => state.chatroom);
+  }: any = useAppSelector(state => state.chatroom);
 
   const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);

@@ -101,4 +101,15 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
+  uploadingIndicator: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    zIndex: 1,
+    height: '100%',
+    width: '100%',
+    backgroundColor: 'white',
+    opacity: 0.5,
+  },
 });

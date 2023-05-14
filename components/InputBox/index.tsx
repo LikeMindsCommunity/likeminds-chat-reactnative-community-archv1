@@ -18,11 +18,13 @@ import {onConversationsCreate} from '../../store/actions/chatroom';
 import {
   CLEAR_SELECTED_IMAGES_TO_UPLOAD,
   CLEAR_SELECTED_IMAGE_TO_VIEW,
+  IS_FILE_UPLOADING,
   MESSAGE_SENT,
   SELECTED_IMAGES_TO_UPLOAD,
   SELECTED_IMAGE_TO_VIEW,
   SELECTED_MORE_IMAGES_TO_UPLOAD,
   SHOW_TOAST,
+  STATUS_BAR_STYLE,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
 } from '../../store/types/types';
@@ -37,6 +39,10 @@ import {useNavigation} from '@react-navigation/native';
 import {IMAGE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
+import {Amplify, Storage} from 'aws-amplify';
+import {awsConfig} from '../../aws-exports';
+
+Amplify.configure(awsConfig);
 
 interface InputBox {
   isReply?: boolean;
@@ -70,6 +76,9 @@ const InputBox = ({
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [progressText, setProgressText] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [s3UploadResponse, setS3UploadResponse] = useState<any>();
 
   const {selectedImagesToUpload = []}: any = useAppSelector(
     state => state.chatroom,
@@ -86,6 +95,7 @@ const InputBox = ({
 
   let userState = user?.state;
 
+  //select Images From Gallery
   const selectGalley = async () => {
     const options = {
       mediaType: 'mixed',
@@ -94,38 +104,37 @@ const InputBox = ({
     await launchImageLibrary(options as any, (response: any) => {
       console.log('Selected image: ', response);
       let selectedImages = response?.assets;
-      navigation.navigate(IMAGE_UPLOAD, {
-        chatroomID: chatroomID,
-      });
 
-      if (isUploadScreen === false) {
-        dispatch({
-          type: SELECTED_IMAGES_TO_UPLOAD,
-          body: {images: selectedImages},
-        });
+      if (!!selectedImages) {
+        if (isUploadScreen === false) {
+          dispatch({
+            type: SELECTED_IMAGES_TO_UPLOAD,
+            body: {images: selectedImages},
+          });
+          dispatch({
+            type: SELECTED_IMAGE_TO_VIEW,
+            body: {image: selectedImages[0]},
+          });
+          dispatch({
+            type: STATUS_BAR_STYLE,
+            body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+          });
 
-        dispatch({
-          type: SELECTED_IMAGE_TO_VIEW,
-          body: {image: selectedImages[0]},
-        });
-      } else if (isUploadScreen === true) {
-        console.log('isUploadScreen ==', isUploadScreen);
-        dispatch({
-          type: SELECTED_MORE_IMAGES_TO_UPLOAD,
-          body: {images: selectedImages},
-        });
+          navigation.navigate(IMAGE_UPLOAD, {
+            chatroomID: chatroomID,
+          });
+        } else if (isUploadScreen === true) {
+          console.log('isUploadScreen ==', isUploadScreen);
+          dispatch({
+            type: SELECTED_MORE_IMAGES_TO_UPLOAD,
+            body: {images: selectedImages},
+          });
+        }
       }
     });
-    // ImagePicker.openPicker({
-    //   multiple: true,
-    // }).then(images => {
-    //   console.log('Selected image: ', images);
-    //   navigation.navigate(IMAGE_UPLOAD, {
-    //     selectedImages: images,
-    //   });
-    // });
   };
 
+  //select Documents From Gallery
   const selectDoc = async () => {
     try {
       const response = await DocumentPicker.pick({
@@ -156,6 +165,184 @@ const InputBox = ({
     };
   }, []);
 
+  // function calls a confirm alert which will further call onSend function onConfirm.
+  const sendDmRequest = () => {
+    showDMSentAlert();
+  };
+
+  const showDMSentAlert = () => {
+    setDMSentAlertModalVisible(true);
+  };
+
+  const hideDMSentAlert = () => {
+    setDMSentAlertModalVisible(false);
+  };
+
+  // function checks if we have access of storage in Android.
+  async function requestStoragePermission() {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission',
+            message: 'App needs permission to access your storage',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Storage permission granted');
+          return true;
+        } else {
+          let permissionGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            {
+              title: 'Storage Permission',
+              message: 'App needs permission to access your storage',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );
+          if (permissionGranted === PermissionsAndroid.RESULTS.GRANTED) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+  }
+
+  // function handles the selection of images and videos
+  const handleGallery = async () => {
+    if (Platform.OS === 'ios') {
+      selectGalley();
+    } else {
+      let res = await requestStoragePermission();
+      if (res === true) {
+        selectGalley();
+      }
+    }
+  };
+
+  // function handles the slection of documents
+  const handleDoc = async () => {
+    if (Platform.OS === 'ios') {
+      selectDoc();
+    } else {
+      let res = await requestStoragePermission();
+      if (res === true) {
+        selectDoc();
+      }
+    }
+  };
+
+  const fetchResourceFromURI = async (uri: string) => {
+    const response = await fetch(uri);
+    console.log(response);
+    const blob = await response.blob();
+    return blob;
+  };
+
+  const uploadResource = async (
+    selectedImages: any,
+    conversationID: any,
+    dummyID: any,
+  ) => {
+    if (isUploading) return;
+    // setIsUploading(true);
+    dispatch({
+      type: IS_FILE_UPLOADING,
+      body: {fileUploadingStatus: true, fileUploadingID: dummyID},
+    });
+    for (let i = 0; i < selectedImages.length; i++) {
+      const img = await fetchResourceFromURI(selectedImages[i].uri);
+      const res = await Storage.put(selectedImages[i].uri, img, {
+        level: 'public',
+        contentType: selectedImages[i].type,
+        progressCallback(uploadProgress) {
+          setProgressText(
+            `Progress: ${Math.round(
+              (uploadProgress.loaded / uploadProgress.total) * 100,
+            )} %`,
+          );
+          console.log(
+            `Progress: ${uploadProgress.loaded}/${uploadProgress.total}`,
+          );
+        },
+      });
+      const awsResponse = await Storage.get(res.key);
+      // .then(result => {
+      //   setS3UploadResponse({location: result});
+      // })
+      // .catch(err => {
+      //   setProgressText('Upload Error');
+      //   console.log(err);
+      // });
+      console.log('Storage', awsResponse);
+      setProgressText('');
+      // setIsUploading(false);
+      dispatch({
+        type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+      });
+      dispatch({
+        type: CLEAR_SELECTED_IMAGE_TO_VIEW,
+      });
+
+      let attachmentType = selectedImages[i].type.split('/')[0];
+
+      if (awsResponse) {
+        let fileType = '';
+        // if (selectedImagesToUpload[i].type.split('/')[1] === 'pdf') {
+        //   fileType = 'pdf';
+        // } else
+        if (attachmentType === 'audio') {
+          fileType = 'audio';
+        } else if (attachmentType === 'video') {
+          fileType = 'video';
+        } else if (attachmentType === 'image') {
+          fileType = 'image';
+        }
+        let payload = {
+          conversation_id: conversationID,
+          files_count: selectedImages.length,
+          index: i,
+          meta: {
+            size: selectedImagesToUpload[i]?.fileSize,
+          },
+          name: selectedImagesToUpload[i]?.fileName,
+          type: fileType,
+          url: awsResponse,
+        };
+        console.log('payload --->', payload);
+
+        const uploadRes = await myClient.onUploadFile(payload);
+        console.log('uploadRes ==', uploadRes);
+        setS3UploadResponse(null);
+        dispatch({
+          type: IS_FILE_UPLOADING,
+          body: {fileUploadingStatus: false, fileUploadingID: null},
+        });
+        // navigation.goBack();
+      }
+    }
+  };
+
+  const handleFileUpload = async (conversationID: any, dummyID: any) => {
+    const res = await uploadResource(
+      selectedImagesToUpload,
+      conversationID,
+      dummyID,
+    );
+    return res;
+  };
+
   const onSend = async () => {
     // -- Code for local message handling for normal and reply for now
     let months = [
@@ -176,9 +363,42 @@ const InputBox = ({
     let hr = time.getHours();
     let min = time.getMinutes();
     let ID = Date.now();
+    let attachmentsCount = selectedImagesToUpload.length; //if any
+
+    let dummySelectedImageArr: any = []; //if any
+    let dummyAttachmentsArr: any = []; //if any
+
+    if (attachmentsCount > 0) {
+      for (let i = 0; i < attachmentsCount; i++) {
+        let attachmentType = selectedImagesToUpload[i].type.split('/')[0];
+        if (attachmentType === 'image') {
+          let obj = {
+            image_url: selectedImagesToUpload[i].uri,
+            index: i,
+          };
+          dummySelectedImageArr = [...dummySelectedImageArr, obj];
+        }
+      }
+    }
+
+    if (attachmentsCount > 0) {
+      for (let i = 0; i < attachmentsCount; i++) {
+        let attachmentType = selectedImagesToUpload[i].type.split('/')[0];
+        let URI = selectedImagesToUpload[i].uri;
+        if (attachmentType === 'image') {
+          let obj = {
+            ...selectedImagesToUpload[i],
+            type: attachmentType,
+            url: URI,
+            index: i,
+          };
+          dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
+        }
+      }
+    }
 
     // check if message is empty string or not
-    if (!!message.trim()) {
+    if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
       if (isReply) {
         replyObj.reply_conversation = replyMessage?.id;
@@ -217,7 +437,11 @@ const InputBox = ({
       obj.date = `${
         time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
       } ${months[time.getMonth()]} ${time.getFullYear()}`;
-
+      obj.attachment_count = attachmentsCount;
+      obj.attachments = dummyAttachmentsArr;
+      obj.has_files = attachmentsCount > 0 ? true : false;
+      obj.attachments_uploaded = attachmentsCount > 0 ? true : false;
+      obj.images = dummySelectedImageArr;
       dispatch({
         type: UPDATE_CONVERSATIONS,
         body: isReply ? {obj: {...replyObj}} : {obj: {...obj}},
@@ -300,115 +524,19 @@ const InputBox = ({
             has_files: true,
             text: message.trim(),
             temporary_id: ID,
-            attachment_count: selectedImagesToUpload.length,
+            attachment_count: attachmentsCount,
             replied_conversation_id: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
-          let selectedFilesCount = selectedImagesToUpload.length;
+          dispatch({
+            type: STATUS_BAR_STYLE,
+            body: {color: STYLES.$STATUS_BAR_STYLE.default},
+          });
+          navigation.goBack();
           if (response) {
-            for (let i = 0; i < selectedFilesCount; i++) {
-              let uploadMediaPayload = {
-                messageId: response?.conversation?.member_id,
-                chatroomId: chatroomID,
-                file: selectedImagesToUpload[i]?.uri,
-                index: i,
-              };
-              console.log('uploadMediaPayload', uploadMediaPayload);
-              const res = await myClient.uploadMedia(uploadMediaPayload);
-              console.log('uploadMedia', res);
-              if (res) {
-                const uploadRes = await myClient.onUploadFile({
-                  conversation_id: response?.id,
-                  files_count: selectedFilesCount,
-                  index: i,
-                  name: selectedImagesToUpload[i]?.fileName,
-                  type: selectedImagesToUpload[i]?.type,
-                  url: res?.Location,
-                });
-                console.log('uploadRes ==', uploadRes);
-                navigation.goBack();
-              }
-            }
+            await handleFileUpload(response?.id, ID);
           }
         }
-      }
-    }
-  };
-
-  // function calls a confirm alert which will further call onSend function onConfirm.
-  const sendDmRequest = () => {
-    showDMSentAlert();
-  };
-
-  const showDMSentAlert = () => {
-    setDMSentAlertModalVisible(true);
-  };
-
-  const hideDMSentAlert = () => {
-    setDMSentAlertModalVisible(false);
-  };
-
-  // function checks if we have access of storage in Android.
-  async function requestStoragePermission() {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs permission to access your storage',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Storage permission granted');
-          return true;
-        } else {
-          let permissionGranted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            {
-              title: 'Storage Permission',
-              message: 'App needs permission to access your storage',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK',
-            },
-          );
-          if (permissionGranted === PermissionsAndroid.RESULTS.GRANTED) {
-            return true;
-          } else {
-            return false;
-          }
-        }
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    }
-  }
-
-  // function handles the selection of images and videos
-  const handleGallery = async () => {
-    if (Platform.OS === 'ios') {
-      selectGalley();
-    } else {
-      let res = await requestStoragePermission();
-      if (res === true) {
-        selectGalley();
-      }
-    }
-  };
-
-  // function handles the slection of documents
-  const handleDoc = async () => {
-    if (Platform.OS === 'ios') {
-      selectDoc();
-    } else {
-      let res = await requestStoragePermission();
-      if (res === true) {
-        selectDoc();
       }
     }
   };
@@ -551,6 +679,8 @@ const InputBox = ({
           />
         </TouchableOpacity>
       </View>
+
+      {/* More features modal like select Images, Docs etc. */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -574,7 +704,6 @@ const InputBox = ({
                     setTimeout(() => {
                       handleGallery();
                     }, 500);
-                    // handleGallery();
                   }}
                   style={styles.imageStyle}>
                   <Image

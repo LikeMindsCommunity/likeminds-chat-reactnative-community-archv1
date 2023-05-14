@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Linking,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useState} from 'react';
 import {styles} from './styles';
@@ -135,7 +136,7 @@ export const VideoConversations = ({
   longPressOpenKeyboard,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
-  const {selectedMessages, stateArr, isLongPress} = useAppSelector(
+  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
   );
   const [isFullList, setIsFullList] = useState(false);
@@ -317,7 +318,7 @@ export const PDFConversations = ({
   longPressOpenKeyboard,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
-  const {selectedMessages, stateArr, isLongPress} = useAppSelector(
+  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
   );
   const [isFullList, setIsFullList] = useState(false);
@@ -507,9 +508,13 @@ export const ImageConversations = ({
   longPressOpenKeyboard,
 }: ImageConversations) => {
   const dispatch = useAppDispatch();
-  const {selectedMessages, stateArr, isLongPress} = useAppSelector(
-    state => state.chatroom,
-  );
+  const {
+    selectedMessages,
+    stateArr,
+    isLongPress,
+    isFileUploading,
+    fileUploadingID,
+  }: any = useAppSelector(state => state.chatroom);
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -734,6 +739,12 @@ export const ImageConversations = ({
           }}
         />
       )}
+
+      {isFileUploading && item?.id === fileUploadingID ? (
+        <View style={styles.uploadingIndicator}>
+          <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+        </View>
+      ) : null}
     </View>
   );
 };
