@@ -136,9 +136,13 @@ export const VideoConversations = ({
   longPressOpenKeyboard,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
-  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
-    state => state.chatroom,
-  );
+  const {
+    selectedMessages,
+    stateArr,
+    isLongPress,
+    isFileUploading,
+    fileUploadingID,
+  }: any = useAppSelector(state => state.chatroom);
   const [isFullList, setIsFullList] = useState(false);
 
   const handleLongPress = (event: any) => {
@@ -307,6 +311,11 @@ export const VideoConversations = ({
           } more`}</Text>
         </TouchableOpacity>
       )}
+      {isFileUploading && item?.id === fileUploadingID ? (
+        <View style={styles.uploadingIndicator}>
+          <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+        </View>
+      ) : null}
     </View>
   );
 };

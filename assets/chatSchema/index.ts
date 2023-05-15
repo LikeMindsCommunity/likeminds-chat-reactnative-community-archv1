@@ -5,7 +5,7 @@ export const chatSchema = {
     attachments: [],
     attachments_uploaded: false,
     images: [],
-    video: [],
+    videos: [],
     chatroom_id: 1129579,
     community_id: 50451,
     created_at: '16:11',
@@ -36,6 +36,9 @@ export const chatSchema = {
   reply: {
     answer: 'Hey',
     attachment_count: 0,
+    attachments: [],
+    images: [],
+    videos: [],
     attachments_uploaded: false,
     chatroom_id: 1129579,
     community_id: 50451,

@@ -1,8 +1,8 @@
 import {
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
-  CLEAR_SELECTED_IMAGES_TO_UPLOAD,
-  CLEAR_SELECTED_IMAGE_TO_VIEW,
+  CLEAR_SELECTED_FILES_TO_UPLOAD,
+  CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
@@ -12,10 +12,11 @@ import {
   ON_CONVERSATIONS_CREATE_SUCCESS,
   PAGINATED_CONVERSATIONS_SUCCESS,
   REACTION_SENT,
-  SELECTED_IMAGES_TO_UPLOAD,
-  SELECTED_IMAGE_TO_VIEW,
+  SELECTED_FILES_TO_UPLOAD,
+  SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
+  SELECTED_FILE_TO_VIEW,
   SELECTED_MESSAGES,
-  SELECTED_MORE_IMAGES_TO_UPLOAD,
+  SELECTED_MORE_FILES_TO_UPLOAD,
   SET_POSITION,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
@@ -29,8 +30,9 @@ const initialState = {
   selectedMessages: [],
   stateArr: [1, 2, 3, 7, 8, 9, 20, 19, 17], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
   position: {x: 0, y: 0} as any,
-  selectedImagesToUpload: [],
-  selectedImageToView: {} as any,
+  selectedFilesToUpload: [],
+  selectedFilesToUploadThumbnails: [],
+  selectedFileToView: {} as any,
   isFileUploading: false,
   fileUploadingID: null,
 };
@@ -139,26 +141,30 @@ export function chatroomReducer(state = initialState, action: any) {
       const {pageX, pageY} = action.body;
       return {...state, position: {x: pageX, y: pageY}};
     }
-    case SELECTED_IMAGES_TO_UPLOAD: {
+    case SELECTED_FILES_TO_UPLOAD: {
       const {images} = action.body;
-      return {...state, selectedImagesToUpload: [...images]};
+      return {...state, selectedFilesToUpload: [...images]};
     }
-    case SELECTED_IMAGE_TO_VIEW: {
+    case SELECTED_FILES_TO_UPLOAD_THUMBNAILS: {
+      const {images} = action.body;
+      return {...state, selectedFilesToUploadThumbnails: [...images]};
+    }
+    case SELECTED_FILE_TO_VIEW: {
       const {image} = action.body;
-      return {...state, selectedImageToView: image};
+      return {...state, selectedFileToView: image};
     }
-    case SELECTED_MORE_IMAGES_TO_UPLOAD: {
+    case SELECTED_MORE_FILES_TO_UPLOAD: {
       const {images} = action.body;
       return {
         ...state,
-        selectedImagesToUpload: [...state.selectedImagesToUpload, ...images],
+        selectedFilesToUpload: [...state.selectedFilesToUpload, ...images],
       };
     }
-    case CLEAR_SELECTED_IMAGES_TO_UPLOAD: {
-      return {...state, selectedImagesToUpload: []};
+    case CLEAR_SELECTED_FILES_TO_UPLOAD: {
+      return {...state, selectedFilesToUpload: []};
     }
-    case CLEAR_SELECTED_IMAGE_TO_VIEW: {
-      return {...state, selectedImageToView: {}};
+    case CLEAR_SELECTED_FILE_TO_VIEW: {
+      return {...state, selectedFileToView: {}};
     }
     case IS_FILE_UPLOADING: {
       const {fileUploadingStatus, fileUploadingID} = action.body;
