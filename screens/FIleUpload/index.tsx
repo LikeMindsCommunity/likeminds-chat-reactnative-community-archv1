@@ -22,7 +22,7 @@ import {useAppDispatch, useAppSelector} from '../../store';
 import STYLES from '../../constants/Styles';
 import {Video, ResizeMode} from 'expo-av';
 import VideoPlayer from 'expo-video-player';
-import {IMAGE_TEXT, VIDEO_TEXT} from '../../constants/Strings';
+import {IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT} from '../../constants/Strings';
 
 const FileUpload = ({navigation, route}: any) => {
   const video = useRef<any>(null);
@@ -131,7 +131,7 @@ const FileUpload = ({navigation, route}: any) => {
               inFullscreen,
             }}
           />
-        ) : docItemType === 'pdf' ? (
+        ) : docItemType === PDF_TEXT ? (
           <Image
             source={{uri: selectedFileToView?.thumbnail}}
             style={styles.mainImage}
@@ -141,7 +141,7 @@ const FileUpload = ({navigation, route}: any) => {
       <View style={styles.bottomBar}>
         <InputBox
           isUploadScreen={true}
-          isDoc={docItemType === 'pdf' ? true : false}
+          isDoc={docItemType === PDF_TEXT ? true : false}
           chatroomID={chatroomID}
           navigation={navigation}
         />
@@ -166,7 +166,7 @@ const FileUpload = ({navigation, route}: any) => {
                     styles.imageItem,
                     {
                       borderColor:
-                        docItemType === 'pdf'
+                        docItemType === PDF_TEXT
                           ? selectedFileToView?.name === item?.name
                             ? 'red'
                             : 'black'
