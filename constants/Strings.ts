@@ -37,3 +37,7 @@ export const APPROVE_BUTTON = 'Approve';
 export const CONFIRM_BUTTON = 'Confirm';
 export const REJECT_BUTTON = 'Reject';
 export const REPORT_AND_REJECT_BUTTON = 'Report and Reject';
+export const PDF_TEXT = 'pdf';
+export const AUDIO_TEXT = 'audio';
+export const VIDEO_TEXT = 'video';
+export const IMAGE_TEXT = 'image';
