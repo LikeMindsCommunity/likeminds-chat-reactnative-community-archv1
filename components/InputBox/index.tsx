@@ -41,7 +41,12 @@ import {Amplify, Storage} from 'aws-amplify';
 import {awsConfig} from '../../aws-exports';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
-import { AUDIO_TEXT, IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT } from '../../constants/Strings';
+import {
+  AUDIO_TEXT,
+  IMAGE_TEXT,
+  PDF_TEXT,
+  VIDEO_TEXT,
+} from '../../constants/Strings';
 
 Amplify.configure(awsConfig);
 
@@ -183,8 +188,14 @@ const InputBox = ({
       mediaType: 'mixed',
       selectionLimit: 0,
     };
+    navigation.navigate(FILE_UPLOAD, {
+      chatroomID: chatroomID,
+    });
     await launchImageLibrary(options as any, (response: any) => {
       console.log('Selected image: ', response);
+      if(response?.didCancel){
+        navigation.goBack();
+      }
       let selectedImages = response?.assets; // selectedImages can be anything images or videos or both
 
       if (!!selectedImages) {
@@ -201,10 +212,6 @@ const InputBox = ({
           dispatch({
             type: STATUS_BAR_STYLE,
             body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
-          });
-
-          navigation.navigate(FILE_UPLOAD, {
-            chatroomID: chatroomID,
           });
         } else if (isUploadScreen === true) {
           getVideoThumbnail(selectedImages);

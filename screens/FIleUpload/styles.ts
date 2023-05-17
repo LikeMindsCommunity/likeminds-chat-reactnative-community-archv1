@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
   headingContainer: {
     position: 'absolute',
     zIndex: 1,
-    top: 60,
+    top: Platform.OS === 'ios' ? 60 : 20,
     left: 10,
   },
   backBtn: {
@@ -42,7 +42,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   video: {
-    alignSelf: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+    width: Layout.window.width,
+    height: Layout.window.height / 1.6,
+  },
+  videoPlayer: {
     width: Layout.window.width,
     height: Layout.window.height / 1.6,
   },
