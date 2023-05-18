@@ -216,6 +216,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 type: CLEAR_CHATROOM_DETAILS,
                 body: {chatroomDetails: {}},
               });
+              dispatch({type: SET_IS_REPLY, body: {isReply: false}});
+              dispatch({
+                type: SET_REPLY_MESSAGE,
+                body: {replyMessage: ''},
+              });
+              Keyboard.dismiss();
               backAction();
             }}>
             <Image
@@ -519,7 +525,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this useLayoutEffect calls API's before printing UI Layout
   useLayoutEffect(() => {
-    // dispatch({type: START_CHATROOM_LOADING});
+    dispatch({
+      type: CLEAR_CHATROOM_CONVERSATION,
+      body: {conversations: []},
+    });
+    dispatch({
+      type: CLEAR_CHATROOM_DETAILS,
+      body: {chatroomDetails: {}},
+    });
+    dispatch({type: SELECTED_MESSAGES, body: []});
+    dispatch({type: LONG_PRESSED, body: false});
+    dispatch({type: SET_IS_REPLY, body: {isReply: false}});
+    dispatch({
+      type: SET_REPLY_MESSAGE,
+      body: {replyMessage: ''},
+    });
     fetchChatroomDetails();
     setInitialHeader();
   }, [navigation]);
@@ -543,16 +563,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   //Navigation gesture back handler for android
   useEffect(() => {
     function backActionCall() {
-      dispatch({
-        type: CLEAR_CHATROOM_CONVERSATION,
-        body: {conversations: []},
-      });
-      dispatch({
-        type: CLEAR_CHATROOM_DETAILS,
-        body: {chatroomDetails: {}},
-      });
-      dispatch({type: SELECTED_MESSAGES, body: []});
-      dispatch({type: LONG_PRESSED, body: false});
+      Keyboard.dismiss();
       if (chatroomType === 10) {
         if (previousRoute?.name === DM_ALL_MEMBERS) {
           const popAction = StackActions.pop(2);
