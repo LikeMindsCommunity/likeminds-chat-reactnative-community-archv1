@@ -85,6 +85,8 @@ const InputBox = ({
   const [s3UploadResponse, setS3UploadResponse] = useState<any>();
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
 
+  const MAX_FILE_SIZE = 104857600; // 100MB in bytes
+
   const {
     selectedFilesToUpload = [],
     selectedFilesToUploadThumbnails = [],
@@ -214,6 +216,17 @@ const InputBox = ({
       }
       let selectedImages = response?.assets; // selectedImages can be anything images or videos or both
 
+      for (let i = 0; i < selectedImages.length; i++) {
+        if (selectedImages[i].fileSize >= MAX_FILE_SIZE) {
+          dispatch({
+            type: SHOW_TOAST,
+            body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
+          });
+          navigation.goBack();
+          return;
+        }
+      }
+
       if (!!selectedImages) {
         if (isUploadScreen === false) {
           getAllVideosThumbnail(selectedImages);
@@ -239,14 +252,27 @@ const InputBox = ({
   //select Documents From Gallery
   const selectDoc = async () => {
     try {
+      navigation.navigate(FILE_UPLOAD, {
+        chatroomID: chatroomID,
+      });
       const response = await DocumentPicker.pick({
         type: [DocumentPicker.types.pdf],
         allowMultiSelection: true,
       });
       console.log('Selected DOC: ', response);
       let selectedDocs: any = response; // selectedImages can be anything images or videos or both
-
-      if (selectedDocs.length > 0) {
+      let docsArrlength = selectedDocs.length;
+      if (docsArrlength > 0) {
+        for (let i = 0; i < docsArrlength; i++) {
+          if (selectedDocs[i].size >= MAX_FILE_SIZE) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
+            });
+            navigation.goBack();
+            return;
+          }
+        }
         if (isUploadScreen === false) {
           let allThumbnailsArr = await getAllPdfThumbnail(selectedDocs);
 
@@ -283,9 +309,6 @@ const InputBox = ({
             body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
           });
 
-          navigation.navigate(FILE_UPLOAD, {
-            chatroomID: chatroomID,
-          });
         } else if (isUploadScreen === true) {
           let arr: any = await getAllPdfThumbnail(selectedDocs);
           console.log('---> getAllPdfThumbnail', arr, selectedDocs);
@@ -307,7 +330,7 @@ const InputBox = ({
         }
       }
     } catch (error) {
-      console.log('DocumentPicker Error: ', error);
+      navigation.goBack();
     }
   };
 
