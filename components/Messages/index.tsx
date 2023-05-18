@@ -173,8 +173,9 @@ const Messages = ({
               longPressOpenKeyboard();
             }}
             reactionArr={reactionArr}
+            navigation={navigation}
           />
-        ) : item?.attachment_count > 0 ? (
+        ) : !!!item?.reply_conversation_object && item?.attachment_count > 0 ? (
           <AttachmentConversations
             navigation={navigation}
             isIncluded={isIncluded}

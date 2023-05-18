@@ -50,8 +50,10 @@ import {
   SELECTED_MESSAGES,
   SET_DM_PAGE,
   SET_EXPLORE_FEED_PAGE,
+  SET_IS_REPLY,
   SET_PAGE,
   SET_POSITION,
+  SET_REPLY_MESSAGE,
   SHOW_TOAST,
   UPDATE_CHAT_REQUEST_STATE,
 } from '../../store/types/types';
@@ -104,11 +106,9 @@ interface ChatRoom {
 
 const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<FlatList>(null);
+  let refInput = useRef<any>();
 
   const db = myClient.fbInstance();
-
-  const [isReply, setIsReply] = useState(false);
-  const [replyMessage, setReplyMessage] = useState();
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -141,6 +141,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     selectedMessages,
     stateArr,
     position,
+    isReply,
   }: any = useAppSelector(state => state.chatroom);
   const {user, community} = useAppSelector(state => state.homefeed);
 
@@ -372,11 +373,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   onPress={() => {
                     if (len > 0) {
                       setReplyChatID(selectedMessages[0]?.id);
-                      setIsReply(true);
-                      setReplyMessage(selectedMessages[0]);
+                      dispatch({type: SET_IS_REPLY, body: {isReply: true}});
+                      dispatch({
+                        type: SET_REPLY_MESSAGE,
+                        body: {replyMessage: selectedMessages[0]},
+                      });
                       dispatch({type: SELECTED_MESSAGES, body: []});
                       dispatch({type: LONG_PRESSED, body: false});
                       setInitialHeader();
+                      refInput.current.focus();
                     }
                   }}>
                   <Image
@@ -565,7 +570,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       'hardwareBackPress',
       backActionCall,
     );
-
     return () => backHandlerAndroid.remove();
   }, [chatroomType]);
 
@@ -1446,18 +1450,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           {!(Object.keys(chatroomDetails).length === 0) ? (
             memberCanMessage && chatroomFollowStatus ? (
               <InputBox
-                isReply={isReply}
                 replyChatID={replyChatID}
                 chatroomID={chatroomID}
-                replyMessage={replyMessage}
-                setIsReply={(val: any) => {
-                  setIsReply(val);
-                }}
-                setReplyMessage={(val: any) => {
-                  setReplyMessage(val);
-                }}
                 navigation={navigation}
                 isUploadScreen={false}
+                myRef={refInput}
               />
             ) : !(Object.keys(chatroomDetails).length === 0) &&
               previousRoute?.name === HOMEFEED ? (
@@ -1574,21 +1571,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           ) : (showDM === true && chatRequestState === 1) ||
             chatRequestState === null ? (
             <InputBox
-              isReply={isReply}
               replyChatID={replyChatID}
               chatroomID={chatroomID}
-              replyMessage={replyMessage}
-              setIsReply={(val: any) => {
-                setIsReply(val);
-              }}
-              setReplyMessage={(val: any) => {
-                setReplyMessage(val);
-              }}
               chatRequestState={chatRequestState}
               chatroomType={chatroomType}
               navigation={navigation}
               isUploadScreen={false}
               isPrivateMember={chatroomDetails?.chatroom?.is_private_member}
+              myRef={refInput}
             />
           ) : (
             <View style={styles.disabledInput}>

@@ -17,7 +17,9 @@ import {
   SELECTED_FILE_TO_VIEW,
   SELECTED_MESSAGES,
   SELECTED_MORE_FILES_TO_UPLOAD,
+  SET_IS_REPLY,
   SET_POSITION,
+  SET_REPLY_MESSAGE,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
 } from '../types/types';
@@ -35,6 +37,8 @@ const initialState = {
   selectedFileToView: {} as any,
   isFileUploading: false,
   fileUploadingID: null,
+  isReply: false,
+  replyMessage: '',
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -173,6 +177,14 @@ export function chatroomReducer(state = initialState, action: any) {
         isFileUploading: fileUploadingStatus,
         fileUploadingID: fileUploadingID,
       };
+    }
+    case SET_IS_REPLY: {
+      const {isReply = false} = action.body;
+      return {...state, isReply: isReply};
+    }
+    case SET_REPLY_MESSAGE: {
+      const {replyMessage = ''} = action.body;
+      return {...state, replyMessage: replyMessage};
     }
     default:
       return state;

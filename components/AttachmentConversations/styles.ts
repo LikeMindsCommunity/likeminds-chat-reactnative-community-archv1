@@ -63,12 +63,16 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // gap: 5,
+    gap: 5,
   },
   doubleImg: {height: 150, width: '100%', resizeMode: 'cover', borderRadius: 5},
   multipleImg: {
     height: 150,
-    width: '49%',
+    resizeMode: 'cover',
+    borderRadius: 5,
+  },
+  imgParent: {
+    flex: 1,
     resizeMode: 'cover',
     borderRadius: 5,
   },
@@ -112,4 +116,5 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     opacity: 0.5,
   },
+  videoIcon: {height: 20, width: 20, resizeMode: 'contain', tintColor: 'white'},
 });

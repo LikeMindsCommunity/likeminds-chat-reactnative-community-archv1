@@ -17,8 +17,13 @@ import {
   SET_POSITION,
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
-import {IMAGE_SCREEN} from '../../constants/Screens';
-import {AUDIO_TEXT, IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT} from '../../constants/Strings';
+import {IMAGE_SCREEN, VIDEO_PLAYER} from '../../constants/Screens';
+import {
+  AUDIO_TEXT,
+  IMAGE_TEXT,
+  PDF_TEXT,
+  VIDEO_TEXT,
+} from '../../constants/Strings';
 
 interface AttachmentConversations {
   item: any;
@@ -27,6 +32,7 @@ interface AttachmentConversations {
   navigation: any;
   openKeyboard: any;
   longPressOpenKeyboard: any;
+  isReplyConversation?: any;
 }
 
 const AttachmentConversations = ({
@@ -36,6 +42,7 @@ const AttachmentConversations = ({
   navigation,
   openKeyboard,
   longPressOpenKeyboard,
+  isReplyConversation,
 }: AttachmentConversations) => {
   const dispatch = useAppDispatch();
   return (
@@ -49,6 +56,10 @@ const AttachmentConversations = ({
       <View
         style={[
           styles.attachmentMessage,
+          {
+            width: isReplyConversation ? '100%' : '80%',
+            padding: isReplyConversation ? 0 : 10,
+          },
           isTypeSent ? styles.sentMessage : styles.receivedMessage,
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
@@ -68,10 +79,11 @@ const AttachmentConversations = ({
             longPressOpenKeyboard={longPressOpenKeyboard}
           />
         ) : item?.attachments[0]?.type === VIDEO_TEXT ? (
-          <VideoConversations
+          <ImageConversations
             isIncluded={isIncluded}
             item={item}
             isTypeSent={isTypeSent}
+            navigation={navigation}
             longPressOpenKeyboard={longPressOpenKeyboard}
           />
         ) : item?.attachments[0]?.type === AUDIO_TEXT ? (
@@ -591,8 +603,21 @@ export const ImageConversations = ({
           }}>
           <Image
             style={styles.singleImg}
-            source={{uri: item?.attachments[0]?.url}}
+            source={{
+              uri:
+                item?.attachments[0].type === VIDEO_TEXT
+                  ? item?.attachments[0]?.thumbnail_url
+                  : item?.attachments[0]?.url,
+            }}
           />
+          {item?.attachments[0].type === VIDEO_TEXT ? (
+            <View style={{position: 'absolute', bottom: 0, left: 5}}>
+              <Image
+                source={require('../../assets/images/video_icon3x.png')}
+                style={styles.videoIcon}
+              />
+            </View>
+          ) : null}
         </TouchableOpacity>
       ) : item?.attachment_count === 2 ? (
         <View style={styles.doubleImgParent}>
@@ -604,9 +629,22 @@ export const ImageConversations = ({
               handleOnPress(event, item?.attachments[0]?.url);
             }}>
             <Image
-              source={{uri: item.attachments[0].url}}
+              source={{
+                uri:
+                  item?.attachments[0].type === VIDEO_TEXT
+                    ? item?.attachments[0]?.thumbnail_url
+                    : item?.attachments[0]?.url,
+              }}
               style={styles.doubleImg}
             />
+            {item?.attachments[0].type === VIDEO_TEXT ? (
+              <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                <Image
+                  source={require('../../assets/images/video_icon3x.png')}
+                  style={styles.videoIcon}
+                />
+              </View>
+            ) : null}
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.touchableImg}
@@ -616,9 +654,22 @@ export const ImageConversations = ({
               handleOnPress(event, item?.attachments[0]?.url);
             }}>
             <Image
-              source={{uri: item.attachments[1].url}}
+              source={{
+                uri:
+                  item?.attachments[1].type === VIDEO_TEXT
+                    ? item?.attachments[1]?.thumbnail_url
+                    : item?.attachments[1]?.url,
+              }}
               style={styles.doubleImg}
             />
+            {item?.attachments[0].type === VIDEO_TEXT ? (
+              <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                <Image
+                  source={require('../../assets/images/video_icon3x.png')}
+                  style={styles.videoIcon}
+                />
+              </View>
+            ) : null}
           </TouchableOpacity>
         </View>
       ) : item?.attachment_count === 3 ? (
@@ -665,20 +716,51 @@ export const ImageConversations = ({
             }
           }}
           style={styles.doubleImgParent}>
-          <Image
-            source={{uri: item.attachments[0].url}}
-            style={styles.multipleImg}
-          />
-          <Image
-            style={styles.multipleImg}
-            source={{uri: item.attachments[1].url}}
-          />
+          <View style={styles.imgParent}>
+            <Image
+              source={{
+                uri:
+                  item?.attachments[0].type === VIDEO_TEXT
+                    ? item?.attachments[0]?.thumbnail_url
+                    : item?.attachments[0]?.url,
+              }}
+              style={styles.multipleImg}
+            />
+            {item?.attachments[0].type === VIDEO_TEXT ? (
+              <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                <Image
+                  source={require('../../assets/images/video_icon3x.png')}
+                  style={styles.videoIcon}
+                />
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.imgParent}>
+            <Image
+              style={styles.multipleImg}
+              source={{
+                uri:
+                  item?.attachments[1].type === VIDEO_TEXT
+                    ? item?.attachments[1]?.thumbnail_url
+                    : item?.attachments[1]?.url,
+              }}
+            />
+            {item?.attachments[0].type === VIDEO_TEXT ? (
+              <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                <Image
+                  source={require('../../assets/images/video_icon3x.png')}
+                  style={styles.videoIcon}
+                />
+              </View>
+            ) : null}
+          </View>
           <View style={styles.tripleImgOverlay}>
             <Text style={styles.tripleImgText}>+2</Text>
           </View>
         </TouchableOpacity>
       ) : item?.attachment_count > 3 ? (
         <TouchableOpacity
+          style={{gap: 5}}
           onLongPress={handleLongPress}
           delayLongPress={200}
           onPress={event => {
@@ -721,24 +803,84 @@ export const ImageConversations = ({
             }
           }}>
           <View style={styles.doubleImgParent}>
-            <Image
-              source={{uri: item.attachments[0].url}}
-              style={styles.multipleImg}
-            />
-            <Image
-              style={styles.multipleImg}
-              source={{uri: item.attachments[1].url}}
-            />
+            <View style={styles.imgParent}>
+              <Image
+                source={{
+                  uri:
+                    item?.attachments[0].type === VIDEO_TEXT
+                      ? item?.attachments[0]?.thumbnail_url
+                      : item?.attachments[0]?.url,
+                }}
+                style={styles.multipleImg}
+              />
+              {item?.attachments[0].type === VIDEO_TEXT ? (
+                <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                  <Image
+                    source={require('../../assets/images/video_icon3x.png')}
+                    style={styles.videoIcon}
+                  />
+                </View>
+              ) : null}
+            </View>
+            <View style={styles.imgParent}>
+              <Image
+                style={styles.multipleImg}
+                source={{
+                  uri:
+                    item?.attachments[1].type === VIDEO_TEXT
+                      ? item?.attachments[1]?.thumbnail_url
+                      : item?.attachments[1]?.url,
+                }}
+              />
+              {item?.attachments[1].type === VIDEO_TEXT ? (
+                <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                  <Image
+                    source={require('../../assets/images/video_icon3x.png')}
+                    style={styles.videoIcon}
+                  />
+                </View>
+              ) : null}
+            </View>
           </View>
           <View style={styles.doubleImgParent}>
-            <Image
-              source={{uri: item.attachments[2].url}}
-              style={styles.multipleImg}
-            />
-            <Image
-              style={styles.multipleImg}
-              source={{uri: item.attachments[3].url}}
-            />
+            <View style={styles.imgParent}>
+              <Image
+                source={{
+                  uri:
+                    item?.attachments[2].type === VIDEO_TEXT
+                      ? item?.attachments[2]?.thumbnail_url
+                      : item?.attachments[2]?.url,
+                }}
+                style={styles.multipleImg}
+              />
+              {item?.attachments[2].type === VIDEO_TEXT ? (
+                <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                  <Image
+                    source={require('../../assets/images/video_icon3x.png')}
+                    style={styles.videoIcon}
+                  />
+                </View>
+              ) : null}
+            </View>
+            <View style={styles.imgParent}>
+              <Image
+                style={styles.multipleImg}
+                source={{
+                  uri:
+                    item?.attachments[3].type === VIDEO_TEXT
+                      ? item?.attachments[3]?.thumbnail_url
+                      : item?.attachments[3]?.url,
+                }}
+              />
+              {item?.attachments[3].type === VIDEO_TEXT ? (
+                <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                  <Image
+                    source={require('../../assets/images/video_icon3x.png')}
+                    style={styles.videoIcon}
+                  />
+                </View>
+              ) : null}
+            </View>
             <View style={styles.tripleImgOverlay}>
               <Text style={styles.tripleImgText}>{`+${
                 item?.attachment_count - 3

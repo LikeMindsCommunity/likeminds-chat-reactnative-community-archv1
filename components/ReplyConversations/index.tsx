@@ -16,7 +16,13 @@ import {
   SELECTED_MESSAGES,
   SET_POSITION,
 } from '../../store/types/types';
-import {AUDIO_TEXT, IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT} from '../../constants/Strings';
+import {
+  AUDIO_TEXT,
+  IMAGE_TEXT,
+  PDF_TEXT,
+  VIDEO_TEXT,
+} from '../../constants/Strings';
+import AttachmentConversations from '../AttachmentConversations';
 
 interface ReplyConversations {
   item: any;
@@ -26,6 +32,7 @@ interface ReplyConversations {
   openKeyboard: any;
   longPressOpenKeyboard: any;
   reactionArr: any;
+  navigation: any;
 }
 
 interface ReplyBox {
@@ -98,6 +105,7 @@ const ReplyConversations = ({
   openKeyboard,
   longPressOpenKeyboard,
   reactionArr,
+  navigation,
 }: ReplyConversations) => {
   const dispatch = useAppDispatch();
   const {conversations, selectedMessages, stateArr, isLongPress}: any =
@@ -171,10 +179,28 @@ const ReplyConversations = ({
             item={item?.reply_conversation_object}
           />
         </TouchableOpacity>
-        <View style={styles.messageText as any}>
-          {decode(item?.answer, true)}
-        </View>
-        <Text style={styles.messageDate}>{item?.created_at}</Text>
+        {item?.attachment_count > 0 ? (
+          <AttachmentConversations
+            isReplyConversation={true}
+            navigation={navigation}
+            isIncluded={isIncluded}
+            item={item}
+            isTypeSent={isTypeSent}
+            openKeyboard={() => {
+              openKeyboard();
+            }}
+            longPressOpenKeyboard={() => {
+              longPressOpenKeyboard();
+            }}
+          />
+        ) : (
+          <View>
+            <View style={styles.messageText as any}>
+              {decode(item?.answer, true)}
+            </View>
+            <Text style={styles.messageDate}>{item?.created_at}</Text>
+          </View>
+        )}
       </View>
       {(reactionArr.length > 0 || item?.answer?.split('').length > 100) &&
       !isTypeSent ? (

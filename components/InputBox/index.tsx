@@ -11,7 +11,7 @@ import {
   Alert,
   PermissionsAndroid,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
@@ -24,6 +24,8 @@ import {
   SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
   SELECTED_FILE_TO_VIEW,
   SELECTED_MORE_FILES_TO_UPLOAD,
+  SET_IS_REPLY,
+  SET_REPLY_MESSAGE,
   SHOW_TOAST,
   STATUS_BAR_STYLE,
   UPDATE_CHAT_REQUEST_STATE,
@@ -51,33 +53,27 @@ import {
 Amplify.configure(awsConfig);
 
 interface InputBox {
-  isReply?: boolean;
   replyChatID?: any;
   chatroomID: any;
-  replyMessage?: any;
-  setIsReply?: any;
-  setReplyMessage?: any;
   chatRequestState?: any;
   chatroomType?: any;
   navigation: any;
   isUploadScreen: boolean;
   isPrivateMember?: boolean;
   isDoc?: boolean;
+  myRef?: any;
 }
 
 const InputBox = ({
-  isReply,
   replyChatID,
   chatroomID,
-  replyMessage,
-  setIsReply,
-  setReplyMessage,
   chatRequestState,
   chatroomType,
   navigation,
   isUploadScreen,
   isPrivateMember,
   isDoc,
+  myRef,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState('');
@@ -96,13 +92,16 @@ const InputBox = ({
   const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
   );
-  const {chatroomDetails}: any = useAppSelector(state => state.chatroom);
+  const {chatroomDetails, isReply, replyMessage}: any = useAppSelector(
+    state => state.chatroom,
+  );
 
   const dispatch = useAppDispatch();
 
   // function to get thumbnails from videos
   const getAllVideosThumbnail = async (selectedImages: any) => {
     let arr: any = [];
+    let dummyArrSelectedFiles: any = selectedImages;
     for (let i = 0; i < selectedImages.length; i++) {
       if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
         await createThumbnail({
@@ -111,6 +110,10 @@ const InputBox = ({
         })
           .then(response => {
             arr = [...arr, {uri: response.path}];
+            dummyArrSelectedFiles[i] = {
+              ...dummyArrSelectedFiles[i],
+              thumbnail_url: response.path,
+            };
           })
           .catch(err => console.log({err}));
       } else {
@@ -121,12 +124,17 @@ const InputBox = ({
       type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
       body: {images: arr},
     });
+    dispatch({
+      type: SELECTED_FILES_TO_UPLOAD,
+      body: {images: dummyArrSelectedFiles},
+    });
     return arr;
   };
 
   // function to get thumbnails from videos
   const getVideoThumbnail = async (selectedImages: any) => {
     let arr: any = [];
+    let dummyArrSelectedFiles: any = selectedImages;
     for (let i = 0; i < selectedImages.length; i++) {
       if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
         await createThumbnail({
@@ -135,6 +143,10 @@ const InputBox = ({
         })
           .then(response => {
             arr = [...arr, {uri: response.path}];
+            dummyArrSelectedFiles[i] = {
+              ...dummyArrSelectedFiles[i],
+              thumbnail_url: response.path,
+            };
           })
           .catch(err => console.log({err}));
       } else {
@@ -144,6 +156,10 @@ const InputBox = ({
     dispatch({
       type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
       body: {images: [...selectedFilesToUploadThumbnails, ...arr]},
+    });
+    dispatch({
+      type: SELECTED_FILES_TO_UPLOAD,
+      body: {images: [...selectedFilesToUpload, ...dummyArrSelectedFiles]},
     });
     return arr;
   };
@@ -193,7 +209,7 @@ const InputBox = ({
     });
     await launchImageLibrary(options as any, (response: any) => {
       console.log('Selected image: ', response);
-      if(response?.didCancel){
+      if (response?.didCancel) {
         navigation.goBack();
       }
       let selectedImages = response?.assets; // selectedImages can be anything images or videos or both
@@ -201,10 +217,6 @@ const InputBox = ({
       if (!!selectedImages) {
         if (isUploadScreen === false) {
           getAllVideosThumbnail(selectedImages);
-          dispatch({
-            type: SELECTED_FILES_TO_UPLOAD,
-            body: {images: selectedImages},
-          });
           dispatch({
             type: SELECTED_FILE_TO_VIEW,
             body: {image: selectedImages[0]},
@@ -242,7 +254,7 @@ const InputBox = ({
           for (let i = 0; i < selectedDocs.length; i++) {
             selectedDocs[i] = {
               ...selectedDocs[i],
-              thumbnail: allThumbnailsArr[i]?.uri,
+              thumbnail_url: allThumbnailsArr[i]?.uri,
             };
           }
 
@@ -262,7 +274,7 @@ const InputBox = ({
           //redux action to save thumbnail of selected file
           dispatch({
             type: SELECTED_FILE_TO_VIEW,
-            body: {image: {...selectedDocs[0], thumbnail: res[0]?.uri}},
+            body: {image: {...selectedDocs[0], thumbnail_url: res[0]?.uri}},
           });
 
           //redux action to change status bar color
@@ -278,7 +290,7 @@ const InputBox = ({
           let arr: any = await getAllPdfThumbnail(selectedDocs);
           console.log('---> getAllPdfThumbnail', arr, selectedDocs);
           for (let i = 0; i < selectedDocs.length; i++) {
-            selectedDocs[i] = {...selectedDocs[i], thumbnail: arr[i]?.uri};
+            selectedDocs[i] = {...selectedDocs[i], thumbnail_url: arr[i]?.uri};
           }
 
           //redux action to select more files to upload
@@ -416,8 +428,22 @@ const InputBox = ({
     });
 
     for (let i = 0; i < selectedImages.length; i++) {
+      let attachmentType = selectedImages[i]?.type?.split('/')[0];
+      let docAttachmentType = selectedImages[i]?.type?.split('/')[1];
+
       const img = await fetchResourceFromURI(selectedImages[i].uri);
-      const res = await Storage.put(selectedImages[i].uri, img, {
+      console.log('selectedImages[i].name ==', selectedImages[i]);
+      let name =
+        attachmentType === IMAGE_TEXT
+          ? selectedImages[i].fileName
+          : attachmentType === VIDEO_TEXT
+          ? selectedImages[i].fileName
+          : attachmentType === PDF_TEXT
+          ? selectedImages[i].name
+          : null;
+      let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
+      console.log('path ===', path);
+      const res = await Storage.put(path, img, {
         level: 'public',
         contentType: selectedImages[i]?.type,
         progressCallback(uploadProgress) {
@@ -442,8 +468,6 @@ const InputBox = ({
       });
 
       console.log('selectedImages[i].type', selectedImages[i].type);
-      let attachmentType = selectedImages[i]?.type?.split('/')[0];
-      let docAttachmentType = selectedImages[i]?.type?.split('/')[1];
 
       if (awsResponse) {
         let fileType = '';
@@ -473,6 +497,10 @@ const InputBox = ({
               : selectedFilesToUpload[i]?.fileName,
           type: fileType,
           url: awsResponse,
+          thumbnail_url:
+            fileType === VIDEO_TEXT
+              ? selectedFilesToUpload[i]?.thumbnail_url
+              : null,
         };
         console.log('payload --->', payload);
 
@@ -537,6 +565,7 @@ const InputBox = ({
           let obj = {
             video_url: selectedFilesToUpload[i].uri,
             index: i,
+            thumbnail_url: selectedFilesToUpload[i].thumbanil,
           };
           dummySelectedFileArr = [...dummySelectedFileArr, obj];
         } else if (docAttachmentType === PDF_TEXT) {
@@ -567,6 +596,7 @@ const InputBox = ({
             ...selectedFilesToUpload[i],
             type: attachmentType,
             url: URI,
+            thumbnail_url: selectedFilesToUpload[i].thumbnail_url,
             index: i,
             name: selectedFilesToUpload[i].fileName,
           };
@@ -665,9 +695,9 @@ const InputBox = ({
       setMessage('');
       setInputHeight(25);
 
-      if (!isUploadScreen) {
-        setIsReply(false);
-        setReplyMessage();
+      if (isReply) {
+        dispatch({type: SET_IS_REPLY, body: {isReply: false}});
+        dispatch({type: SET_REPLY_MESSAGE, body: {replyMessage: ''}});
       }
 
       // -- Code for local message handling ended
@@ -716,7 +746,7 @@ const InputBox = ({
             has_files: false,
             text: message.trim(),
             temporary_id: ID,
-            // attachment_count?: any;
+            attachment_count: attachmentsCount,
             replied_conversation_id: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
@@ -761,14 +791,14 @@ const InputBox = ({
               }
             : null,
         ]}>
-        <View style={isReply ? styles.replyBoxParent : null}>
-          {isReply && (
+        <View style={isReply && !isUploadScreen ? styles.replyBoxParent : null}>
+          {isReply && !isUploadScreen && (
             <View style={styles.replyBox}>
               <ReplyBox isIncluded={false} item={replyMessage} />
               <TouchableOpacity
                 onPress={() => {
-                  setIsReply(false);
-                  setReplyMessage();
+                  dispatch({type: SET_IS_REPLY, body: {isReply: false}});
+                  dispatch({type: SET_REPLY_MESSAGE, body: {replyMessage: ''}});
                 }}
                 style={styles.replyBoxClose}>
                 <Image
@@ -787,7 +817,7 @@ const InputBox = ({
                   ? STYLES.$BACKGROUND_COLORS.DARK
                   : STYLES.$BACKGROUND_COLORS.LIGHT,
               },
-              isReply
+              isReply && !isUploadScreen
                 ? {
                     borderWidth: 0,
                   }
@@ -837,6 +867,7 @@ const InputBox = ({
               ]}>
               <TextInput
                 value={message}
+                ref={myRef}
                 onChangeText={setMessage}
                 onContentSizeChange={event => {
                   setInputHeight(event.nativeEvent.contentSize.height);
@@ -865,7 +896,10 @@ const InputBox = ({
             {!isUploadScreen ? (
               <TouchableOpacity
                 style={styles.emojiButton}
-                onPress={() => setModalVisible(true)}>
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setModalVisible(true);
+                }}>
                 <Image
                   source={require('../../assets/images/open_files3x.png')}
                   style={styles.emoji}

@@ -111,11 +111,12 @@ const FileUpload = ({navigation, route}: any) => {
               videoRef={video}
               disableBack={true}
               disableFullscreen={true}
+              paused={true}
             />
           </View>
         ) : docItemType === PDF_TEXT ? (
           <Image
-            source={{uri: selectedFileToView?.thumbnail}}
+            source={{uri: selectedFileToView?.thumbnail_url}}
             style={styles.mainImage}
           />
         ) : null}
@@ -133,6 +134,7 @@ const FileUpload = ({navigation, route}: any) => {
           bounces={false}>
           {selectedFilesToUpload.length > 0 &&
             selectedFilesToUpload.map((item: any, index: any) => {
+              let fileType = item?.type.split('/')[0]
               return (
                 <Pressable
                   key={item?.uri + index}
@@ -170,7 +172,7 @@ const FileUpload = ({navigation, route}: any) => {
                     }
                     style={styles.smallImage}
                   />
-                  {itemType === VIDEO_TEXT ? (
+                  {fileType === VIDEO_TEXT ? (
                     <View style={{position: 'absolute', bottom: 0, left: 5}}>
                       <Image
                         source={require('../../assets/images/video_icon3x.png')}
