@@ -7,3 +7,4 @@ export const VIEW_PARTICIPANTS = 'ViewParticipants';
 export const ADD_PARTICIPANTS = 'AddParticipants';
 export const DM_ALL_MEMBERS = 'DMAllMembers';
 export const FILE_UPLOAD = 'FileUpload';
+export const VIDEO_PLAYER = 'VideoPlayer';
