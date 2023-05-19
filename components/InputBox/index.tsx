@@ -39,8 +39,6 @@ import DocumentPicker from 'react-native-document-picker';
 import {FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
-import {Amplify, Storage} from 'aws-amplify';
-import {awsConfig} from '../../aws-exports';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {
@@ -49,8 +47,25 @@ import {
   PDF_TEXT,
   VIDEO_TEXT,
 } from '../../constants/Strings';
+import {
+  S3,
+  S3Client
+} from '@aws-sdk/client-s3';
+const AWS = require('aws-sdk');
+import {CognitoIdentityClient} from '@aws-sdk/client-cognito-identity';
 
-Amplify.configure(awsConfig);
+// Region = 'ap-south-1'
+// Pool_Id: 'ap-south-1:181963ba-f2db-450b-8199-964a941b38c2',
+// Bucket: 'beta-likeminds-media'
+const REGION = 'ap-south-1'
+const POOL_ID = 'ap-south-1:181963ba-f2db-450b-8199-964a941b38c2'
+const BUCKET = 'beta-likeminds-media'
+
+enum MessageType {
+  SUCCESS,
+  FAILURE,
+  EMPTY,
+}
 
 interface InputBox {
   replyChatID?: any;
@@ -466,21 +481,57 @@ const InputBox = ({
           : null;
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       console.log('path ===', path);
-      const res = await Storage.put(path, img, {
-        level: 'public',
-        contentType: selectedImages[i]?.type,
-        progressCallback(uploadProgress) {
-          setProgressText(
-            `Progress: ${Math.round(
-              (uploadProgress.loaded / uploadProgress.total) * 100,
-            )} %`,
-          );
-          console.log(
-            `Progress: ${uploadProgress.loaded}/${uploadProgress.total}`,
-          );
-        },
+
+      AWS.config.region = REGION;
+      AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+          IdentityPoolId: POOL_ID
       });
-      const awsResponse = await Storage.get(res?.key);
+
+      const BUCKET_NAME = BUCKET;
+
+      const s3 = new AWS.S3({
+          region: AWS.config.region,
+          credentials: AWS.config.credentials
+      });
+
+      const params = {
+        Bucket: BUCKET_NAME,
+        Key: name,
+        Body: img
+    };
+
+    s3.upload(params, (err: Error, data: any) => {
+        if (err) {
+            console.log('File upload failed.');
+            throw err;
+        }
+        console.log('File uploaded successfully.' + data.Location);
+
+    });
+
+
+
+      // const res = await Storage.put(path, img, {
+      //   level: 'public',
+      //   contentType: selectedImages[i]?.type,
+      //   progressCallback(uploadProgress) {
+      //     setProgressText(
+      //       `Progress: ${Math.round(
+      //         (uploadProgress.loaded / uploadProgress.total) * 100,
+      //       )} %`,
+      //     );
+      //     console.log(
+      //       `Progress: ${uploadProgress.loaded}/${uploadProgress.total}`,
+      //     );
+      //   },
+      // });
+
+      // //new aws
+      // client.getObject()
+
+
+      
+      const awsResponse = await s3.get(name);
       console.log('Storage', awsResponse);
       setProgressText('');
       dispatch({
