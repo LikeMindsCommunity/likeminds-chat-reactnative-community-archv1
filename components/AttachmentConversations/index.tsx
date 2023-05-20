@@ -605,12 +605,12 @@ export const ImageConversations = ({
             style={styles.singleImg}
             source={{
               uri:
-                item?.attachments[0].type === VIDEO_TEXT
+                item?.attachments[0]?.type === VIDEO_TEXT
                   ? item?.attachments[0]?.thumbnail_url
                   : item?.attachments[0]?.url,
             }}
           />
-          {item?.attachments[0].type === VIDEO_TEXT ? (
+          {item?.attachments[0]?.type === VIDEO_TEXT ? (
             <View style={{position: 'absolute', bottom: 0, left: 5}}>
               <Image
                 source={require('../../assets/images/video_icon3x.png')}
@@ -631,13 +631,13 @@ export const ImageConversations = ({
             <Image
               source={{
                 uri:
-                  item?.attachments[0].type === VIDEO_TEXT
+                  item?.attachments[0]?.type === VIDEO_TEXT
                     ? item?.attachments[0]?.thumbnail_url
                     : item?.attachments[0]?.url,
               }}
               style={styles.doubleImg}
             />
-            {item?.attachments[0].type === VIDEO_TEXT ? (
+            {item?.attachments[0]?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
                   source={require('../../assets/images/video_icon3x.png')}
@@ -656,13 +656,13 @@ export const ImageConversations = ({
             <Image
               source={{
                 uri:
-                  item?.attachments[1].type === VIDEO_TEXT
+                  item?.attachments[1]?.type === VIDEO_TEXT
                     ? item?.attachments[1]?.thumbnail_url
                     : item?.attachments[1]?.url,
               }}
               style={styles.doubleImg}
             />
-            {item?.attachments[0].type === VIDEO_TEXT ? (
+            {item?.attachments[0]?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
                   source={require('../../assets/images/video_icon3x.png')}
@@ -720,13 +720,13 @@ export const ImageConversations = ({
             <Image
               source={{
                 uri:
-                  item?.attachments[0].type === VIDEO_TEXT
+                  item?.attachments[0]?.type === VIDEO_TEXT
                     ? item?.attachments[0]?.thumbnail_url
                     : item?.attachments[0]?.url,
               }}
               style={styles.multipleImg}
             />
-            {item?.attachments[0].type === VIDEO_TEXT ? (
+            {item?.attachments[0]?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
                   source={require('../../assets/images/video_icon3x.png')}
@@ -740,12 +740,12 @@ export const ImageConversations = ({
               style={styles.multipleImg}
               source={{
                 uri:
-                  item?.attachments[1].type === VIDEO_TEXT
+                  item?.attachments[1]?.type === VIDEO_TEXT
                     ? item?.attachments[1]?.thumbnail_url
                     : item?.attachments[1]?.url,
               }}
             />
-            {item?.attachments[0].type === VIDEO_TEXT ? (
+            {item?.attachments[0]?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
                   source={require('../../assets/images/video_icon3x.png')}
@@ -807,13 +807,13 @@ export const ImageConversations = ({
               <Image
                 source={{
                   uri:
-                    item?.attachments[0].type === VIDEO_TEXT
+                    item?.attachments[0]?.type === VIDEO_TEXT
                       ? item?.attachments[0]?.thumbnail_url
                       : item?.attachments[0]?.url,
                 }}
                 style={styles.multipleImg}
               />
-              {item?.attachments[0].type === VIDEO_TEXT ? (
+              {item?.attachments[0]?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -827,12 +827,12 @@ export const ImageConversations = ({
                 style={styles.multipleImg}
                 source={{
                   uri:
-                    item?.attachments[1].type === VIDEO_TEXT
+                    item?.attachments[1]?.type === VIDEO_TEXT
                       ? item?.attachments[1]?.thumbnail_url
                       : item?.attachments[1]?.url,
                 }}
               />
-              {item?.attachments[1].type === VIDEO_TEXT ? (
+              {item?.attachments[1]?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -847,13 +847,13 @@ export const ImageConversations = ({
               <Image
                 source={{
                   uri:
-                    item?.attachments[2].type === VIDEO_TEXT
+                    item?.attachments[2]?.type === VIDEO_TEXT
                       ? item?.attachments[2]?.thumbnail_url
                       : item?.attachments[2]?.url,
                 }}
                 style={styles.multipleImg}
               />
-              {item?.attachments[2].type === VIDEO_TEXT ? (
+              {item?.attachments[2]?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -867,12 +867,12 @@ export const ImageConversations = ({
                 style={styles.multipleImg}
                 source={{
                   uri:
-                    item?.attachments[3].type === VIDEO_TEXT
+                    item?.attachments[3]?.type === VIDEO_TEXT
                       ? item?.attachments[3]?.thumbnail_url
                       : item?.attachments[3]?.url,
                 }}
               />
-              {item?.attachments[3].type === VIDEO_TEXT ? (
+              {item?.attachments[3]?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}

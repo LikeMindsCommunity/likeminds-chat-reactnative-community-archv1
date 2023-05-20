@@ -40,7 +40,6 @@ import {FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {Amplify, Storage} from 'aws-amplify';
-import {awsConfig} from '../../aws-exports';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {
@@ -49,8 +48,6 @@ import {
   PDF_TEXT,
   VIDEO_TEXT,
 } from '../../constants/Strings';
-
-Amplify.configure(awsConfig);
 
 interface InputBox {
   replyChatID?: any;
@@ -104,7 +101,7 @@ const InputBox = ({
   const getAllVideosThumbnail = async (selectedImages: any) => {
     let arr: any = [];
     let dummyArrSelectedFiles: any = selectedImages;
-    for (let i = 0; i < selectedImages.length; i++) {
+    for (let i = 0; i < selectedImages?.length; i++) {
       if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
         await createThumbnail({
           url: selectedImages[i].uri,
@@ -137,7 +134,7 @@ const InputBox = ({
   const getVideoThumbnail = async (selectedImages: any) => {
     let arr: any = [];
     let dummyArrSelectedFiles: any = selectedImages;
-    for (let i = 0; i < selectedImages.length; i++) {
+    for (let i = 0; i < selectedImages?.length; i++) {
       if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
         await createThumbnail({
           url: selectedImages[i].uri,
@@ -169,7 +166,7 @@ const InputBox = ({
   // function to get thumbnails of all pdf
   const getAllPdfThumbnail = async (selectedImages: any) => {
     let arr: any = [];
-    for (let i = 0; i < selectedImages.length; i++) {
+    for (let i = 0; i < selectedImages?.length; i++) {
       const filePath = selectedImages[i].uri;
       const page = 0;
       if (selectedImages[i]?.type?.split('/')[1] === PDF_TEXT) {
@@ -216,7 +213,7 @@ const InputBox = ({
       }
       let selectedImages = response?.assets; // selectedImages can be anything images or videos or both
 
-      for (let i = 0; i < selectedImages.length; i++) {
+      for (let i = 0; i < selectedImages?.length; i++) {
         if (selectedImages[i].fileSize >= MAX_FILE_SIZE) {
           dispatch({
             type: SHOW_TOAST,
@@ -261,7 +258,7 @@ const InputBox = ({
       });
       console.log('Selected DOC: ', response);
       let selectedDocs: any = response; // selectedImages can be anything images or videos or both
-      let docsArrlength = selectedDocs.length;
+      let docsArrlength = selectedDocs?.length;
       if (docsArrlength > 0) {
         for (let i = 0; i < docsArrlength; i++) {
           if (selectedDocs[i].size >= MAX_FILE_SIZE) {
@@ -277,7 +274,7 @@ const InputBox = ({
           let allThumbnailsArr = await getAllPdfThumbnail(selectedDocs);
 
           //loop is for appending thumbanil in the object we get from document picker
-          for (let i = 0; i < selectedDocs.length; i++) {
+          for (let i = 0; i < selectedDocs?.length; i++) {
             selectedDocs[i] = {
               ...selectedDocs[i],
               thumbnail_url: allThumbnailsArr[i]?.uri,
@@ -308,11 +305,10 @@ const InputBox = ({
             type: STATUS_BAR_STYLE,
             body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
           });
-
         } else if (isUploadScreen === true) {
           let arr: any = await getAllPdfThumbnail(selectedDocs);
           console.log('---> getAllPdfThumbnail', arr, selectedDocs);
-          for (let i = 0; i < selectedDocs.length; i++) {
+          for (let i = 0; i < selectedDocs?.length; i++) {
             selectedDocs[i] = {...selectedDocs[i], thumbnail_url: arr[i]?.uri};
           }
 
@@ -445,16 +441,14 @@ const InputBox = ({
     if (isUploading) return;
 
     // start uploading
-    dispatch({
-      type: IS_FILE_UPLOADING,
-      body: {fileUploadingStatus: true, fileUploadingID: dummyID},
-    });
+    // dispatch({
+    //   type: IS_FILE_UPLOADING,
+    //   body: {fileUploadingStatus: true, fileUploadingID: dummyID},
+    // });
 
-    for (let i = 0; i < selectedImages.length; i++) {
+    for (let i = 0; i < selectedImages?.length; i++) {
       let attachmentType = selectedImages[i]?.type?.split('/')[0];
       let docAttachmentType = selectedImages[i]?.type?.split('/')[1];
-
-      const img = await fetchResourceFromURI(selectedImages[i].uri);
       console.log('selectedImages[i].name ==', selectedImages[i]);
       let name =
         attachmentType === IMAGE_TEXT
@@ -465,10 +459,16 @@ const InputBox = ({
           ? selectedImages[i].name
           : null;
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
+
+      const img = await fetchResourceFromURI(selectedImages[i].uri);
+
       console.log('path ===', path);
-      const res = await Storage.put(path, img, {
+      console.log('img', img);
+      console.log('selectedImages[i]?.type ==', selectedImages[i]?.type);
+
+      const res = await Storage.put(name, img, {
         level: 'public',
-        contentType: selectedImages[i]?.type,
+        // customPrefix: {public: path},
         progressCallback(uploadProgress) {
           setProgressText(
             `Progress: ${Math.round(
@@ -479,7 +479,11 @@ const InputBox = ({
             `Progress: ${uploadProgress.loaded}/${uploadProgress.total}`,
           );
         },
+        errorCallback: err => {
+          console.error('Unexpected error while uploading', err);
+        },
       });
+      console.log('Storage.put', res);
       const awsResponse = await Storage.get(res?.key);
       console.log('Storage', awsResponse);
       setProgressText('');
@@ -506,7 +510,7 @@ const InputBox = ({
 
         let payload = {
           conversation_id: conversationID,
-          files_count: selectedImages.length,
+          files_count: selectedImages?.length,
           index: i,
           meta: {
             size:
@@ -569,7 +573,7 @@ const InputBox = ({
     let hr = time.getHours();
     let min = time.getMinutes();
     let ID = Date.now();
-    let attachmentsCount = selectedFilesToUpload.length; //if any
+    let attachmentsCount = selectedFilesToUpload?.length; //if any
 
     let dummySelectedFileArr: any = []; //if any
     let dummyAttachmentsArr: any = []; //if any
@@ -773,6 +777,18 @@ const InputBox = ({
             replied_conversation_id: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
+
+          //Handling conversation failed case
+          if (response === undefined) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {
+                isToast: true,
+                msg: 'Message not sent. Please check your internet connection',
+              },
+            });
+          }
+          console.log('onConversationsCreate ==', response);
         } else {
           navigation.goBack();
           let payload = {
@@ -785,9 +801,16 @@ const InputBox = ({
             replied_conversation_id: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
+          console.log('response onConversationsCreate ==', response);
           dispatch({
             type: STATUS_BAR_STYLE,
             body: {color: STYLES.$STATUS_BAR_STYLE.default},
+          });
+
+          // start uploading
+          dispatch({
+            type: IS_FILE_UPLOADING,
+            body: {fileUploadingStatus: true, fileUploadingID: ID},
           });
 
           if (response) {
