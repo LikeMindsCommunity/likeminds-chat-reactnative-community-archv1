@@ -48,6 +48,9 @@ import {
   PDF_TEXT,
   VIDEO_TEXT,
 } from '../../constants/Strings';
+import {CognitoIdentityCredentials, S3} from 'aws-sdk';
+import AWS from 'aws-sdk';
+import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 
 interface InputBox {
   replyChatID?: any;
@@ -96,6 +99,15 @@ const InputBox = ({
   );
 
   const dispatch = useAppDispatch();
+
+  AWS.config.update({
+    region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
+    credentials: new CognitoIdentityCredentials({
+      IdentityPoolId: POOL_ID, // Replace with your Identity Pool ID
+    }),
+  });
+
+  const s3 = new S3();
 
   // function to get thumbnails from videos
   const getAllVideosThumbnail = async (selectedImages: any) => {
@@ -466,26 +478,61 @@ const InputBox = ({
       console.log('img', img);
       console.log('selectedImages[i]?.type ==', selectedImages[i]?.type);
 
-      const res = await Storage.put(name, img, {
-        level: 'public',
-        // customPrefix: {public: path},
-        progressCallback(uploadProgress) {
-          setProgressText(
-            `Progress: ${Math.round(
-              (uploadProgress.loaded / uploadProgress.total) * 100,
-            )} %`,
-          );
-          console.log(
-            `Progress: ${uploadProgress.loaded}/${uploadProgress.total}`,
-          );
-        },
-        errorCallback: err => {
-          console.error('Unexpected error while uploading', err);
-        },
-      });
-      console.log('Storage.put', res);
-      const awsResponse = await Storage.get(res?.key);
-      console.log('Storage', awsResponse);
+      const params = {
+        Bucket: BUCKET,
+        Key: path,
+        Body: img,
+        ACL: 'public-read-write',
+        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+      };
+
+      try {
+        const data = await s3.upload(params).promise();
+        console.log('File uploaded successfully:', data);
+        let awsResponse = data.Location;
+        if (awsResponse) {
+          let fileType = '';
+          if (docAttachmentType === PDF_TEXT) {
+            fileType = PDF_TEXT;
+          } else if (attachmentType === AUDIO_TEXT) {
+            fileType = AUDIO_TEXT;
+          } else if (attachmentType === VIDEO_TEXT) {
+            fileType = VIDEO_TEXT;
+          } else if (attachmentType === IMAGE_TEXT) {
+            fileType = IMAGE_TEXT;
+          }
+
+          let payload = {
+            conversation_id: conversationID,
+            files_count: selectedImages?.length,
+            index: i,
+            meta: {
+              size:
+                docAttachmentType === PDF_TEXT
+                  ? selectedFilesToUpload[i]?.size
+                  : selectedFilesToUpload[i]?.fileSize,
+            },
+            name:
+              docAttachmentType === PDF_TEXT
+                ? selectedFilesToUpload[i]?.name
+                : selectedFilesToUpload[i]?.fileName,
+            type: fileType,
+            url: awsResponse,
+            thumbnail_url:
+              fileType === VIDEO_TEXT
+                ? selectedFilesToUpload[i]?.thumbnail_url
+                : null,
+          };
+          console.log('payload --->', payload);
+
+          const uploadRes = await myClient.onUploadFile(payload);
+          console.log('uploadRes ==', uploadRes);
+          setS3UploadResponse(null);
+        }
+      } catch (error) {
+        console.log('Error uploading file:', error);
+      }
+
       setProgressText('');
       dispatch({
         type: CLEAR_SELECTED_FILES_TO_UPLOAD,
@@ -495,46 +542,6 @@ const InputBox = ({
       });
 
       console.log('selectedImages[i].type', selectedImages[i].type);
-
-      if (awsResponse) {
-        let fileType = '';
-        if (docAttachmentType === PDF_TEXT) {
-          fileType = PDF_TEXT;
-        } else if (attachmentType === AUDIO_TEXT) {
-          fileType = AUDIO_TEXT;
-        } else if (attachmentType === VIDEO_TEXT) {
-          fileType = VIDEO_TEXT;
-        } else if (attachmentType === IMAGE_TEXT) {
-          fileType = IMAGE_TEXT;
-        }
-
-        let payload = {
-          conversation_id: conversationID,
-          files_count: selectedImages?.length,
-          index: i,
-          meta: {
-            size:
-              docAttachmentType === PDF_TEXT
-                ? selectedFilesToUpload[i]?.size
-                : selectedFilesToUpload[i]?.fileSize,
-          },
-          name:
-            docAttachmentType === PDF_TEXT
-              ? selectedFilesToUpload[i]?.name
-              : selectedFilesToUpload[i]?.fileName,
-          type: fileType,
-          url: awsResponse,
-          thumbnail_url:
-            fileType === VIDEO_TEXT
-              ? selectedFilesToUpload[i]?.thumbnail_url
-              : null,
-        };
-        console.log('payload --->', payload);
-
-        const uploadRes = await myClient.onUploadFile(payload);
-        console.log('uploadRes ==', uploadRes);
-        setS3UploadResponse(null);
-      }
     }
 
     //stopped uploading
