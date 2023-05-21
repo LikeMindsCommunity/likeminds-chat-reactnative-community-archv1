@@ -143,7 +143,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     position,
     isReply,
   }: any = useAppSelector(state => state.chatroom);
-  const {user, community} = useAppSelector(state => state.homefeed);
+  const {user, community, memberRights} = useAppSelector(
+    state => state.homefeed,
+  );
 
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.follow_status;
@@ -1459,7 +1461,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               )
             : null}
           {!(Object.keys(chatroomDetails).length === 0) ? (
-            memberCanMessage && chatroomFollowStatus ? (
+            memberCanMessage &&
+            chatroomFollowStatus &&
+            memberRights[3]?.is_selected === true ? (
               <InputBox
                 replyChatID={replyChatID}
                 chatroomID={chatroomID}
@@ -1467,6 +1471,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 isUploadScreen={false}
                 myRef={refInput}
               />
+            ) : memberRights[3]?.is_selected === false ? (
+              <View style={styles.disabledInput}>
+                <Text style={styles.disabledInputText}>
+                  The community managers have restricted you from responding
+                  here.
+                </Text>
+              </View>
             ) : !(Object.keys(chatroomDetails).length === 0) &&
               previousRoute?.name === HOMEFEED ? (
               <View

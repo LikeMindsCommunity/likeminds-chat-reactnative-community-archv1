@@ -21,6 +21,7 @@ const initialState = {
   myDMChatrooms: [] as any,
   invitedChatrooms: [] as any,
   user: {} as any,
+  memberRights: [],
   community: {} as any,
   unseenCount: null,
   totalCount: null,
@@ -114,8 +115,8 @@ export function homefeedReducer(state = initialState, action: any) {
       return {...state, community: community};
     }
     case PROFILE_DATA_SUCCESS: {
-      const {member = {}} = action.body;
-      return {...state, user: member};
+      const {member = {}, member_rights = []} = action.body;
+      return {...state, user: member, memberRights: member_rights};
     }
     case SHOW_TOAST: {
       const {isToast, msg} = action.body;
