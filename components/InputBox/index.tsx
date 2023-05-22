@@ -10,6 +10,7 @@ import {
   Keyboard,
   Alert,
   PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import {styles} from './styles';
@@ -41,7 +42,6 @@ import DocumentPicker from 'react-native-document-picker';
 import {FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
-import {Amplify, Storage} from 'aws-amplify';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {
@@ -409,6 +409,18 @@ const InputBox = ({
           );
           if (permissionGranted === PermissionsAndroid.RESULTS.GRANTED) {
             return true;
+          } else if (
+            permissionGranted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+          ) {
+            console.log('Storage Permission Denied with Never Ask Again.');
+            Alert.alert(
+              'Storage Permission Required',
+              'App needs access to your storage to read files. Please go to app settings and grant permission.',
+              [
+                {text: 'Cancel', style: 'cancel'},
+                {text: 'Open Settings', onPress: Linking.openSettings},
+              ],
+            );
           } else {
             return false;
           }
@@ -473,12 +485,18 @@ const InputBox = ({
           ? selectedImages[i].name
           : null;
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
+      let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${selectedImages[i]?.thumbnail_url}`;
 
-      const img = await fetchResourceFromURI(selectedImages[i].uri);
+      const img = await fetchResourceFromURI(selectedImages[i]?.uri);
+
+      //for video thumbnail
+      const thumbnailUrlImg = await fetchResourceFromURI(
+        selectedImages[i]?.thumbnail_url,
+      );
 
       console.log('path ===', path);
       console.log('img', img);
-      console.log('selectedImages[i]?.type ==', selectedImages[i]?.type);
+      console.log('selectedImages[i]?.type ==', selectedImages[i]);
 
       const params = {
         Bucket: BUCKET,
@@ -488,9 +506,24 @@ const InputBox = ({
         ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
       };
 
+      //for video thumbnail
+      const thumnnailUrlParams = {
+        Bucket: BUCKET,
+        Key: thumbnailUrlPath,
+        Body: thumbnailUrlImg,
+        ACL: 'public-read-write',
+        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+      };
+
       try {
+        let getVideoThumbnailData = null;
+
+        //for video thumbnail
+        if (selectedImages[i]?.thumbnail_url) {
+          getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
+        }
         const data = await s3.upload(params).promise();
-        console.log('File uploaded successfully:', data);
+        console.log('File uploaded successfully:', data, getVideoThumbnailData);
         let awsResponse = data.Location;
         if (awsResponse) {
           let fileType = '';
@@ -521,13 +554,11 @@ const InputBox = ({
             type: fileType,
             url: awsResponse,
             thumbnail_url:
-              fileType === VIDEO_TEXT
-                ? selectedFilesToUpload[i]?.thumbnail_url
-                : null,
+              fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
           console.log('payload --->', payload);
 
-          const uploadRes = await myClient.onUploadFile(payload);
+          const uploadRes = await myClient.onUploadFile(payload as any);
           console.log('uploadRes ==', uploadRes);
           setS3UploadResponse(null);
         }
@@ -554,10 +585,10 @@ const InputBox = ({
     });
 
     //stopped uploading
-    dispatch({
-      type: IS_FILE_UPLOADING,
-      body: {fileUploadingStatus: false, fileUploadingID: null},
-    });
+    // dispatch({
+    //   type: IS_FILE_UPLOADING,
+    //   body: {fileUploadingStatus: false, fileUploadingID: null},
+    // });
   };
 
   const handleFileUpload = async (conversationID: any) => {
@@ -824,10 +855,10 @@ const InputBox = ({
             });
           } else if (response) {
             // start uploading
-            dispatch({
-              type: IS_FILE_UPLOADING,
-              body: {fileUploadingStatus: true, fileUploadingID: ID},
-            });
+            // dispatch({
+            //   type: IS_FILE_UPLOADING,
+            //   body: {fileUploadingStatus: true, fileUploadingID: ID},
+            // });
 
             dispatch({
               type: SET_FILE_UPLOADING_MESSAGES,
