@@ -16,6 +16,7 @@ import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
 import {
+  CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   IS_FILE_UPLOADING,
@@ -24,6 +25,7 @@ import {
   SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
   SELECTED_FILE_TO_VIEW,
   SELECTED_MORE_FILES_TO_UPLOAD,
+  SET_FILE_UPLOADING_MESSAGES,
   SET_IS_REPLY,
   SET_REPLY_MESSAGE,
   SHOW_TOAST,
@@ -90,6 +92,7 @@ const InputBox = ({
   const {
     selectedFilesToUpload = [],
     selectedFilesToUploadThumbnails = [],
+    conversations = [],
   }: any = useAppSelector(state => state.chatroom);
   const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
@@ -99,6 +102,7 @@ const InputBox = ({
   );
 
   const dispatch = useAppDispatch();
+  let conversationArrayLength = conversations.length;
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -445,11 +449,7 @@ const InputBox = ({
     return blob;
   };
 
-  const uploadResource = async (
-    selectedImages: any,
-    conversationID: any,
-    dummyID: any,
-  ) => {
+  const uploadResource = async (selectedImages: any, conversationID: any) => {
     if (isUploading) return;
 
     // start uploading
@@ -544,6 +544,13 @@ const InputBox = ({
       console.log('selectedImages[i].type', selectedImages[i].type);
     }
 
+    dispatch({
+      type: CLEAR_FILE_UPLOADING_MESSAGES,
+      body: {
+        ID: conversationID,
+      },
+    });
+
     //stopped uploading
     dispatch({
       type: IS_FILE_UPLOADING,
@@ -551,12 +558,8 @@ const InputBox = ({
     });
   };
 
-  const handleFileUpload = async (conversationID: any, dummyID: any) => {
-    const res = await uploadResource(
-      selectedFilesToUpload,
-      conversationID,
-      dummyID,
-    );
+  const handleFileUpload = async (conversationID: any) => {
+    const res = await uploadResource(selectedFilesToUpload, conversationID);
     return res;
   };
 
@@ -809,20 +812,37 @@ const InputBox = ({
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
           console.log('response onConversationsCreate ==', response);
+          if (response === undefined) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {
+                isToast: true,
+                msg: 'Message not sent. Please check your internet connection',
+              },
+            });
+          } else if (response) {
+            // start uploading
+            dispatch({
+              type: IS_FILE_UPLOADING,
+              body: {fileUploadingStatus: true, fileUploadingID: ID},
+            });
+
+            dispatch({
+              type: SET_FILE_UPLOADING_MESSAGES,
+              body: {
+                message: isReply
+                  ? {...replyObj, id: response?.id, temporary_id: ID}
+                  : {...obj, id: response?.id, temporary_id: ID},
+                ID: response?.id,
+              },
+            });
+
+            await handleFileUpload(response?.id);
+          }
           dispatch({
             type: STATUS_BAR_STYLE,
             body: {color: STYLES.$STATUS_BAR_STYLE.default},
           });
-
-          // start uploading
-          dispatch({
-            type: IS_FILE_UPLOADING,
-            body: {fileUploadingStatus: true, fileUploadingID: ID},
-          });
-
-          if (response) {
-            await handleFileUpload(response?.id, ID);
-          }
         }
       }
     }

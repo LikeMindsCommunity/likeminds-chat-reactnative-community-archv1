@@ -149,13 +149,12 @@ export const VideoConversations = ({
   longPressOpenKeyboard,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
-  const {
-    selectedMessages,
-    stateArr,
-    isLongPress,
-    isFileUploading,
-    fileUploadingID,
-  }: any = useAppSelector(state => state.chatroom);
+  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
+    state => state.chatroom,
+  );
+  const {isFileUploading, fileUploadingID}: any = useAppSelector(
+    state => state.upload,
+  );
   const [isFullList, setIsFullList] = useState(false);
 
   const handleLongPress = (event: any) => {
@@ -340,13 +339,12 @@ export const PDFConversations = ({
   longPressOpenKeyboard,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
-  const {
-    selectedMessages,
-    stateArr,
-    isLongPress,
-    isFileUploading,
-    fileUploadingID,
-  }: any = useAppSelector(state => state.chatroom);
+  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
+    state => state.chatroom,
+  );
+  const {isFileUploading, fileUploadingID}: any = useAppSelector(
+    state => state.upload,
+  );
   const [isFullList, setIsFullList] = useState(false);
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
@@ -539,13 +537,12 @@ export const ImageConversations = ({
   longPressOpenKeyboard,
 }: ImageConversations) => {
   const dispatch = useAppDispatch();
-  const {
-    selectedMessages,
-    stateArr,
-    isLongPress,
-    isFileUploading,
-    fileUploadingID,
-  }: any = useAppSelector(state => state.chatroom);
+  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
+    state => state.chatroom,
+  );
+  const {isFileUploading, fileUploadingID}: any = useAppSelector(
+    state => state.upload,
+  );
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -901,7 +898,9 @@ export const ImageConversations = ({
         />
       )}
 
-      {isFileUploading && item?.id === fileUploadingID ? (
+      {isFileUploading &&
+      (item?.id === fileUploadingID ||
+        item?.temporary_id === fileUploadingID) ? (
         <View style={styles.uploadingIndicator}>
           <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
         </View>

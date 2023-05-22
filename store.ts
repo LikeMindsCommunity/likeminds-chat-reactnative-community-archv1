@@ -2,22 +2,36 @@ import {combineReducers, configureStore} from '@reduxjs/toolkit';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import thunk, {ThunkMiddleware} from 'redux-thunk';
 import apiMiddleware from './store/apiMiddleware';
-import { chatroomReducer } from './store/reducers/chatroomReducer';
-import { explorefeedReducer } from './store/reducers/explorefeedReducer';
+import {chatroomReducer} from './store/reducers/chatroomReducer';
+import {explorefeedReducer} from './store/reducers/explorefeedReducer';
 import {homefeedReducer} from './store/reducers/homefeedReducer';
-import { loader } from './store/reducers/loader';
+import {loader} from './store/reducers/loader';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {persistStore, persistReducer} from 'redux-persist';
+import {fileUploadReducer} from './store/reducers/fileUploadReducer';
+
+const persistConfig = {
+  key: 'root',
+  storage: AsyncStorage,
+  whitelist: ['upload'], // due to this redux state will not clear when we quit the app
+};
 
 const rootReducer = combineReducers({
   homefeed: homefeedReducer,
   chatroom: chatroomReducer,
   explorefeed: explorefeedReducer,
-  loader: loader
+  loader: loader,
+  upload: fileUploadReducer,
 });
 
+const persistedReducer = persistReducer(persistConfig as any, rootReducer);
+
 const store = configureStore({
-  reducer: rootReducer,
+  reducer: persistedReducer,
   middleware: [thunk as ThunkMiddleware, apiMiddleware],
 });
+
+export const persistor = persistStore(store);
 
 export default store;
 
@@ -26,4 +40,4 @@ export type RootState = ReturnType<typeof store.getState>;
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
 export const useAppDispatch: () => AppDispatch = useDispatch;
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
