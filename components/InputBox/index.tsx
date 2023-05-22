@@ -46,6 +46,7 @@ import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {
   AUDIO_TEXT,
+  CHARACTER_LIMIT_MESSAGE,
   IMAGE_TEXT,
   PDF_TEXT,
   VIDEO_TEXT,
@@ -88,6 +89,7 @@ const InputBox = ({
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
+  const MAX_LENGTH = 300;
 
   const {
     selectedFilesToUpload = [],
@@ -941,7 +943,28 @@ const InputBox = ({
               <TextInput
                 value={message}
                 ref={myRef}
-                onChangeText={setMessage}
+                onChangeText={e => {
+                  if (chatRequestState === 0 || chatRequestState === null) {
+                    if (e.length >= MAX_LENGTH) {
+                      dispatch({
+                        type: SHOW_TOAST,
+                        body: {
+                          isToast: true,
+                          msg: CHARACTER_LIMIT_MESSAGE,
+                        },
+                      });
+                    } else if (e.length < MAX_LENGTH) {
+                      setMessage(e);
+                    }
+                  } else {
+                    setMessage(e);
+                  }
+                }}
+                maxLength={
+                  chatRequestState === 0 || chatRequestState === null
+                    ? MAX_LENGTH
+                    : undefined
+                }
                 onContentSizeChange={event => {
                   setInputHeight(event.nativeEvent.contentSize.height);
                 }}
@@ -966,7 +989,8 @@ const InputBox = ({
                 placeholderTextColor="#aaa"
               />
             </View>
-            {!isUploadScreen ? (
+            {!isUploadScreen &&
+            !(chatRequestState === 0 || chatRequestState === null) ? (
               <TouchableOpacity
                 style={styles.emojiButton}
                 onPress={() => {
