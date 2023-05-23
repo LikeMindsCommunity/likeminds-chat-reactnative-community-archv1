@@ -1,15 +1,14 @@
 import {
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
-  IS_FILE_UPLOADING,
   LONG_PRESSED,
   MESSAGE_SENT,
-  ON_CONVERSATIONS_CREATE_SUCCESS,
   PAGINATED_CONVERSATIONS_SUCCESS,
   REACTION_SENT,
   SELECTED_FILES_TO_UPLOAD,
@@ -35,8 +34,6 @@ const initialState = {
   selectedFilesToUpload: [],
   selectedFilesToUploadThumbnails: [],
   selectedFileToView: {} as any,
-  isFileUploading: false,
-  fileUploadingID: null,
   isReply: false,
   replyMessage: '',
 };
@@ -169,14 +166,6 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case CLEAR_SELECTED_FILE_TO_VIEW: {
       return {...state, selectedFileToView: {}};
-    }
-    case IS_FILE_UPLOADING: {
-      const {fileUploadingStatus, fileUploadingID} = action.body;
-      return {
-        ...state,
-        isFileUploading: fileUploadingStatus,
-        fileUploadingID: fileUploadingID,
-      };
     }
     case SET_IS_REPLY: {
       const {isReply = false} = action.body;
