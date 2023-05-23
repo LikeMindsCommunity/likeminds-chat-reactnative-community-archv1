@@ -22,8 +22,9 @@ import {useAppDispatch, useAppSelector} from '../../store';
 import STYLES from '../../constants/Styles';
 import {Video, ResizeMode} from 'expo-av';
 import VideoPlayer from 'expo-video-player';
+import {IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT} from '../../constants/Strings';
 
-const ImageUpload = ({navigation, route}: any) => {
+const FileUpload = ({navigation, route}: any) => {
   const video = useRef<any>(null);
   const [status, setStatus] = React.useState({positionMillis: 0});
   const [inFullscreen, setInFullsreen] = useState(false);
@@ -34,6 +35,7 @@ const ImageUpload = ({navigation, route}: any) => {
     selectedFilesToUploadThumbnails = [],
   }: any = useAppSelector(state => state.chatroom);
   const itemType = selectedFileToView?.type?.split('/')[0];
+  const docItemType = selectedFileToView?.type?.split('/')[1];
   const dispatch = useAppDispatch();
 
   // Selected header of chatroom screen
@@ -97,12 +99,12 @@ const ImageUpload = ({navigation, route}: any) => {
         </TouchableOpacity>
       </View>
       <View style={styles.selectedFileToView}>
-        {itemType === 'image' ? (
+        {itemType === IMAGE_TEXT ? (
           <Image
             source={{uri: selectedFileToView?.uri}}
             style={styles.mainImage}
           />
-        ) : itemType === 'video' ? (
+        ) : itemType === VIDEO_TEXT ? (
           <VideoPlayer
             videoProps={{
               shouldPlay: false,
@@ -129,11 +131,17 @@ const ImageUpload = ({navigation, route}: any) => {
               inFullscreen,
             }}
           />
+        ) : docItemType === PDF_TEXT ? (
+          <Image
+            source={{uri: selectedFileToView?.thumbnail}}
+            style={styles.mainImage}
+          />
         ) : null}
       </View>
       <View style={styles.bottomBar}>
         <InputBox
           isUploadScreen={true}
+          isDoc={docItemType === PDF_TEXT ? true : false}
           chatroomID={chatroomID}
           navigation={navigation}
         />
@@ -147,6 +155,7 @@ const ImageUpload = ({navigation, route}: any) => {
                 <Pressable
                   key={item?.uri + index}
                   onPress={() => {
+                    console.log('item ==', item);
                     dispatch({
                       type: SELECTED_FILE_TO_VIEW,
                       body: {image: item},
@@ -157,7 +166,11 @@ const ImageUpload = ({navigation, route}: any) => {
                     styles.imageItem,
                     {
                       borderColor:
-                        selectedFileToView?.fileName === item?.fileName
+                        docItemType === PDF_TEXT
+                          ? selectedFileToView?.name === item?.name
+                            ? 'red'
+                            : 'black'
+                          : selectedFileToView?.fileName === item?.fileName
                           ? 'red'
                           : 'black',
                       borderWidth: 1,
@@ -165,7 +178,7 @@ const ImageUpload = ({navigation, route}: any) => {
                   ]}>
                   <Image
                     source={
-                      itemType === 'video'
+                      itemType === VIDEO_TEXT
                         ? {
                             uri:
                               'file://' +
@@ -175,7 +188,7 @@ const ImageUpload = ({navigation, route}: any) => {
                     }
                     style={styles.smallImage}
                   />
-                  {itemType === 'video' ? (
+                  {itemType === VIDEO_TEXT ? (
                     <View style={{position: 'absolute', bottom: 0, left: 5}}>
                       <Image
                         source={require('../../assets/images/video_icon3x.png')}
@@ -192,4 +205,4 @@ const ImageUpload = ({navigation, route}: any) => {
   );
 };
 
-export default ImageUpload;
+export default FileUpload;

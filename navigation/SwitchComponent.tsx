@@ -42,7 +42,7 @@ import getNotification from '../notifications';
 import ViewParticipants from '../screens/ViewParticipants';
 import AddParticipants from '../screens/AddParticipants';
 import DmAllMembers from '../screens/DmAllMembers';
-import ImageUpload from '../screens/FIleUpload';
+import FileUpload from '../screens/FIleUpload';
 import {
   ADD_PARTICIPANTS,
   CHATROOM,
@@ -135,7 +135,7 @@ const SwitchComponent = () => {
           <Stack.Screen
             options={{gestureEnabled: Platform.OS === 'ios' ? false : true}}
             name={FILE_UPLOAD}
-            component={ImageUpload}
+            component={FileUpload}
           />
         </Stack.Navigator>
       </NavigationContainer>

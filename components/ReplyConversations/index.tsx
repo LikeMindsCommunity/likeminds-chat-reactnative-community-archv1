@@ -16,6 +16,7 @@ import {
   SELECTED_MESSAGES,
   SET_POSITION,
 } from '../../store/types/types';
+import {AUDIO_TEXT, IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT} from '../../constants/Strings';
 
 interface ReplyConversations {
   item: any;
@@ -44,17 +45,17 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
       </View>
       <View style={styles.alignRow}>
         {!!item?.has_files ? (
-          item?.attachments[0]?.type === 'image' ? (
+          item?.attachments[0]?.type === IMAGE_TEXT ? (
             <Image
               source={require('../../assets/images/image_icon3x.png')}
               style={styles.icon}
             />
-          ) : item?.attachments[0]?.type === 'pdf' ? (
+          ) : item?.attachments[0]?.type === PDF_TEXT ? (
             <Image
               source={require('../../assets/images/document_icon3x.png')}
               style={styles.icon}
             />
-          ) : item?.attachments[0]?.type === 'video' ? (
+          ) : item?.attachments[0]?.type === VIDEO_TEXT ? (
             <Image
               source={require('../../assets/images/video_icon3x.png')}
               style={styles.icon}
@@ -65,13 +66,13 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
           {decode(
             !!item?.answer
               ? item?.answer
-              : item?.attachments[0]?.type === 'pdf'
+              : item?.attachments[0]?.type === PDF_TEXT
               ? `Document`
-              : item?.attachments[0]?.type === 'image'
+              : item?.attachments[0]?.type === IMAGE_TEXT
               ? `Photo`
-              : item?.attachments[0]?.type === 'video'
+              : item?.attachments[0]?.type === VIDEO_TEXT
               ? `Video`
-              : item?.attachments[0]?.type === 'audio'
+              : item?.attachments[0]?.type === AUDIO_TEXT
               ? `This message is not supported in this app yet.`
               : null,
             false,

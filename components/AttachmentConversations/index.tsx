@@ -18,6 +18,7 @@ import {
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {IMAGE_SCREEN} from '../../constants/Screens';
+import {AUDIO_TEXT, IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT} from '../../constants/Strings';
 
 interface AttachmentConversations {
   item: any;
@@ -51,7 +52,7 @@ const AttachmentConversations = ({
           isTypeSent ? styles.sentMessage : styles.receivedMessage,
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
-        {item?.attachments[0]?.type === 'image' ? (
+        {item?.attachments[0]?.type === IMAGE_TEXT ? (
           <ImageConversations
             isIncluded={isIncluded}
             item={item}
@@ -59,21 +60,21 @@ const AttachmentConversations = ({
             navigation={navigation}
             longPressOpenKeyboard={longPressOpenKeyboard}
           />
-        ) : item?.attachments[0]?.type === 'pdf' ? (
+        ) : item?.attachments[0]?.type === PDF_TEXT ? (
           <PDFConversations
             isIncluded={isIncluded}
             item={item}
             isTypeSent={isTypeSent}
             longPressOpenKeyboard={longPressOpenKeyboard}
           />
-        ) : item?.attachments[0]?.type === 'video' ? (
+        ) : item?.attachments[0]?.type === VIDEO_TEXT ? (
           <VideoConversations
             isIncluded={isIncluded}
             item={item}
             isTypeSent={isTypeSent}
             longPressOpenKeyboard={longPressOpenKeyboard}
           />
-        ) : item?.attachments[0]?.type === 'audio' ? (
+        ) : item?.attachments[0]?.type === AUDIO_TEXT ? (
           <View>
             <Text style={styles.deletedMsg}>
               This message is not supported in this app yet.
@@ -87,7 +88,7 @@ const AttachmentConversations = ({
         <Text style={styles.messageDate}>{item?.created_at}</Text>
       </View>
 
-      {!isTypeSent && !(item?.attachments[0]?.type === 'audio') ? (
+      {!isTypeSent && !(item?.attachments[0]?.type === AUDIO_TEXT) ? (
         <Pressable
           onLongPress={event => {
             const {pageX, pageY} = event.nativeEvent;
@@ -327,9 +328,13 @@ export const PDFConversations = ({
   longPressOpenKeyboard,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
-  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
-    state => state.chatroom,
-  );
+  const {
+    selectedMessages,
+    stateArr,
+    isLongPress,
+    isFileUploading,
+    fileUploadingID,
+  }: any = useAppSelector(state => state.chatroom);
   const [isFullList, setIsFullList] = useState(false);
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
@@ -497,6 +502,11 @@ export const PDFConversations = ({
           } more`}</Text>
         </TouchableOpacity>
       )}
+      {isFileUploading && item?.id === fileUploadingID ? (
+        <View style={styles.uploadingIndicator}>
+          <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+        </View>
+      ) : null}
     </View>
   );
 };

@@ -22,7 +22,7 @@ import {
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {CHATROOM} from '../../constants/Screens';
-import { CANCEL_BUTTON, CONFIRM_BUTTON } from '../../constants/Strings';
+import { CANCEL_BUTTON, CONFIRM_BUTTON, IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT } from '../../constants/Strings';
 
 interface Props {
   avatar: string;
@@ -124,7 +124,7 @@ const HomeFeedItem: React.FC<Props> = ({
     );
 
   const getFeedIcon = (val: any) => {
-    if (val[0]?.type === 'pdf') {
+    if (val[0]?.type === PDF_TEXT) {
       return (
         <View
           style={{
@@ -150,7 +150,7 @@ const HomeFeedItem: React.FC<Props> = ({
           </Text>
         </View>
       );
-    } else if (val[0]?.type === 'video') {
+    } else if (val[0]?.type === VIDEO_TEXT) {
       return (
         <View
           style={{
@@ -177,7 +177,7 @@ const HomeFeedItem: React.FC<Props> = ({
           </Text>
         </View>
       );
-    } else if (val[0]?.type === 'image') {
+    } else if (val[0]?.type === IMAGE_TEXT) {
       return (
         <View
           style={{
