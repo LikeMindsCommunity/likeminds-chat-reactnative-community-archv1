@@ -99,7 +99,7 @@ const ReplyConversations = ({
   reactionArr,
 }: ReplyConversations) => {
   const dispatch = useAppDispatch();
-  const {conversations, selectedMessages, stateArr, isLongPress} =
+  const {conversations, selectedMessages, stateArr, isLongPress}: any =
     useAppSelector(state => state.chatroom);
 
   const handleLongPress = (event: any) => {

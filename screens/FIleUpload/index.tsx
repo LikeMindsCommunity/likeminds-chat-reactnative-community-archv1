@@ -8,23 +8,32 @@ import {
   TextInput,
   BackHandler,
 } from 'react-native';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import styles from './styles';
 import Layout from '../../constants/Layout';
 import InputBox from '../../components/InputBox';
 import {
-  CLEAR_SELECTED_IMAGES_TO_UPLOAD,
-  CLEAR_SELECTED_IMAGE_TO_VIEW,
-  SELECTED_IMAGE_TO_VIEW,
+  CLEAR_SELECTED_FILES_TO_UPLOAD,
+  CLEAR_SELECTED_FILE_TO_VIEW,
+  SELECTED_FILE_TO_VIEW,
   STATUS_BAR_STYLE,
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 import STYLES from '../../constants/Styles';
+import {Video, ResizeMode} from 'expo-av';
+import VideoPlayer from 'expo-video-player';
 
 const ImageUpload = ({navigation, route}: any) => {
+  const video = useRef<any>(null);
+  const [status, setStatus] = React.useState({positionMillis: 0});
+  const [inFullscreen, setInFullsreen] = useState(false);
   const {chatroomID} = route?.params;
-  const {selectedImagesToUpload = [], selectedImageToView = {}}: any =
-    useAppSelector(state => state.chatroom);
+  const {
+    selectedFilesToUpload = [],
+    selectedFileToView = {},
+    selectedFilesToUploadThumbnails = [],
+  }: any = useAppSelector(state => state.chatroom);
+  const itemType = selectedFileToView?.type?.split('/')[0];
   const dispatch = useAppDispatch();
 
   // Selected header of chatroom screen
@@ -42,10 +51,10 @@ const ImageUpload = ({navigation, route}: any) => {
   useEffect(() => {
     function backActionCall() {
       dispatch({
-        type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+        type: CLEAR_SELECTED_FILES_TO_UPLOAD,
       });
       dispatch({
-        type: CLEAR_SELECTED_IMAGE_TO_VIEW,
+        type: CLEAR_SELECTED_FILE_TO_VIEW,
       });
       dispatch({
         type: STATUS_BAR_STYLE,
@@ -70,10 +79,10 @@ const ImageUpload = ({navigation, route}: any) => {
           style={styles.touchableBackButton}
           onPress={() => {
             dispatch({
-              type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+              type: CLEAR_SELECTED_FILES_TO_UPLOAD,
             });
             dispatch({
-              type: CLEAR_SELECTED_IMAGE_TO_VIEW,
+              type: CLEAR_SELECTED_FILE_TO_VIEW,
             });
             dispatch({
               type: STATUS_BAR_STYLE,
@@ -87,11 +96,40 @@ const ImageUpload = ({navigation, route}: any) => {
           />
         </TouchableOpacity>
       </View>
-      <View style={styles.selectedImageToView}>
-        <Image
-          source={{uri: selectedImageToView?.uri}}
-          style={styles.mainImage}
-        />
+      <View style={styles.selectedFileToView}>
+        {itemType === 'image' ? (
+          <Image
+            source={{uri: selectedFileToView?.uri}}
+            style={styles.mainImage}
+          />
+        ) : itemType === 'video' ? (
+          <VideoPlayer
+            videoProps={{
+              shouldPlay: false,
+              resizeMode: ResizeMode.CONTAIN,
+              source: {
+                uri: selectedFileToView?.uri,
+              },
+              ref: video,
+            }}
+            style={styles.video}
+            fullscreen={{
+              enterFullscreen: () => {
+                setInFullsreen(!inFullscreen);
+                video.current.setStatusAsync({
+                  shouldPlay: true,
+                });
+              },
+              exitFullscreen: () => {
+                setInFullsreen(!inFullscreen);
+                video.current.setStatusAsync({
+                  shouldPlay: false,
+                });
+              },
+              inFullscreen,
+            }}
+          />
+        ) : null}
       </View>
       <View style={styles.bottomBar}>
         <InputBox
@@ -103,14 +141,14 @@ const ImageUpload = ({navigation, route}: any) => {
           contentContainerStyle={styles.bottomListOfImages}
           horizontal={true}
           bounces={false}>
-          {selectedImagesToUpload.length > 0 &&
-            selectedImagesToUpload.map((item: any, index: any) => {
+          {selectedFilesToUpload.length > 0 &&
+            selectedFilesToUpload.map((item: any, index: any) => {
               return (
                 <Pressable
                   key={item?.uri + index}
                   onPress={() => {
                     dispatch({
-                      type: SELECTED_IMAGE_TO_VIEW,
+                      type: SELECTED_FILE_TO_VIEW,
                       body: {image: item},
                     });
                   }}
@@ -119,13 +157,32 @@ const ImageUpload = ({navigation, route}: any) => {
                     styles.imageItem,
                     {
                       borderColor:
-                        selectedImageToView?.fileName === item?.fileName
+                        selectedFileToView?.fileName === item?.fileName
                           ? 'red'
                           : 'black',
                       borderWidth: 1,
                     },
                   ]}>
-                  <Image source={{uri: item?.uri}} style={styles.smallImage} />
+                  <Image
+                    source={
+                      itemType === 'video'
+                        ? {
+                            uri:
+                              'file://' +
+                              selectedFilesToUploadThumbnails[index]?.uri,
+                          }
+                        : {uri: selectedFilesToUploadThumbnails[index]?.uri}
+                    }
+                    style={styles.smallImage}
+                  />
+                  {itemType === 'video' ? (
+                    <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                      <Image
+                        source={require('../../assets/images/video_icon3x.png')}
+                        style={styles.videoIcon}
+                      />
+                    </View>
+                  ) : null}
                 </Pressable>
               );
             })}

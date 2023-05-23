@@ -30,17 +30,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: 50,
   },
-  smallImage: {height: 40, width: 40, resizeMode: 'contain'},
+  smallImage: {height: 40, width: 40, resizeMode: 'cover'},
   touchableBackButton: {
     padding: 10,
   },
-  selectedImageToView: {flexGrow: 1, display: 'flex'},
+  selectedFileToView: {flexGrow: 1, display: 'flex', justifyContent: 'center'},
   bottomBar: {position: 'absolute', bottom: 30},
   bottomListOfImages: {
     height: 50,
     alignSelf: 'flex-end',
     marginHorizontal: 10,
   },
+  video: {
+    alignSelf: 'center',
+    width: Layout.window.width,
+    height: Layout.window.height / 1.6,
+  },
+  videoIcon: {height: 20, width: 20, resizeMode: 'contain', tintColor: 'white'},
 });
 
 export default styles;

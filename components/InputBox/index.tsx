@@ -16,13 +16,14 @@ import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
 import {
-  CLEAR_SELECTED_IMAGES_TO_UPLOAD,
-  CLEAR_SELECTED_IMAGE_TO_VIEW,
+  CLEAR_SELECTED_FILES_TO_UPLOAD,
+  CLEAR_SELECTED_FILE_TO_VIEW,
   IS_FILE_UPLOADING,
   MESSAGE_SENT,
-  SELECTED_IMAGES_TO_UPLOAD,
-  SELECTED_IMAGE_TO_VIEW,
-  SELECTED_MORE_IMAGES_TO_UPLOAD,
+  SELECTED_FILES_TO_UPLOAD,
+  SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
+  SELECTED_FILE_TO_VIEW,
+  SELECTED_MORE_FILES_TO_UPLOAD,
   SHOW_TOAST,
   STATUS_BAR_STYLE,
   UPDATE_CHAT_REQUEST_STATE,
@@ -31,16 +32,14 @@ import {
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../..';
-import {DM_REQUEST_MESSAGE, SEND_DM_REQUEST} from '../../constants/Strings';
 import {launchImageLibrary} from 'react-native-image-picker';
-import ImagePicker from 'react-native-image-crop-picker';
 import DocumentPicker from 'react-native-document-picker';
-import {useNavigation} from '@react-navigation/native';
-import {IMAGE_UPLOAD} from '../../constants/Screens';
+import {FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {Amplify, Storage} from 'aws-amplify';
 import {awsConfig} from '../../aws-exports';
+import {createThumbnail} from 'react-native-create-thumbnail';
 
 Amplify.configure(awsConfig);
 
@@ -79,21 +78,40 @@ const InputBox = ({
   const [progressText, setProgressText] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [s3UploadResponse, setS3UploadResponse] = useState<any>();
-
-  const {selectedImagesToUpload = []}: any = useAppSelector(
-    state => state.chatroom,
-  );
-  const [fileUri, setFileUri] = useState(null);
-  const [pdfUri, setPdfUri] = useState(null);
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
 
-  const dispatch = useAppDispatch();
+  const {selectedFilesToUpload = []}: any = useAppSelector(
+    state => state.chatroom,
+  );
   const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
   );
   const {chatroomDetails}: any = useAppSelector(state => state.chatroom);
 
-  let userState = user?.state;
+  const dispatch = useAppDispatch();
+
+  // function to get thumbnails from videoes
+  const getThumbnail = async (selectedImages: any) => {
+    let arr: any = [];
+    for (let i = 0; i < selectedImages.length; i++) {
+      if (selectedImages[i]?.type?.split('/')[0] === 'video') {
+        await createThumbnail({
+          url: selectedImages[i].uri,
+          timeStamp: 10000,
+        })
+          .then(response => {
+            arr = [...arr, {uri: response.path}];
+          })
+          .catch(err => console.log({err}));
+      } else {
+        arr = [...arr, {uri: selectedImages[i].uri}];
+      }
+    }
+    dispatch({
+      type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
+      body: {images: arr},
+    });
+  };
 
   //select Images From Gallery
   const selectGalley = async () => {
@@ -107,12 +125,13 @@ const InputBox = ({
 
       if (!!selectedImages) {
         if (isUploadScreen === false) {
+          getThumbnail(selectedImages);
           dispatch({
-            type: SELECTED_IMAGES_TO_UPLOAD,
+            type: SELECTED_FILES_TO_UPLOAD,
             body: {images: selectedImages},
           });
           dispatch({
-            type: SELECTED_IMAGE_TO_VIEW,
+            type: SELECTED_FILE_TO_VIEW,
             body: {image: selectedImages[0]},
           });
           dispatch({
@@ -120,13 +139,12 @@ const InputBox = ({
             body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
           });
 
-          navigation.navigate(IMAGE_UPLOAD, {
+          navigation.navigate(FILE_UPLOAD, {
             chatroomID: chatroomID,
           });
         } else if (isUploadScreen === true) {
-          console.log('isUploadScreen ==', isUploadScreen);
           dispatch({
-            type: SELECTED_MORE_IMAGES_TO_UPLOAD,
+            type: SELECTED_MORE_FILES_TO_UPLOAD,
             body: {images: selectedImages},
           });
         }
@@ -256,16 +274,18 @@ const InputBox = ({
     dummyID: any,
   ) => {
     if (isUploading) return;
-    // setIsUploading(true);
+
+    // start uploading
     dispatch({
       type: IS_FILE_UPLOADING,
       body: {fileUploadingStatus: true, fileUploadingID: dummyID},
     });
+
     for (let i = 0; i < selectedImages.length; i++) {
       const img = await fetchResourceFromURI(selectedImages[i].uri);
       const res = await Storage.put(selectedImages[i].uri, img, {
         level: 'public',
-        contentType: selectedImages[i].type,
+        contentType: selectedImages[i]?.type,
         progressCallback(uploadProgress) {
           setProgressText(
             `Progress: ${Math.round(
@@ -277,29 +297,22 @@ const InputBox = ({
           );
         },
       });
-      const awsResponse = await Storage.get(res.key);
-      // .then(result => {
-      //   setS3UploadResponse({location: result});
-      // })
-      // .catch(err => {
-      //   setProgressText('Upload Error');
-      //   console.log(err);
-      // });
+      const awsResponse = await Storage.get(res?.key);
       console.log('Storage', awsResponse);
       setProgressText('');
-      // setIsUploading(false);
       dispatch({
-        type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+        type: CLEAR_SELECTED_FILES_TO_UPLOAD,
       });
       dispatch({
-        type: CLEAR_SELECTED_IMAGE_TO_VIEW,
+        type: CLEAR_SELECTED_FILE_TO_VIEW,
       });
 
-      let attachmentType = selectedImages[i].type.split('/')[0];
+      console.log('selectedImages[i].type', selectedImages[i].type);
+      let attachmentType = selectedImages[i]?.type?.split('/')[0];
 
       if (awsResponse) {
         let fileType = '';
-        // if (selectedImagesToUpload[i].type.split('/')[1] === 'pdf') {
+        // if (selectedFilesToUpload[i].type.split('/')[1] === 'pdf') {
         //   fileType = 'pdf';
         // } else
         if (attachmentType === 'audio') {
@@ -314,9 +327,9 @@ const InputBox = ({
           files_count: selectedImages.length,
           index: i,
           meta: {
-            size: selectedImagesToUpload[i]?.fileSize,
+            size: selectedFilesToUpload[i]?.fileSize,
           },
-          name: selectedImagesToUpload[i]?.fileName,
+          name: selectedFilesToUpload[i]?.fileName,
           type: fileType,
           url: awsResponse,
         };
@@ -325,18 +338,19 @@ const InputBox = ({
         const uploadRes = await myClient.onUploadFile(payload);
         console.log('uploadRes ==', uploadRes);
         setS3UploadResponse(null);
-        dispatch({
-          type: IS_FILE_UPLOADING,
-          body: {fileUploadingStatus: false, fileUploadingID: null},
-        });
-        // navigation.goBack();
       }
     }
+
+    //stopped uploading
+    dispatch({
+      type: IS_FILE_UPLOADING,
+      body: {fileUploadingStatus: false, fileUploadingID: null},
+    });
   };
 
   const handleFileUpload = async (conversationID: any, dummyID: any) => {
     const res = await uploadResource(
-      selectedImagesToUpload,
+      selectedFilesToUpload,
       conversationID,
       dummyID,
     );
@@ -363,17 +377,23 @@ const InputBox = ({
     let hr = time.getHours();
     let min = time.getMinutes();
     let ID = Date.now();
-    let attachmentsCount = selectedImagesToUpload.length; //if any
+    let attachmentsCount = selectedFilesToUpload.length; //if any
 
     let dummySelectedImageArr: any = []; //if any
     let dummyAttachmentsArr: any = []; //if any
 
     if (attachmentsCount > 0) {
       for (let i = 0; i < attachmentsCount; i++) {
-        let attachmentType = selectedImagesToUpload[i].type.split('/')[0];
+        let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
         if (attachmentType === 'image') {
           let obj = {
-            image_url: selectedImagesToUpload[i].uri,
+            image_url: selectedFilesToUpload[i].uri,
+            index: i,
+          };
+          dummySelectedImageArr = [...dummySelectedImageArr, obj];
+        } else if (attachmentType === 'video') {
+          let obj = {
+            video_url: selectedFilesToUpload[i].uri,
             index: i,
           };
           dummySelectedImageArr = [...dummySelectedImageArr, obj];
@@ -383,14 +403,23 @@ const InputBox = ({
 
     if (attachmentsCount > 0) {
       for (let i = 0; i < attachmentsCount; i++) {
-        let attachmentType = selectedImagesToUpload[i].type.split('/')[0];
-        let URI = selectedImagesToUpload[i].uri;
+        let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
+        let URI = selectedFilesToUpload[i].uri;
         if (attachmentType === 'image') {
           let obj = {
-            ...selectedImagesToUpload[i],
+            ...selectedFilesToUpload[i],
             type: attachmentType,
             url: URI,
             index: i,
+          };
+          dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
+        } else if (attachmentType === 'video') {
+          let obj = {
+            ...selectedFilesToUpload[i],
+            type: attachmentType,
+            url: URI,
+            index: i,
+            name: selectedFilesToUpload[i].fileName,
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         }
@@ -419,6 +448,18 @@ const InputBox = ({
         replyObj.date = `${
           time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
         } ${months[time.getMonth()]} ${time.getFullYear()}`;
+        replyObj.id = ID;
+        replyObj.chatroom_id = chatroomDetails?.chatroom?.id;
+        replyObj.community_id = community?.id;
+        replyObj.date = `${
+          time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
+        } ${months[time.getMonth()]} ${time.getFullYear()}`;
+        replyObj.attachment_count = attachmentsCount;
+        replyObj.attachments = dummyAttachmentsArr;
+        replyObj.has_files = attachmentsCount > 0 ? true : false;
+        replyObj.attachments_uploaded = attachmentsCount > 0 ? true : false;
+        replyObj.images = dummySelectedImageArr;
+        replyObj.videos = dummySelectedImageArr;
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
@@ -442,6 +483,7 @@ const InputBox = ({
       obj.has_files = attachmentsCount > 0 ? true : false;
       obj.attachments_uploaded = attachmentsCount > 0 ? true : false;
       obj.images = dummySelectedImageArr;
+      obj.videos = dummySelectedImageArr;
       dispatch({
         type: UPDATE_CONVERSATIONS,
         body: isReply ? {obj: {...replyObj}} : {obj: {...obj}},
@@ -453,10 +495,10 @@ const InputBox = ({
 
       if (isUploadScreen) {
         dispatch({
-          type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+          type: CLEAR_SELECTED_FILES_TO_UPLOAD,
         });
         dispatch({
-          type: CLEAR_SELECTED_IMAGE_TO_VIEW,
+          type: CLEAR_SELECTED_FILE_TO_VIEW,
         });
       }
       setMessage('');
