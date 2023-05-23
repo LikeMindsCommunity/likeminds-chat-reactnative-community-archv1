@@ -46,9 +46,14 @@ import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {
   AUDIO_TEXT,
+  CAMERA_TEXT,
   CHARACTER_LIMIT_MESSAGE,
+  DOCUMENTS_TEXT,
+  FAILED,
   IMAGE_TEXT,
   PDF_TEXT,
+  PHOTOS_AND_VIDEOS_TEXT,
+  SUCCESS,
   VIDEO_TEXT,
 } from '../../constants/Strings';
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
@@ -1094,38 +1099,47 @@ const InputBox = ({
           <View style={styles.modalViewParent}>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
               <View style={styles.alignModalElements}>
-                <TouchableOpacity style={styles.cameraStyle}>
-                  <Image
-                    source={require('../../assets/images/camera_icon3x.png')}
-                    style={styles.emoji}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    setModalVisible(false);
-                    setTimeout(() => {
-                      handleGallery();
-                    }, 500);
-                  }}
-                  style={styles.imageStyle}>
-                  <Image
-                    source={require('../../assets/images/select_image_icon3x.png')}
-                    style={styles.emoji}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    setModalVisible(false);
-                    setTimeout(() => {
-                      handleDoc();
-                    }, 50);
-                  }}
-                  style={styles.docStyle}>
-                  <Image
-                    source={require('../../assets/images/select_doc_icon3x.png')}
-                    style={styles.emoji}
-                  />
-                </TouchableOpacity>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity style={styles.cameraStyle}>
+                    <Image
+                      source={require('../../assets/images/camera_icon3x.png')}
+                      style={styles.emoji}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.iconText}>{CAMERA_TEXT}</Text>
+                </View>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible(false);
+                      setTimeout(() => {
+                        handleGallery();
+                      }, 500);
+                    }}
+                    style={styles.imageStyle}>
+                    <Image
+                      source={require('../../assets/images/select_image_icon3x.png')}
+                      style={styles.emoji}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.iconText}>{PHOTOS_AND_VIDEOS_TEXT}</Text>
+                </View>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible(false);
+                      setTimeout(() => {
+                        handleDoc();
+                      }, 50);
+                    }}
+                    style={styles.docStyle}>
+                    <Image
+                      source={require('../../assets/images/select_doc_icon3x.png')}
+                      style={styles.emoji}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.iconText}>{DOCUMENTS_TEXT}</Text>
+                </View>
               </View>
             </Pressable>
           </View>
