@@ -41,3 +41,7 @@ export const PDF_TEXT = 'pdf';
 export const AUDIO_TEXT = 'audio';
 export const VIDEO_TEXT = 'video';
 export const IMAGE_TEXT = 'image';
+
+export const SUCCESS = 'SUCCESS';
+export const FAILED = 'FAILED';
+export const CHARACTER_LIMIT_MESSAGE = 'Your message exceeds character limit';

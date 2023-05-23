@@ -382,22 +382,11 @@ const InputBox = ({
   // function checks if we have access of storage in Android.
   async function requestStoragePermission() {
     if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs permission to access your storage',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Storage permission granted');
-          return true;
-        } else {
-          let permissionGranted = await PermissionsAndroid.request(
+      let OSVersion = Platform.constants['Release'];
+
+      if (Number(OSVersion) < 13) {
+        try {
+          const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
             {
               title: 'Storage Permission',
@@ -407,11 +396,10 @@ const InputBox = ({
               buttonPositive: 'OK',
             },
           );
-          if (permissionGranted === PermissionsAndroid.RESULTS.GRANTED) {
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('Storage permission granted');
             return true;
-          } else if (
-            permissionGranted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
-          ) {
+          } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
             console.log('Storage Permission Denied with Never Ask Again.');
             Alert.alert(
               'Storage Permission Required',
@@ -424,10 +412,46 @@ const InputBox = ({
           } else {
             return false;
           }
+        } catch (err) {
+          console.warn(err);
+          return false;
         }
-      } catch (err) {
-        console.warn(err);
-        return false;
+      } else {
+        try {
+          const grantedImageStorage = await PermissionsAndroid.requestMultiple([
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+          ]);
+          if (
+            grantedImageStorage['android.permission.READ_MEDIA_IMAGES'] &&
+            grantedImageStorage['android.permission.READ_MEDIA_VIDEO'] ===
+              PermissionsAndroid.RESULTS.GRANTED
+          ) {
+            console.log('Storage permission granted');
+            return true;
+          } else if (
+            grantedImageStorage['android.permission.READ_MEDIA_IMAGES'] ===
+              PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN ||
+            grantedImageStorage['android.permission.READ_MEDIA_VIDEO'] ===
+              PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+          ) {
+            console.log('Storage Permission Denied with Never Ask Again.');
+            Alert.alert(
+              'Storage Permission Required',
+              'App needs access to your storage to read files. Please go to app settings and grant permission.',
+              [
+                {text: 'Cancel', style: 'cancel'},
+                {text: 'Open Settings', onPress: Linking.openSettings},
+              ],
+            );
+            return false;
+          } else {
+            return false;
+          }
+        } catch (err) {
+          console.warn(err);
+          return false;
+        }
       }
     }
   }
@@ -518,7 +542,6 @@ const InputBox = ({
       try {
         let getVideoThumbnailData = null;
 
-        //for video thumbnail
         if (selectedImages[i]?.thumbnail_url) {
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
         }
