@@ -47,8 +47,6 @@
 	<string>$(PRODUCT_NAME) would like to use your mircophone</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like access to your photo gallery</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Allow $(PRODUCT_NAME) to access your microphone</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>SofiaPro-Black.otf</string>
@@ -57,7 +55,6 @@
 		<string>SofiaPro-Medium.otf</string>
 		<string>SofiaPro-Regular.otf</string>
 		<string>SofiaPro-SemiBold.otf</string>
-		<string>MaterialIcons.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

@@ -53,7 +53,9 @@ import {
   FILE_UPLOAD,
   REPORT,
   VIEW_PARTICIPANTS,
+  VIDEO_PLAYER,
 } from '../constants/Screens';
+import VideoPlayer from '../screens/VideoPlayer';
 
 const Stack = createNativeStackNavigator();
 
@@ -137,6 +139,7 @@ const SwitchComponent = () => {
             name={FILE_UPLOAD}
             component={FileUpload}
           />
+          <Stack.Screen name={VIDEO_PLAYER} component={VideoPlayer} />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastMessage

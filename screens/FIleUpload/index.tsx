@@ -20,8 +20,7 @@ import {
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 import STYLES from '../../constants/Styles';
-import {Video, ResizeMode} from 'expo-av';
-import VideoPlayer from 'expo-video-player';
+import VideoPlayer from 'react-native-media-console';
 import {IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT} from '../../constants/Strings';
 
 const FileUpload = ({navigation, route}: any) => {
@@ -105,35 +104,19 @@ const FileUpload = ({navigation, route}: any) => {
             style={styles.mainImage}
           />
         ) : itemType === VIDEO_TEXT ? (
-          <VideoPlayer
-            videoProps={{
-              shouldPlay: false,
-              resizeMode: ResizeMode.CONTAIN,
-              source: {
-                uri: selectedFileToView?.uri,
-              },
-              ref: video,
-            }}
-            style={styles.video}
-            fullscreen={{
-              enterFullscreen: () => {
-                setInFullsreen(!inFullscreen);
-                video.current.setStatusAsync({
-                  shouldPlay: true,
-                });
-              },
-              exitFullscreen: () => {
-                setInFullsreen(!inFullscreen);
-                video.current.setStatusAsync({
-                  shouldPlay: false,
-                });
-              },
-              inFullscreen,
-            }}
-          />
+          <View style={styles.video}>
+            <VideoPlayer
+              source={{uri: selectedFileToView?.uri}}
+              videoStyle={styles.videoPlayer}
+              videoRef={video}
+              disableBack={true}
+              disableFullscreen={true}
+              paused={true}
+            />
+          </View>
         ) : docItemType === PDF_TEXT ? (
           <Image
-            source={{uri: selectedFileToView?.thumbnail}}
+            source={{uri: selectedFileToView?.thumbnail_url}}
             style={styles.mainImage}
           />
         ) : null}
@@ -151,6 +134,7 @@ const FileUpload = ({navigation, route}: any) => {
           bounces={false}>
           {selectedFilesToUpload.length > 0 &&
             selectedFilesToUpload.map((item: any, index: any) => {
+              let fileType = item?.type.split('/')[0]
               return (
                 <Pressable
                   key={item?.uri + index}
@@ -188,7 +172,7 @@ const FileUpload = ({navigation, route}: any) => {
                     }
                     style={styles.smallImage}
                   />
-                  {itemType === VIDEO_TEXT ? (
+                  {fileType === VIDEO_TEXT ? (
                     <View style={{position: 'absolute', bottom: 0, left: 5}}>
                       <Image
                         source={require('../../assets/images/video_icon3x.png')}
