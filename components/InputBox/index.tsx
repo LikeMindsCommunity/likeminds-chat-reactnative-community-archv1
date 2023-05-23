@@ -227,7 +227,9 @@ const InputBox = ({
     await launchImageLibrary(options as any, (response: any) => {
       console.log('Selected image: ', response);
       if (response?.didCancel) {
-        navigation.goBack();
+        if (selectedFilesToUpload.length === 0) {
+          navigation.goBack();
+        }
       }
       let selectedImages = response?.assets; // selectedImages can be anything images or videos or both
 
@@ -255,10 +257,6 @@ const InputBox = ({
           });
         } else if (isUploadScreen === true) {
           getVideoThumbnail(selectedImages);
-          dispatch({
-            type: SELECTED_MORE_FILES_TO_UPLOAD,
-            body: {images: selectedImages},
-          });
         }
       }
     });
@@ -344,7 +342,9 @@ const InputBox = ({
         }
       }
     } catch (error) {
-      navigation.goBack();
+      if (selectedFilesToUpload.length === 0) {
+        navigation.goBack();
+      }
     }
   };
 
@@ -499,6 +499,7 @@ const InputBox = ({
     for (let i = 0; i < selectedImages?.length; i++) {
       let attachmentType = selectedImages[i]?.type?.split('/')[0];
       let docAttachmentType = selectedImages[i]?.type?.split('/')[1];
+      let thumbnailURL = selectedImages[i]?.thumbnail_url;
       console.log('selectedImages[i].name ==', selectedImages[i]);
       let name =
         attachmentType === IMAGE_TEXT
@@ -509,14 +510,15 @@ const InputBox = ({
           ? selectedImages[i].name
           : null;
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
-      let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${selectedImages[i]?.thumbnail_url}`;
+      let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
       const img = await fetchResourceFromURI(selectedImages[i]?.uri);
 
       //for video thumbnail
-      const thumbnailUrlImg = await fetchResourceFromURI(
-        selectedImages[i]?.thumbnail_url,
-      );
+      let thumbnailUrlImg = null;
+      if (thumbnailURL) {
+        thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
+      }
 
       console.log('path ===', path);
       console.log('img', img);
@@ -542,7 +544,7 @@ const InputBox = ({
       try {
         let getVideoThumbnailData = null;
 
-        if (selectedImages[i]?.thumbnail_url) {
+        if (thumbnailURL) {
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
         }
         const data = await s3.upload(params).promise();
