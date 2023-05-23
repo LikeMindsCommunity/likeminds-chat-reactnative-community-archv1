@@ -2,7 +2,10 @@ export const chatSchema = {
   normal: {
     answer: '5',
     attachment_count: 0,
+    attachments: [],
     attachments_uploaded: false,
+    images: [],
+    video: [],
     chatroom_id: 1129579,
     community_id: 50451,
     created_at: '16:11',

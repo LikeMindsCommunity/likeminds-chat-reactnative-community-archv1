@@ -16,8 +16,15 @@ import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
 import {
+  CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+  CLEAR_SELECTED_IMAGE_TO_VIEW,
+  IS_FILE_UPLOADING,
   MESSAGE_SENT,
+  SELECTED_IMAGES_TO_UPLOAD,
+  SELECTED_IMAGE_TO_VIEW,
+  SELECTED_MORE_IMAGES_TO_UPLOAD,
   SHOW_TOAST,
+  STATUS_BAR_STYLE,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
 } from '../../store/types/types';
@@ -26,18 +33,28 @@ import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../..';
 import {DM_REQUEST_MESSAGE, SEND_DM_REQUEST} from '../../constants/Strings';
 import {launchImageLibrary} from 'react-native-image-picker';
+import ImagePicker from 'react-native-image-crop-picker';
 import DocumentPicker from 'react-native-document-picker';
+import {useNavigation} from '@react-navigation/native';
+import {IMAGE_UPLOAD} from '../../constants/Screens';
+import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
+import {Amplify, Storage} from 'aws-amplify';
+import {awsConfig} from '../../aws-exports';
+
+Amplify.configure(awsConfig);
 
 interface InputBox {
-  isReply: boolean;
-  replyChatID: any;
+  isReply?: boolean;
+  replyChatID?: any;
   chatroomID: any;
-  replyMessage: any;
-  setIsReply: any;
-  setReplyMessage: any;
+  replyMessage?: any;
+  setIsReply?: any;
+  setReplyMessage?: any;
   chatRequestState?: any;
   chatroomType?: any;
+  navigation: any;
+  isUploadScreen: boolean;
   isPrivateMember?: boolean;
 }
 
@@ -50,6 +67,8 @@ const InputBox = ({
   setReplyMessage,
   chatRequestState,
   chatroomType,
+  navigation,
+  isUploadScreen,
   isPrivateMember,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
@@ -57,28 +76,65 @@ const InputBox = ({
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [progressText, setProgressText] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [s3UploadResponse, setS3UploadResponse] = useState<any>();
+
+  const {selectedImagesToUpload = []}: any = useAppSelector(
+    state => state.chatroom,
+  );
   const [fileUri, setFileUri] = useState(null);
   const [pdfUri, setPdfUri] = useState(null);
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
 
   const dispatch = useAppDispatch();
-  const {myChatrooms, user, community} = useAppSelector(
+  const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
   );
-  const {chatroomDetails} = useAppSelector(state => state.chatroom);
+  const {chatroomDetails}: any = useAppSelector(state => state.chatroom);
 
   let userState = user?.state;
 
+  //select Images From Gallery
   const selectGalley = async () => {
     const options = {
       mediaType: 'mixed',
+      selectionLimit: 0,
     };
     await launchImageLibrary(options as any, (response: any) => {
       console.log('Selected image: ', response);
-      setFileUri(response.uri);
+      let selectedImages = response?.assets;
+
+      if (!!selectedImages) {
+        if (isUploadScreen === false) {
+          dispatch({
+            type: SELECTED_IMAGES_TO_UPLOAD,
+            body: {images: selectedImages},
+          });
+          dispatch({
+            type: SELECTED_IMAGE_TO_VIEW,
+            body: {image: selectedImages[0]},
+          });
+          dispatch({
+            type: STATUS_BAR_STYLE,
+            body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+          });
+
+          navigation.navigate(IMAGE_UPLOAD, {
+            chatroomID: chatroomID,
+          });
+        } else if (isUploadScreen === true) {
+          console.log('isUploadScreen ==', isUploadScreen);
+          dispatch({
+            type: SELECTED_MORE_IMAGES_TO_UPLOAD,
+            body: {images: selectedImages},
+          });
+        }
+      }
     });
   };
 
+  //select Documents From Gallery
   const selectDoc = async () => {
     try {
       const response = await DocumentPicker.pick({
@@ -86,7 +142,6 @@ const InputBox = ({
         allowMultiSelection: true,
       });
       console.log('DocumentPicker pdf ', response);
-      setPdfUri(response?.uri);
     } catch (error) {
       console.log('DocumentPicker Error: ', error);
     }
@@ -109,135 +164,6 @@ const InputBox = ({
       hideSubscription.remove();
     };
   }, []);
-
-  const onSend = async () => {
-    // -- Code for local message handling for normal and reply for now
-    let months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    let time = new Date(Date.now());
-    let hr = time.getHours();
-    let min = time.getMinutes();
-    let ID = Date.now();
-
-    // check if message is empty string or not
-    if (!!message.trim()) {
-      let replyObj = chatSchema.reply;
-      if (isReply) {
-        replyObj.reply_conversation = replyMessage?.id;
-        replyObj.reply_conversation_object = replyMessage;
-        replyObj.member.name = user?.name;
-        replyObj.member.id = user?.id;
-        replyObj.answer = message.trim();
-        replyObj.created_at = `${hr.toLocaleString('en-US', {
-          minimumIntegerDigits: 2,
-          useGrouping: false,
-        })}:${min.toLocaleString('en-US', {
-          minimumIntegerDigits: 2,
-          useGrouping: false,
-        })}`;
-        replyObj.id = ID;
-        replyObj.chatroom_id = chatroomDetails?.chatroom.id;
-        replyObj.community_id = community?.id;
-        replyObj.date = `${
-          time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
-        } ${months[time.getMonth()]} ${time.getFullYear()}`;
-      }
-      let obj = chatSchema.normal;
-      obj.member.name = user?.name;
-      obj.member.id = user?.id;
-      obj.answer = message.trim();
-      obj.created_at = `${hr.toLocaleString('en-US', {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })}:${min.toLocaleString('en-US', {
-        minimumIntegerDigits: 2,
-        useGrouping: false,
-      })}`;
-      obj.id = ID;
-      obj.chatroom_id = chatroomDetails?.chatroom.id;
-      obj.community_id = community?.id;
-      obj.date = `${
-        time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
-      } ${months[time.getMonth()]} ${time.getFullYear()}`;
-
-      dispatch({
-        type: UPDATE_CONVERSATIONS,
-        body: isReply ? {obj: {...replyObj}} : {obj: {...obj}},
-      });
-      dispatch({
-        type: MESSAGE_SENT,
-        body: isReply ? {id: replyObj?.id} : {id: obj?.id},
-      });
-      setMessage('');
-      setIsReply(false);
-
-      setInputHeight(25);
-      setReplyMessage();
-
-      // -- Code for local message handling ended
-
-      // condition for request DM for the first time
-      if (
-        chatroomType === 10 && // if DM
-        chatRequestState === null &&
-        isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
-      ) {
-        let response = await myClient.requestDmAction({
-          chatroom_id: chatroomID,
-          chat_request_state: 0,
-          text: message.trim(),
-        });
-
-        dispatch({
-          type: SHOW_TOAST,
-          body: {isToast: true, msg: 'Direct messaging request sent'},
-        });
-
-        //dispatching redux action for local handling of chatRequestState
-        dispatch({
-          type: UPDATE_CHAT_REQUEST_STATE,
-          body: {chatRequestState: 0},
-        });
-      } else if (
-        chatroomType === 10 && // if DM
-        chatRequestState === null &&
-        !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
-      ) {
-        let response = await myClient.requestDmAction({
-          chatroom_id: chatroomID,
-          chat_request_state: 1,
-          text: message.trim(),
-        });
-        dispatch({
-          type: UPDATE_CHAT_REQUEST_STATE,
-          body: {chatRequestState: 1},
-        });
-      } else {
-        let payload = {
-          chatroom_id: chatroomID,
-          created_at: new Date(Date.now()),
-          has_files: false,
-          text: message.trim(),
-          temporary_id: ID,
-          // attachment_count?: any;
-          replied_conversation_id: replyMessage?.id,
-        };
-        let response = await dispatch(onConversationsCreate(payload) as any);
-      }
-    }
-  };
 
   // function calls a confirm alert which will further call onSend function onConfirm.
   const sendDmRequest = () => {
@@ -303,7 +229,6 @@ const InputBox = ({
         selectGalley();
       }
     }
-    setModalVisible(false);
   };
 
   // function handles the slection of documents
@@ -317,20 +242,320 @@ const InputBox = ({
       }
     }
   };
+
+  const fetchResourceFromURI = async (uri: string) => {
+    const response = await fetch(uri);
+    console.log(response);
+    const blob = await response.blob();
+    return blob;
+  };
+
+  const uploadResource = async (
+    selectedImages: any,
+    conversationID: any,
+    dummyID: any,
+  ) => {
+    if (isUploading) return;
+    // setIsUploading(true);
+    dispatch({
+      type: IS_FILE_UPLOADING,
+      body: {fileUploadingStatus: true, fileUploadingID: dummyID},
+    });
+    for (let i = 0; i < selectedImages.length; i++) {
+      const img = await fetchResourceFromURI(selectedImages[i].uri);
+      const res = await Storage.put(selectedImages[i].uri, img, {
+        level: 'public',
+        contentType: selectedImages[i].type,
+        progressCallback(uploadProgress) {
+          setProgressText(
+            `Progress: ${Math.round(
+              (uploadProgress.loaded / uploadProgress.total) * 100,
+            )} %`,
+          );
+          console.log(
+            `Progress: ${uploadProgress.loaded}/${uploadProgress.total}`,
+          );
+        },
+      });
+      const awsResponse = await Storage.get(res.key);
+      // .then(result => {
+      //   setS3UploadResponse({location: result});
+      // })
+      // .catch(err => {
+      //   setProgressText('Upload Error');
+      //   console.log(err);
+      // });
+      console.log('Storage', awsResponse);
+      setProgressText('');
+      // setIsUploading(false);
+      dispatch({
+        type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+      });
+      dispatch({
+        type: CLEAR_SELECTED_IMAGE_TO_VIEW,
+      });
+
+      let attachmentType = selectedImages[i].type.split('/')[0];
+
+      if (awsResponse) {
+        let fileType = '';
+        // if (selectedImagesToUpload[i].type.split('/')[1] === 'pdf') {
+        //   fileType = 'pdf';
+        // } else
+        if (attachmentType === 'audio') {
+          fileType = 'audio';
+        } else if (attachmentType === 'video') {
+          fileType = 'video';
+        } else if (attachmentType === 'image') {
+          fileType = 'image';
+        }
+        let payload = {
+          conversation_id: conversationID,
+          files_count: selectedImages.length,
+          index: i,
+          meta: {
+            size: selectedImagesToUpload[i]?.fileSize,
+          },
+          name: selectedImagesToUpload[i]?.fileName,
+          type: fileType,
+          url: awsResponse,
+        };
+        console.log('payload --->', payload);
+
+        const uploadRes = await myClient.onUploadFile(payload);
+        console.log('uploadRes ==', uploadRes);
+        setS3UploadResponse(null);
+        dispatch({
+          type: IS_FILE_UPLOADING,
+          body: {fileUploadingStatus: false, fileUploadingID: null},
+        });
+        // navigation.goBack();
+      }
+    }
+  };
+
+  const handleFileUpload = async (conversationID: any, dummyID: any) => {
+    const res = await uploadResource(
+      selectedImagesToUpload,
+      conversationID,
+      dummyID,
+    );
+    return res;
+  };
+
+  const onSend = async () => {
+    // -- Code for local message handling for normal and reply for now
+    let months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    let time = new Date(Date.now());
+    let hr = time.getHours();
+    let min = time.getMinutes();
+    let ID = Date.now();
+    let attachmentsCount = selectedImagesToUpload.length; //if any
+
+    let dummySelectedImageArr: any = []; //if any
+    let dummyAttachmentsArr: any = []; //if any
+
+    if (attachmentsCount > 0) {
+      for (let i = 0; i < attachmentsCount; i++) {
+        let attachmentType = selectedImagesToUpload[i].type.split('/')[0];
+        if (attachmentType === 'image') {
+          let obj = {
+            image_url: selectedImagesToUpload[i].uri,
+            index: i,
+          };
+          dummySelectedImageArr = [...dummySelectedImageArr, obj];
+        }
+      }
+    }
+
+    if (attachmentsCount > 0) {
+      for (let i = 0; i < attachmentsCount; i++) {
+        let attachmentType = selectedImagesToUpload[i].type.split('/')[0];
+        let URI = selectedImagesToUpload[i].uri;
+        if (attachmentType === 'image') {
+          let obj = {
+            ...selectedImagesToUpload[i],
+            type: attachmentType,
+            url: URI,
+            index: i,
+          };
+          dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
+        }
+      }
+    }
+
+    // check if message is empty string or not
+    if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
+      let replyObj = chatSchema.reply;
+      if (isReply) {
+        replyObj.reply_conversation = replyMessage?.id;
+        replyObj.reply_conversation_object = replyMessage;
+        replyObj.member.name = user?.name;
+        replyObj.member.id = user?.id;
+        replyObj.answer = message.trim();
+        replyObj.created_at = `${hr.toLocaleString('en-US', {
+          minimumIntegerDigits: 2,
+          useGrouping: false,
+        })}:${min.toLocaleString('en-US', {
+          minimumIntegerDigits: 2,
+          useGrouping: false,
+        })}`;
+        replyObj.id = ID;
+        replyObj.chatroom_id = chatroomDetails?.chatroom?.id;
+        replyObj.community_id = community?.id;
+        replyObj.date = `${
+          time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
+        } ${months[time.getMonth()]} ${time.getFullYear()}`;
+      }
+      let obj = chatSchema.normal;
+      obj.member.name = user?.name;
+      obj.member.id = user?.id;
+      obj.answer = message.trim();
+      obj.created_at = `${hr.toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })}:${min.toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false,
+      })}`;
+      obj.id = ID;
+      obj.chatroom_id = chatroomDetails?.chatroom?.id;
+      obj.community_id = community?.id;
+      obj.date = `${
+        time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
+      } ${months[time.getMonth()]} ${time.getFullYear()}`;
+      obj.attachment_count = attachmentsCount;
+      obj.attachments = dummyAttachmentsArr;
+      obj.has_files = attachmentsCount > 0 ? true : false;
+      obj.attachments_uploaded = attachmentsCount > 0 ? true : false;
+      obj.images = dummySelectedImageArr;
+      dispatch({
+        type: UPDATE_CONVERSATIONS,
+        body: isReply ? {obj: {...replyObj}} : {obj: {...obj}},
+      });
+      dispatch({
+        type: MESSAGE_SENT,
+        body: isReply ? {id: replyObj?.id} : {id: obj?.id},
+      });
+
+      if (isUploadScreen) {
+        dispatch({
+          type: CLEAR_SELECTED_IMAGES_TO_UPLOAD,
+        });
+        dispatch({
+          type: CLEAR_SELECTED_IMAGE_TO_VIEW,
+        });
+      }
+      setMessage('');
+      setInputHeight(25);
+
+      if (!isUploadScreen) {
+        setIsReply(false);
+        setReplyMessage();
+      }
+
+      // -- Code for local message handling ended
+
+      // condition for request DM for the first time
+      if (
+        chatroomType === 10 && // if DM
+        chatRequestState === null &&
+        isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
+      ) {
+        let response = await myClient.requestDmAction({
+          chatroom_id: chatroomID,
+          chat_request_state: 0,
+          text: message.trim(),
+        });
+
+        dispatch({
+          type: SHOW_TOAST,
+          body: {isToast: true, msg: 'Direct messaging request sent'},
+        });
+
+        //dispatching redux action for local handling of chatRequestState
+        dispatch({
+          type: UPDATE_CHAT_REQUEST_STATE,
+          body: {chatRequestState: 0},
+        });
+      } else if (
+        chatroomType === 10 && // if DM
+        chatRequestState === null &&
+        !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
+      ) {
+        let response = await myClient.requestDmAction({
+          chatroom_id: chatroomID,
+          chat_request_state: 1,
+          text: message.trim(),
+        });
+        dispatch({
+          type: UPDATE_CHAT_REQUEST_STATE,
+          body: {chatRequestState: 1},
+        });
+      } else {
+        if (!isUploadScreen) {
+          let payload = {
+            chatroom_id: chatroomID,
+            created_at: new Date(Date.now()),
+            has_files: false,
+            text: message.trim(),
+            temporary_id: ID,
+            // attachment_count?: any;
+            replied_conversation_id: replyMessage?.id,
+          };
+          let response = await dispatch(onConversationsCreate(payload) as any);
+        } else {
+          let payload = {
+            chatroom_id: chatroomID,
+            created_at: new Date(Date.now()),
+            has_files: true,
+            text: message.trim(),
+            temporary_id: ID,
+            attachment_count: attachmentsCount,
+            replied_conversation_id: replyMessage?.id,
+          };
+          let response = await dispatch(onConversationsCreate(payload) as any);
+          dispatch({
+            type: STATUS_BAR_STYLE,
+            body: {color: STYLES.$STATUS_BAR_STYLE.default},
+          });
+          navigation.goBack();
+          if (response) {
+            await handleFileUpload(response?.id, ID);
+          }
+        }
+      }
+    }
+  };
   return (
     <View>
       <View
         style={[
           styles.inputContainer,
-          {
-            marginBottom: isKeyBoardFocused
-              ? Platform.OS === 'android'
-                ? 45
-                : 5
-              : Platform.OS === 'ios'
-              ? 20
-              : 5,
-          },
+          !isUploadScreen
+            ? {
+                marginBottom: isKeyBoardFocused
+                  ? Platform.OS === 'android'
+                    ? 45
+                    : 5
+                  : Platform.OS === 'ios'
+                  ? 20
+                  : 5,
+              }
+            : null,
         ]}>
         <View style={isReply ? styles.replyBoxParent : null}>
           {isReply && (
@@ -353,6 +578,11 @@ const InputBox = ({
           <View
             style={[
               styles.textInput,
+              {
+                backgroundColor: !!isUploadScreen
+                  ? STYLES.$BACKGROUND_COLORS.DARK
+                  : STYLES.$BACKGROUND_COLORS.LIGHT,
+              },
               isReply
                 ? {
                     borderWidth: 0,
@@ -368,14 +598,43 @@ const InputBox = ({
               />
             </TouchableOpacity> */}
 
-            <View style={[styles.inputParent]}>
+            {!!isUploadScreen ? (
+              <TouchableOpacity
+                style={styles.addMoreButton}
+                onPress={() => {
+                  selectGalley();
+                }}>
+                <Image
+                  source={require('../../assets/images/addImages3x.png')}
+                  style={styles.emoji}
+                />
+              </TouchableOpacity>
+            ) : null}
+
+            <View
+              style={[
+                styles.inputParent,
+                !!isUploadScreen
+                  ? {
+                      marginHorizontal: 5,
+                    }
+                  : {marginHorizontal: 20},
+              ]}>
               <TextInput
                 value={message}
                 onChangeText={setMessage}
                 onContentSizeChange={event => {
                   setInputHeight(event.nativeEvent.contentSize.height);
                 }}
-                style={[styles.input, {height: Math.max(25, inputHeight)}]}
+                style={[
+                  styles.input,
+                  {height: Math.max(25, inputHeight)},
+                  {
+                    color: !!isUploadScreen
+                      ? STYLES.$BACKGROUND_COLORS.LIGHT
+                      : STYLES.$COLORS.SECONDARY,
+                  },
+                ]}
                 numberOfLines={6}
                 multiline={true}
                 onBlur={() => {
@@ -388,14 +647,16 @@ const InputBox = ({
                 placeholderTextColor="#aaa"
               />
             </View>
-            <TouchableOpacity
-              style={styles.emojiButton}
-              onPress={() => setModalVisible(true)}>
-              <Image
-                source={require('../../assets/images/open_files3x.png')}
-                style={styles.emoji}
-              />
-            </TouchableOpacity>
+            {!isUploadScreen ? (
+              <TouchableOpacity
+                style={styles.emojiButton}
+                onPress={() => setModalVisible(true)}>
+                <Image
+                  source={require('../../assets/images/open_files3x.png')}
+                  style={styles.emoji}
+                />
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
 
@@ -418,6 +679,8 @@ const InputBox = ({
           />
         </TouchableOpacity>
       </View>
+
+      {/* More features modal like select Images, Docs etc. */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -437,7 +700,10 @@ const InputBox = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {
-                    handleGallery();
+                    setModalVisible(false);
+                    setTimeout(() => {
+                      handleGallery();
+                    }, 500);
                   }}
                   style={styles.imageStyle}>
                   <Image

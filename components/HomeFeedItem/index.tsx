@@ -124,7 +124,7 @@ const HomeFeedItem: React.FC<Props> = ({
     );
 
   const getFeedIcon = (val: any) => {
-    if (val[0].type === 'pdf') {
+    if (val[0]?.type === 'pdf') {
       return (
         <View
           style={{
@@ -150,7 +150,7 @@ const HomeFeedItem: React.FC<Props> = ({
           </Text>
         </View>
       );
-    } else if (val[0].type === 'video') {
+    } else if (val[0]?.type === 'video') {
       return (
         <View
           style={{
@@ -177,7 +177,7 @@ const HomeFeedItem: React.FC<Props> = ({
           </Text>
         </View>
       );
-    } else if (val[0].type === 'image') {
+    } else if (val[0]?.type === 'image') {
       return (
         <View
           style={{

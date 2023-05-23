@@ -141,7 +141,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     selectedMessages,
     stateArr,
     position,
-  } = useAppSelector(state => state.chatroom);
+  }: any = useAppSelector(state => state.chatroom);
   const {user, community} = useAppSelector(state => state.homefeed);
 
   let chatroomType = chatroomDetails?.chatroom?.type;
@@ -1456,6 +1456,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 setReplyMessage={(val: any) => {
                   setReplyMessage(val);
                 }}
+                navigation={navigation}
+                isUploadScreen={false}
               />
             ) : !(Object.keys(chatroomDetails).length === 0) &&
               previousRoute?.name === HOMEFEED ? (
@@ -1584,6 +1586,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               }}
               chatRequestState={chatRequestState}
               chatroomType={chatroomType}
+              navigation={navigation}
+              isUploadScreen={false}
               isPrivateMember={chatroomDetails?.chatroom?.is_private_member}
             />
           ) : (
