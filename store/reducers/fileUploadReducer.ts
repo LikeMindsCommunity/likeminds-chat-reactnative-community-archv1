@@ -26,17 +26,12 @@ export function fileUploadReducer(state = initialState, action: any) {
     case SET_FILE_UPLOADING_MESSAGES: {
       const {message = {}, ID} = action.body;
       let obj = {[ID]: {...message}};
-      console.log('SET_FILE_UPLOADING_MESSAGES ==', obj, obj[ID].isInProgress);
       let keys = Object.keys(state.uploadingFilesMessages);
 
       let dummyState = {
         ...state.uploadingFilesMessages,
         ...obj,
       };
-      console.log(
-        `uploadingFilesMessages ${ID}==`,
-        dummyState[ID]?.isInProgress,
-      );
 
       const func = async () => {
         await AsyncStorage.setItem(
@@ -59,7 +54,6 @@ export function fileUploadReducer(state = initialState, action: any) {
         uploadingFilesMessages: {...obj},
       };
 
-      console.log(`clear uploadingFilesMessages ${ID}==`, dummyState);
       const func = async () => {
         await AsyncStorage.setItem(
           'uploadingFilesMessages',

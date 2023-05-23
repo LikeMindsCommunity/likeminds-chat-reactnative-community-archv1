@@ -146,7 +146,6 @@ const FileUpload = ({navigation, route}: any) => {
                 <Pressable
                   key={item?.uri + index}
                   onPress={() => {
-                    console.log('item ==', item);
                     dispatch({
                       type: SELECTED_FILE_TO_VIEW,
                       body: {image: item},

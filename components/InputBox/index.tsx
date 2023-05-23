@@ -138,7 +138,7 @@ const InputBox = ({
               thumbnail_url: response.path,
             };
           })
-          .catch(err => console.log({err}));
+          .catch(err => {});
       } else {
         arr = [...arr, {uri: selectedImages[i].uri}];
       }
@@ -171,7 +171,7 @@ const InputBox = ({
               thumbnail_url: response.path,
             };
           })
-          .catch(err => console.log({err}));
+          .catch(err => {});
       } else {
         arr = [...arr, {uri: selectedImages[i].uri}];
       }
@@ -231,7 +231,6 @@ const InputBox = ({
       chatroomID: chatroomID,
     });
     await launchImageLibrary(options as any, (response: any) => {
-      console.log('Selected image: ', response);
       if (response?.didCancel) {
         if (selectedFilesToUpload.length === 0) {
           navigation.goBack();
@@ -278,7 +277,6 @@ const InputBox = ({
         type: [DocumentPicker.types.pdf],
         allowMultiSelection: true,
       });
-      console.log('Selected DOC: ', response);
       let selectedDocs: any = response; // selectedImages can be anything images or videos or both
       let docsArrlength = selectedDocs?.length;
       if (docsArrlength > 0) {
@@ -329,7 +327,6 @@ const InputBox = ({
           });
         } else if (isUploadScreen === true) {
           let arr: any = await getAllPdfThumbnail(selectedDocs);
-          console.log('---> getAllPdfThumbnail', arr, selectedDocs);
           for (let i = 0; i < selectedDocs?.length; i++) {
             selectedDocs[i] = {...selectedDocs[i], thumbnail_url: arr[i]?.uri};
           }
@@ -403,10 +400,8 @@ const InputBox = ({
             },
           );
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('Storage permission granted');
             return true;
           } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-            console.log('Storage Permission Denied with Never Ask Again.');
             Alert.alert(
               'Storage Permission Required',
               'App needs access to your storage to read files. Please go to app settings and grant permission.',
@@ -433,7 +428,6 @@ const InputBox = ({
             grantedImageStorage['android.permission.READ_MEDIA_VIDEO'] ===
               PermissionsAndroid.RESULTS.GRANTED
           ) {
-            console.log('Storage permission granted');
             return true;
           } else if (
             grantedImageStorage['android.permission.READ_MEDIA_IMAGES'] ===
@@ -441,7 +435,6 @@ const InputBox = ({
             grantedImageStorage['android.permission.READ_MEDIA_VIDEO'] ===
               PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
           ) {
-            console.log('Storage Permission Denied with Never Ask Again.');
             Alert.alert(
               'Storage Permission Required',
               'App needs access to your storage to read files. Please go to app settings and grant permission.',
@@ -488,7 +481,6 @@ const InputBox = ({
 
   const fetchResourceFromURI = async (uri: string) => {
     const response = await fetch(uri);
-    console.log(response);
     const blob = await response.blob();
     return blob;
   };
@@ -506,7 +498,6 @@ const InputBox = ({
       let attachmentType = selectedImages[i]?.type?.split('/')[0];
       let docAttachmentType = selectedImages[i]?.type?.split('/')[1];
       let thumbnailURL = selectedImages[i]?.thumbnail_url;
-      console.log('selectedImages[i].name ==', selectedImages[i]);
       let name =
         attachmentType === IMAGE_TEXT
           ? selectedImages[i].fileName
@@ -525,10 +516,6 @@ const InputBox = ({
       if (thumbnailURL) {
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
       }
-
-      console.log('path ===', path);
-      console.log('img', img);
-      console.log('selectedImages[i]?.type ==', selectedImages[i]);
 
       const params = {
         Bucket: BUCKET,
@@ -554,7 +541,6 @@ const InputBox = ({
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
         }
         const data = await s3.upload(params).promise();
-        console.log('File uploaded successfully:', data, getVideoThumbnailData);
         let awsResponse = data.Location;
         if (awsResponse) {
           let fileType = '';
@@ -587,14 +573,11 @@ const InputBox = ({
             thumbnail_url:
               fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
-          console.log('payload --->', payload);
 
           const uploadRes = await myClient.onUploadFile(payload as any);
-          console.log('uploadRes ==', uploadRes);
           setS3UploadResponse(null);
         }
       } catch (error) {
-        console.log('Error uploading file:', error);
         dispatch({
           type: SET_FILE_UPLOADING_MESSAGES,
           body: {
@@ -614,8 +597,6 @@ const InputBox = ({
       dispatch({
         type: CLEAR_SELECTED_FILE_TO_VIEW,
       });
-
-      console.log('selectedImages[i].type', selectedImages[i].type);
     }
 
     dispatch({
@@ -874,7 +855,6 @@ const InputBox = ({
               },
             });
           }
-          console.log('onConversationsCreate ==', response);
         } else {
           navigation.goBack();
           let payload = {
@@ -887,7 +867,6 @@ const InputBox = ({
             replied_conversation_id: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
-          console.log('response onConversationsCreate ==', response);
           if (response === undefined) {
             dispatch({
               type: SHOW_TOAST,
