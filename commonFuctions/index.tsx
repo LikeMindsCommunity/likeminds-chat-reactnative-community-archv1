@@ -6,6 +6,13 @@ const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
 
+{
+  /* This is a generic arrow function to remove a specific key. 
+  The first argument is the name of the key to remove, the second is the object from where you want to remove the key. 
+  Note that by restructuring it, we generate the curated result, then return it. */
+}
+export const removeKey = (key: any, {[key]: _, ...rest}) => rest;
+
 // This function helps us to decode time(created_epoch: 1675421848540) into DATE if more than a day else TIME if less than a day.
 export function getFullDate(time: any) {
   if (!!time) {

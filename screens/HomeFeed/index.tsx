@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  AppState,
 } from 'react-native';
 import {myClient} from '../..';
 import {getNameInitials} from '../../commonFuctions';
@@ -25,12 +26,18 @@ import {
   updateInvites,
 } from '../../store/actions/homefeed';
 import styles from './styles';
-import {SET_PAGE} from '../../store/types/types';
+import {
+  SET_FILE_UPLOADING_MESSAGES,
+  SET_PAGE,
+  UPDATE_FILE_UPLOADING_OBJECT,
+} from '../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../notifications';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
+import {FAILED} from '../../constants/Strings';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Props {
   navigation: any;
@@ -55,6 +62,8 @@ const HomeFeed = ({navigation}: Props) => {
     community,
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
+  const {uploadingFilesMessages} = useAppSelector(state => state.upload);
+
   const db = myClient.fbInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
   const setOptions = () => {
@@ -168,6 +177,23 @@ const HomeFeed = ({navigation}: Props) => {
   }, []);
 
   useEffect(() => {
+    const func = async () => {
+      const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+      console.log(' getItem uploadingFilesMessages ress ===>', res);
+      if (res) {
+        dispatch({
+          type: UPDATE_FILE_UPLOADING_OBJECT,
+          body: {
+            obj: res,
+          },
+        });
+      }
+    };
+
+    // func();
+  }, []);
+
+  useEffect(() => {
     if (FCMToken && accessToken) {
       pushAPI(FCMToken, accessToken);
     }
@@ -178,6 +204,40 @@ const HomeFeed = ({navigation}: Props) => {
       setOptions();
     }
   }, [user]);
+
+  const handleAppStateChange = async (nextAppState: any) => {
+    if (nextAppState === 'background') {
+      // Save the upload progress and error status to persistent storage
+      console.log('AppState ==', nextAppState);
+      let arrOfKeys = Object.keys(uploadingFilesMessages);
+      let len = arrOfKeys.length;
+      if (len > 0) {
+        for (let i = 0; i < len; i++) {
+          console.log(`Ipl ${i}`);
+          dispatch({
+            type: SET_FILE_UPLOADING_MESSAGES,
+            body: {
+              message: {
+                ...uploadingFilesMessages[arrOfKeys[i]],
+                isInProgress: FAILED,
+              },
+              ID: arrOfKeys[i],
+            },
+          });
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   const renderLabel = ({route}: any) => (
     <Text style={styles.font}>{route.title}</Text>

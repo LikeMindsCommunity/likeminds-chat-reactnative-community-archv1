@@ -10,12 +10,14 @@ import {
   Keyboard,
   Alert,
   PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
 import {
+  CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   IS_FILE_UPLOADING,
@@ -24,6 +26,7 @@ import {
   SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
   SELECTED_FILE_TO_VIEW,
   SELECTED_MORE_FILES_TO_UPLOAD,
+  SET_FILE_UPLOADING_MESSAGES,
   SET_IS_REPLY,
   SET_REPLY_MESSAGE,
   SHOW_TOAST,
@@ -39,13 +42,18 @@ import DocumentPicker from 'react-native-document-picker';
 import {FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
-import {Amplify, Storage} from 'aws-amplify';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {
   AUDIO_TEXT,
+  CAMERA_TEXT,
+  CHARACTER_LIMIT_MESSAGE,
+  DOCUMENTS_TEXT,
+  FAILED,
   IMAGE_TEXT,
   PDF_TEXT,
+  PHOTOS_AND_VIDEOS_TEXT,
+  SUCCESS,
   VIDEO_TEXT,
 } from '../../constants/Strings';
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
@@ -86,10 +94,12 @@ const InputBox = ({
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
+  const MAX_LENGTH = 300;
 
   const {
     selectedFilesToUpload = [],
     selectedFilesToUploadThumbnails = [],
+    conversations = [],
   }: any = useAppSelector(state => state.chatroom);
   const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
@@ -97,8 +107,10 @@ const InputBox = ({
   const {chatroomDetails, isReply, replyMessage}: any = useAppSelector(
     state => state.chatroom,
   );
+  const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const dispatch = useAppDispatch();
+  let conversationArrayLength = conversations.length;
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -221,7 +233,9 @@ const InputBox = ({
     await launchImageLibrary(options as any, (response: any) => {
       console.log('Selected image: ', response);
       if (response?.didCancel) {
-        navigation.goBack();
+        if (selectedFilesToUpload.length === 0) {
+          navigation.goBack();
+        }
       }
       let selectedImages = response?.assets; // selectedImages can be anything images or videos or both
 
@@ -249,10 +263,6 @@ const InputBox = ({
           });
         } else if (isUploadScreen === true) {
           getVideoThumbnail(selectedImages);
-          dispatch({
-            type: SELECTED_MORE_FILES_TO_UPLOAD,
-            body: {images: selectedImages},
-          });
         }
       }
     });
@@ -338,7 +348,9 @@ const InputBox = ({
         }
       }
     } catch (error) {
-      navigation.goBack();
+      if (selectedFilesToUpload.length === 0) {
+        navigation.goBack();
+      }
     }
   };
 
@@ -376,22 +388,11 @@ const InputBox = ({
   // function checks if we have access of storage in Android.
   async function requestStoragePermission() {
     if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs permission to access your storage',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Storage permission granted');
-          return true;
-        } else {
-          let permissionGranted = await PermissionsAndroid.request(
+      let OSVersion = Platform.constants['Release'];
+
+      if (Number(OSVersion) < 13) {
+        try {
+          const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
             {
               title: 'Storage Permission',
@@ -401,15 +402,62 @@ const InputBox = ({
               buttonPositive: 'OK',
             },
           );
-          if (permissionGranted === PermissionsAndroid.RESULTS.GRANTED) {
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('Storage permission granted');
             return true;
+          } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+            console.log('Storage Permission Denied with Never Ask Again.');
+            Alert.alert(
+              'Storage Permission Required',
+              'App needs access to your storage to read files. Please go to app settings and grant permission.',
+              [
+                {text: 'Cancel', style: 'cancel'},
+                {text: 'Open Settings', onPress: Linking.openSettings},
+              ],
+            );
           } else {
             return false;
           }
+        } catch (err) {
+          console.warn(err);
+          return false;
         }
-      } catch (err) {
-        console.warn(err);
-        return false;
+      } else {
+        try {
+          const grantedImageStorage = await PermissionsAndroid.requestMultiple([
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+          ]);
+          if (
+            grantedImageStorage['android.permission.READ_MEDIA_IMAGES'] &&
+            grantedImageStorage['android.permission.READ_MEDIA_VIDEO'] ===
+              PermissionsAndroid.RESULTS.GRANTED
+          ) {
+            console.log('Storage permission granted');
+            return true;
+          } else if (
+            grantedImageStorage['android.permission.READ_MEDIA_IMAGES'] ===
+              PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN ||
+            grantedImageStorage['android.permission.READ_MEDIA_VIDEO'] ===
+              PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+          ) {
+            console.log('Storage Permission Denied with Never Ask Again.');
+            Alert.alert(
+              'Storage Permission Required',
+              'App needs access to your storage to read files. Please go to app settings and grant permission.',
+              [
+                {text: 'Cancel', style: 'cancel'},
+                {text: 'Open Settings', onPress: Linking.openSettings},
+              ],
+            );
+            return false;
+          } else {
+            return false;
+          }
+        } catch (err) {
+          console.warn(err);
+          return false;
+        }
       }
     }
   }
@@ -445,11 +493,7 @@ const InputBox = ({
     return blob;
   };
 
-  const uploadResource = async (
-    selectedImages: any,
-    conversationID: any,
-    dummyID: any,
-  ) => {
+  const uploadResource = async (selectedImages: any, conversationID: any) => {
     if (isUploading) return;
 
     // start uploading
@@ -461,6 +505,7 @@ const InputBox = ({
     for (let i = 0; i < selectedImages?.length; i++) {
       let attachmentType = selectedImages[i]?.type?.split('/')[0];
       let docAttachmentType = selectedImages[i]?.type?.split('/')[1];
+      let thumbnailURL = selectedImages[i]?.thumbnail_url;
       console.log('selectedImages[i].name ==', selectedImages[i]);
       let name =
         attachmentType === IMAGE_TEXT
@@ -471,12 +516,19 @@ const InputBox = ({
           ? selectedImages[i].name
           : null;
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
+      let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      const img = await fetchResourceFromURI(selectedImages[i].uri);
+      const img = await fetchResourceFromURI(selectedImages[i]?.uri);
+
+      //for video thumbnail
+      let thumbnailUrlImg = null;
+      if (thumbnailURL) {
+        thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
+      }
 
       console.log('path ===', path);
       console.log('img', img);
-      console.log('selectedImages[i]?.type ==', selectedImages[i]?.type);
+      console.log('selectedImages[i]?.type ==', selectedImages[i]);
 
       const params = {
         Bucket: BUCKET,
@@ -486,9 +538,23 @@ const InputBox = ({
         ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
       };
 
+      //for video thumbnail
+      const thumnnailUrlParams = {
+        Bucket: BUCKET,
+        Key: thumbnailUrlPath,
+        Body: thumbnailUrlImg,
+        ACL: 'public-read-write',
+        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+      };
+
       try {
+        let getVideoThumbnailData = null;
+
+        if (thumbnailURL) {
+          getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
+        }
         const data = await s3.upload(params).promise();
-        console.log('File uploaded successfully:', data);
+        console.log('File uploaded successfully:', data, getVideoThumbnailData);
         let awsResponse = data.Location;
         if (awsResponse) {
           let fileType = '';
@@ -519,18 +585,26 @@ const InputBox = ({
             type: fileType,
             url: awsResponse,
             thumbnail_url:
-              fileType === VIDEO_TEXT
-                ? selectedFilesToUpload[i]?.thumbnail_url
-                : null,
+              fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
           console.log('payload --->', payload);
 
-          const uploadRes = await myClient.onUploadFile(payload);
+          const uploadRes = await myClient.onUploadFile(payload as any);
           console.log('uploadRes ==', uploadRes);
           setS3UploadResponse(null);
         }
       } catch (error) {
         console.log('Error uploading file:', error);
+        dispatch({
+          type: SET_FILE_UPLOADING_MESSAGES,
+          body: {
+            message: {
+              ...uploadingFilesMessages[conversationID.toString()],
+              isInProgress: FAILED,
+            },
+            ID: conversationID,
+          },
+        });
       }
 
       setProgressText('');
@@ -544,19 +618,22 @@ const InputBox = ({
       console.log('selectedImages[i].type', selectedImages[i].type);
     }
 
-    //stopped uploading
     dispatch({
-      type: IS_FILE_UPLOADING,
-      body: {fileUploadingStatus: false, fileUploadingID: null},
+      type: CLEAR_FILE_UPLOADING_MESSAGES,
+      body: {
+        ID: conversationID,
+      },
     });
+
+    //stopped uploading
+    // dispatch({
+    //   type: IS_FILE_UPLOADING,
+    //   body: {fileUploadingStatus: false, fileUploadingID: null},
+    // });
   };
 
-  const handleFileUpload = async (conversationID: any, dummyID: any) => {
-    const res = await uploadResource(
-      selectedFilesToUpload,
-      conversationID,
-      dummyID,
-    );
+  const handleFileUpload = async (conversationID: any) => {
+    const res = await uploadResource(selectedFilesToUpload, conversationID);
     return res;
   };
 
@@ -711,7 +788,9 @@ const InputBox = ({
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
-        body: isReply ? {obj: {...replyObj}} : {obj: {...obj}},
+        body: isReply
+          ? {obj: {...replyObj, isInProgress: SUCCESS}}
+          : {obj: {...obj, isInProgress: SUCCESS}},
       });
       dispatch({
         type: MESSAGE_SENT,
@@ -809,20 +888,47 @@ const InputBox = ({
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
           console.log('response onConversationsCreate ==', response);
+          if (response === undefined) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {
+                isToast: true,
+                msg: 'Message not sent. Please check your internet connection',
+              },
+            });
+          } else if (response) {
+            // start uploading
+            // dispatch({
+            //   type: IS_FILE_UPLOADING,
+            //   body: {fileUploadingStatus: true, fileUploadingID: ID},
+            // });
+
+            dispatch({
+              type: SET_FILE_UPLOADING_MESSAGES,
+              body: {
+                message: isReply
+                  ? {
+                      ...replyObj,
+                      id: response?.id,
+                      temporary_id: ID,
+                      isInProgress: SUCCESS,
+                    }
+                  : {
+                      ...obj,
+                      id: response?.id,
+                      temporary_id: ID,
+                      isInProgress: SUCCESS,
+                    },
+                ID: response?.id,
+              },
+            });
+
+            await handleFileUpload(response?.id);
+          }
           dispatch({
             type: STATUS_BAR_STYLE,
             body: {color: STYLES.$STATUS_BAR_STYLE.default},
           });
-
-          // start uploading
-          dispatch({
-            type: IS_FILE_UPLOADING,
-            body: {fileUploadingStatus: true, fileUploadingID: ID},
-          });
-
-          if (response) {
-            await handleFileUpload(response?.id, ID);
-          }
         }
       }
     }
@@ -921,7 +1027,28 @@ const InputBox = ({
               <TextInput
                 value={message}
                 ref={myRef}
-                onChangeText={setMessage}
+                onChangeText={e => {
+                  if (chatRequestState === 0 || chatRequestState === null) {
+                    if (e.length >= MAX_LENGTH) {
+                      dispatch({
+                        type: SHOW_TOAST,
+                        body: {
+                          isToast: true,
+                          msg: CHARACTER_LIMIT_MESSAGE,
+                        },
+                      });
+                    } else if (e.length < MAX_LENGTH) {
+                      setMessage(e);
+                    }
+                  } else {
+                    setMessage(e);
+                  }
+                }}
+                maxLength={
+                  chatRequestState === 0 || chatRequestState === null
+                    ? MAX_LENGTH
+                    : undefined
+                }
                 onContentSizeChange={event => {
                   setInputHeight(event.nativeEvent.contentSize.height);
                 }}
@@ -946,7 +1073,8 @@ const InputBox = ({
                 placeholderTextColor="#aaa"
               />
             </View>
-            {!isUploadScreen ? (
+            {!isUploadScreen &&
+            !(chatRequestState === 0 || chatRequestState === null) ? (
               <TouchableOpacity
                 style={styles.emojiButton}
                 onPress={() => {
@@ -994,38 +1122,47 @@ const InputBox = ({
           <View style={styles.modalViewParent}>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
               <View style={styles.alignModalElements}>
-                <TouchableOpacity style={styles.cameraStyle}>
-                  <Image
-                    source={require('../../assets/images/camera_icon3x.png')}
-                    style={styles.emoji}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    setModalVisible(false);
-                    setTimeout(() => {
-                      handleGallery();
-                    }, 500);
-                  }}
-                  style={styles.imageStyle}>
-                  <Image
-                    source={require('../../assets/images/select_image_icon3x.png')}
-                    style={styles.emoji}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    setModalVisible(false);
-                    setTimeout(() => {
-                      handleDoc();
-                    }, 50);
-                  }}
-                  style={styles.docStyle}>
-                  <Image
-                    source={require('../../assets/images/select_doc_icon3x.png')}
-                    style={styles.emoji}
-                  />
-                </TouchableOpacity>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity style={styles.cameraStyle}>
+                    <Image
+                      source={require('../../assets/images/camera_icon3x.png')}
+                      style={styles.emoji}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.iconText}>{CAMERA_TEXT}</Text>
+                </View>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible(false);
+                      setTimeout(() => {
+                        handleGallery();
+                      }, 500);
+                    }}
+                    style={styles.imageStyle}>
+                    <Image
+                      source={require('../../assets/images/select_image_icon3x.png')}
+                      style={styles.emoji}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.iconText}>{PHOTOS_AND_VIDEOS_TEXT}</Text>
+                </View>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible(false);
+                      setTimeout(() => {
+                        handleDoc();
+                      }, 50);
+                    }}
+                    style={styles.docStyle}>
+                    <Image
+                      source={require('../../assets/images/select_doc_icon3x.png')}
+                      style={styles.emoji}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.iconText}>{DOCUMENTS_TEXT}</Text>
+                </View>
               </View>
             </Pressable>
           </View>
