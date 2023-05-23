@@ -107,6 +107,7 @@ const InputBox = ({
   const {chatroomDetails, isReply, replyMessage}: any = useAppSelector(
     state => state.chatroom,
   );
+  const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const dispatch = useAppDispatch();
   let conversationArrayLength = conversations.length;
@@ -594,6 +595,16 @@ const InputBox = ({
         }
       } catch (error) {
         console.log('Error uploading file:', error);
+        dispatch({
+          type: SET_FILE_UPLOADING_MESSAGES,
+          body: {
+            message: {
+              ...uploadingFilesMessages[conversationID.toString()],
+              isInProgress: FAILED,
+            },
+            ID: conversationID,
+          },
+        });
       }
 
       setProgressText('');
@@ -777,7 +788,9 @@ const InputBox = ({
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
-        body: isReply ? {obj: {...replyObj}} : {obj: {...obj}},
+        body: isReply
+          ? {obj: {...replyObj, isInProgress: SUCCESS}}
+          : {obj: {...obj, isInProgress: SUCCESS}},
       });
       dispatch({
         type: MESSAGE_SENT,
@@ -894,8 +907,18 @@ const InputBox = ({
               type: SET_FILE_UPLOADING_MESSAGES,
               body: {
                 message: isReply
-                  ? {...replyObj, id: response?.id, temporary_id: ID}
-                  : {...obj, id: response?.id, temporary_id: ID},
+                  ? {
+                      ...replyObj,
+                      id: response?.id,
+                      temporary_id: ID,
+                      isInProgress: SUCCESS,
+                    }
+                  : {
+                      ...obj,
+                      id: response?.id,
+                      temporary_id: ID,
+                      isInProgress: SUCCESS,
+                    },
                 ID: response?.id,
               },
             });

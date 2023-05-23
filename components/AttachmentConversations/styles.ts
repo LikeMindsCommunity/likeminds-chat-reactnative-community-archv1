@@ -117,4 +117,19 @@ export const styles = StyleSheet.create({
     opacity: 0.5,
   },
   videoIcon: {height: 20, width: 20, resizeMode: 'contain', tintColor: 'white'},
+  retryButton: {
+    backgroundColor: 'black',
+    padding: 10,
+    borderRadius: 50,
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+  },
+  retryIcon: {height: 20, width: 20, resizeMode: 'contain'},
+  retryText: {
+    color: 'white',
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
+    marginBottom: -1,
+  },
 });

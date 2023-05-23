@@ -32,13 +32,13 @@ function App(): JSX.Element {
 
   return (
     <ReduxProvider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
+      {/* <PersistGate loading={null} persistor={persistor}> */}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{flex: 1}}>
           <SwitchComponent />
         </KeyboardAvoidingView>
-      </PersistGate>
+      {/* </PersistGate> */}
     </ReduxProvider>
   );
 }

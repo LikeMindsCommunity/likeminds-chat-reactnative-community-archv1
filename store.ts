@@ -13,7 +13,8 @@ import {fileUploadReducer} from './store/reducers/fileUploadReducer';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['upload'], // due to this redux state will not clear when we quit the app
+  // blacklist: ['upload'],
+  // whitelist: ['upload'], // due to this redux state will not clear when we quit the app
 };
 
 const rootReducer = combineReducers({
@@ -27,7 +28,7 @@ const rootReducer = combineReducers({
 const persistedReducer = persistReducer(persistConfig as any, rootReducer);
 
 const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer,
   middleware: [thunk as ThunkMiddleware, apiMiddleware],
 });
 

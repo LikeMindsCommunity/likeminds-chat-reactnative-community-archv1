@@ -20,8 +20,10 @@ import {useAppDispatch, useAppSelector} from '../../store';
 import {IMAGE_SCREEN, VIDEO_PLAYER} from '../../constants/Screens';
 import {
   AUDIO_TEXT,
+  FAILED,
   IMAGE_TEXT,
   PDF_TEXT,
+  SUCCESS,
   VIDEO_TEXT,
 } from '../../constants/Strings';
 
@@ -323,9 +325,25 @@ export const VideoConversations = ({
           } more`}</Text>
         </TouchableOpacity>
       )}
-      {isFileUploading && item?.id === fileUploadingID ? (
+      {item?.isInProgress === SUCCESS ? (
         <View style={styles.uploadingIndicator}>
           <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+        </View>
+      ) : item?.isInProgress === FAILED ? (
+        <View style={styles.uploadingIndicator}>
+          <Pressable
+            style={({pressed}) => [
+              {
+                opacity: pressed ? 0.5 : 1,
+              },
+              styles.retryButton,
+            ]}>
+            <Image
+              style={styles.retryIcon}
+              source={require('../../assets/images/retry_file_upload3x.png')}
+            />
+            <Text style={styles.retryText}>RETRY</Text>
+          </Pressable>
         </View>
       ) : null}
     </View>
@@ -512,9 +530,25 @@ export const PDFConversations = ({
           } more`}</Text>
         </TouchableOpacity>
       )}
-      {isFileUploading && item?.id === fileUploadingID ? (
+      {item?.isInProgress === SUCCESS ? (
         <View style={styles.uploadingIndicator}>
           <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+        </View>
+      ) : item?.isInProgress === FAILED ? (
+        <View style={styles.uploadingIndicator}>
+          <Pressable
+            style={({pressed}) => [
+              {
+                opacity: pressed ? 0.5 : 1,
+              },
+              styles.retryButton,
+            ]}>
+            <Image
+              style={styles.retryIcon}
+              source={require('../../assets/images/retry_file_upload3x.png')}
+            />
+            <Text style={styles.retryText}>RETRY</Text>
+          </Pressable>
         </View>
       ) : null}
     </View>
@@ -648,7 +682,7 @@ export const ImageConversations = ({
             onLongPress={handleLongPress}
             delayLongPress={200}
             onPress={event => {
-              handleOnPress(event, item?.attachments[0]?.url);
+              handleOnPress(event, item?.attachments[1]?.url);
             }}>
             <Image
               source={{
@@ -898,11 +932,25 @@ export const ImageConversations = ({
         />
       )}
 
-      {isFileUploading &&
-      (item?.id === fileUploadingID ||
-        item?.temporary_id === fileUploadingID) ? (
+      {item?.isInProgress === SUCCESS ? (
         <View style={styles.uploadingIndicator}>
           <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+        </View>
+      ) : item?.isInProgress === FAILED ? (
+        <View style={styles.uploadingIndicator}>
+          <Pressable
+            style={({pressed}) => [
+              {
+                opacity: pressed ? 0.5 : 1,
+              },
+              styles.retryButton,
+            ]}>
+            <Image
+              style={styles.retryIcon}
+              source={require('../../assets/images/retry_file_upload3x.png')}
+            />
+            <Text style={styles.retryText}>RETRY</Text>
+          </Pressable>
         </View>
       ) : null}
     </View>
