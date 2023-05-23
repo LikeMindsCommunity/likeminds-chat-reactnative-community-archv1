@@ -179,7 +179,6 @@ const HomeFeed = ({navigation}: Props) => {
   useEffect(() => {
     const func = async () => {
       const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
-      console.log(' getItem uploadingFilesMessages ress ===>', res);
       if (res) {
         dispatch({
           type: UPDATE_FILE_UPLOADING_OBJECT,
@@ -208,12 +207,10 @@ const HomeFeed = ({navigation}: Props) => {
   const handleAppStateChange = async (nextAppState: any) => {
     if (nextAppState === 'background') {
       // Save the upload progress and error status to persistent storage
-      console.log('AppState ==', nextAppState);
       let arrOfKeys = Object.keys(uploadingFilesMessages);
       let len = arrOfKeys.length;
       if (len > 0) {
         for (let i = 0; i < len; i++) {
-          console.log(`Ipl ${i}`);
           dispatch({
             type: SET_FILE_UPLOADING_MESSAGES,
             body: {

@@ -38,7 +38,6 @@ const VideoPlayer = ({navigation, route}: any) => {
 
   const params = route?.params;
   let url = params?.url;
-  console.log('ulr ==', url);
 
   return (
     <View>
