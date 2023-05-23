@@ -321,10 +321,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let userCanDeleteParticularMessageArr: any = [];
         let selectedMessagesIDArr: any = [];
         let isCopy = false;
+        let showCopyIcon = true;
         let isDelete = false;
+        let isFirstMessageDeleted = selectedMessages[0]?.deleted_by;
         for (let i = 0; i < selectedMessages.length; i++) {
-          if (!!!selectedMessages[i]?.deleted_by && !isCopy) {
+          if (selectedMessages[i].attachment_count > 0) {
+            showCopyIcon = false;
+          }
+
+          if (!!!selectedMessages[i]?.deleted_by && showCopyIcon) {
             isCopy = true;
+          } else if (!showCopyIcon) {
+            isCopy = false;
           }
 
           if (
@@ -355,7 +363,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           if (
             user?.state === communityManagerState &&
             userCanDeleteParticularMessageArr.length === 1 &&
-            !!!selectedMessages[0]?.deleted_by
+            !!!isFirstMessageDeleted
           ) {
             isDelete = true;
           } else {
@@ -367,7 +375,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         return (
           <View style={styles.selectedHeadingContainer}>
             {len === 1 &&
-              !!!selectedMessages[0]?.deleted_by &&
+              !!!isFirstMessageDeleted &&
               memberCanMessage &&
               chatroomFollowStatus && (
                 <TouchableOpacity
@@ -392,7 +400,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </TouchableOpacity>
               )}
 
-            {len === 1 && !!!selectedMessages[0]?.deleted_by ? (
+            {len === 1 && !!!isFirstMessageDeleted && isCopy ? (
               <TouchableOpacity
                 onPress={() => {
                   const output = copySelectedMessages(selectedMessages);
@@ -449,7 +457,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 />
               </TouchableOpacity>
             )}
-            {len === 1 && !!!selectedMessages[0]?.deleted_by && (
+            {len === 1 && !!!isFirstMessageDeleted && (
               <TouchableOpacity
                 onPress={() => {
                   setReportModalVisible(true);
