@@ -9,6 +9,7 @@ import {
   Pressable,
   Keyboard,
   Alert,
+  PermissionsAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
@@ -24,6 +25,8 @@ import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../..';
 import {DM_REQUEST_MESSAGE, SEND_DM_REQUEST} from '../../constants/Strings';
+import {launchImageLibrary} from 'react-native-image-picker';
+import DocumentPicker from 'react-native-document-picker';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
 
 interface InputBox {
@@ -54,6 +57,8 @@ const InputBox = ({
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [fileUri, setFileUri] = useState(null);
+  const [pdfUri, setPdfUri] = useState(null);
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -63,7 +68,29 @@ const InputBox = ({
   const {chatroomDetails} = useAppSelector(state => state.chatroom);
 
   let userState = user?.state;
-  // let receiverState =
+
+  const selectGalley = async () => {
+    const options = {
+      mediaType: 'mixed',
+    };
+    await launchImageLibrary(options as any, (response: any) => {
+      console.log('Selected image: ', response);
+      setFileUri(response.uri);
+    });
+  };
+
+  const selectDoc = async () => {
+    try {
+      const response = await DocumentPicker.pick({
+        type: [DocumentPicker.types.pdf],
+        allowMultiSelection: true,
+      });
+      console.log('DocumentPicker pdf ', response);
+      setPdfUri(response?.uri);
+    } catch (error) {
+      console.log('DocumentPicker Error: ', error);
+    }
+  };
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -225,6 +252,71 @@ const InputBox = ({
     setDMSentAlertModalVisible(false);
   };
 
+  // function checks if we have access of storage in Android.
+  async function requestStoragePermission() {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission',
+            message: 'App needs permission to access your storage',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Storage permission granted');
+          return true;
+        } else {
+          let permissionGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            {
+              title: 'Storage Permission',
+              message: 'App needs permission to access your storage',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );
+          if (permissionGranted === PermissionsAndroid.RESULTS.GRANTED) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+  }
+
+  // function handles the selection of images and videos
+  const handleGallery = async () => {
+    if (Platform.OS === 'ios') {
+      selectGalley();
+    } else {
+      let res = await requestStoragePermission();
+      if (res === true) {
+        selectGalley();
+      }
+    }
+    setModalVisible(false);
+  };
+
+  // function handles the slection of documents
+  const handleDoc = async () => {
+    if (Platform.OS === 'ios') {
+      selectDoc();
+    } else {
+      let res = await requestStoragePermission();
+      if (res === true) {
+        selectDoc();
+      }
+    }
+  };
   return (
     <View>
       <View
@@ -268,13 +360,13 @@ const InputBox = ({
                 : null,
             ]}>
             {/* <TouchableOpacity
-            style={styles.emojiButton}
-            onPress={() => setShowEmoji(!showEmoji)}>
-            <Image
-              source={require('../../assets/images/smile_emoji3x.png')}
-              style={styles.emoji}
-            />
-          </TouchableOpacity> */}
+              style={styles.emojiButton}
+              onPress={() => setShowEmoji(!showEmoji)}>
+              <Image
+                source={require('../../assets/images/smile_emoji3x.png')}
+                style={styles.emoji}
+              />
+            </TouchableOpacity> */}
 
             <View style={[styles.inputParent]}>
               <TextInput
@@ -296,14 +388,14 @@ const InputBox = ({
                 placeholderTextColor="#aaa"
               />
             </View>
-            {/* <TouchableOpacity
-            style={styles.emojiButton}
-            onPress={() => setModalVisible(true)}>
-            <Image
-              source={require('../../assets/images/open_files3x.png')}
-              style={styles.emoji}
-            />
-          </TouchableOpacity> */}
+            <TouchableOpacity
+              style={styles.emojiButton}
+              onPress={() => setModalVisible(true)}>
+              <Image
+                source={require('../../assets/images/open_files3x.png')}
+                style={styles.emoji}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -343,13 +435,24 @@ const InputBox = ({
                     style={styles.emoji}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.imageStyle}>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleGallery();
+                  }}
+                  style={styles.imageStyle}>
                   <Image
                     source={require('../../assets/images/select_image_icon3x.png')}
                     style={styles.emoji}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.docStyle}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setModalVisible(false);
+                    setTimeout(() => {
+                      handleDoc();
+                    }, 50);
+                  }}
+                  style={styles.docStyle}>
                   <Image
                     source={require('../../assets/images/select_doc_icon3x.png')}
                     style={styles.emoji}
