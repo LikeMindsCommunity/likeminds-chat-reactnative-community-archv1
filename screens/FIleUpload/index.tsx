@@ -35,6 +35,7 @@ const FileUpload = ({navigation, route}: any) => {
   }: any = useAppSelector(state => state.chatroom);
   const itemType = selectedFileToView?.type?.split('/')[0];
   const docItemType = selectedFileToView?.type?.split('/')[1];
+  let len = selectedFilesToUpload.length;
   const dispatch = useAppDispatch();
 
   // Selected header of chatroom screen
@@ -75,28 +76,30 @@ const FileUpload = ({navigation, route}: any) => {
 
   return (
     <View style={styles.page}>
-      <View style={styles.headingContainer}>
-        <TouchableOpacity
-          style={styles.touchableBackButton}
-          onPress={() => {
-            dispatch({
-              type: CLEAR_SELECTED_FILES_TO_UPLOAD,
-            });
-            dispatch({
-              type: CLEAR_SELECTED_FILE_TO_VIEW,
-            });
-            dispatch({
-              type: STATUS_BAR_STYLE,
-              body: {color: STYLES.$STATUS_BAR_STYLE.default},
-            });
-            navigation.goBack();
-          }}>
-          <Image
-            source={require('../../assets/images/blue_back_arrow3x.png')}
-            style={styles.backBtn}
-          />
-        </TouchableOpacity>
-      </View>
+      {len > 0 ? (
+        <View style={styles.headingContainer}>
+          <TouchableOpacity
+            style={styles.touchableBackButton}
+            onPress={() => {
+              dispatch({
+                type: CLEAR_SELECTED_FILES_TO_UPLOAD,
+              });
+              dispatch({
+                type: CLEAR_SELECTED_FILE_TO_VIEW,
+              });
+              dispatch({
+                type: STATUS_BAR_STYLE,
+                body: {color: STYLES.$STATUS_BAR_STYLE.default},
+              });
+              navigation.goBack();
+            }}>
+            <Image
+              source={require('../../assets/images/blue_back_arrow3x.png')}
+              style={styles.backBtn}
+            />
+          </TouchableOpacity>
+        </View>
+      ) : null}
       <View style={styles.selectedFileToView}>
         {itemType === IMAGE_TEXT ? (
           <Image
@@ -121,20 +124,24 @@ const FileUpload = ({navigation, route}: any) => {
           />
         ) : null}
       </View>
+
       <View style={styles.bottomBar}>
-        <InputBox
-          isUploadScreen={true}
-          isDoc={docItemType === PDF_TEXT ? true : false}
-          chatroomID={chatroomID}
-          navigation={navigation}
-        />
+        {len > 0 ? (
+          <InputBox
+            isUploadScreen={true}
+            isDoc={docItemType === PDF_TEXT ? true : false}
+            chatroomID={chatroomID}
+            navigation={navigation}
+          />
+        ) : null}
+
         <ScrollView
           contentContainerStyle={styles.bottomListOfImages}
           horizontal={true}
           bounces={false}>
-          {selectedFilesToUpload.length > 0 &&
+          {len > 0 &&
             selectedFilesToUpload.map((item: any, index: any) => {
-              let fileType = item?.type.split('/')[0]
+              let fileType = item?.type.split('/')[0];
               return (
                 <Pressable
                   key={item?.uri + index}

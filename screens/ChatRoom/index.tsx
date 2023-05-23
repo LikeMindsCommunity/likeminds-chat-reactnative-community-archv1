@@ -71,23 +71,17 @@ import {
   VIEW_PARTICIPANTS,
 } from '../../constants/Screens';
 import {
-  APPROVE_DM_REQUEST,
-  APPROVE_REQUEST_MESSAGE,
-  BLOCK_DM_REQUEST,
   COMMUNITY_MANAGER_DISABLED_CHAT,
   DM_REQUEST_SENT_MESSAGE,
   JOIN_CHATROOM,
   JOIN_CHATROOM_MESSAGE,
-  REJECT_DM_REQUEST,
   REJECT_INVITATION,
   REJECT_INVITATION_MESSAGE,
   REQUEST_SENT,
-  REJECT_REQUEST_MESSAGE,
   CANCEL_BUTTON,
   CONFIRM_BUTTON,
   APPROVE_BUTTON,
   REJECT_BUTTON,
-  REPORT_AND_REJECT_BUTTON,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -146,6 +140,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {user, community, memberRights} = useAppSelector(
     state => state.homefeed,
   );
+  const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.follow_status;
@@ -328,10 +323,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let userCanDeleteParticularMessageArr: any = [];
         let selectedMessagesIDArr: any = [];
         let isCopy = false;
+        let showCopyIcon = true;
         let isDelete = false;
+        let isFirstMessageDeleted = selectedMessages[0]?.deleted_by;
         for (let i = 0; i < selectedMessages.length; i++) {
-          if (!!!selectedMessages[i]?.deleted_by && !isCopy) {
+          if (selectedMessages[i].attachment_count > 0) {
+            showCopyIcon = false;
+          }
+
+          if (!!!selectedMessages[i]?.deleted_by && showCopyIcon) {
             isCopy = true;
+          } else if (!showCopyIcon) {
+            isCopy = false;
           }
 
           if (
@@ -362,7 +365,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           if (
             user?.state === communityManagerState &&
             userCanDeleteParticularMessageArr.length === 1 &&
-            !!!selectedMessages[0]?.deleted_by
+            !!!isFirstMessageDeleted
           ) {
             isDelete = true;
           } else {
@@ -374,7 +377,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         return (
           <View style={styles.selectedHeadingContainer}>
             {len === 1 &&
-              !!!selectedMessages[0].deleted_by &&
+              !!!isFirstMessageDeleted &&
               memberCanMessage &&
               chatroomFollowStatus && (
                 <TouchableOpacity
@@ -399,7 +402,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </TouchableOpacity>
               )}
 
-            {len === 1 && !!!selectedMessages[0].deleted_by ? (
+            {len === 1 && !!!isFirstMessageDeleted && isCopy ? (
               <TouchableOpacity
                 onPress={() => {
                   const output = copySelectedMessages(selectedMessages);
@@ -456,7 +459,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 />
               </TouchableOpacity>
             )}
-            {len === 1 && !!!selectedMessages[0].deleted_by && (
+            {len === 1 && !!!isFirstMessageDeleted && (
               <TouchableOpacity
                 onPress={() => {
                   setReportModalVisible(true);
@@ -1368,7 +1371,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         keyExtractor={item => {
           return item?.id?.toString();
         }}
-        renderItem={({item, index}) => {
+        renderItem={({item: value, index}: any) => {
+          let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
+          let item = value;
+          if (uploadingFilesMessagesIDArr.includes(value?.id.toString())) {
+            item = uploadingFilesMessages[value?.id];
+          }
+
           let isStateIncluded = stateArr.includes(item?.state);
           let isIncluded = selectedMessages.some(
             (val: any) => val?.id === item?.id && !isStateIncluded,

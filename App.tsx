@@ -7,16 +7,16 @@ import {
 } from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Provider as ReduxProvider} from 'react-redux';
-import store, {useAppSelector} from './store';
+import store, {persistor} from './store';
 import SwitchComponent from './navigation/SwitchComponent';
 import notifee, {EventType} from '@notifee/react-native';
 import {getRoute} from './notifications/routes';
 import * as RootNavigation from './RootNavigation';
+import {PersistGate} from 'redux-persist/integration/react';
 
 const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
-
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
     async function bootstrap() {
@@ -32,11 +32,13 @@ function App(): JSX.Element {
 
   return (
     <ReduxProvider store={store}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1}}>
-        <SwitchComponent />
-      </KeyboardAvoidingView>
+      {/* <PersistGate loading={null} persistor={persistor}> */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{flex: 1}}>
+          <SwitchComponent />
+        </KeyboardAvoidingView>
+      {/* </PersistGate> */}
     </ReduxProvider>
   );
 }

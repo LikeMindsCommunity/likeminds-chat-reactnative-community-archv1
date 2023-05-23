@@ -135,4 +135,10 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
   },
   replyCloseImg: {height: 5, width: 5, resizeMode: 'contain'},
+  iconText: {
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.PRIMARY,
+  },
+  iconContainer: {alignItems: 'center', gap: 5},
 });
