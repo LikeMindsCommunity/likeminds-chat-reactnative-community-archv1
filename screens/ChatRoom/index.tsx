@@ -1470,7 +1470,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               )
             : null}
           {!(Object.keys(chatroomDetails).length === 0) ? (
-            memberCanMessage &&
+            !(user.state !== 1 && chatroomDetails?.chatroom.type === 7) &&
             chatroomFollowStatus &&
             memberRights[3]?.is_selected === true ? (
               <InputBox
@@ -1480,6 +1480,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 isUploadScreen={false}
                 myRef={refInput}
               />
+            ) : user.state !== 1 && chatroomDetails?.chatroom.type === 7 ? (
+              <View style={styles.disabledInput}>
+                <Text style={styles.disabledInputText}>
+                  The community managers have restricted you from responding
+                  here.
+                </Text>
+              </View>
             ) : memberRights[3]?.is_selected === false ? (
               <View style={styles.disabledInput}>
                 <Text style={styles.disabledInputText}>
