@@ -414,7 +414,6 @@ const InputBox = ({
             return false;
           }
         } catch (err) {
-          console.warn(err);
           return false;
         }
       } else {
@@ -503,7 +502,7 @@ const InputBox = ({
           ? selectedImages[i].fileName
           : attachmentType === VIDEO_TEXT
           ? selectedImages[i].fileName
-          : attachmentType === PDF_TEXT
+          : docAttachmentType === PDF_TEXT
           ? selectedImages[i].name
           : null;
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
@@ -537,7 +536,7 @@ const InputBox = ({
       try {
         let getVideoThumbnailData = null;
 
-        if (thumbnailURL) {
+        if (thumbnailURL && attachmentType === VIDEO_TEXT) {
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
         }
         const data = await s3.upload(params).promise();
