@@ -43,8 +43,6 @@ import DocumentPicker from 'react-native-document-picker';
 import {FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
-import {createThumbnail} from 'react-native-create-thumbnail';
-import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {
   AUDIO_TEXT,
   CAMERA_TEXT,
@@ -60,6 +58,13 @@ import {
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
+import {
+  fetchResourceFromURI,
+  getAllPdfThumbnail,
+  getAllVideosThumbnail,
+  getPdfThumbnail,
+  getVideoThumbnail,
+} from '../../commonFuctions';
 
 interface InputBox {
   replyChatID?: any;
@@ -130,106 +135,6 @@ const InputBox = ({
       setInputHeight(25);
     }
   }, [fileSent]);
-
-  // function to get thumbnails from videos
-  const getAllVideosThumbnail = async (selectedImages: any) => {
-    let arr: any = [];
-    let dummyArrSelectedFiles: any = selectedImages;
-    for (let i = 0; i < selectedImages?.length; i++) {
-      if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
-        await createThumbnail({
-          url: selectedImages[i].uri,
-          timeStamp: 10000,
-        })
-          .then(response => {
-            arr = [...arr, {uri: response.path}];
-            dummyArrSelectedFiles[i] = {
-              ...dummyArrSelectedFiles[i],
-              thumbnail_url: response.path,
-            };
-          })
-          .catch(err => {});
-      } else {
-        arr = [...arr, {uri: selectedImages[i].uri}];
-      }
-    }
-    dispatch({
-      type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-      body: {images: arr},
-    });
-    dispatch({
-      type: SELECTED_FILES_TO_UPLOAD,
-      body: {images: dummyArrSelectedFiles},
-    });
-    return arr;
-  };
-
-  // function to get thumbnails from videos
-  const getVideoThumbnail = async (selectedImages: any) => {
-    let arr: any = [];
-    let dummyArrSelectedFiles: any = selectedImages;
-    for (let i = 0; i < selectedImages?.length; i++) {
-      if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
-        await createThumbnail({
-          url: selectedImages[i].uri,
-          timeStamp: 10000,
-        })
-          .then(response => {
-            arr = [...arr, {uri: response.path}];
-            dummyArrSelectedFiles[i] = {
-              ...dummyArrSelectedFiles[i],
-              thumbnail_url: response.path,
-            };
-          })
-          .catch(err => {});
-      } else {
-        arr = [...arr, {uri: selectedImages[i].uri}];
-      }
-    }
-    dispatch({
-      type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-      body: {images: [...selectedFilesToUploadThumbnails, ...arr]},
-    });
-    dispatch({
-      type: SELECTED_FILES_TO_UPLOAD,
-      body: {images: [...selectedFilesToUpload, ...dummyArrSelectedFiles]},
-    });
-    return arr;
-  };
-
-  // function to get thumbnails of all pdf
-  const getAllPdfThumbnail = async (selectedImages: any) => {
-    let arr: any = [];
-    for (let i = 0; i < selectedImages?.length; i++) {
-      const filePath = selectedImages[i].uri;
-      const page = 0;
-      if (selectedImages[i]?.type?.split('/')[1] === PDF_TEXT) {
-        const res = await PdfThumbnail.generate(filePath, page);
-        if (!!res) {
-          arr = [...arr, {uri: res?.uri}];
-        }
-      } else {
-        arr = [...arr, {uri: selectedImages[i].uri}];
-      }
-    }
-    return arr;
-  };
-
-  // function to get thumbnails of pdf
-  const getPdfThumbnail = async (selectedFile: any) => {
-    let arr: any = [];
-    const filePath = selectedFile.uri;
-    const page = 0;
-    if (selectedFile?.type?.split('/')[1] === PDF_TEXT) {
-      const res = await PdfThumbnail.generate(filePath, page);
-      if (!!res) {
-        arr = [...arr, {uri: res?.uri}];
-      }
-    } else {
-      arr = [...arr, {uri: selectedFile.uri}];
-    }
-    return arr;
-  };
 
   //select Images and videoes From Gallery
   const selectGalley = async () => {
@@ -489,20 +394,8 @@ const InputBox = ({
     }
   };
 
-  const fetchResourceFromURI = async (uri: string) => {
-    const response = await fetch(uri);
-    const blob = await response.blob();
-    return blob;
-  };
-
   const uploadResource = async (selectedImages: any, conversationID: any) => {
     if (isUploading) return;
-
-    // start uploading
-    // dispatch({
-    //   type: IS_FILE_UPLOADING,
-    //   body: {fileUploadingStatus: true, fileUploadingID: dummyID},
-    // });
 
     for (let i = 0; i < selectedImages?.length; i++) {
       let attachmentType = selectedImages[i]?.type?.split('/')[0];
@@ -523,7 +416,7 @@ const InputBox = ({
 
       //for video thumbnail
       let thumbnailUrlImg = null;
-      if (thumbnailURL) {
+      if (thumbnailURL && attachmentType === VIDEO_TEXT) {
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
       }
 
@@ -615,12 +508,6 @@ const InputBox = ({
         ID: conversationID,
       },
     });
-
-    //stopped uploading
-    // dispatch({
-    //   type: IS_FILE_UPLOADING,
-    //   body: {fileUploadingStatus: false, fileUploadingID: null},
-    // });
   };
 
   const handleFileUpload = async (conversationID: any) => {

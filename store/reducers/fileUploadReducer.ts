@@ -34,13 +34,14 @@ export function fileUploadReducer(state = initialState, action: any) {
       };
 
       const func = async () => {
+        const res = await AsyncStorage.getItem('uploadingFilesMessages');
         await AsyncStorage.setItem(
           'uploadingFilesMessages',
-          JSON.stringify({...dummyState}),
+          JSON.stringify({...JSON.parse(res as any), ...dummyState}),
         );
       };
 
-      // func();
+      func();
       return {
         ...state,
         uploadingFilesMessages: dummyState,
@@ -48,6 +49,7 @@ export function fileUploadReducer(state = initialState, action: any) {
     }
     case CLEAR_FILE_UPLOADING_MESSAGES: {
       const {ID} = action.body;
+
       let obj = removeKey(ID, state.uploadingFilesMessages);
       let dummyState = {
         ...state,
@@ -55,21 +57,29 @@ export function fileUploadReducer(state = initialState, action: any) {
       };
 
       const func = async () => {
+        const res = await AsyncStorage.getItem('uploadingFilesMessages');
+        let obj = removeKey(ID, JSON.parse(res as any));
         await AsyncStorage.setItem(
           'uploadingFilesMessages',
-          JSON.stringify(dummyState),
+          JSON.stringify(obj),
         );
       };
 
-      // func();
+      func();
       return dummyState;
     }
 
     case UPDATE_FILE_UPLOADING_OBJECT: {
-      const {obj} = action.body;
+      const {message = {}, ID} = action.body;
+      let obj = {[ID]: {...message}};
+      let dummyState = {
+        ...state.uploadingFilesMessages,
+        ...obj,
+      };
+
       return {
         ...state,
-        uploadingFilesMessages: {...obj},
+        uploadingFilesMessages: {...dummyState},
       };
     }
     default:
