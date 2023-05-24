@@ -22,6 +22,7 @@ interface Messages {
   longPressOpenKeyboard: any;
   removeReaction: any;
   handleTapToUndo: any;
+  handleFileUpload: any;
 }
 
 const Messages = ({
@@ -33,6 +34,7 @@ const Messages = ({
   longPressOpenKeyboard,
   removeReaction,
   handleTapToUndo,
+  handleFileUpload,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
   const {
@@ -187,6 +189,7 @@ const Messages = ({
             longPressOpenKeyboard={() => {
               longPressOpenKeyboard();
             }}
+            handleFileUpload={handleFileUpload}
           />
         ) : (
           <View>

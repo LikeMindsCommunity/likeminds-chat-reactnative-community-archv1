@@ -2,13 +2,6 @@
  * @format
  */
 
-// need to remove Reactotron code from index.js and
-// `@react-native-async-storage/async-storage`, `reactotron-react-native` packages from package.json
-// as they are only for debugging purpose only
-if (__DEV__) {
-  import('./ReactotronConfig').then();
-}
-
 import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';

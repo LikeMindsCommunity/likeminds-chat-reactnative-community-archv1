@@ -39,11 +39,16 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
   },
-  lastMessage: {
+  parentLastMessage: {
     color: STYLES.$COLORS.PRIMARY,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     width: '85%',
+  },
+  lastMessage: {
+    color: STYLES.$COLORS.PRIMARY,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
   },
   deletedMessage: {
     color: STYLES.$COLORS.PRIMARY,
@@ -110,5 +115,10 @@ export const styles = StyleSheet.create({
     height: 13,
     width: 13,
     resizeMode: 'contain',
+  },
+  alignCenter: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });

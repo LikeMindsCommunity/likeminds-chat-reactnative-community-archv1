@@ -23,7 +23,7 @@ import {
   Platform,
 } from 'react-native';
 import {myClient} from '../..';
-import {copySelectedMessages} from '../../commonFuctions';
+import {copySelectedMessages, fetchResourceFromURI} from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
 import ToastMessage from '../../components/ToastMessage';
@@ -43,6 +43,9 @@ import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  CLEAR_FILE_UPLOADING_MESSAGES,
+  CLEAR_SELECTED_FILES_TO_UPLOAD,
+  CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
@@ -50,6 +53,7 @@ import {
   SELECTED_MESSAGES,
   SET_DM_PAGE,
   SET_EXPLORE_FEED_PAGE,
+  SET_FILE_UPLOADING_MESSAGES,
   SET_IS_REPLY,
   SET_PAGE,
   SET_POSITION,
@@ -82,11 +86,20 @@ import {
   CONFIRM_BUTTON,
   APPROVE_BUTTON,
   REJECT_BUTTON,
+  FAILED,
+  VIDEO_TEXT,
+  PDF_TEXT,
+  AUDIO_TEXT,
+  IMAGE_TEXT,
+  SUCCESS,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
 import BlockDMRequestModal from '../../customModals/BlockDMRequest';
 import RejectDMRequestModal from '../../customModals/RejectDMRequest';
+import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
+import {CognitoIdentityCredentials, S3} from 'aws-sdk';
+import AWS from 'aws-sdk';
 
 interface Data {
   id: string;
@@ -135,7 +148,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     selectedMessages,
     stateArr,
     position,
-    isReply,
   }: any = useAppSelector(state => state.chatroom);
   const {user, community, memberRights} = useAppSelector(
     state => state.homefeed,
@@ -147,6 +159,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let memberCanMessage = chatroomDetails?.chatroom?.member_can_message;
   let chatroomWithUser = chatroomDetails?.chatroom?.chatroom_with_user;
   let chatRequestState = chatroomDetails?.chatroom?.chat_request_state;
+
+  AWS.config.update({
+    region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
+    credentials: new CognitoIdentityCredentials({
+      IdentityPoolId: POOL_ID, // Replace with your Identity Pool ID
+    }),
+  });
+
+  const s3 = new S3();
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -1362,6 +1383,136 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setDMBlockAlertModalVisible(false);
   };
 
+  const uploadResource = async (selectedImages: any, conversationID: any) => {
+    for (let i = 0; i < selectedImages?.length; i++) {
+      let attachmentType = selectedImages[i]?.type;
+      let docAttachmentType = selectedImages[i]?.type;
+      let thumbnailURL = selectedImages[i]?.thumbnail_url;
+      let name =
+        attachmentType === IMAGE_TEXT
+          ? selectedImages[i].fileName
+          : attachmentType === VIDEO_TEXT
+          ? selectedImages[i].fileName
+          : docAttachmentType === PDF_TEXT
+          ? selectedImages[i].name
+          : null;
+      let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
+      let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
+
+      const img = await fetchResourceFromURI(selectedImages[i]?.uri);
+
+      //for video thumbnail
+      let thumbnailUrlImg = null;
+      if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+        thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
+      }
+
+      const params = {
+        Bucket: BUCKET,
+        Key: path,
+        Body: img,
+        ACL: 'public-read-write',
+        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+      };
+
+      //for video thumbnail
+      const thumnnailUrlParams = {
+        Bucket: BUCKET,
+        Key: thumbnailUrlPath,
+        Body: thumbnailUrlImg,
+        ACL: 'public-read-write',
+        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+      };
+
+      try {
+        let getVideoThumbnailData = null;
+
+        if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+          getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
+        }
+        const data = await s3.upload(params).promise();
+        let awsResponse = data.Location;
+        if (awsResponse) {
+          let fileType = '';
+          if (docAttachmentType === PDF_TEXT) {
+            fileType = PDF_TEXT;
+          } else if (attachmentType === AUDIO_TEXT) {
+            fileType = AUDIO_TEXT;
+          } else if (attachmentType === VIDEO_TEXT) {
+            fileType = VIDEO_TEXT;
+          } else if (attachmentType === IMAGE_TEXT) {
+            fileType = IMAGE_TEXT;
+          }
+
+          let payload = {
+            conversation_id: conversationID,
+            files_count: selectedImages?.length,
+            index: i,
+            meta: {
+              size:
+                docAttachmentType === PDF_TEXT
+                  ? selectedImages[i]?.size
+                  : selectedImages[i]?.fileSize,
+            },
+            name:
+              docAttachmentType === PDF_TEXT
+                ? selectedImages[i]?.name
+                : selectedImages[i]?.fileName,
+            type: fileType,
+            url: awsResponse,
+            thumbnail_url:
+              fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
+          };
+
+          const uploadRes = await myClient.onUploadFile(payload as any);
+        }
+      } catch (error) {
+        dispatch({
+          type: SET_FILE_UPLOADING_MESSAGES,
+          body: {
+            message: {
+              ...uploadingFilesMessages[conversationID.toString()],
+              isInProgress: FAILED,
+            },
+            ID: conversationID,
+          },
+        });
+      }
+      dispatch({
+        type: CLEAR_SELECTED_FILES_TO_UPLOAD,
+      });
+      dispatch({
+        type: CLEAR_SELECTED_FILE_TO_VIEW,
+      });
+    }
+
+    dispatch({
+      type: CLEAR_FILE_UPLOADING_MESSAGES,
+      body: {
+        ID: conversationID,
+      },
+    });
+  };
+
+  const handleFileUpload = async (conversationID: any) => {
+    let selectedFilesToUpload = uploadingFilesMessages[conversationID];
+    dispatch({
+      type: SET_FILE_UPLOADING_MESSAGES,
+      body: {
+        message: {
+          ...selectedFilesToUpload,
+          isInProgress: SUCCESS,
+        },
+        ID: conversationID,
+      },
+    });
+    const res = await uploadResource(
+      selectedFilesToUpload?.attachments,
+      conversationID,
+    );
+    return res;
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -1435,6 +1586,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   handleTapToUndo={() => {
                     onTapToUndo();
                   }}
+                  handleFileUpload={handleFileUpload}
                 />
               </Pressable>
             </View>

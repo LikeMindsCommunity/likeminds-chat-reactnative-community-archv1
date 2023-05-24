@@ -35,6 +35,7 @@ interface AttachmentConversations {
   openKeyboard: any;
   longPressOpenKeyboard: any;
   isReplyConversation?: any;
+  handleFileUpload: any;
 }
 
 const AttachmentConversations = ({
@@ -45,6 +46,7 @@ const AttachmentConversations = ({
   openKeyboard,
   longPressOpenKeyboard,
   isReplyConversation,
+  handleFileUpload,
 }: AttachmentConversations) => {
   const dispatch = useAppDispatch();
   return (
@@ -72,6 +74,7 @@ const AttachmentConversations = ({
             isTypeSent={isTypeSent}
             navigation={navigation}
             longPressOpenKeyboard={longPressOpenKeyboard}
+            handleFileUpload={handleFileUpload}
           />
         ) : item?.attachments[0]?.type === PDF_TEXT ? (
           <PDFConversations
@@ -79,6 +82,7 @@ const AttachmentConversations = ({
             item={item}
             isTypeSent={isTypeSent}
             longPressOpenKeyboard={longPressOpenKeyboard}
+            handleFileUpload={handleFileUpload}
           />
         ) : item?.attachments[0]?.type === VIDEO_TEXT ? (
           <ImageConversations
@@ -87,6 +91,7 @@ const AttachmentConversations = ({
             isTypeSent={isTypeSent}
             navigation={navigation}
             longPressOpenKeyboard={longPressOpenKeyboard}
+            handleFileUpload={handleFileUpload}
           />
         ) : item?.attachments[0]?.type === AUDIO_TEXT ? (
           <View>
@@ -142,6 +147,7 @@ interface PDFConversations {
   isTypeSent: boolean;
   isIncluded: boolean;
   longPressOpenKeyboard: any;
+  handleFileUpload: any;
 }
 
 export const VideoConversations = ({
@@ -149,6 +155,7 @@ export const VideoConversations = ({
   isTypeSent,
   isIncluded,
   longPressOpenKeyboard,
+  handleFileUpload,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
@@ -332,6 +339,9 @@ export const VideoConversations = ({
       ) : item?.isInProgress === FAILED ? (
         <View style={styles.uploadingIndicator}>
           <Pressable
+            onPress={() => {
+              handleFileUpload(item?.id);
+            }}
             style={({pressed}) => [
               {
                 opacity: pressed ? 0.5 : 1,
@@ -355,6 +365,7 @@ export const PDFConversations = ({
   isTypeSent,
   isIncluded,
   longPressOpenKeyboard,
+  handleFileUpload,
 }: PDFConversations) => {
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
@@ -537,6 +548,9 @@ export const PDFConversations = ({
       ) : item?.isInProgress === FAILED ? (
         <View style={styles.uploadingIndicator}>
           <Pressable
+            onPress={() => {
+              handleFileUpload(item?.id);
+            }}
             style={({pressed}) => [
               {
                 opacity: pressed ? 0.5 : 1,
@@ -561,6 +575,7 @@ interface ImageConversations {
   isIncluded: boolean;
   navigation: any;
   longPressOpenKeyboard: any;
+  handleFileUpload: any;
 }
 
 export const ImageConversations = ({
@@ -569,6 +584,7 @@ export const ImageConversations = ({
   isIncluded,
   navigation,
   longPressOpenKeyboard,
+  handleFileUpload,
 }: ImageConversations) => {
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
@@ -939,6 +955,9 @@ export const ImageConversations = ({
       ) : item?.isInProgress === FAILED ? (
         <View style={styles.uploadingIndicator}>
           <Pressable
+            onPress={() => {
+              handleFileUpload(item?.id);
+            }}
             style={({pressed}) => [
               {
                 opacity: pressed ? 0.5 : 1,

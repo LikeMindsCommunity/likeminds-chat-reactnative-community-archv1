@@ -180,16 +180,27 @@ const HomeFeed = ({navigation}: Props) => {
     const func = async () => {
       const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
       if (res) {
-        dispatch({
-          type: UPDATE_FILE_UPLOADING_OBJECT,
-          body: {
-            obj: res,
-          },
-        });
+        let uploadingFilesMessagesSavedObject = JSON.parse(res);
+        let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
+        let len = arrOfKeys.length;
+        if (len > 0) {
+          for (let i = 0; i < len; i++) {
+            dispatch({
+              type: UPDATE_FILE_UPLOADING_OBJECT,
+              body: {
+                message: {
+                  ...uploadingFilesMessagesSavedObject[arrOfKeys[i]],
+                  isInProgress: FAILED,
+                },
+                ID: arrOfKeys[i],
+              },
+            });
+          }
+        }
       }
     };
 
-    // func();
+    func();
   }, []);
 
   useEffect(() => {
@@ -204,38 +215,6 @@ const HomeFeed = ({navigation}: Props) => {
     }
   }, [user]);
 
-  const handleAppStateChange = async (nextAppState: any) => {
-    if (nextAppState === 'background') {
-      // Save the upload progress and error status to persistent storage
-      let arrOfKeys = Object.keys(uploadingFilesMessages);
-      let len = arrOfKeys.length;
-      if (len > 0) {
-        for (let i = 0; i < len; i++) {
-          dispatch({
-            type: SET_FILE_UPLOADING_MESSAGES,
-            body: {
-              message: {
-                ...uploadingFilesMessages[arrOfKeys[i]],
-                isInProgress: FAILED,
-              },
-              ID: arrOfKeys[i],
-            },
-          });
-        }
-      }
-    }
-  };
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener(
-      'change',
-      handleAppStateChange,
-    );
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
   const renderLabel = ({route}: any) => (
     <Text style={styles.font}>{route.title}</Text>
   );
@@ -247,9 +226,6 @@ const HomeFeed = ({navigation}: Props) => {
           screenOptions={{
             tabBarLabelStyle: styles.font,
             tabBarIndicatorStyle: {backgroundColor: STYLES.$COLORS.PRIMARY},
-            // tabBarLabelStyle: {
-            //   fontSize: 10,
-            // },
           }}>
           <Tab.Screen
             name="GroupFeed"
