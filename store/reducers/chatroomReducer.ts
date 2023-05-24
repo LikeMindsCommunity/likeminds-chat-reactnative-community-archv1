@@ -4,6 +4,7 @@ import {
   CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
+  FILE_SENT,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
@@ -36,6 +37,7 @@ const initialState = {
   selectedFileToView: {} as any,
   isReply: false,
   replyMessage: '',
+  fileSent: 0,
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -174,6 +176,10 @@ export function chatroomReducer(state = initialState, action: any) {
     case SET_REPLY_MESSAGE: {
       const {replyMessage = ''} = action.body;
       return {...state, replyMessage: replyMessage};
+    }
+    case FILE_SENT: {
+      const {status = ''} = action.body;
+      return {...state, fileSent: status};
     }
     default:
       return state;
