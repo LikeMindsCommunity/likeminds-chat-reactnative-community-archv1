@@ -177,7 +177,12 @@ const InputBox = ({
             body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
           });
         } else if (isUploadScreen === true) {
-          getVideoThumbnail(selectedImages);
+          //selected data will be saved inside get video function
+          getVideoThumbnail(
+            selectedImages,
+            selectedFilesToUpload,
+            selectedFilesToUploadThumbnails,
+          );
         }
       }
     });
