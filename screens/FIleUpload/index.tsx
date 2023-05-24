@@ -27,7 +27,7 @@ const FileUpload = ({navigation, route}: any) => {
   const video = useRef<any>(null);
   const [status, setStatus] = React.useState({positionMillis: 0});
   const [inFullscreen, setInFullsreen] = useState(false);
-  const {chatroomID} = route?.params;
+  const {chatroomID, previousMessage = ''} = route?.params;
   const {
     selectedFilesToUpload = [],
     selectedFileToView = {},
@@ -132,6 +132,7 @@ const FileUpload = ({navigation, route}: any) => {
             isDoc={docItemType === PDF_TEXT ? true : false}
             chatroomID={chatroomID}
             navigation={navigation}
+            previousMessage={previousMessage}
           />
         ) : null}
 

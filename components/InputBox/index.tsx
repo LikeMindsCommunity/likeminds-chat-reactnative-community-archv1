@@ -20,6 +20,7 @@ import {
   CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
+  FILE_SENT,
   IS_FILE_UPLOADING,
   MESSAGE_SENT,
   SELECTED_FILES_TO_UPLOAD,
@@ -70,6 +71,7 @@ interface InputBox {
   isPrivateMember?: boolean;
   isDoc?: boolean;
   myRef?: any;
+  previousMessage?: string;
 }
 
 const InputBox = ({
@@ -82,9 +84,10 @@ const InputBox = ({
   isPrivateMember,
   isDoc,
   myRef,
+  previousMessage = '',
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(previousMessage);
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -104,9 +107,8 @@ const InputBox = ({
   const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
   );
-  const {chatroomDetails, isReply, replyMessage}: any = useAppSelector(
-    state => state.chatroom,
-  );
+  const {chatroomDetails, isReply, replyMessage, fileSent}: any =
+    useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const dispatch = useAppDispatch();
@@ -120,6 +122,14 @@ const InputBox = ({
   });
 
   const s3 = new S3();
+
+  // to clear message on ChatScreen InputBox when fileSent from UploadScreen
+  useEffect(() => {
+    if (!isUploadScreen) {
+      setMessage('');
+      setInputHeight(25);
+    }
+  }, [fileSent]);
 
   // function to get thumbnails from videos
   const getAllVideosThumbnail = async (selectedImages: any) => {
@@ -229,6 +239,7 @@ const InputBox = ({
     };
     navigation.navigate(FILE_UPLOAD, {
       chatroomID: chatroomID,
+      previousMessage: message, // to keep message on uploadScreen InputBox
     });
     await launchImageLibrary(options as any, (response: any) => {
       if (response?.didCancel) {
@@ -855,6 +866,10 @@ const InputBox = ({
             });
           }
         } else {
+          dispatch({
+            type: FILE_SENT,
+            body: {status: !fileSent},
+          });
           navigation.goBack();
           let payload = {
             chatroom_id: chatroomID,
