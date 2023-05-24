@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   Pressable,
+  Platform,
 } from 'react-native';
 import {myClient} from '../..';
 import {decode, getFullDate} from '../../commonFuctions';
@@ -22,7 +23,14 @@ import {
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {CHATROOM} from '../../constants/Screens';
-import { CANCEL_BUTTON, CONFIRM_BUTTON, IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT } from '../../constants/Strings';
+import {
+  CANCEL_BUTTON,
+  CONFIRM_BUTTON,
+  IMAGE_TEXT,
+  PDF_TEXT,
+  VIDEO_TEXT,
+} from '../../constants/Strings';
+import Layout from '../../constants/Layout';
 
 interface Props {
   avatar: string;
@@ -126,13 +134,7 @@ const HomeFeedItem: React.FC<Props> = ({
   const getFeedIcon = (val: any) => {
     if (val[0]?.type === PDF_TEXT) {
       return (
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            // marginBottom: -20,
-          }}>
+        <View style={styles.alignCenter}>
           {val?.length > 1 && (
             <Text style={styles.attachment_msg}>{val?.length}</Text>
           )}
@@ -180,12 +182,12 @@ const HomeFeedItem: React.FC<Props> = ({
     } else if (val[0]?.type === IMAGE_TEXT) {
       return (
         <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: -2,
-          }}>
+          style={[
+            styles.alignCenter,
+            {
+              marginBottom: -2,
+            },
+          ]}>
           {val?.length > 1 && (
             <Text style={styles.attachment_msg}>{val?.length}</Text>
           )}
@@ -254,14 +256,14 @@ const HomeFeedItem: React.FC<Props> = ({
           {!!time ? <Text style={styles.time}>{time}</Text> : null}
         </View>
         {!!lastConversation && !!!inviteReceiver ? (
-          <Text style={styles.lastMessage} numberOfLines={1}>
+          <Text style={styles.parentLastMessage}>
             {!!deletedBy ? (
               <Text
                 style={
                   styles.deletedMessage
                 }>{`This message has been deleted`}</Text>
             ) : (
-              <Text>
+              <View style={styles.alignCenter}>
                 {chatroomType !== 10 ? (
                   <Text
                     style={
@@ -269,12 +271,22 @@ const HomeFeedItem: React.FC<Props> = ({
                     }>{`${lastConversationMember}: `}</Text>
                 ) : null}
 
-                <Text>
+                <Text
+                  numberOfLines={1}
+                  style={[
+                    styles.parentLastMessage,
+                    {
+                      width:
+                        Platform.OS === 'ios'
+                          ? '85%'
+                          : Layout.window.width / 1.75,
+                    },
+                  ]}>
                   {!!lastConversation?.has_files
                     ? getFeedIcon(lastConversation?.attachments)
                     : decode(lastMessage, false)}
                 </Text>
-              </Text>
+              </View>
             )}
           </Text>
         ) : !!inviteReceiver ? (
