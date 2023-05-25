@@ -709,7 +709,7 @@ export const ImageConversations = ({
               }}
               style={styles.doubleImg}
             />
-            {item?.attachments[0]?.type === VIDEO_TEXT ? (
+            {item?.attachments[1]?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
                   source={require('../../assets/images/video_icon3x.png')}
