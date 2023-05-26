@@ -136,6 +136,10 @@ const InputBox = ({
     }
   }, [fileSent]);
 
+  const handleVideoThumbnail = async (images: any) => {
+    await getAllVideosThumbnail(images);
+  };
+
   //select Images and videoes From Gallery
   const selectGalley = async () => {
     const options = {
@@ -146,7 +150,7 @@ const InputBox = ({
       chatroomID: chatroomID,
       previousMessage: message, // to keep message on uploadScreen InputBox
     });
-    await launchImageLibrary(options as any, (response: any) => {
+    await launchImageLibrary(options as any, async (response: any) => {
       if (response?.didCancel) {
         if (selectedFilesToUpload.length === 0) {
           navigation.goBack();
@@ -167,7 +171,7 @@ const InputBox = ({
 
       if (!!selectedImages) {
         if (isUploadScreen === false) {
-          getAllVideosThumbnail(selectedImages);
+          await handleVideoThumbnail(selectedImages);
           dispatch({
             type: SELECTED_FILE_TO_VIEW,
             body: {image: selectedImages[0]},
@@ -439,7 +443,7 @@ const InputBox = ({
         Key: thumbnailUrlPath,
         Body: thumbnailUrlImg,
         ACL: 'public-read-write',
-        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+        ContentType: 'image/jpeg', // Replace with the appropriate content type for your file
       };
 
       try {
@@ -466,12 +470,18 @@ const InputBox = ({
             conversation_id: conversationID,
             files_count: selectedImages?.length,
             index: i,
-            meta: {
-              size:
-                docAttachmentType === PDF_TEXT
-                  ? selectedFilesToUpload[i]?.size
-                  : selectedFilesToUpload[i]?.fileSize,
-            },
+            meta:
+              fileType === VIDEO_TEXT
+                ? {
+                    size: selectedFilesToUpload[i]?.fileSize,
+                    duration: selectedFilesToUpload[i]?.duration,
+                  }
+                : {
+                    size:
+                      docAttachmentType === PDF_TEXT
+                        ? selectedFilesToUpload[i]?.size
+                        : selectedFilesToUpload[i]?.fileSize,
+                  },
             name:
               docAttachmentType === PDF_TEXT
                 ? selectedFilesToUpload[i]?.name
@@ -783,10 +793,6 @@ const InputBox = ({
             });
           } else if (response) {
             // start uploading
-            // dispatch({
-            //   type: IS_FILE_UPLOADING,
-            //   body: {fileUploadingStatus: true, fileUploadingID: ID},
-            // });
 
             dispatch({
               type: SET_FILE_UPLOADING_MESSAGES,

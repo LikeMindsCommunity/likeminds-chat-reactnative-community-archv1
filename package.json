@@ -21,6 +21,7 @@
     "@react-navigation/native": "^6.1.2",
     "@react-navigation/native-stack": "^6.9.8",
     "@reduxjs/toolkit": "^1.9.2",
+    "@shopify/flash-list": "^1.4.3",
     "aws-sdk": "^2.1380.0",
     "buffer": "^6.0.3",
     "firebase": "^9.17.1",
