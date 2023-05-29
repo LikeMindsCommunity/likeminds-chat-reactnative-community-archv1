@@ -222,12 +222,6 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const fetchParticipants = async () => {
     const res = await myClient.getAllMembers({page: 1});
     setParticipants(res?.members);
-    if (!!res && res?.members.length === 10) {
-      const response = await myClient.getAllMembers({page: 2});
-
-      setParticipants([...res?.members, ...response?.members]);
-      setPage(2);
-    }
   };
 
   //function fetch all members of the community for DM.
@@ -245,15 +239,6 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
           };
     const res = await myClient.dmAllMembers(initialPayload);
     setParticipants(res?.members);
-    if (!!res && res?.members.length === 10) {
-      setPage(2);
-      let changedPayload = {...initialPayload, page: 2};
-      const response = await myClient.dmAllMembers(changedPayload);
-      setParticipants((participants: any) => [
-        ...res?.members,
-        ...response?.members,
-      ]);
-    }
   };
 
   //function search members in the community.
