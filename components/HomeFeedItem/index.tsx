@@ -131,7 +131,7 @@ const HomeFeedItem: React.FC<Props> = ({
       },
     );
 
-  const getFeedIcon = (val: any) => {
+  const getFeedIconAttachment = (val: any) => {
     let valueOfZerothIndex = val[0];
     if (valueOfZerothIndex?.type === PDF_TEXT) {
       return (
@@ -284,7 +284,7 @@ const HomeFeedItem: React.FC<Props> = ({
                     },
                   ]}>
                   {!!lastConversation?.has_files
-                    ? getFeedIcon(lastConversation?.attachments)
+                    ? getFeedIconAttachment(lastConversation?.attachments)
                     : decode(lastMessage, false)}
                 </Text>
               </View>
