@@ -65,7 +65,6 @@ export async function requestStoragePermission() {
           return false;
         }
       } catch (err) {
-        console.warn(err);
         return false;
       }
     }

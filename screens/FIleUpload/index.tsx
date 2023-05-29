@@ -115,7 +115,6 @@ const FileUpload = ({navigation, route}: any) => {
     isRetry,
   }: UploadResource) => {
     const s3 = new S3();
-    console.log('selectedImages ==', selectedImages);
 
     for (let i = 0; i < selectedImages?.length; i++) {
       let item = selectedImages[i];
@@ -165,7 +164,6 @@ const FileUpload = ({navigation, route}: any) => {
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
         }
         const data = await s3.upload(params).promise();
-        console.log('data ==', data);
         let awsResponse = data.Location;
         if (awsResponse) {
           let fileType = '';
