@@ -303,45 +303,20 @@ export const fetchResourceFromURI = async (uri: string) => {
   return blob;
 };
 
-// function to get thumbnails from videos
-export const getAllVideosThumbnail = async (selectedImages: any) => {
-  let arr: any = [];
-  let dummyArrSelectedFiles: any = selectedImages;
-  for (let i = 0; i < selectedImages?.length; i++) {
-    if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
-      await createThumbnail({
-        url: selectedImages[i].uri,
-        timeStamp: 10000,
-      })
-        .then(response => {
-          arr = [...arr, {uri: response.path}];
-          dummyArrSelectedFiles[i] = {
-            ...dummyArrSelectedFiles[i],
-            thumbnail_url: response.path,
-          };
-        })
-        .catch(err => {});
-    } else {
-      arr = [...arr, {uri: selectedImages[i].uri}];
-    }
-  }
-  dispatch({
-    type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-    body: {images: arr},
-  });
-  dispatch({
-    type: SELECTED_FILES_TO_UPLOAD,
-    body: {images: dummyArrSelectedFiles},
-  });
-  return arr;
-};
+interface VideoThumbnail {
+  selectedImages: any;
+  selectedFilesToUpload?: any;
+  selectedFilesToUploadThumbnails?: any;
+  initial: boolean; // true when selecting Videos for first time, else false.
+}
 
 // function to get thumbnails from videos
-export const getVideoThumbnail = async (
-  selectedImages: any,
-  selectedFilesToUpload: any,
-  selectedFilesToUploadThumbnails: any,
-) => {
+export const getVideoThumbnail = async ({
+  selectedImages,
+  selectedFilesToUpload,
+  selectedFilesToUploadThumbnails,
+  initial,
+}: VideoThumbnail) => {
   let arr: any = [];
   let dummyArrSelectedFiles: any = selectedImages;
   for (let i = 0; i < selectedImages?.length; i++) {
@@ -364,11 +339,17 @@ export const getVideoThumbnail = async (
   }
   dispatch({
     type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-    body: {images: [...selectedFilesToUploadThumbnails, ...arr]},
+    body: {
+      images: initial ? arr : [...selectedFilesToUploadThumbnails, ...arr],
+    },
   });
   dispatch({
     type: SELECTED_FILES_TO_UPLOAD,
-    body: {images: [...selectedFilesToUpload, ...dummyArrSelectedFiles]},
+    body: {
+      images: initial
+        ? dummyArrSelectedFiles
+        : [...selectedFilesToUpload, ...dummyArrSelectedFiles],
+    },
   });
   return arr;
 };

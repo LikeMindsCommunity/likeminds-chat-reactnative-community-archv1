@@ -61,7 +61,6 @@ import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {
   fetchResourceFromURI,
   getAllPdfThumbnail,
-  getAllVideosThumbnail,
   getPdfThumbnail,
   getVideoThumbnail,
 } from '../../commonFuctions';
@@ -137,7 +136,7 @@ const InputBox = ({
   }, [fileSent]);
 
   const handleVideoThumbnail = async (images: any) => {
-    await getAllVideosThumbnail(images);
+    await getVideoThumbnail({selectedImages: images, initial: true});
   };
 
   //select Images and videoes From Gallery
@@ -181,12 +180,13 @@ const InputBox = ({
             body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
           });
         } else if (isUploadScreen === true) {
-          //selected data will be saved inside get video function
-          getVideoThumbnail(
+          //selected files will be saved in redux inside get video function
+          getVideoThumbnail({
             selectedImages,
             selectedFilesToUpload,
             selectedFilesToUploadThumbnails,
-          );
+            initial: false,
+          });
         }
       }
     });
