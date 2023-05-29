@@ -11,7 +11,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  FlatList,
   Keyboard,
   Image,
   Pressable,
@@ -100,6 +99,7 @@ import RejectDMRequestModal from '../../customModals/RejectDMRequest';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
+import {FlashList} from '@shopify/flash-list';
 
 interface Data {
   id: string;
@@ -112,7 +112,7 @@ interface ChatRoom {
 }
 
 const ChatRoom = ({navigation, route}: ChatRoom) => {
-  const flatlistRef = useRef<FlatList>(null);
+  const flatlistRef = useRef<any>(null);
   let refInput = useRef<any>();
 
   const db = myClient.fbInstance();
@@ -1177,6 +1177,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     isStateIncluded: any,
     isIncluded: any,
     item: any,
+    selectedMessages: any,
   ) => {
     dispatch({type: LONG_PRESSED, body: true});
 
@@ -1208,6 +1209,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     isIncluded: any,
     item: any,
     emojiClicked: any,
+    selectedMessages: any,
   ) => {
     if (isLongPress) {
       if (isIncluded) {
@@ -1515,21 +1517,30 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <FlashList
         ref={flatlistRef}
-        // data={dummyData?.my_chatrooms}
         data={conversations}
-        keyExtractor={item => {
+        keyExtractor={(item: any) => {
           return item?.id?.toString();
         }}
+        extraData={{
+          value: [
+            selectedMessages,
+            uploadingFilesMessages,
+            stateArr,
+            conversations,
+          ],
+        }}
+        estimatedItemSize={50}
         renderItem={({item: value, index}: any) => {
           let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
-          let item = value;
+          let item = {...value};
           if (uploadingFilesMessagesIDArr.includes(value?.id.toString())) {
             item = uploadingFilesMessages[value?.id];
           }
 
           let isStateIncluded = stateArr.includes(item?.state);
+
           let isIncluded = selectedMessages.some(
             (val: any) => val?.id === item?.id && !isStateIncluded,
           );
@@ -1555,16 +1566,27 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  handleLongPress(isStateIncluded, isIncluded, item);
+                  handleLongPress(
+                    isStateIncluded,
+                    isIncluded,
+                    item,
+                    selectedMessages,
+                  );
                 }}
                 delayLongPress={200}
-                onPress={event => {
+                onPress={function (event) {
                   const {pageX, pageY} = event.nativeEvent;
                   dispatch({
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  handleClick(isStateIncluded, isIncluded, item, false);
+                  handleClick(
+                    isStateIncluded,
+                    isIncluded,
+                    item,
+                    false,
+                    selectedMessages,
+                  );
                 }}
                 style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
                 <Messages
@@ -1575,10 +1597,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   item={item}
                   navigation={navigation}
                   openKeyboard={() => {
-                    handleClick(isStateIncluded, isIncluded, item, true);
+                    handleClick(
+                      isStateIncluded,
+                      isIncluded,
+                      item,
+                      true,
+                      selectedMessages,
+                    );
                   }}
                   longPressOpenKeyboard={() => {
-                    handleLongPress(isStateIncluded, isIncluded, item);
+                    handleLongPress(
+                      isStateIncluded,
+                      isIncluded,
+                      item,
+                      selectedMessages,
+                    );
                   }}
                   removeReaction={() => {
                     removeReaction(item);
@@ -1592,10 +1625,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           );
         }}
-        onEndReached={() => {
+        onEndReached={async () => {
           if (shouldLoadMoreChat) {
             handleLoadMore();
           }
+          return;
         }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}

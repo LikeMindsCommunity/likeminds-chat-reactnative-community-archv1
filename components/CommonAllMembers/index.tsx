@@ -19,6 +19,7 @@ import {useAppDispatch, useAppSelector} from '../../store';
 import {CHATROOM} from '../../constants/Screens';
 import {CANCEL_BUTTON, REQUEST_DM_LIMIT} from '../../constants/Strings';
 import {formatTime} from '../../commonFuctions';
+import {FlashList} from '@shopify/flash-list';
 
 const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const [participants, setParticipants] = useState([] as any);
@@ -223,10 +224,8 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
     setParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
       const response = await myClient.getAllMembers({page: 2});
-      setParticipants((participants: any) => [
-        ...participants,
-        ...response?.members,
-      ]);
+
+      setParticipants([...res?.members, ...response?.members]);
       setPage(2);
     }
   };
@@ -247,13 +246,13 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
     const res = await myClient.dmAllMembers(initialPayload);
     setParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
+      setPage(2);
       let changedPayload = {...initialPayload, page: 2};
       const response = await myClient.dmAllMembers(changedPayload);
       setParticipants((participants: any) => [
-        ...participants,
+        ...res?.members,
         ...response?.members,
       ]);
-      setPage(2);
     }
   };
 
@@ -351,28 +350,32 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   // function shows loader in between calling the API and getting the response
   const loadData = async (newPage: number) => {
     setIsLoading(true);
-    setTimeout(async () => {
-      const res = await updateData(newPage);
-      if (res?.members.length === 0) {
-        setIsStopPagination(true);
+    const res = await updateData(newPage);
+    if (res?.members.length === 0) {
+      setIsStopPagination(true);
+    }
+    if (!!res) {
+      if (isSearch) {
+        setSearchedParticipants((searchedParticipants: any) => [
+          ...searchedParticipants,
+          ...res?.members,
+        ]);
+      } else {
+        setParticipants((participants: any) => [
+          ...participants,
+          ...res?.members,
+        ]);
       }
-      if (!!res) {
-        if (isSearch) {
-          setSearchedParticipants([...searchedParticipants, ...res?.members]);
-        } else {
-          setParticipants([...participants, ...res?.members]);
-        }
 
-        setIsLoading(false);
-      }
-    }, 500);
+      setIsLoading(false);
+    }
   };
 
   //function checks the pagination logic, if it verifies the condition then call loadData
   const handleLoadMore = async () => {
     if (!isLoading) {
-      let arr = participants;
-      if (!isStopPagination) {
+      //participants check to hide loader when there is no Data
+      if (!isStopPagination && participants.length > 0) {
         let newPage = isSearch ? searchPage + 1 : page + 1;
         loadData(newPage);
         if (isSearch) {
@@ -450,7 +453,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
 
   return (
     <View style={styles.page}>
-      <FlatList
+      <FlashList
         data={isSearch && !!search ? searchedParticipants : participants}
         renderItem={({item}: any) => {
           return (
@@ -509,6 +512,10 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             </TouchableOpacity>
           );
         }}
+        extraData={{
+          value: [searchedParticipants, participants, selectedParticipants],
+        }}
+        estimatedItemSize={15}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
