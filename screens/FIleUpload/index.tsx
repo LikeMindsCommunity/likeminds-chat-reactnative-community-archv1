@@ -13,15 +13,38 @@ import styles from './styles';
 import Layout from '../../constants/Layout';
 import InputBox from '../../components/InputBox';
 import {
+  CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   SELECTED_FILE_TO_VIEW,
+  SET_FILE_UPLOADING_MESSAGES,
   STATUS_BAR_STYLE,
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
 import STYLES from '../../constants/Styles';
 import VideoPlayer from 'react-native-media-console';
-import {IMAGE_TEXT, PDF_TEXT, VIDEO_TEXT} from '../../constants/Strings';
+import {
+  AUDIO_TEXT,
+  FAILED,
+  IMAGE_TEXT,
+  PDF_TEXT,
+  SUCCESS,
+  VIDEO_TEXT,
+} from '../../constants/Strings';
+import {CognitoIdentityCredentials, S3} from 'aws-sdk';
+import AWS from 'aws-sdk';
+import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
+import {fetchResourceFromURI} from '../../commonFuctions';
+import {myClient} from '../..';
+
+interface UploadResource {
+  selectedImages: any;
+  conversationID: any;
+  chatroomID: any;
+  selectedFilesToUpload: any;
+  uploadingFilesMessages: any;
+  isRetry: boolean;
+}
 
 const FileUpload = ({navigation, route}: any) => {
   const video = useRef<any>(null);
@@ -33,6 +56,8 @@ const FileUpload = ({navigation, route}: any) => {
     selectedFileToView = {},
     selectedFilesToUploadThumbnails = [],
   }: any = useAppSelector(state => state.chatroom);
+  const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+
   const itemType = selectedFileToView?.type?.split('/')[0];
   const docItemType = selectedFileToView?.type?.split('/')[1];
   let len = selectedFilesToUpload.length;
@@ -73,6 +98,158 @@ const FileUpload = ({navigation, route}: any) => {
 
     return () => backHandlerAndroid.remove();
   }, []);
+
+  AWS.config.update({
+    region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
+    credentials: new CognitoIdentityCredentials({
+      IdentityPoolId: POOL_ID, // Replace with your Identity Pool ID
+    }),
+  });
+
+  const uploadResource = async ({
+    selectedImages,
+    conversationID,
+    chatroomID,
+    selectedFilesToUpload,
+    uploadingFilesMessages,
+    isRetry,
+  }: UploadResource) => {
+    const s3 = new S3();
+    console.log('selectedImages ==', selectedImages);
+
+    for (let i = 0; i < selectedImages?.length; i++) {
+      let attachmentType = isRetry
+        ? selectedImages[i]?.type
+        : selectedImages[i]?.type?.split('/')[0];
+      let docAttachmentType = isRetry
+        ? selectedImages[i]?.type
+        : selectedImages[i]?.type?.split('/')[1];
+      let thumbnailURL = selectedImages[i]?.thumbnail_url;
+      let name =
+        attachmentType === IMAGE_TEXT
+          ? selectedImages[i].fileName
+          : attachmentType === VIDEO_TEXT
+          ? selectedImages[i].fileName
+          : docAttachmentType === PDF_TEXT
+          ? selectedImages[i].name
+          : null;
+      let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
+      let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
+
+      const img = await fetchResourceFromURI(selectedImages[i]?.uri);
+
+      //for video thumbnail
+      let thumbnailUrlImg = null;
+      if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+        thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
+      }
+
+      const params = {
+        Bucket: BUCKET,
+        Key: path,
+        Body: img,
+        ACL: 'public-read-write',
+        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+      };
+
+      //for video thumbnail
+      const thumnnailUrlParams = {
+        Bucket: BUCKET,
+        Key: thumbnailUrlPath,
+        Body: thumbnailUrlImg,
+        ACL: 'public-read-write',
+        ContentType: 'image/jpeg', // Replace with the appropriate content type for your file
+      };
+
+      try {
+        let getVideoThumbnailData = null;
+
+        if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+          getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
+        }
+        const data = await s3.upload(params).promise();
+        console.log('data ==', data);
+        let awsResponse = data.Location;
+        if (awsResponse) {
+          let fileType = '';
+          if (docAttachmentType === PDF_TEXT) {
+            fileType = PDF_TEXT;
+          } else if (attachmentType === AUDIO_TEXT) {
+            fileType = AUDIO_TEXT;
+          } else if (attachmentType === VIDEO_TEXT) {
+            fileType = VIDEO_TEXT;
+          } else if (attachmentType === IMAGE_TEXT) {
+            fileType = IMAGE_TEXT;
+          }
+
+          let payload = {
+            conversation_id: conversationID,
+            files_count: selectedImages?.length,
+            index: i,
+            meta:
+              fileType === VIDEO_TEXT
+                ? {
+                    size: selectedFilesToUpload[i]?.fileSize,
+                    duration: selectedFilesToUpload[i]?.duration,
+                  }
+                : {
+                    size:
+                      docAttachmentType === PDF_TEXT
+                        ? selectedFilesToUpload[i]?.size
+                        : selectedFilesToUpload[i]?.fileSize,
+                  },
+            name:
+              docAttachmentType === PDF_TEXT
+                ? selectedFilesToUpload[i]?.name
+                : selectedFilesToUpload[i]?.fileName,
+            type: fileType,
+            url: awsResponse,
+            thumbnail_url:
+              fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
+          };
+
+          const uploadRes = await myClient.onUploadFile(payload as any);
+        }
+      } catch (error) {
+        dispatch({
+          type: SET_FILE_UPLOADING_MESSAGES,
+          body: {
+            message: {
+              ...uploadingFilesMessages[conversationID.toString()],
+              isInProgress: FAILED,
+            },
+            ID: conversationID,
+          },
+        });
+        return error;
+      }
+      dispatch({
+        type: CLEAR_SELECTED_FILES_TO_UPLOAD,
+      });
+      dispatch({
+        type: CLEAR_SELECTED_FILE_TO_VIEW,
+      });
+    }
+
+    dispatch({
+      type: CLEAR_FILE_UPLOADING_MESSAGES,
+      body: {
+        ID: conversationID,
+      },
+    });
+  };
+
+  const handleFileUpload = async (conversationID: any, isRetry: any) => {
+    const res = await uploadResource({
+      selectedImages: selectedFilesToUpload,
+      conversationID: conversationID,
+      chatroomID: chatroomID,
+      selectedFilesToUpload,
+      uploadingFilesMessages,
+      isRetry: isRetry,
+    });
+    return res;
+  };
 
   return (
     <View style={styles.page}>
@@ -133,6 +310,7 @@ const FileUpload = ({navigation, route}: any) => {
             chatroomID={chatroomID}
             navigation={navigation}
             previousMessage={previousMessage}
+            handleFileUpload={handleFileUpload}
           />
         ) : null}
 

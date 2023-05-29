@@ -64,6 +64,7 @@ import {
   getPdfThumbnail,
   getVideoThumbnail,
 } from '../../commonFuctions';
+import {requestStoragePermission} from '../../utils/permissions';
 
 interface InputBox {
   replyChatID?: any;
@@ -76,6 +77,7 @@ interface InputBox {
   isDoc?: boolean;
   myRef?: any;
   previousMessage?: string;
+  handleFileUpload: any;
 }
 
 const InputBox = ({
@@ -89,6 +91,7 @@ const InputBox = ({
   isDoc,
   myRef,
   previousMessage = '',
+  handleFileUpload,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -307,78 +310,6 @@ const InputBox = ({
     setDMSentAlertModalVisible(false);
   };
 
-  // function checks if we have access of storage in Android.
-  async function requestStoragePermission() {
-    if (Platform.OS === 'android') {
-      let OSVersion = Platform.constants['Release'];
-
-      if (Number(OSVersion) < 13) {
-        try {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            {
-              title: 'Storage Permission',
-              message: 'App needs permission to access your storage',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK',
-            },
-          );
-          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            return true;
-          } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-            Alert.alert(
-              'Storage Permission Required',
-              'App needs access to your storage to read files. Please go to app settings and grant permission.',
-              [
-                {text: 'Cancel', style: 'cancel'},
-                {text: 'Open Settings', onPress: Linking.openSettings},
-              ],
-            );
-          } else {
-            return false;
-          }
-        } catch (err) {
-          return false;
-        }
-      } else {
-        try {
-          const grantedImageStorage = await PermissionsAndroid.requestMultiple([
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
-          ]);
-          if (
-            grantedImageStorage['android.permission.READ_MEDIA_IMAGES'] &&
-            grantedImageStorage['android.permission.READ_MEDIA_VIDEO'] ===
-              PermissionsAndroid.RESULTS.GRANTED
-          ) {
-            return true;
-          } else if (
-            grantedImageStorage['android.permission.READ_MEDIA_IMAGES'] ===
-              PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN ||
-            grantedImageStorage['android.permission.READ_MEDIA_VIDEO'] ===
-              PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
-          ) {
-            Alert.alert(
-              'Storage Permission Required',
-              'App needs access to your storage to read files. Please go to app settings and grant permission.',
-              [
-                {text: 'Cancel', style: 'cancel'},
-                {text: 'Open Settings', onPress: Linking.openSettings},
-              ],
-            );
-            return false;
-          } else {
-            return false;
-          }
-        } catch (err) {
-          console.warn(err);
-          return false;
-        }
-      }
-    }
-  }
-
   // function handles the selection of images and videos
   const handleGallery = async () => {
     if (Platform.OS === 'ios') {
@@ -401,133 +332,6 @@ const InputBox = ({
         selectDoc();
       }
     }
-  };
-
-  const uploadResource = async (selectedImages: any, conversationID: any) => {
-    if (isUploading) return;
-
-    for (let i = 0; i < selectedImages?.length; i++) {
-      let attachmentType = selectedImages[i]?.type?.split('/')[0];
-      let docAttachmentType = selectedImages[i]?.type?.split('/')[1];
-      let thumbnailURL = selectedImages[i]?.thumbnail_url;
-      let name =
-        attachmentType === IMAGE_TEXT
-          ? selectedImages[i].fileName
-          : attachmentType === VIDEO_TEXT
-          ? selectedImages[i].fileName
-          : docAttachmentType === PDF_TEXT
-          ? selectedImages[i].name
-          : null;
-      let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
-      let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
-
-      const img = await fetchResourceFromURI(selectedImages[i]?.uri);
-
-      //for video thumbnail
-      let thumbnailUrlImg = null;
-      if (thumbnailURL && attachmentType === VIDEO_TEXT) {
-        thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
-      }
-
-      const params = {
-        Bucket: BUCKET,
-        Key: path,
-        Body: img,
-        ACL: 'public-read-write',
-        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
-      };
-
-      //for video thumbnail
-      const thumnnailUrlParams = {
-        Bucket: BUCKET,
-        Key: thumbnailUrlPath,
-        Body: thumbnailUrlImg,
-        ACL: 'public-read-write',
-        ContentType: 'image/jpeg', // Replace with the appropriate content type for your file
-      };
-
-      try {
-        let getVideoThumbnailData = null;
-
-        if (thumbnailURL && attachmentType === VIDEO_TEXT) {
-          getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
-        }
-        const data = await s3.upload(params).promise();
-        let awsResponse = data.Location;
-        if (awsResponse) {
-          let fileType = '';
-          if (docAttachmentType === PDF_TEXT) {
-            fileType = PDF_TEXT;
-          } else if (attachmentType === AUDIO_TEXT) {
-            fileType = AUDIO_TEXT;
-          } else if (attachmentType === VIDEO_TEXT) {
-            fileType = VIDEO_TEXT;
-          } else if (attachmentType === IMAGE_TEXT) {
-            fileType = IMAGE_TEXT;
-          }
-
-          let payload = {
-            conversation_id: conversationID,
-            files_count: selectedImages?.length,
-            index: i,
-            meta:
-              fileType === VIDEO_TEXT
-                ? {
-                    size: selectedFilesToUpload[i]?.fileSize,
-                    duration: selectedFilesToUpload[i]?.duration,
-                  }
-                : {
-                    size:
-                      docAttachmentType === PDF_TEXT
-                        ? selectedFilesToUpload[i]?.size
-                        : selectedFilesToUpload[i]?.fileSize,
-                  },
-            name:
-              docAttachmentType === PDF_TEXT
-                ? selectedFilesToUpload[i]?.name
-                : selectedFilesToUpload[i]?.fileName,
-            type: fileType,
-            url: awsResponse,
-            thumbnail_url:
-              fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
-          };
-
-          const uploadRes = await myClient.onUploadFile(payload as any);
-          setS3UploadResponse(null);
-        }
-      } catch (error) {
-        dispatch({
-          type: SET_FILE_UPLOADING_MESSAGES,
-          body: {
-            message: {
-              ...uploadingFilesMessages[conversationID.toString()],
-              isInProgress: FAILED,
-            },
-            ID: conversationID,
-          },
-        });
-      }
-
-      setProgressText('');
-      dispatch({
-        type: CLEAR_SELECTED_FILES_TO_UPLOAD,
-      });
-      dispatch({
-        type: CLEAR_SELECTED_FILE_TO_VIEW,
-      });
-    }
-
-    dispatch({
-      type: CLEAR_FILE_UPLOADING_MESSAGES,
-      body: {
-        ID: conversationID,
-      },
-    });
-  };
-
-  const handleFileUpload = async (conversationID: any) => {
-    const res = await uploadResource(selectedFilesToUpload, conversationID);
-    return res;
   };
 
   const onSend = async () => {
@@ -814,7 +618,7 @@ const InputBox = ({
               },
             });
 
-            await handleFileUpload(response?.id);
+            await handleFileUpload(response?.id, false);
           }
           dispatch({
             type: STATUS_BAR_STYLE,

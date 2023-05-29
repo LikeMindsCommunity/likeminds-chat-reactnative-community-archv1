@@ -343,7 +343,7 @@ export const VideoConversations = ({
         <View style={styles.uploadingIndicator}>
           <Pressable
             onPress={() => {
-              handleFileUpload(item?.id);
+              handleFileUpload(item?.id, true);
             }}
             style={({pressed}) => [
               {
@@ -554,7 +554,7 @@ export const PDFConversations = ({
         <View style={styles.uploadingIndicator}>
           <Pressable
             onPress={() => {
-              handleFileUpload(item?.id);
+              handleFileUpload(item?.id, true);
             }}
             style={({pressed}) => [
               {
@@ -965,7 +965,7 @@ export const ImageConversations = ({
         <View style={styles.uploadingIndicator}>
           <Pressable
             onPress={() => {
-              handleFileUpload(item?.id);
+              handleFileUpload(item?.id, true);
             }}
             style={({pressed}) => [
               {
