@@ -10,8 +10,6 @@ import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 
 const dispatch = useAppDispatch();
-const {selectedFilesToUpload = [], selectedFilesToUploadThumbnails = []}: any =
-  useAppSelector(state => state.chatroom);
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 const REGEX_USER_TAGGING =
@@ -339,7 +337,11 @@ export const getAllVideosThumbnail = async (selectedImages: any) => {
 };
 
 // function to get thumbnails from videos
-export const getVideoThumbnail = async (selectedImages: any) => {
+export const getVideoThumbnail = async (
+  selectedImages: any,
+  selectedFilesToUpload: any,
+  selectedFilesToUploadThumbnails: any,
+) => {
   let arr: any = [];
   let dummyArrSelectedFiles: any = selectedImages;
   for (let i = 0; i < selectedImages?.length; i++) {
