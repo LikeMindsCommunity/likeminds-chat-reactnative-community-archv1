@@ -9,8 +9,6 @@ import {
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 
-const dispatch = useAppDispatch();
-
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
@@ -337,21 +335,14 @@ export const getVideoThumbnail = async ({
       arr = [...arr, {uri: selectedImages[i].uri}];
     }
   }
-  dispatch({
-    type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-    body: {
-      images: initial ? arr : [...selectedFilesToUploadThumbnails, ...arr],
-    },
-  });
-  dispatch({
-    type: SELECTED_FILES_TO_UPLOAD,
-    body: {
-      images: initial
-        ? dummyArrSelectedFiles
-        : [...selectedFilesToUpload, ...dummyArrSelectedFiles],
-    },
-  });
-  return arr;
+  return {
+    selectedFilesToUploadThumbnails: initial
+      ? arr
+      : [...selectedFilesToUploadThumbnails, ...arr],
+    selectedFilesToUpload: initial
+      ? dummyArrSelectedFiles
+      : [...selectedFilesToUpload, ...dummyArrSelectedFiles],
+  };
 };
 
 // function to get thumbnails of all pdf

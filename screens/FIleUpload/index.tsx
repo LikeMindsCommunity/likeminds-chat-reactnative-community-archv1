@@ -320,7 +320,7 @@ const FileUpload = ({navigation, route}: any) => {
           bounces={false}>
           {len > 0 &&
             selectedFilesToUpload.map((item: any, index: any) => {
-              let fileType = item?.type.split('/')[0];
+              let fileType = item?.type?.split('/')[0];
               return (
                 <Pressable
                   key={item?.uri + index}

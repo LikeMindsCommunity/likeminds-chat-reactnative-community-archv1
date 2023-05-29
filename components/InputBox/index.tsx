@@ -139,7 +139,22 @@ const InputBox = ({
   }, [fileSent]);
 
   const handleVideoThumbnail = async (images: any) => {
-    await getVideoThumbnail({selectedImages: images, initial: true});
+    const res = await getVideoThumbnail({
+      selectedImages: images,
+      initial: true,
+    });
+    dispatch({
+      type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
+      body: {
+        images: res?.selectedFilesToUploadThumbnails,
+      },
+    });
+    dispatch({
+      type: SELECTED_FILES_TO_UPLOAD,
+      body: {
+        images: res?.selectedFilesToUpload,
+      },
+    });
   };
 
   //select Images and videoes From Gallery
@@ -184,11 +199,23 @@ const InputBox = ({
           });
         } else if (isUploadScreen === true) {
           //selected files will be saved in redux inside get video function
-          getVideoThumbnail({
+          const res = await getVideoThumbnail({
             selectedImages,
             selectedFilesToUpload,
             selectedFilesToUploadThumbnails,
             initial: false,
+          });
+          dispatch({
+            type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
+            body: {
+              images: res?.selectedFilesToUploadThumbnails,
+            },
+          });
+          dispatch({
+            type: SELECTED_FILES_TO_UPLOAD,
+            body: {
+              images: res?.selectedFilesToUpload,
+            },
           });
         }
       }
