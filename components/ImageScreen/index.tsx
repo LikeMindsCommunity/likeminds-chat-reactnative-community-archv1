@@ -13,7 +13,7 @@ import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import VideoPlayer from 'react-native-media-console';
 import {VIDEO_PLAYER} from '../../constants/Screens';
-import {VIDEO_TEXT} from '../../constants/Strings';
+import {IMAGE_TEXT, VIDEO_TEXT} from '../../constants/Strings';
 
 interface ImageScreen {
   navigation: any;
@@ -64,7 +64,7 @@ const ImageScreen = ({navigation, route}: ImageScreen) => {
               Linking.openURL(val?.url);
             }}
             key={val + index}>
-            {val?.type === 'image' ? (
+            {val?.type === IMAGE_TEXT ? (
               <Image
                 style={{
                   height: 250,

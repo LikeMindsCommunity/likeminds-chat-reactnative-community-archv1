@@ -111,6 +111,15 @@ interface ChatRoom {
   route: any;
 }
 
+interface UploadResource {
+  selectedImages: any;
+  conversationID: any;
+  chatroomID: any;
+  selectedFilesToUpload: any;
+  uploadingFilesMessages: any;
+  isRetry: boolean;
+}
+
 const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
   let refInput = useRef<any>();
@@ -1385,23 +1394,31 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setDMBlockAlertModalVisible(false);
   };
 
-  const uploadResource = async (selectedImages: any, conversationID: any) => {
+  const uploadResource = async ({
+    selectedImages,
+    conversationID,
+    chatroomID,
+    selectedFilesToUpload,
+    uploadingFilesMessages,
+    isRetry,
+  }: UploadResource) => {
     for (let i = 0; i < selectedImages?.length; i++) {
-      let attachmentType = selectedImages[i]?.type;
-      let docAttachmentType = selectedImages[i]?.type;
-      let thumbnailURL = selectedImages[i]?.thumbnail_url;
+      let item = selectedImages[i];
+      let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
+      let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
+      let thumbnailURL = item?.thumbnail_url;
       let name =
         attachmentType === IMAGE_TEXT
-          ? selectedImages[i].fileName
+          ? item.fileName
           : attachmentType === VIDEO_TEXT
-          ? selectedImages[i].fileName
+          ? item.fileName
           : docAttachmentType === PDF_TEXT
-          ? selectedImages[i].name
+          ? item.name
           : null;
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      const img = await fetchResourceFromURI(selectedImages[i]?.uri);
+      const img = await fetchResourceFromURI(item?.uri);
 
       //for video thumbnail
       let thumbnailUrlImg = null;
@@ -1414,7 +1431,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         Key: path,
         Body: img,
         ACL: 'public-read-write',
-        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+        ContentType: item?.type, // Replace with the appropriate content type for your file
       };
 
       //for video thumbnail
@@ -1423,7 +1440,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         Key: thumbnailUrlPath,
         Body: thumbnailUrlImg,
         ACL: 'public-read-write',
-        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+        ContentType: 'image/jpeg', // Replace with the appropriate content type for your file
       };
 
       try {
@@ -1450,16 +1467,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             conversation_id: conversationID,
             files_count: selectedImages?.length,
             index: i,
-            meta: {
-              size:
-                docAttachmentType === PDF_TEXT
-                  ? selectedImages[i]?.size
-                  : selectedImages[i]?.fileSize,
-            },
+            meta:
+              fileType === VIDEO_TEXT
+                ? {
+                    size: selectedFilesToUpload[i]?.fileSize,
+                    duration: selectedFilesToUpload[i]?.duration,
+                  }
+                : {
+                    size:
+                      docAttachmentType === PDF_TEXT
+                        ? selectedFilesToUpload[i]?.size
+                        : selectedFilesToUpload[i]?.fileSize,
+                  },
             name:
               docAttachmentType === PDF_TEXT
-                ? selectedImages[i]?.name
-                : selectedImages[i]?.fileName,
+                ? selectedFilesToUpload[i]?.name
+                : selectedFilesToUpload[i]?.fileName,
             type: fileType,
             url: awsResponse,
             thumbnail_url:
@@ -1479,6 +1502,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             ID: conversationID,
           },
         });
+        return error;
       }
       dispatch({
         type: CLEAR_SELECTED_FILES_TO_UPLOAD,
@@ -1496,7 +1520,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   };
 
-  const handleFileUpload = async (conversationID: any) => {
+  const handleFileUpload = async (conversationID: any, isRetry: any) => {
     let selectedFilesToUpload = uploadingFilesMessages[conversationID];
     dispatch({
       type: SET_FILE_UPLOADING_MESSAGES,
@@ -1508,10 +1532,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ID: conversationID,
       },
     });
-    const res = await uploadResource(
-      selectedFilesToUpload?.attachments,
-      conversationID,
-    );
+    const res = await uploadResource({
+      selectedImages: selectedFilesToUpload?.attachments,
+      conversationID: conversationID,
+      chatroomID: chatroomID,
+      selectedFilesToUpload: selectedFilesToUpload,
+      uploadingFilesMessages,
+      isRetry: isRetry,
+    });
     return res;
   };
 
@@ -1665,6 +1693,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 navigation={navigation}
                 isUploadScreen={false}
                 myRef={refInput}
+                handleFileUpload={handleFileUpload}
               />
             ) : user.state !== 1 && chatroomDetails?.chatroom.type === 7 ? (
               <View style={styles.disabledInput}>
@@ -1803,6 +1832,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               isUploadScreen={false}
               isPrivateMember={chatroomDetails?.chatroom?.is_private_member}
               myRef={refInput}
+              handleFileUpload={handleFileUpload}
             />
           ) : (
             <View style={styles.disabledInput}>

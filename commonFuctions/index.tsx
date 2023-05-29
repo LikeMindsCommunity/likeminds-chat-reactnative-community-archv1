@@ -9,8 +9,6 @@ import {
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 
-const dispatch = useAppDispatch();
-
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
@@ -303,51 +301,27 @@ export const fetchResourceFromURI = async (uri: string) => {
   return blob;
 };
 
-// function to get thumbnails from videos
-export const getAllVideosThumbnail = async (selectedImages: any) => {
-  let arr: any = [];
-  let dummyArrSelectedFiles: any = selectedImages;
-  for (let i = 0; i < selectedImages?.length; i++) {
-    if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
-      await createThumbnail({
-        url: selectedImages[i].uri,
-        timeStamp: 10000,
-      })
-        .then(response => {
-          arr = [...arr, {uri: response.path}];
-          dummyArrSelectedFiles[i] = {
-            ...dummyArrSelectedFiles[i],
-            thumbnail_url: response.path,
-          };
-        })
-        .catch(err => {});
-    } else {
-      arr = [...arr, {uri: selectedImages[i].uri}];
-    }
-  }
-  dispatch({
-    type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-    body: {images: arr},
-  });
-  dispatch({
-    type: SELECTED_FILES_TO_UPLOAD,
-    body: {images: dummyArrSelectedFiles},
-  });
-  return arr;
-};
+interface VideoThumbnail {
+  selectedImages: any;
+  selectedFilesToUpload?: any;
+  selectedFilesToUploadThumbnails?: any;
+  initial: boolean; // true when selecting Videos for first time, else false.
+}
 
 // function to get thumbnails from videos
-export const getVideoThumbnail = async (
-  selectedImages: any,
-  selectedFilesToUpload: any,
-  selectedFilesToUploadThumbnails: any,
-) => {
+export const getVideoThumbnail = async ({
+  selectedImages,
+  selectedFilesToUpload,
+  selectedFilesToUploadThumbnails,
+  initial,
+}: VideoThumbnail) => {
   let arr: any = [];
   let dummyArrSelectedFiles: any = selectedImages;
   for (let i = 0; i < selectedImages?.length; i++) {
-    if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
+    let item = selectedImages[i];
+    if (item?.type?.split('/')[0] === VIDEO_TEXT) {
       await createThumbnail({
-        url: selectedImages[i].uri,
+        url: item.uri,
         timeStamp: 10000,
       })
         .then(response => {
@@ -359,33 +333,33 @@ export const getVideoThumbnail = async (
         })
         .catch(err => {});
     } else {
-      arr = [...arr, {uri: selectedImages[i].uri}];
+      arr = [...arr, {uri: item.uri}];
     }
   }
-  dispatch({
-    type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-    body: {images: [...selectedFilesToUploadThumbnails, ...arr]},
-  });
-  dispatch({
-    type: SELECTED_FILES_TO_UPLOAD,
-    body: {images: [...selectedFilesToUpload, ...dummyArrSelectedFiles]},
-  });
-  return arr;
+  return {
+    selectedFilesToUploadThumbnails: initial
+      ? arr
+      : [...selectedFilesToUploadThumbnails, ...arr],
+    selectedFilesToUpload: initial
+      ? dummyArrSelectedFiles
+      : [...selectedFilesToUpload, ...dummyArrSelectedFiles],
+  };
 };
 
 // function to get thumbnails of all pdf
 export const getAllPdfThumbnail = async (selectedImages: any) => {
   let arr: any = [];
   for (let i = 0; i < selectedImages?.length; i++) {
-    const filePath = selectedImages[i].uri;
+    let item = selectedImages[i];
+    const filePath = item.uri;
     const page = 0;
-    if (selectedImages[i]?.type?.split('/')[1] === PDF_TEXT) {
+    if (item?.type?.split('/')[1] === PDF_TEXT) {
       const res = await PdfThumbnail.generate(filePath, page);
       if (!!res) {
         arr = [...arr, {uri: res?.uri}];
       }
     } else {
-      arr = [...arr, {uri: selectedImages[i].uri}];
+      arr = [...arr, {uri: item.uri}];
     }
   }
   return arr;
