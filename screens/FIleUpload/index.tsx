@@ -118,25 +118,22 @@ const FileUpload = ({navigation, route}: any) => {
     console.log('selectedImages ==', selectedImages);
 
     for (let i = 0; i < selectedImages?.length; i++) {
-      let attachmentType = isRetry
-        ? selectedImages[i]?.type
-        : selectedImages[i]?.type?.split('/')[0];
-      let docAttachmentType = isRetry
-        ? selectedImages[i]?.type
-        : selectedImages[i]?.type?.split('/')[1];
-      let thumbnailURL = selectedImages[i]?.thumbnail_url;
+      let item = selectedImages[i];
+      let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
+      let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
+      let thumbnailURL = item?.thumbnail_url;
       let name =
         attachmentType === IMAGE_TEXT
-          ? selectedImages[i].fileName
+          ? item.fileName
           : attachmentType === VIDEO_TEXT
-          ? selectedImages[i].fileName
+          ? item.fileName
           : docAttachmentType === PDF_TEXT
-          ? selectedImages[i].name
+          ? item.name
           : null;
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      const img = await fetchResourceFromURI(selectedImages[i]?.uri);
+      const img = await fetchResourceFromURI(item?.uri);
 
       //for video thumbnail
       let thumbnailUrlImg = null;
@@ -149,7 +146,7 @@ const FileUpload = ({navigation, route}: any) => {
         Key: path,
         Body: img,
         ACL: 'public-read-write',
-        ContentType: selectedImages[i]?.type, // Replace with the appropriate content type for your file
+        ContentType: item?.type, // Replace with the appropriate content type for your file
       };
 
       //for video thumbnail

@@ -132,7 +132,8 @@ const HomeFeedItem: React.FC<Props> = ({
     );
 
   const getFeedIcon = (val: any) => {
-    if (val[0]?.type === PDF_TEXT) {
+    let valueOfZerothIndex = val[0];
+    if (valueOfZerothIndex?.type === PDF_TEXT) {
       return (
         <View style={styles.alignCenter}>
           {val?.length > 1 && (
@@ -152,7 +153,7 @@ const HomeFeedItem: React.FC<Props> = ({
           </Text>
         </View>
       );
-    } else if (val[0]?.type === VIDEO_TEXT) {
+    } else if (valueOfZerothIndex?.type === VIDEO_TEXT) {
       return (
         <View
           style={{
@@ -179,7 +180,7 @@ const HomeFeedItem: React.FC<Props> = ({
           </Text>
         </View>
       );
-    } else if (val[0]?.type === IMAGE_TEXT) {
+    } else if (valueOfZerothIndex?.type === IMAGE_TEXT) {
       return (
         <View
           style={[

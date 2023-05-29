@@ -318,9 +318,10 @@ export const getVideoThumbnail = async ({
   let arr: any = [];
   let dummyArrSelectedFiles: any = selectedImages;
   for (let i = 0; i < selectedImages?.length; i++) {
-    if (selectedImages[i]?.type?.split('/')[0] === VIDEO_TEXT) {
+    let item = selectedImages[i];
+    if (item?.type?.split('/')[0] === VIDEO_TEXT) {
       await createThumbnail({
-        url: selectedImages[i].uri,
+        url: item.uri,
         timeStamp: 10000,
       })
         .then(response => {
@@ -332,7 +333,7 @@ export const getVideoThumbnail = async ({
         })
         .catch(err => {});
     } else {
-      arr = [...arr, {uri: selectedImages[i].uri}];
+      arr = [...arr, {uri: item.uri}];
     }
   }
   return {
@@ -349,15 +350,16 @@ export const getVideoThumbnail = async ({
 export const getAllPdfThumbnail = async (selectedImages: any) => {
   let arr: any = [];
   for (let i = 0; i < selectedImages?.length; i++) {
-    const filePath = selectedImages[i].uri;
+    let item = selectedImages[i];
+    const filePath = item.uri;
     const page = 0;
-    if (selectedImages[i]?.type?.split('/')[1] === PDF_TEXT) {
+    if (item?.type?.split('/')[1] === PDF_TEXT) {
       const res = await PdfThumbnail.generate(filePath, page);
       if (!!res) {
         arr = [...arr, {uri: res?.uri}];
       }
     } else {
-      arr = [...arr, {uri: selectedImages[i].uri}];
+      arr = [...arr, {uri: item.uri}];
     }
   }
   return arr;
