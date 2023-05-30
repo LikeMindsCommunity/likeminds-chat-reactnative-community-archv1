@@ -121,4 +121,10 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  icon: {
+    height: 15,
+    width: 15,
+    resizeMode: 'contain',
+    marginRight: 5,
+  },
 });
