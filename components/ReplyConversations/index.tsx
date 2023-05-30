@@ -16,6 +16,13 @@ import {
   SELECTED_MESSAGES,
   SET_POSITION,
 } from '../../store/types/types';
+import {
+  AUDIO_TEXT,
+  IMAGE_TEXT,
+  PDF_TEXT,
+  VIDEO_TEXT,
+} from '../../constants/Strings';
+import AttachmentConversations from '../AttachmentConversations';
 
 interface ReplyConversations {
   item: any;
@@ -25,6 +32,7 @@ interface ReplyConversations {
   openKeyboard: any;
   longPressOpenKeyboard: any;
   reactionArr: any;
+  navigation: any;
 }
 
 interface ReplyBox {
@@ -44,17 +52,17 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
       </View>
       <View style={styles.alignRow}>
         {!!item?.has_files ? (
-          item?.attachments[0]?.type === 'image' ? (
+          item?.attachments[0]?.type === IMAGE_TEXT ? (
             <Image
               source={require('../../assets/images/image_icon3x.png')}
               style={styles.icon}
             />
-          ) : item?.attachments[0]?.type === 'pdf' ? (
+          ) : item?.attachments[0]?.type === PDF_TEXT ? (
             <Image
               source={require('../../assets/images/document_icon3x.png')}
               style={styles.icon}
             />
-          ) : item?.attachments[0]?.type === 'video' ? (
+          ) : item?.attachments[0]?.type === VIDEO_TEXT ? (
             <Image
               source={require('../../assets/images/video_icon3x.png')}
               style={styles.icon}
@@ -65,13 +73,13 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
           {decode(
             !!item?.answer
               ? item?.answer
-              : item?.attachments[0]?.type === 'pdf'
+              : item?.attachments[0]?.type === PDF_TEXT
               ? `Document`
-              : item?.attachments[0]?.type === 'image'
+              : item?.attachments[0]?.type === IMAGE_TEXT
               ? `Photo`
-              : item?.attachments[0]?.type === 'video'
+              : item?.attachments[0]?.type === VIDEO_TEXT
               ? `Video`
-              : item?.attachments[0]?.type === 'audio'
+              : item?.attachments[0]?.type === AUDIO_TEXT
               ? `This message is not supported in this app yet.`
               : null,
             false,
@@ -97,9 +105,10 @@ const ReplyConversations = ({
   openKeyboard,
   longPressOpenKeyboard,
   reactionArr,
+  navigation,
 }: ReplyConversations) => {
   const dispatch = useAppDispatch();
-  const {conversations, selectedMessages, stateArr, isLongPress} =
+  const {conversations, selectedMessages, stateArr, isLongPress}: any =
     useAppSelector(state => state.chatroom);
 
   const handleLongPress = (event: any) => {
@@ -170,10 +179,28 @@ const ReplyConversations = ({
             item={item?.reply_conversation_object}
           />
         </TouchableOpacity>
-        <View style={styles.messageText as any}>
-          {decode(item?.answer, true)}
-        </View>
-        <Text style={styles.messageDate}>{item?.created_at}</Text>
+        {item?.attachment_count > 0 ? (
+          <AttachmentConversations
+            isReplyConversation={true}
+            navigation={navigation}
+            isIncluded={isIncluded}
+            item={item}
+            isTypeSent={isTypeSent}
+            openKeyboard={() => {
+              openKeyboard();
+            }}
+            longPressOpenKeyboard={() => {
+              longPressOpenKeyboard();
+            }}
+          />
+        ) : (
+          <View>
+            <View style={styles.messageText as any}>
+              {decode(item?.answer, true)}
+            </View>
+            <Text style={styles.messageDate}>{item?.created_at}</Text>
+          </View>
+        )}
       </View>
       {(reactionArr.length > 0 || item?.answer?.split('').length > 100) &&
       !isTypeSent ? (

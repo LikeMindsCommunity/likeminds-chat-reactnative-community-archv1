@@ -15,6 +15,7 @@ import {myClient} from '../..';
 import {useAppSelector} from '../../store';
 import Layout from '../../constants/Layout';
 import {ADD_PARTICIPANTS} from '../../constants/Screens';
+import {FlashList} from '@shopify/flash-list';
 
 const ViewParticipants = ({navigation, route}: any) => {
   const [participants, setParticipants] = useState({} as any);
@@ -205,13 +206,11 @@ const ViewParticipants = ({navigation, route}: any) => {
 
   const loadData = async (newPage: number) => {
     setIsLoading(true);
-    setTimeout(async () => {
-      const res = await updateData(newPage);
-      if (!!res) {
-        setParticipants([...participants, ...res?.participants]);
-        setIsLoading(false);
-      }
-    }, 1500);
+    const res = await updateData(newPage);
+    if (!!res) {
+      setParticipants([...participants, ...res?.participants]);
+      setIsLoading(false);
+    }
   };
 
   const handleLoadMore = async () => {
@@ -239,8 +238,12 @@ const ViewParticipants = ({navigation, route}: any) => {
 
   return (
     <View style={styles.page}>
-      <FlatList
+      <FlashList
         data={participants}
+        extraData={{
+          value: [user, participants, isSecret],
+        }}
+        estimatedItemSize={15}
         ListHeaderComponent={() =>
           isSecret && user?.state === 1 && participants.length > 0 ? (
             <TouchableOpacity

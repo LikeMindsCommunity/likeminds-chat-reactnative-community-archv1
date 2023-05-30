@@ -1,4 +1,11 @@
-import {View, Text, Alert, PermissionsAndroid, Platform} from 'react-native';
+import {
+  View,
+  Text,
+  Alert,
+  PermissionsAndroid,
+  Platform,
+  StatusBar,
+} from 'react-native';
 import * as React from 'react';
 import {useEffect} from 'react';
 import {
@@ -35,6 +42,7 @@ import getNotification from '../notifications';
 import ViewParticipants from '../screens/ViewParticipants';
 import AddParticipants from '../screens/AddParticipants';
 import DmAllMembers from '../screens/DmAllMembers';
+import FileUpload from '../screens/FIleUpload';
 import {
   ADD_PARTICIPANTS,
   CHATROOM,
@@ -42,15 +50,20 @@ import {
   EXPLORE_FEED,
   HOMEFEED,
   IMAGE_SCREEN,
+  FILE_UPLOAD,
   REPORT,
   VIEW_PARTICIPANTS,
+  VIDEO_PLAYER,
 } from '../constants/Screens';
+import VideoPlayer from '../screens/VideoPlayer';
 
 const Stack = createNativeStackNavigator();
 
 const SwitchComponent = () => {
   const {count, chatroomCount} = useAppSelector(state => state.loader);
-  const {isToast, toastMessage} = useAppSelector(state => state.homefeed);
+  const {isToast, toastMessage, statusBarStyle} = useAppSelector(
+    state => state.homefeed,
+  );
   const dispatch = useAppDispatch();
   if (Platform.OS === 'android') {
     PermissionsAndroid.request(
@@ -106,6 +119,7 @@ const SwitchComponent = () => {
 
   return (
     <View style={{flex: 1}}>
+      <StatusBar barStyle={statusBarStyle} />
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator initialRouteName={HOMEFEED}>
           <Stack.Screen name={HOMEFEED} component={HomeFeed} />
@@ -120,6 +134,12 @@ const SwitchComponent = () => {
           <Stack.Screen name={VIEW_PARTICIPANTS} component={ViewParticipants} />
           <Stack.Screen name={ADD_PARTICIPANTS} component={AddParticipants} />
           <Stack.Screen name={DM_ALL_MEMBERS} component={DmAllMembers} />
+          <Stack.Screen
+            options={{gestureEnabled: Platform.OS === 'ios' ? false : true}}
+            name={FILE_UPLOAD}
+            component={FileUpload}
+          />
+          <Stack.Screen name={VIDEO_PLAYER} component={VideoPlayer} />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastMessage
