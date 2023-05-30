@@ -7,12 +7,11 @@ import {
 } from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Provider as ReduxProvider} from 'react-redux';
-import store, {persistor} from './store';
+import store from './store';
 import SwitchComponent from './navigation/SwitchComponent';
 import notifee, {EventType} from '@notifee/react-native';
 import {getRoute} from './notifications/routes';
 import * as RootNavigation from './RootNavigation';
-import {PersistGate} from 'redux-persist/integration/react';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,13 +31,11 @@ function App(): JSX.Element {
 
   return (
     <ReduxProvider store={store}>
-      {/* <PersistGate loading={null} persistor={persistor}> */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{flex: 1}}>
-          <SwitchComponent />
-        </KeyboardAvoidingView>
-      {/* </PersistGate> */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1}}>
+        <SwitchComponent />
+      </KeyboardAvoidingView>
     </ReduxProvider>
   );
 }
