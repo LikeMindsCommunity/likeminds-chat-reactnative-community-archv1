@@ -227,6 +227,7 @@ const InputBox = ({
     try {
       navigation.navigate(FILE_UPLOAD, {
         chatroomID: chatroomID,
+        previousMessage: message, // to keep message on uploadScreen InputBox
       });
       const response = await DocumentPicker.pick({
         type: [DocumentPicker.types.pdf],

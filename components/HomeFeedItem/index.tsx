@@ -132,55 +132,109 @@ const HomeFeedItem: React.FC<Props> = ({
     );
 
   const getFeedIconAttachment = (val: any) => {
-    let valueOfZerothIndex = val[0];
-    if (valueOfZerothIndex?.type === PDF_TEXT) {
+    let imageCount = val?.images?.length;
+    let videosCount = val?.videos?.length;
+    let pdfCount = val?.pdf?.length;
+
+    if (imageCount > 0 && videosCount > 0 && pdfCount > 0) {
       return (
         <View style={styles.alignCenter}>
-          {val?.length > 1 && (
-            <Text style={styles.attachment_msg}>{val?.length}</Text>
+          <View style={styles.alignCenter}>
+            <Text style={styles.attachment_msg}>{imageCount}</Text>
+            <Image
+              source={require('../../assets/images/image_icon3x.png')}
+              style={styles.icon}
+            />
+          </View>
+          <View style={styles.alignCenter}>
+            <Text style={styles.attachment_msg}>{videosCount}</Text>
+            <Image
+              source={require('../../assets/images/video_icon3x.png')}
+              style={styles.icon}
+            />
+          </View>
+          <View style={styles.alignCenter}>
+            <Text style={styles.attachment_msg}>{pdfCount}</Text>
+            <Image
+              source={require('../../assets/images/document_icon3x.png')}
+              style={styles.icon}
+            />
+          </View>
+        </View>
+      );
+    } else if (imageCount > 0 && videosCount > 0) {
+      return (
+        <View style={styles.alignCenter}>
+          <View style={styles.alignCenter}>
+            <Text style={styles.attachment_msg}>{imageCount}</Text>
+            <Image
+              source={require('../../assets/images/image_icon3x.png')}
+              style={styles.icon}
+            />
+          </View>
+          <View style={styles.alignCenter}>
+            <Text style={styles.attachment_msg}>{videosCount}</Text>
+            <Image
+              source={require('../../assets/images/video_icon3x.png')}
+              style={styles.icon}
+            />
+          </View>
+        </View>
+      );
+    } else if (videosCount > 0 && pdfCount > 0) {
+      return (
+        <View style={styles.alignCenter}>
+          <View style={styles.alignCenter}>
+            <Text style={styles.attachment_msg}>{videosCount}</Text>
+            <Image
+              source={require('../../assets/images/video_icon3x.png')}
+              style={styles.icon}
+            />
+          </View>
+          <View style={styles.alignCenter}>
+            <Text style={styles.attachment_msg}>{pdfCount}</Text>
+            <Image
+              source={require('../../assets/images/document_icon3x.png')}
+              style={styles.icon}
+            />
+          </View>
+        </View>
+      );
+    } else if (imageCount > 0 && pdfCount > 0) {
+      return (
+        <View style={styles.alignCenter}>
+          <View style={styles.alignCenter}>
+            <Text style={styles.attachment_msg}>{imageCount}</Text>
+            <Image
+              source={require('../../assets/images/image_icon3x.png')}
+              style={styles.icon}
+            />
+          </View>
+          <View style={styles.alignCenter}>
+            <Text style={styles.attachment_msg}>{pdfCount}</Text>
+            <Image
+              source={require('../../assets/images/document_icon3x.png')}
+              style={styles.icon}
+            />
+          </View>
+        </View>
+      );
+    } else if (pdfCount > 0) {
+      return (
+        <View style={styles.alignCenter}>
+          {pdfCount > 1 && (
+            <Text style={styles.attachment_msg}>{pdfCount}</Text>
           )}
           <Image
             source={require('../../assets/images/document_icon3x.png')}
-            style={{
-              height: 15,
-              width: 15,
-              resizeMode: 'contain',
-              marginRight: 5,
-            }}
+            style={styles.icon}
           />
           <Text style={styles.lastMessage}>
-            {val?.length > 1 ? 'Documents' : 'Document'}
+            {pdfCount > 1 ? 'Documents' : 'Document'}
           </Text>
         </View>
       );
-    } else if (valueOfZerothIndex?.type === VIDEO_TEXT) {
-      return (
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'flex-end',
-            // padding:-5
-            marginBottom: -2,
-          }}>
-          {val?.length > 1 && (
-            <Text style={styles.attachment_msg}>{val?.length}</Text>
-          )}
-          <Image
-            source={require('../../assets/images/video_icon3x.png')}
-            style={{
-              height: 15,
-              width: 15,
-              resizeMode: 'contain',
-              marginRight: 5,
-            }}
-          />
-          <Text style={styles.lastMessage}>
-            {val?.length > 1 ? 'Videos' : 'Video'}
-          </Text>
-        </View>
-      );
-    } else if (valueOfZerothIndex?.type === IMAGE_TEXT) {
+    } else if (videosCount > 0) {
       return (
         <View
           style={[
@@ -189,20 +243,36 @@ const HomeFeedItem: React.FC<Props> = ({
               marginBottom: -2,
             },
           ]}>
-          {val?.length > 1 && (
-            <Text style={styles.attachment_msg}>{val?.length}</Text>
+          {videosCount > 1 && (
+            <Text style={styles.attachment_msg}>{videosCount}</Text>
+          )}
+          <Image
+            source={require('../../assets/images/video_icon3x.png')}
+            style={styles.icon}
+          />
+          <Text style={styles.lastMessage}>
+            {videosCount > 1 ? 'Videos' : 'Video'}
+          </Text>
+        </View>
+      );
+    } else if (imageCount > 0) {
+      return (
+        <View
+          style={[
+            styles.alignCenter,
+            {
+              marginBottom: -2,
+            },
+          ]}>
+          {imageCount > 1 && (
+            <Text style={styles.attachment_msg}>{imageCount}</Text>
           )}
           <Image
             source={require('../../assets/images/image_icon3x.png')}
-            style={{
-              height: 15,
-              width: 15,
-              resizeMode: 'contain',
-              marginRight: 5,
-            }}
+            style={styles.icon}
           />
           <Text style={styles.attachment_msg}>
-            {val?.length > 1 ? 'Photos' : 'Photo'}
+            {imageCount > 1 ? 'Photos' : 'Photo'}
           </Text>
         </View>
       );
@@ -210,7 +280,6 @@ const HomeFeedItem: React.FC<Props> = ({
       return;
     }
   };
-
   return (
     <Pressable
       onPress={() => {
@@ -284,7 +353,7 @@ const HomeFeedItem: React.FC<Props> = ({
                     },
                   ]}>
                   {!!lastConversation?.has_files
-                    ? getFeedIconAttachment(lastConversation?.attachments)
+                    ? getFeedIconAttachment(lastConversation)
                     : decode(lastMessage, false)}
                 </Text>
               </View>
