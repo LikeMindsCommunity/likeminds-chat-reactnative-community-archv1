@@ -132,4 +132,15 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.SEMI_BOLD,
     marginBottom: -1,
   },
+  messageInfo: {
+    color: 'green',
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.BOLD,
+    marginBottom: STYLES.$MARGINS.XS,
+  },
+  messageCustomTitle: {
+    color: STYLES.$COLORS.MSG,
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+  },
 });
