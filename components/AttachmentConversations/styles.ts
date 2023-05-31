@@ -57,7 +57,11 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.LIGHT_BLUE,
     marginTop: 5,
   },
-  singleImg: {height: 150, width: '100%', resizeMode: 'cover'},
+  singleImg: {
+    height: 150,
+    width: '100%',
+    resizeMode: 'cover',
+  },
   doubleImgParent: {
     display: 'flex',
     flexDirection: 'row',
