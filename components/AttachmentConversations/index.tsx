@@ -49,6 +49,7 @@ const AttachmentConversations = ({
   handleFileUpload,
 }: AttachmentConversations) => {
   const dispatch = useAppDispatch();
+  const {user} = useAppSelector(state => state.homefeed);
   let attachment0 = item?.attachments[0];
   return (
     <View
@@ -68,6 +69,17 @@ const AttachmentConversations = ({
           isTypeSent ? styles.sentMessage : styles.receivedMessage,
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
+        {!!(item?.member?.id === user?.id) ? null : (
+          <Text style={styles.messageInfo} numberOfLines={1}>
+            {item?.member?.name}
+            {!!item?.member?.custom_title ? (
+              <Text
+                style={
+                  styles.messageCustomTitle
+                }>{` • ${item?.member?.custom_title}`}</Text>
+            ) : null}
+          </Text>
+        )}
         {attachment0?.type === IMAGE_TEXT ? (
           <ImageConversations
             isIncluded={isIncluded}

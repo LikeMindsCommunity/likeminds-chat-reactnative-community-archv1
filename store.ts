@@ -7,15 +7,7 @@ import {explorefeedReducer} from './store/reducers/explorefeedReducer';
 import {homefeedReducer} from './store/reducers/homefeedReducer';
 import {loader} from './store/reducers/loader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {persistStore, persistReducer} from 'redux-persist';
 import {fileUploadReducer} from './store/reducers/fileUploadReducer';
-
-const persistConfig = {
-  key: 'root',
-  storage: AsyncStorage,
-  // blacklist: ['upload'],
-  // whitelist: ['upload'], // due to this redux state will not clear when we quit the app
-};
 
 const rootReducer = combineReducers({
   homefeed: homefeedReducer,
@@ -25,14 +17,10 @@ const rootReducer = combineReducers({
   upload: fileUploadReducer,
 });
 
-const persistedReducer = persistReducer(persistConfig as any, rootReducer);
-
 const store = configureStore({
   reducer: rootReducer,
   middleware: [thunk as ThunkMiddleware, apiMiddleware],
 });
-
-export const persistor = persistStore(store);
 
 export default store;
 
