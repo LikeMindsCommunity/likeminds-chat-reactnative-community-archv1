@@ -15,9 +15,14 @@ import {
   LONG_PRESSED,
   SELECTED_MESSAGES,
   SET_POSITION,
+  STATUS_BAR_STYLE,
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../store';
-import {IMAGE_SCREEN, VIDEO_PLAYER} from '../../constants/Screens';
+import {
+  CAROUSEL_SCREEN,
+  IMAGE_SCREEN,
+  VIDEO_PLAYER,
+} from '../../constants/Screens';
 import {
   AUDIO_TEXT,
   FAILED,
@@ -623,7 +628,7 @@ export const ImageConversations = ({
     longPressOpenKeyboard();
   };
 
-  const handleOnPress = (event: any, url: string) => {
+  const handleOnPress = (event: any, url: string, index: number) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
       type: SET_POSITION,
@@ -656,7 +661,11 @@ export const ImageConversations = ({
         }
       }
     } else {
-      Linking.openURL(url);
+      navigation.navigate(CAROUSEL_SCREEN, {data: item?.attachments, index});
+      dispatch({
+        type: STATUS_BAR_STYLE,
+        body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+      });
     }
   };
 
@@ -667,7 +676,7 @@ export const ImageConversations = ({
           onLongPress={handleLongPress}
           delayLongPress={200}
           onPress={event => {
-            handleOnPress(event, attachment0?.url);
+            handleOnPress(event, attachment0?.url, 0);
           }}>
           <Image
             style={styles.singleImg}
@@ -694,7 +703,7 @@ export const ImageConversations = ({
             onLongPress={handleLongPress}
             delayLongPress={200}
             onPress={event => {
-              handleOnPress(event, attachment0?.url);
+              handleOnPress(event, attachment0?.url, 0);
             }}>
             <Image
               source={{
@@ -719,7 +728,7 @@ export const ImageConversations = ({
             onLongPress={handleLongPress}
             delayLongPress={200}
             onPress={event => {
-              handleOnPress(event, attachment1?.url);
+              handleOnPress(event, attachment1?.url, 1);
             }}>
             <Image
               source={{

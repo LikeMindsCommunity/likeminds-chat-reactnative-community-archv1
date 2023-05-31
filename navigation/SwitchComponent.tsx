@@ -54,8 +54,10 @@ import {
   REPORT,
   VIEW_PARTICIPANTS,
   VIDEO_PLAYER,
+  CAROUSEL_SCREEN,
 } from '../constants/Screens';
 import VideoPlayer from '../screens/VideoPlayer';
+import CarouselScreen from '../screens/CarouselScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -140,6 +142,7 @@ const SwitchComponent = () => {
             component={FileUpload}
           />
           <Stack.Screen name={VIDEO_PLAYER} component={VideoPlayer} />
+          <Stack.Screen name={CAROUSEL_SCREEN} component={CarouselScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastMessage
