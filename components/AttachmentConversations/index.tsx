@@ -661,7 +661,10 @@ export const ImageConversations = ({
         }
       }
     } else {
-      navigation.navigate(CAROUSEL_SCREEN, {data: item?.attachments, index});
+      navigation.navigate(CAROUSEL_SCREEN, {
+        dataObject: item,
+        index,
+      });
       dispatch({
         type: STATUS_BAR_STYLE,
         body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
@@ -788,7 +791,7 @@ export const ImageConversations = ({
               }
             } else {
               navigation.navigate(CAROUSEL_SCREEN, {
-                data: item?.attachments,
+                dataObject: item,
                 index: 0,
               });
               dispatch({
@@ -880,7 +883,7 @@ export const ImageConversations = ({
               }
             } else {
               navigation.navigate(CAROUSEL_SCREEN, {
-                data: item?.attachments,
+                dataObject: item,
                 index: 0,
               });
               dispatch({

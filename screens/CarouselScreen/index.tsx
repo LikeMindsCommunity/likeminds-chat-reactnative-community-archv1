@@ -1,8 +1,14 @@
-import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {View, Text, Image, TouchableOpacity, BackHandler} from 'react-native';
 import React, {useEffect, useRef} from 'react';
 import {SwiperFlatList} from 'react-native-swiper-flatlist';
 import Layout from '../../constants/Layout';
-import {IMAGE_TEXT, VIDEO_TEXT} from '../../constants/Strings';
+import {
+  IMAGE_TEXT,
+  PHOTOS_TEXT,
+  PHOTO_TEXT,
+  VIDEOS_TEXT,
+  VIDEO_TEXT,
+} from '../../constants/Strings';
 import VideoPlayer from 'react-native-media-console';
 import styles from './styles';
 import STYLES from '../../constants/Styles';
@@ -12,7 +18,25 @@ import {useAppDispatch} from '../../store';
 const CarouselScreen = ({navigation, route}: any) => {
   const video = useRef<any>(null);
   const dispatch = useAppDispatch();
-  const {data, index} = route.params;
+  const {index, dataObject} = route.params;
+  let userName = dataObject?.member?.name;
+  let date = dataObject?.date;
+  let time = dataObject?.created_at;
+  let imageCount = dataObject?.images.length;
+  let videoCount = dataObject?.videos.length;
+  let data = dataObject?.attachments;
+
+  let countText = '';
+
+  if (imageCount > 0 && videoCount > 0) {
+    countText = `${imageCount} ${
+      imageCount > 1 ? PHOTOS_TEXT : PHOTO_TEXT
+    }, ${videoCount} ${videoCount > 1 ? VIDEOS_TEXT : VIDEO_TEXT}`;
+  } else if (imageCount > 0) {
+    countText = `${imageCount > 1 ? `${imageCount} ${PHOTOS_TEXT}` : ''}`;
+  } else if (videoCount > 0) {
+    countText = `${videoCount > 1 ? `${imageCount} ${VIDEOS_TEXT}` : ''}`;
+  }
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -22,6 +46,24 @@ const CarouselScreen = ({navigation, route}: any) => {
 
   useEffect(() => {
     setInitialHeader();
+  }, []);
+
+  useEffect(() => {
+    function backActionCall() {
+      dispatch({
+        type: STATUS_BAR_STYLE,
+        body: {color: STYLES.$STATUS_BAR_STYLE.default},
+      });
+      navigation.goBack();
+      return true;
+    }
+
+    const backHandlerAndroid = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backActionCall,
+    );
+
+    return () => backHandlerAndroid.remove();
   }, []);
 
   return (
@@ -34,7 +76,7 @@ const CarouselScreen = ({navigation, route}: any) => {
               navigation.goBack();
               dispatch({
                 type: STATUS_BAR_STYLE,
-                body: {color: STYLES.$STATUS_BAR_STYLE['dark-content']},
+                body: {color: STYLES.$STATUS_BAR_STYLE.default},
               });
             }}>
             <Image
@@ -49,7 +91,15 @@ const CarouselScreen = ({navigation, route}: any) => {
                 fontSize: STYLES.$FONT_SIZES.LARGE,
                 fontFamily: STYLES.$FONT_TYPES.BOLD,
               }}>
-              {'Files'}
+              {userName}
+            </Text>
+            <Text
+              style={{
+                color: STYLES.$COLORS.TERTIARY,
+                fontSize: STYLES.$FONT_SIZES.SMALL,
+                fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+              }}>
+              {`${countText ? `${countText} • ` : ''}${date}, ${time}`}
             </Text>
           </View>
         </View>
@@ -66,14 +116,7 @@ const CarouselScreen = ({navigation, route}: any) => {
                 justifyContent: 'center',
               }}>
               {item?.type === IMAGE_TEXT ? (
-                <Image
-                  style={{
-                    width: Layout.window.width,
-                    height: Layout.window.height - 100,
-                    resizeMode: 'contain',
-                  }}
-                  source={{uri: item?.url}}
-                />
+                <Image style={styles.image} source={{uri: item?.url}} />
               ) : item?.type === VIDEO_TEXT ? (
                 <View style={styles.video}>
                   <VideoPlayer
