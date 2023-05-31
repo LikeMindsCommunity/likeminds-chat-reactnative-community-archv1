@@ -787,8 +787,13 @@ export const ImageConversations = ({
                 }
               }
             } else {
-              navigation.navigate(IMAGE_SCREEN, {
-                attachments: item?.attachments,
+              navigation.navigate(CAROUSEL_SCREEN, {
+                data: item?.attachments,
+                index: 0,
+              });
+              dispatch({
+                type: STATUS_BAR_STYLE,
+                body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
               });
             }
           }}
@@ -874,8 +879,13 @@ export const ImageConversations = ({
                 }
               }
             } else {
-              navigation.navigate(IMAGE_SCREEN, {
-                attachments: item?.attachments,
+              navigation.navigate(CAROUSEL_SCREEN, {
+                data: item?.attachments,
+                index: 0,
+              });
+              dispatch({
+                type: STATUS_BAR_STYLE,
+                body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
               });
             }
           }}>
