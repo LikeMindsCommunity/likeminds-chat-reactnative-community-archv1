@@ -1,6 +1,5 @@
 import {View, Text, Image, TouchableOpacity} from 'react-native';
 import React, {useEffect, useRef} from 'react';
-// import Carousel from 'react-native-reanimated-carousel';
 import {SwiperFlatList} from 'react-native-swiper-flatlist';
 import Layout from '../../constants/Layout';
 import {IMAGE_TEXT, VIDEO_TEXT} from '../../constants/Strings';

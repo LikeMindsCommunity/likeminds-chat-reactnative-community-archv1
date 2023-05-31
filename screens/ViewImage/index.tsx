@@ -15,7 +15,6 @@ const ViewImage = ({val}: any) => {
         width,
       };
       setDimensions(updatedDimensions);
-      // return {width, height};
     });
   }, []);
 
