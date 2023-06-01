@@ -288,6 +288,7 @@ const FileUpload = ({navigation, route}: any) => {
               disableVolume={true}
               disableFullscreen={true}
               paused={true}
+              showOnStart={true}
             />
           </View>
         ) : docItemType === PDF_TEXT ? (

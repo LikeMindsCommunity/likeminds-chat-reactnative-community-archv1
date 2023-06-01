@@ -51,6 +51,7 @@ const VideoPlayer = ({navigation, route}: any) => {
             disableBack={true}
             disableFullscreen={true}
             paused={true}
+            showOnStart={true}
           />
         </View>
       ) : null}

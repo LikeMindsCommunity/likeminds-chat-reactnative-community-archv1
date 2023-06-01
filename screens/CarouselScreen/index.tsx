@@ -35,7 +35,7 @@ const CarouselScreen = ({navigation, route}: any) => {
   } else if (imageCount > 0) {
     countText = `${imageCount > 1 ? `${imageCount} ${PHOTOS_TEXT}` : ''}`;
   } else if (videoCount > 0) {
-    countText = `${videoCount > 1 ? `${imageCount} ${VIDEOS_TEXT}` : ''}`;
+    countText = `${videoCount > 1 ? `${videoCount} ${VIDEOS_TEXT}` : ''}`;
   }
 
   const setInitialHeader = () => {
@@ -129,6 +129,7 @@ const CarouselScreen = ({navigation, route}: any) => {
                     disableBack={true}
                     disableFullscreen={true}
                     paused={true}
+                    showOnStart={true}
                   />
                 </View>
               ) : null}

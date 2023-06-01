@@ -90,7 +90,7 @@ export const styles = StyleSheet.create({
     height: 150,
     width: '50%',
     backgroundColor: 'black',
-    opacity: 0.3,
+    opacity: 0.5,
     borderRadius: 5,
     display: 'flex',
     alignItems: 'center',
