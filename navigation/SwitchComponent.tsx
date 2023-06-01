@@ -142,7 +142,11 @@ const SwitchComponent = () => {
             component={FileUpload}
           />
           <Stack.Screen name={VIDEO_PLAYER} component={VideoPlayer} />
-          <Stack.Screen name={CAROUSEL_SCREEN} component={CarouselScreen} />
+          <Stack.Screen
+            options={{gestureEnabled: false}}
+            name={CAROUSEL_SCREEN}
+            component={CarouselScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastMessage
