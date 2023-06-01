@@ -38,6 +38,7 @@ import {
   NO_DM,
   NO_DM_TEXT,
 } from '../../../../constants/Strings';
+import {FlashList} from '@shopify/flash-list';
 
 interface Props {
   navigation: any;
@@ -194,8 +195,12 @@ const DMFeed = ({navigation}: Props) => {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={chatrooms}
+          extraData={{
+            value: [user, chatrooms],
+          }}
+          estimatedItemSize={15}
           renderItem={({item}: any) => {
             let chatroomWithUser = item?.chatroom?.chatroom_with_user;
             let chatroom = item?.chatroom;

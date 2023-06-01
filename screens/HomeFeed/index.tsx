@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  AppState,
 } from 'react-native';
 import {myClient} from '../..';
 import {getNameInitials} from '../../commonFuctions';
@@ -25,12 +26,18 @@ import {
   updateInvites,
 } from '../../store/actions/homefeed';
 import styles from './styles';
-import {SET_PAGE} from '../../store/types/types';
+import {
+  SET_FILE_UPLOADING_MESSAGES,
+  SET_PAGE,
+  UPDATE_FILE_UPLOADING_OBJECT,
+} from '../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../notifications';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
+import {FAILED} from '../../constants/Strings';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Props {
   navigation: any;
@@ -55,6 +62,8 @@ const HomeFeed = ({navigation}: Props) => {
     community,
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
+  const {uploadingFilesMessages} = useAppSelector(state => state.upload);
+
   const db = myClient.fbInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
   const setOptions = () => {
@@ -168,6 +177,33 @@ const HomeFeed = ({navigation}: Props) => {
   }, []);
 
   useEffect(() => {
+    const func = async () => {
+      const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+      if (res) {
+        let uploadingFilesMessagesSavedObject = JSON.parse(res);
+        let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
+        let len = arrOfKeys.length;
+        if (len > 0) {
+          for (let i = 0; i < len; i++) {
+            dispatch({
+              type: UPDATE_FILE_UPLOADING_OBJECT,
+              body: {
+                message: {
+                  ...uploadingFilesMessagesSavedObject[arrOfKeys[i]],
+                  isInProgress: FAILED,
+                },
+                ID: arrOfKeys[i],
+              },
+            });
+          }
+        }
+      }
+    };
+
+    func();
+  }, []);
+
+  useEffect(() => {
     if (FCMToken && accessToken) {
       pushAPI(FCMToken, accessToken);
     }
@@ -190,9 +226,6 @@ const HomeFeed = ({navigation}: Props) => {
           screenOptions={{
             tabBarLabelStyle: styles.font,
             tabBarIndicatorStyle: {backgroundColor: STYLES.$COLORS.PRIMARY},
-            // tabBarLabelStyle: {
-            //   fontSize: 10,
-            // },
           }}>
           <Tab.Screen
             name="GroupFeed"

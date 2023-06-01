@@ -1,10 +1,24 @@
 import React, {Alert, Linking, Text} from 'react-native';
 import STYLES from '../constants/Styles';
-import {useAppSelector} from '../store';
+import {useAppDispatch, useAppSelector} from '../store';
+import {PDF_TEXT, VIDEO_TEXT} from '../constants/Strings';
+import {
+  SELECTED_FILES_TO_UPLOAD,
+  SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
+} from '../store/types/types';
+import {createThumbnail} from 'react-native-create-thumbnail';
+import PdfThumbnail from 'react-native-pdf-thumbnail';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
+
+{
+  /* This is a generic arrow function to remove a specific key. 
+  The first argument is the name of the key to remove, the second is the object from where you want to remove the key. 
+  Note that by restructuring it, we generate the curated result, then return it. */
+}
+export const removeKey = (key: any, {[key]: _, ...rest}) => rest;
 
 // This function helps us to decode time(created_epoch: 1675421848540) into DATE if more than a day else TIME if less than a day.
 export function getFullDate(time: any) {
@@ -280,3 +294,89 @@ export function formatTime(recordedTime: number): string {
     return `${minutes}m`;
   }
 }
+
+export const fetchResourceFromURI = async (uri: string) => {
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  return blob;
+};
+
+interface VideoThumbnail {
+  selectedImages: any;
+  selectedFilesToUpload?: any;
+  selectedFilesToUploadThumbnails?: any;
+  initial: boolean; // true when selecting Videos for first time, else false.
+}
+
+// function to get thumbnails from videos
+export const getVideoThumbnail = async ({
+  selectedImages,
+  selectedFilesToUpload,
+  selectedFilesToUploadThumbnails,
+  initial,
+}: VideoThumbnail) => {
+  let arr: any = [];
+  let dummyArrSelectedFiles: any = selectedImages;
+  for (let i = 0; i < selectedImages?.length; i++) {
+    let item = selectedImages[i];
+    if (item?.type?.split('/')[0] === VIDEO_TEXT) {
+      await createThumbnail({
+        url: item.uri,
+        timeStamp: 10000,
+      })
+        .then(response => {
+          arr = [...arr, {uri: response.path}];
+          dummyArrSelectedFiles[i] = {
+            ...dummyArrSelectedFiles[i],
+            thumbnail_url: response.path,
+          };
+        })
+        .catch(err => {});
+    } else {
+      arr = [...arr, {uri: item.uri}];
+    }
+  }
+  return {
+    selectedFilesToUploadThumbnails: initial
+      ? arr
+      : [...selectedFilesToUploadThumbnails, ...arr],
+    selectedFilesToUpload: initial
+      ? dummyArrSelectedFiles
+      : [...selectedFilesToUpload, ...dummyArrSelectedFiles],
+  };
+};
+
+// function to get thumbnails of all pdf
+export const getAllPdfThumbnail = async (selectedImages: any) => {
+  let arr: any = [];
+  for (let i = 0; i < selectedImages?.length; i++) {
+    let item = selectedImages[i];
+    const filePath = item.uri;
+    const page = 0;
+    if (item?.type?.split('/')[1] === PDF_TEXT) {
+      const res = await PdfThumbnail.generate(filePath, page);
+      if (!!res) {
+        arr = [...arr, {uri: res?.uri}];
+      }
+    } else {
+      arr = [...arr, {uri: item.uri}];
+    }
+  }
+  return arr;
+};
+
+// function to get thumbnails of pdf
+export const getPdfThumbnail = async (selectedFile: any) => {
+  let arr: any = [];
+  const filePath = selectedFile.uri;
+  const page = 0;
+  if (selectedFile?.type?.split('/')[1] === PDF_TEXT) {
+    const res = await PdfThumbnail.generate(filePath, page);
+    if (!!res) {
+      arr = [...arr, {uri: res?.uri}];
+    }
+  } else {
+    arr = [...arr, {uri: selectedFile.uri}];
+  }
+  return arr;
+};

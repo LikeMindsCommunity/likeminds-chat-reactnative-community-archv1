@@ -1,3 +1,4 @@
+import Styles from '../../constants/Styles';
 import {
   ACCEPT_INVITE_SUCCESS,
   GET_DMFEED_CHAT_SUCCESS,
@@ -9,6 +10,7 @@ import {
   SET_DM_PAGE,
   SET_PAGE,
   SHOW_TOAST,
+  STATUS_BAR_STYLE,
   UPDATE_DMFEED_CHAT_SUCCESS,
   UPDATE_HOMEFEED_CHAT_SUCCESS,
   UPDATE_INVITES_SUCCESS,
@@ -19,6 +21,7 @@ const initialState = {
   myDMChatrooms: [] as any,
   invitedChatrooms: [] as any,
   user: {} as any,
+  memberRights: [],
   community: {} as any,
   unseenCount: null,
   totalCount: null,
@@ -26,6 +29,7 @@ const initialState = {
   dmPage: 1 as number,
   isToast: false as boolean,
   toastMessage: '' as string,
+  statusBarStyle: Styles.$STATUS_BAR_STYLE.default,
 };
 
 export function homefeedReducer(state = initialState, action: any) {
@@ -93,8 +97,7 @@ export function homefeedReducer(state = initialState, action: any) {
       return {...state, myChatrooms: [...state.myChatrooms, ...my_chatrooms]};
     }
     case GET_DMFEED_CHAT_SUCCESS: {
-      const {dm_chatrooms} =
-        action.body;
+      const {dm_chatrooms} = action.body;
       return {
         ...state,
         myDMChatrooms: dm_chatrooms,
@@ -102,19 +105,26 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case UPDATE_DMFEED_CHAT_SUCCESS: {
       const {dm_chatrooms = []} = action.body;
-      return {...state, myDMChatrooms: [...state.myDMChatrooms, ...dm_chatrooms]};
+      return {
+        ...state,
+        myDMChatrooms: [...state.myDMChatrooms, ...dm_chatrooms],
+      };
     }
     case INIT_API_SUCCESS: {
       const {community = {}} = action.body;
       return {...state, community: community};
     }
     case PROFILE_DATA_SUCCESS: {
-      const {member = {}} = action.body;
-      return {...state, user: member};
+      const {member = {}, member_rights = []} = action.body;
+      return {...state, user: member, memberRights: member_rights};
     }
     case SHOW_TOAST: {
       const {isToast, msg} = action.body;
       return {...state, isToast: isToast, toastMessage: msg};
+    }
+    case STATUS_BAR_STYLE: {
+      const {color} = action.body;
+      return {...state, statusBarStyle: color};
     }
     default:
       return state;

@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Provider as ReduxProvider} from 'react-redux';
-import store, {useAppSelector} from './store';
+import store from './store';
 import SwitchComponent from './navigation/SwitchComponent';
 import notifee, {EventType} from '@notifee/react-native';
 import {getRoute} from './notifications/routes';
@@ -16,7 +16,6 @@ import * as RootNavigation from './RootNavigation';
 const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
-
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
     async function bootstrap() {

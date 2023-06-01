@@ -18,7 +18,7 @@
 ## Getting Started
 
 ## Generating API key
- 
+
 ```shell
   1. Go to dashboard.likeminds.community and create your account.
   2. After signup, create a new app and copy the API key from the settings tab in the app.
@@ -46,7 +46,7 @@ https://nodejs.org/en/
 ## Integration of authorization userID and userName in initSDK function
 
 ```shell
-  1. Go to screens> Homefeed > index.tsx file, you will find `initAPI`. 
+  1. Go to screens> Homefeed > index.tsx file, you will find `initAPI`.
   2. In the payload of `initAPI`, add your user uniqueID (Authorization ID) and userName.
 ```
 
@@ -79,6 +79,7 @@ Run `npx react-native run-ios` or `npm run ios` or `yarn ios`
 ```
 
 For Android(Choose according to your package manager)
+
 ```shell
 Run `npx react-native run-android` or `npm run android` or `yarn android`
 ```
@@ -87,16 +88,23 @@ Run `npx react-native run-android` or `npm run android` or `yarn android`
 
 ### Android
 
+For Debug build
+
 ```shell
 `npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res`
 ```
 
-For Debug build
 ```shell
 `cd android && ./gradlew assembleDebug`
 ```
 
 For Release build
+
+```shell
+`npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle
+--assets-dest android/app/src/main/res/`
+```
+
 ```shell
 `cd android && ./gradlew assembleRelease`
 ```
@@ -128,4 +136,24 @@ src
 ├── App.tsx                 * Main app component.
 ├── index.js                * Entry point of the application.
 ├── store.ts                * To connect redux store.
+```
+
+## Steps after implementing the code
+
+Go inside node_modules -> react-native-create-thumbnail -> android -> src/main -> java/com/createthumbnail -> CreateThumbnailModule.java
+
+And replace
+
+```shell
+`retriever.release();`
+```
+
+With
+
+```shell
+`try {
+  retriever.release();
+  } catch (IOException e) {
+    e.printStackTrace();
+  }`
 ```
