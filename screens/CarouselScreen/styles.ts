@@ -6,11 +6,21 @@ const styles = StyleSheet.create({
   header: {
     display: 'flex',
     flex: 1,
-    top: Platform.OS === 'ios' ? 50 : 0,
+    top: Platform.OS === 'ios' ? 70 : 30,
     justifyContent: 'center',
-    backgroundColor: 'black',
+    position: 'absolute',
+    left: 0,
+    right: 0,
     zIndex: 1,
     opacity: 0.8,
+  },
+  headerElement: {
+    backgroundColor: 'black',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    paddingVertical: 10,
   },
   image: {
     width: Layout.window.width,
@@ -37,6 +47,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     zIndex: 1,
+    flex: 1,
   },
   backBtn: {
     height: 20,

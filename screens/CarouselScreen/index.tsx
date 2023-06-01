@@ -70,37 +70,39 @@ const CarouselScreen = ({navigation, route}: any) => {
     <View style={{flex: 1, backgroundColor: 'black'}}>
       <View style={styles.header}>
         <View style={styles.headingContainer}>
-          <TouchableOpacity
-            style={{padding: 10}}
-            onPress={() => {
-              navigation.goBack();
-              dispatch({
-                type: STATUS_BAR_STYLE,
-                body: {color: STYLES.$STATUS_BAR_STYLE.default},
-              });
-            }}>
-            <Image
-              source={require('../../assets/images/blue_back_arrow3x.png')}
-              style={styles.backBtn}
-            />
-          </TouchableOpacity>
-          <View style={styles.chatRoomInfo}>
-            <Text
-              style={{
-                color: STYLES.$COLORS.TERTIARY,
-                fontSize: STYLES.$FONT_SIZES.LARGE,
-                fontFamily: STYLES.$FONT_TYPES.BOLD,
+          <View style={styles.headerElement}>
+            <TouchableOpacity
+              style={{padding: 10}}
+              onPress={() => {
+                navigation.goBack();
+                dispatch({
+                  type: STATUS_BAR_STYLE,
+                  body: {color: STYLES.$STATUS_BAR_STYLE.default},
+                });
               }}>
-              {userName}
-            </Text>
-            <Text
-              style={{
-                color: STYLES.$COLORS.TERTIARY,
-                fontSize: STYLES.$FONT_SIZES.SMALL,
-                fontFamily: STYLES.$FONT_TYPES.MEDIUM,
-              }}>
-              {`${countText ? `${countText} • ` : ''}${date}, ${time}`}
-            </Text>
+              <Image
+                source={require('../../assets/images/blue_back_arrow3x.png')}
+                style={styles.backBtn}
+              />
+            </TouchableOpacity>
+            <View style={styles.chatRoomInfo}>
+              <Text
+                style={{
+                  color: STYLES.$COLORS.TERTIARY,
+                  fontSize: STYLES.$FONT_SIZES.LARGE,
+                  fontFamily: STYLES.$FONT_TYPES.BOLD,
+                }}>
+                {userName}
+              </Text>
+              <Text
+                style={{
+                  color: STYLES.$COLORS.TERTIARY,
+                  fontSize: STYLES.$FONT_SIZES.SMALL,
+                  fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+                }}>
+                {`${countText ? `${countText} • ` : ''}${date}, ${time}`}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
