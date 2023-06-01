@@ -28,6 +28,7 @@ import styles from './styles';
 import {SET_PAGE} from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
+import {FlashList} from '@shopify/flash-list';
 
 interface Props {
   navigation: any;
@@ -154,7 +155,7 @@ const GroupFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      <FlatList
+      <FlashList
         data={chatrooms}
         ListHeaderComponent={() => (
           <HomeFeedExplore
@@ -182,6 +183,10 @@ const GroupFeed = ({navigation}: Props) => {
           };
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}
+        extraData={{
+          value: [chatrooms, unseenCount, totalCount],
+        }}
+        estimatedItemSize={15}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}

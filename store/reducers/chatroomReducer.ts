@@ -1,16 +1,25 @@
 import {
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  CLEAR_FILE_UPLOADING_MESSAGES,
+  CLEAR_SELECTED_FILES_TO_UPLOAD,
+  CLEAR_SELECTED_FILE_TO_VIEW,
+  FILE_SENT,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   MESSAGE_SENT,
-  ON_CONVERSATIONS_CREATE_SUCCESS,
   PAGINATED_CONVERSATIONS_SUCCESS,
   REACTION_SENT,
+  SELECTED_FILES_TO_UPLOAD,
+  SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
+  SELECTED_FILE_TO_VIEW,
   SELECTED_MESSAGES,
+  SELECTED_MORE_FILES_TO_UPLOAD,
+  SET_IS_REPLY,
   SET_POSITION,
+  SET_REPLY_MESSAGE,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
 } from '../types/types';
@@ -23,6 +32,12 @@ const initialState = {
   selectedMessages: [],
   stateArr: [1, 2, 3, 7, 8, 9, 20, 19, 17], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
   position: {x: 0, y: 0} as any,
+  selectedFilesToUpload: [],
+  selectedFilesToUploadThumbnails: [],
+  selectedFileToView: {} as any,
+  isReply: false,
+  replyMessage: '',
+  fileSent: 0,
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -128,6 +143,43 @@ export function chatroomReducer(state = initialState, action: any) {
     case SET_POSITION: {
       const {pageX, pageY} = action.body;
       return {...state, position: {x: pageX, y: pageY}};
+    }
+    case SELECTED_FILES_TO_UPLOAD: {
+      const {images} = action.body;
+      return {...state, selectedFilesToUpload: [...images]};
+    }
+    case SELECTED_FILES_TO_UPLOAD_THUMBNAILS: {
+      const {images} = action.body;
+      return {...state, selectedFilesToUploadThumbnails: [...images]};
+    }
+    case SELECTED_FILE_TO_VIEW: {
+      const {image} = action.body;
+      return {...state, selectedFileToView: image};
+    }
+    case SELECTED_MORE_FILES_TO_UPLOAD: {
+      const {images} = action.body;
+      return {
+        ...state,
+        selectedFilesToUpload: [...state.selectedFilesToUpload, ...images],
+      };
+    }
+    case CLEAR_SELECTED_FILES_TO_UPLOAD: {
+      return {...state, selectedFilesToUpload: []};
+    }
+    case CLEAR_SELECTED_FILE_TO_VIEW: {
+      return {...state, selectedFileToView: {}};
+    }
+    case SET_IS_REPLY: {
+      const {isReply = false} = action.body;
+      return {...state, isReply: isReply};
+    }
+    case SET_REPLY_MESSAGE: {
+      const {replyMessage = ''} = action.body;
+      return {...state, replyMessage: replyMessage};
+    }
+    case FILE_SENT: {
+      const {status = ''} = action.body;
+      return {...state, fileSent: status};
     }
     default:
       return state;

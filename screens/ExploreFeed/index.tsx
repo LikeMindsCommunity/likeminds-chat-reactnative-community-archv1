@@ -19,6 +19,7 @@ import {
 } from '../../store/actions/explorefeed';
 import {SET_EXPLORE_FEED_PAGE} from '../../store/types/types';
 import styles from './styles';
+import {FlashList} from '@shopify/flash-list';
 
 interface Props {
   navigation: any;
@@ -26,10 +27,10 @@ interface Props {
 
 const ExploreFeed = ({navigation}: Props) => {
   // const [chats, setChats] = useState(dummyData.my_chatrooms);
-  const {exploreChatrooms = [], page} = useAppSelector(
+  const {exploreChatrooms = [], page}: any = useAppSelector(
     state => state.explorefeed,
   );
-  const {community} = useAppSelector(state => state.homefeed);
+  const {community}: any = useAppSelector(state => state.homefeed);
   const [chats, setChats] = useState(exploreChatrooms);
   const [filterState, setFilterState] = useState(0);
   const [isPinned, setIsPinned] = useState(false);
@@ -128,9 +129,8 @@ const ExploreFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      <FlatList
+      <FlashList
         data={chats}
-        // data={chats}
         ListHeaderComponent={() => (
           <ExploreFeedFilters
             filterState={filterState}
@@ -152,7 +152,7 @@ const ExploreFeed = ({navigation}: Props) => {
             isPinned={isPinned}
           />
         )}
-        renderItem={({item}) => {
+        renderItem={({item}: any) => {
           const exploreFeedProps = {
             // title: item?.chatroom?.title!,
             header: item?.header,
@@ -176,10 +176,14 @@ const ExploreFeed = ({navigation}: Props) => {
             </View>
           );
         }}
+        extraData={{
+          value: [filterState, chats, exploreChatrooms, isPinned],
+        }}
+        estimatedItemSize={15}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
-        keyExtractor={item => (item?.id ? item?.id.toString() : null)}
+        keyExtractor={(item: any) => (item?.id ? item?.id.toString() : null)}
       />
     </View>
   );

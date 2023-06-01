@@ -22,6 +22,7 @@ interface Messages {
   longPressOpenKeyboard: any;
   removeReaction: any;
   handleTapToUndo: any;
+  handleFileUpload: any;
 }
 
 const Messages = ({
@@ -33,6 +34,7 @@ const Messages = ({
   longPressOpenKeyboard,
   removeReaction,
   handleTapToUndo,
+  handleFileUpload,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
   const {
@@ -41,7 +43,7 @@ const Messages = ({
     stateArr,
     conversations,
     chatroomDetails,
-  } = useAppSelector(state => state.chatroom);
+  }: any = useAppSelector(state => state.chatroom);
 
   const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);
@@ -173,8 +175,9 @@ const Messages = ({
               longPressOpenKeyboard();
             }}
             reactionArr={reactionArr}
+            navigation={navigation}
           />
-        ) : item?.attachment_count > 0 ? (
+        ) : !!!item?.reply_conversation_object && item?.attachment_count > 0 ? (
           <AttachmentConversations
             navigation={navigation}
             isIncluded={isIncluded}
@@ -186,6 +189,7 @@ const Messages = ({
             longPressOpenKeyboard={() => {
               longPressOpenKeyboard();
             }}
+            handleFileUpload={handleFileUpload}
           />
         ) : (
           <View>

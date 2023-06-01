@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
   textInput: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     flexGrow: 1,
     borderRadius: 30,
     overflow: 'hidden',
@@ -23,8 +23,15 @@ export const styles = StyleSheet.create({
     padding: 5,
     margin: 5,
   },
+  addMoreButton: {
+    padding: 10,
+    paddingLeft: 15,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   emojiButton: {
-    padding: 15,
+    padding: 10,
   },
   emoji: {
     width: 22,
@@ -32,26 +39,21 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   inputParent: {
-    // backgroundColor: 'yellow',
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    // flexGrow: 1,
+    justifyContent: 'center',
     marginVertical: 10,
     paddingLeft: 0,
-    // height: 30,
-    // minHeight: 30,
-    // maxHeight: 120,
     // width: Layout.window.width - 180,
     // width:'65%', // when both emoji and updload icon is there
-    width: '90%',
-    marginHorizontal: 20,
+    // width: '90%', // when none of emoji and updload icon is there
+    width: '70%',
   },
   input: {
     flexGrow: 1,
     fontSize: STYLES.$FONT_SIZES.XL,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
-    color: STYLES.$COLORS.SECONDARY,
     maxHeight: 120,
     padding: 0,
     marginBottom: 2,
@@ -133,4 +135,10 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
   },
   replyCloseImg: {height: 5, width: 5, resizeMode: 'contain'},
+  iconText: {
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.PRIMARY,
+  },
+  iconContainer: {alignItems: 'center', gap: 5},
 });

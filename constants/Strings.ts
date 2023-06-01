@@ -37,3 +37,19 @@ export const APPROVE_BUTTON = 'Approve';
 export const CONFIRM_BUTTON = 'Confirm';
 export const REJECT_BUTTON = 'Reject';
 export const REPORT_AND_REJECT_BUTTON = 'Report and Reject';
+
+export const PDF_TEXT = 'pdf';
+export const AUDIO_TEXT = 'audio';
+export const VIDEO_TEXT = 'video';
+export const VIDEOS_TEXT = 'videos';
+export const IMAGE_TEXT = 'image';
+export const PHOTO_TEXT = 'photo';
+export const PHOTOS_TEXT = 'photos';
+
+export const SUCCESS = 'SUCCESS';
+export const FAILED = 'FAILED';
+export const CHARACTER_LIMIT_MESSAGE = 'Your message exceeds character limit';
+
+export const CAMERA_TEXT = 'Camera';
+export const PHOTOS_AND_VIDEOS_TEXT = 'Photos & Videos';
+export const DOCUMENTS_TEXT = 'Documents';

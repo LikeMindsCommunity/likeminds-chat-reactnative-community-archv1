@@ -11,7 +11,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  FlatList,
   Keyboard,
   Image,
   Pressable,
@@ -23,7 +22,7 @@ import {
   Platform,
 } from 'react-native';
 import {myClient} from '../..';
-import {copySelectedMessages} from '../../commonFuctions';
+import {copySelectedMessages, fetchResourceFromURI} from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
 import ToastMessage from '../../components/ToastMessage';
@@ -43,6 +42,9 @@ import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  CLEAR_FILE_UPLOADING_MESSAGES,
+  CLEAR_SELECTED_FILES_TO_UPLOAD,
+  CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
@@ -50,8 +52,11 @@ import {
   SELECTED_MESSAGES,
   SET_DM_PAGE,
   SET_EXPLORE_FEED_PAGE,
+  SET_FILE_UPLOADING_MESSAGES,
+  SET_IS_REPLY,
   SET_PAGE,
   SET_POSITION,
+  SET_REPLY_MESSAGE,
   SHOW_TOAST,
   UPDATE_CHAT_REQUEST_STATE,
 } from '../../store/types/types';
@@ -69,28 +74,32 @@ import {
   VIEW_PARTICIPANTS,
 } from '../../constants/Screens';
 import {
-  APPROVE_DM_REQUEST,
-  APPROVE_REQUEST_MESSAGE,
-  BLOCK_DM_REQUEST,
   COMMUNITY_MANAGER_DISABLED_CHAT,
   DM_REQUEST_SENT_MESSAGE,
   JOIN_CHATROOM,
   JOIN_CHATROOM_MESSAGE,
-  REJECT_DM_REQUEST,
   REJECT_INVITATION,
   REJECT_INVITATION_MESSAGE,
   REQUEST_SENT,
-  REJECT_REQUEST_MESSAGE,
   CANCEL_BUTTON,
   CONFIRM_BUTTON,
   APPROVE_BUTTON,
   REJECT_BUTTON,
-  REPORT_AND_REJECT_BUTTON,
+  FAILED,
+  VIDEO_TEXT,
+  PDF_TEXT,
+  AUDIO_TEXT,
+  IMAGE_TEXT,
+  SUCCESS,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
 import BlockDMRequestModal from '../../customModals/BlockDMRequest';
 import RejectDMRequestModal from '../../customModals/RejectDMRequest';
+import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
+import {CognitoIdentityCredentials, S3} from 'aws-sdk';
+import AWS from 'aws-sdk';
+import {FlashList} from '@shopify/flash-list';
 
 interface Data {
   id: string;
@@ -102,13 +111,20 @@ interface ChatRoom {
   route: any;
 }
 
+interface UploadResource {
+  selectedImages: any;
+  conversationID: any;
+  chatroomID: any;
+  selectedFilesToUpload: any;
+  uploadingFilesMessages: any;
+  isRetry: boolean;
+}
+
 const ChatRoom = ({navigation, route}: ChatRoom) => {
-  const flatlistRef = useRef<FlatList>(null);
+  const flatlistRef = useRef<any>(null);
+  let refInput = useRef<any>();
 
   const db = myClient.fbInstance();
-
-  const [isReply, setIsReply] = useState(false);
-  const [replyMessage, setReplyMessage] = useState();
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -141,14 +157,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     selectedMessages,
     stateArr,
     position,
-  } = useAppSelector(state => state.chatroom);
-  const {user, community} = useAppSelector(state => state.homefeed);
+  }: any = useAppSelector(state => state.chatroom);
+  const {user, community, memberRights} = useAppSelector(
+    state => state.homefeed,
+  );
+  const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.follow_status;
   let memberCanMessage = chatroomDetails?.chatroom?.member_can_message;
   let chatroomWithUser = chatroomDetails?.chatroom?.chatroom_with_user;
   let chatRequestState = chatroomDetails?.chatroom?.chat_request_state;
+
+  AWS.config.update({
+    region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
+    credentials: new CognitoIdentityCredentials({
+      IdentityPoolId: POOL_ID, // Replace with your Identity Pool ID
+    }),
+  });
+
+  const s3 = new S3();
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -215,6 +243,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 type: CLEAR_CHATROOM_DETAILS,
                 body: {chatroomDetails: {}},
               });
+              dispatch({type: SET_IS_REPLY, body: {isReply: false}});
+              dispatch({
+                type: SET_REPLY_MESSAGE,
+                body: {replyMessage: ''},
+              });
+              Keyboard.dismiss();
               backAction();
             }}>
             <Image
@@ -319,10 +353,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let userCanDeleteParticularMessageArr: any = [];
         let selectedMessagesIDArr: any = [];
         let isCopy = false;
+        let showCopyIcon = true;
         let isDelete = false;
+        let isFirstMessageDeleted = selectedMessages[0]?.deleted_by;
         for (let i = 0; i < selectedMessages.length; i++) {
-          if (!!!selectedMessages[i]?.deleted_by && !isCopy) {
+          if (selectedMessages[i].attachment_count > 0) {
+            showCopyIcon = false;
+          }
+
+          if (!!!selectedMessages[i]?.deleted_by && showCopyIcon) {
             isCopy = true;
+          } else if (!showCopyIcon) {
+            isCopy = false;
           }
 
           if (
@@ -353,7 +395,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           if (
             user?.state === communityManagerState &&
             userCanDeleteParticularMessageArr.length === 1 &&
-            !!!selectedMessages[0]?.deleted_by
+            !!!isFirstMessageDeleted
           ) {
             isDelete = true;
           } else {
@@ -365,18 +407,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         return (
           <View style={styles.selectedHeadingContainer}>
             {len === 1 &&
-              !!!selectedMessages[0].deleted_by &&
+              !!!isFirstMessageDeleted &&
               memberCanMessage &&
               chatroomFollowStatus && (
                 <TouchableOpacity
                   onPress={() => {
                     if (len > 0) {
                       setReplyChatID(selectedMessages[0]?.id);
-                      setIsReply(true);
-                      setReplyMessage(selectedMessages[0]);
+                      dispatch({type: SET_IS_REPLY, body: {isReply: true}});
+                      dispatch({
+                        type: SET_REPLY_MESSAGE,
+                        body: {replyMessage: selectedMessages[0]},
+                      });
                       dispatch({type: SELECTED_MESSAGES, body: []});
                       dispatch({type: LONG_PRESSED, body: false});
                       setInitialHeader();
+                      refInput.current.focus();
                     }
                   }}>
                   <Image
@@ -386,7 +432,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </TouchableOpacity>
               )}
 
-            {len === 1 && !!!selectedMessages[0].deleted_by ? (
+            {len === 1 && !!!isFirstMessageDeleted && isCopy ? (
               <TouchableOpacity
                 onPress={() => {
                   const output = copySelectedMessages(selectedMessages);
@@ -443,7 +489,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 />
               </TouchableOpacity>
             )}
-            {len === 1 && !!!selectedMessages[0].deleted_by && (
+            {len === 1 && !!!isFirstMessageDeleted && (
               <TouchableOpacity
                 onPress={() => {
                   setReportModalVisible(true);
@@ -514,7 +560,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this useLayoutEffect calls API's before printing UI Layout
   useLayoutEffect(() => {
-    // dispatch({type: START_CHATROOM_LOADING});
+    dispatch({
+      type: CLEAR_CHATROOM_CONVERSATION,
+      body: {conversations: []},
+    });
+    dispatch({
+      type: CLEAR_CHATROOM_DETAILS,
+      body: {chatroomDetails: {}},
+    });
+    dispatch({type: SELECTED_MESSAGES, body: []});
+    dispatch({type: LONG_PRESSED, body: false});
+    dispatch({type: SET_IS_REPLY, body: {isReply: false}});
+    dispatch({
+      type: SET_REPLY_MESSAGE,
+      body: {replyMessage: ''},
+    });
     fetchChatroomDetails();
     setInitialHeader();
   }, [navigation]);
@@ -538,16 +598,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   //Navigation gesture back handler for android
   useEffect(() => {
     function backActionCall() {
-      dispatch({
-        type: CLEAR_CHATROOM_CONVERSATION,
-        body: {conversations: []},
-      });
-      dispatch({
-        type: CLEAR_CHATROOM_DETAILS,
-        body: {chatroomDetails: {}},
-      });
-      dispatch({type: SELECTED_MESSAGES, body: []});
-      dispatch({type: LONG_PRESSED, body: false});
+      Keyboard.dismiss();
       if (chatroomType === 10) {
         if (previousRoute?.name === DM_ALL_MEMBERS) {
           const popAction = StackActions.pop(2);
@@ -565,7 +616,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       'hardwareBackPress',
       backActionCall,
     );
-
     return () => backHandlerAndroid.remove();
   }, [chatroomType]);
 
@@ -1136,6 +1186,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     isStateIncluded: any,
     isIncluded: any,
     item: any,
+    selectedMessages: any,
   ) => {
     dispatch({type: LONG_PRESSED, body: true});
 
@@ -1167,6 +1218,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     isIncluded: any,
     item: any,
     emojiClicked: any,
+    selectedMessages: any,
   ) => {
     if (isLongPress) {
       if (isIncluded) {
@@ -1342,17 +1394,181 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setDMBlockAlertModalVisible(false);
   };
 
+  const uploadResource = async ({
+    selectedImages,
+    conversationID,
+    chatroomID,
+    selectedFilesToUpload,
+    uploadingFilesMessages,
+    isRetry,
+  }: UploadResource) => {
+    for (let i = 0; i < selectedImages?.length; i++) {
+      let item = selectedImages[i];
+      let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
+      let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
+      let thumbnailURL = item?.thumbnail_url;
+      let name =
+        attachmentType === IMAGE_TEXT
+          ? item.fileName
+          : attachmentType === VIDEO_TEXT
+          ? item.fileName
+          : docAttachmentType === PDF_TEXT
+          ? item.name
+          : null;
+      let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
+      let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
+
+      const img = await fetchResourceFromURI(item?.uri);
+
+      //for video thumbnail
+      let thumbnailUrlImg = null;
+      if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+        thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
+      }
+
+      const params = {
+        Bucket: BUCKET,
+        Key: path,
+        Body: img,
+        ACL: 'public-read-write',
+        ContentType: item?.type, // Replace with the appropriate content type for your file
+      };
+
+      //for video thumbnail
+      const thumnnailUrlParams = {
+        Bucket: BUCKET,
+        Key: thumbnailUrlPath,
+        Body: thumbnailUrlImg,
+        ACL: 'public-read-write',
+        ContentType: 'image/jpeg', // Replace with the appropriate content type for your file
+      };
+
+      try {
+        let getVideoThumbnailData = null;
+
+        if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+          getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
+        }
+        const data = await s3.upload(params).promise();
+        let awsResponse = data.Location;
+        if (awsResponse) {
+          let fileType = '';
+          if (docAttachmentType === PDF_TEXT) {
+            fileType = PDF_TEXT;
+          } else if (attachmentType === AUDIO_TEXT) {
+            fileType = AUDIO_TEXT;
+          } else if (attachmentType === VIDEO_TEXT) {
+            fileType = VIDEO_TEXT;
+          } else if (attachmentType === IMAGE_TEXT) {
+            fileType = IMAGE_TEXT;
+          }
+
+          let payload = {
+            conversation_id: conversationID,
+            files_count: selectedImages?.length,
+            index: i,
+            meta:
+              fileType === VIDEO_TEXT
+                ? {
+                    size: selectedFilesToUpload[i]?.fileSize,
+                    duration: selectedFilesToUpload[i]?.duration,
+                  }
+                : {
+                    size:
+                      docAttachmentType === PDF_TEXT
+                        ? selectedFilesToUpload[i]?.size
+                        : selectedFilesToUpload[i]?.fileSize,
+                  },
+            name:
+              docAttachmentType === PDF_TEXT
+                ? selectedFilesToUpload[i]?.name
+                : selectedFilesToUpload[i]?.fileName,
+            type: fileType,
+            url: awsResponse,
+            thumbnail_url:
+              fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
+          };
+
+          const uploadRes = await myClient.onUploadFile(payload as any);
+        }
+      } catch (error) {
+        dispatch({
+          type: SET_FILE_UPLOADING_MESSAGES,
+          body: {
+            message: {
+              ...uploadingFilesMessages[conversationID.toString()],
+              isInProgress: FAILED,
+            },
+            ID: conversationID,
+          },
+        });
+        return error;
+      }
+      dispatch({
+        type: CLEAR_SELECTED_FILES_TO_UPLOAD,
+      });
+      dispatch({
+        type: CLEAR_SELECTED_FILE_TO_VIEW,
+      });
+    }
+
+    dispatch({
+      type: CLEAR_FILE_UPLOADING_MESSAGES,
+      body: {
+        ID: conversationID,
+      },
+    });
+  };
+
+  const handleFileUpload = async (conversationID: any, isRetry: any) => {
+    let selectedFilesToUpload = uploadingFilesMessages[conversationID];
+    dispatch({
+      type: SET_FILE_UPLOADING_MESSAGES,
+      body: {
+        message: {
+          ...selectedFilesToUpload,
+          isInProgress: SUCCESS,
+        },
+        ID: conversationID,
+      },
+    });
+    const res = await uploadResource({
+      selectedImages: selectedFilesToUpload?.attachments,
+      conversationID: conversationID,
+      chatroomID: chatroomID,
+      selectedFilesToUpload: selectedFilesToUpload,
+      uploadingFilesMessages,
+      isRetry: isRetry,
+    });
+    return res;
+  };
+
   return (
     <View style={styles.container}>
-      <FlatList
+      <FlashList
         ref={flatlistRef}
-        // data={dummyData?.my_chatrooms}
         data={conversations}
-        keyExtractor={item => {
+        keyExtractor={(item: any) => {
           return item?.id?.toString();
         }}
-        renderItem={({item, index}) => {
+        extraData={{
+          value: [
+            selectedMessages,
+            uploadingFilesMessages,
+            stateArr,
+            conversations,
+          ],
+        }}
+        estimatedItemSize={50}
+        renderItem={({item: value, index}: any) => {
+          let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
+          let item = {...value};
+          if (uploadingFilesMessagesIDArr.includes(value?.id.toString())) {
+            item = uploadingFilesMessages[value?.id];
+          }
+
           let isStateIncluded = stateArr.includes(item?.state);
+
           let isIncluded = selectedMessages.some(
             (val: any) => val?.id === item?.id && !isStateIncluded,
           );
@@ -1378,16 +1594,27 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  handleLongPress(isStateIncluded, isIncluded, item);
+                  handleLongPress(
+                    isStateIncluded,
+                    isIncluded,
+                    item,
+                    selectedMessages,
+                  );
                 }}
                 delayLongPress={200}
-                onPress={event => {
+                onPress={function (event) {
                   const {pageX, pageY} = event.nativeEvent;
                   dispatch({
                     type: SET_POSITION,
                     body: {pageX: pageX, pageY: pageY},
                   });
-                  handleClick(isStateIncluded, isIncluded, item, false);
+                  handleClick(
+                    isStateIncluded,
+                    isIncluded,
+                    item,
+                    false,
+                    selectedMessages,
+                  );
                 }}
                 style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
                 <Messages
@@ -1398,10 +1625,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   item={item}
                   navigation={navigation}
                   openKeyboard={() => {
-                    handleClick(isStateIncluded, isIncluded, item, true);
+                    handleClick(
+                      isStateIncluded,
+                      isIncluded,
+                      item,
+                      true,
+                      selectedMessages,
+                    );
                   }}
                   longPressOpenKeyboard={() => {
-                    handleLongPress(isStateIncluded, isIncluded, item);
+                    handleLongPress(
+                      isStateIncluded,
+                      isIncluded,
+                      item,
+                      selectedMessages,
+                    );
                   }}
                   removeReaction={() => {
                     removeReaction(item);
@@ -1409,15 +1647,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   handleTapToUndo={() => {
                     onTapToUndo();
                   }}
+                  handleFileUpload={handleFileUpload}
                 />
               </Pressable>
             </View>
           );
         }}
-        onEndReached={() => {
+        onEndReached={async () => {
           if (shouldLoadMoreChat) {
             handleLoadMore();
           }
+          return;
         }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
@@ -1444,19 +1684,30 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               )
             : null}
           {!(Object.keys(chatroomDetails).length === 0) ? (
-            memberCanMessage && chatroomFollowStatus ? (
+            !(user.state !== 1 && chatroomDetails?.chatroom.type === 7) &&
+            chatroomFollowStatus &&
+            memberRights[3]?.is_selected === true ? (
               <InputBox
-                isReply={isReply}
                 replyChatID={replyChatID}
                 chatroomID={chatroomID}
-                replyMessage={replyMessage}
-                setIsReply={(val: any) => {
-                  setIsReply(val);
-                }}
-                setReplyMessage={(val: any) => {
-                  setReplyMessage(val);
-                }}
+                navigation={navigation}
+                isUploadScreen={false}
+                myRef={refInput}
+                handleFileUpload={handleFileUpload}
               />
+            ) : user.state !== 1 && chatroomDetails?.chatroom.type === 7 ? (
+              <View style={styles.disabledInput}>
+                <Text style={styles.disabledInputText}>
+                  Only Community Manager can message here.
+                </Text>
+              </View>
+            ) : memberRights[3]?.is_selected === false ? (
+              <View style={styles.disabledInput}>
+                <Text style={styles.disabledInputText}>
+                  The community managers have restricted you from responding
+                  here.
+                </Text>
+              </View>
             ) : !(Object.keys(chatroomDetails).length === 0) &&
               previousRoute?.name === HOMEFEED ? (
               <View
@@ -1572,19 +1823,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           ) : (showDM === true && chatRequestState === 1) ||
             chatRequestState === null ? (
             <InputBox
-              isReply={isReply}
               replyChatID={replyChatID}
               chatroomID={chatroomID}
-              replyMessage={replyMessage}
-              setIsReply={(val: any) => {
-                setIsReply(val);
-              }}
-              setReplyMessage={(val: any) => {
-                setReplyMessage(val);
-              }}
               chatRequestState={chatRequestState}
               chatroomType={chatroomType}
+              navigation={navigation}
+              isUploadScreen={false}
               isPrivateMember={chatroomDetails?.chatroom?.is_private_member}
+              myRef={refInput}
+              handleFileUpload={handleFileUpload}
             />
           ) : (
             <View style={styles.disabledInput}>
