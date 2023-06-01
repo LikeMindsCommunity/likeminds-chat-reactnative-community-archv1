@@ -101,7 +101,7 @@ For Debug build
 For Release build
 
 ```shell
-`npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle 
+`npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle
 --assets-dest android/app/src/main/res/`
 ```
 
@@ -136,4 +136,24 @@ src
 ├── App.tsx                 * Main app component.
 ├── index.js                * Entry point of the application.
 ├── store.ts                * To connect redux store.
+```
+
+## Steps after implementing the code
+
+Go inside node_modules -> react-native-create-thumbnail -> android -> src/main -> java/com/createthumbnail -> CreateThumbnailModule.java
+
+And replace
+
+```shell
+`retriever.release();`
+```
+
+With
+
+```shell
+`try {
+  retriever.release();
+  } catch (IOException e) {
+    e.printStackTrace();
+  }`
 ```

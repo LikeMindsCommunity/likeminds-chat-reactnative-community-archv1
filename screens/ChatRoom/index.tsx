@@ -1698,8 +1698,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             ) : user.state !== 1 && chatroomDetails?.chatroom.type === 7 ? (
               <View style={styles.disabledInput}>
                 <Text style={styles.disabledInputText}>
-                  The community managers have restricted you from responding
-                  here.
+                  Only Community Manager can message here.
                 </Text>
               </View>
             ) : memberRights[3]?.is_selected === false ? (

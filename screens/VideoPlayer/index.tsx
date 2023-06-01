@@ -45,11 +45,13 @@ const VideoPlayer = ({navigation, route}: any) => {
         <View style={styles.video}>
           <VideoPlayer
             videoRef={video}
+            disableVolume={true}
             source={{uri: url}}
             videoStyle={styles.videoPlayer}
             disableBack={true}
             disableFullscreen={true}
             paused={true}
+            showOnStart={true}
           />
         </View>
       ) : null}

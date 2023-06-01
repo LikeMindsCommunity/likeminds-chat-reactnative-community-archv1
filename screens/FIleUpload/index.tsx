@@ -285,8 +285,10 @@ const FileUpload = ({navigation, route}: any) => {
               videoStyle={styles.videoPlayer}
               videoRef={video}
               disableBack={true}
+              disableVolume={true}
               disableFullscreen={true}
               paused={true}
+              showOnStart={true}
             />
           </View>
         ) : docItemType === PDF_TEXT ? (

@@ -845,7 +845,7 @@ const InputBox = ({
           <View style={styles.modalViewParent}>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
               <View style={styles.alignModalElements}>
-                <View style={styles.iconContainer}>
+                {/* <View style={styles.iconContainer}>
                   <TouchableOpacity style={styles.cameraStyle}>
                     <Image
                       source={require('../../assets/images/camera_icon3x.png')}
@@ -853,7 +853,7 @@ const InputBox = ({
                     />
                   </TouchableOpacity>
                   <Text style={styles.iconText}>{CAMERA_TEXT}</Text>
-                </View>
+                </View> */}
                 <View style={styles.iconContainer}>
                   <TouchableOpacity
                     onPress={() => {

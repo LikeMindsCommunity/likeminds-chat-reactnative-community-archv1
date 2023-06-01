@@ -12,8 +12,11 @@ import Layout from '../../constants/Layout';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import VideoPlayer from 'react-native-media-console';
-import {VIDEO_PLAYER} from '../../constants/Screens';
+import {CAROUSEL_SCREEN, VIDEO_PLAYER} from '../../constants/Screens';
 import {IMAGE_TEXT, VIDEO_TEXT} from '../../constants/Strings';
+import ViewImage from '../../screens/ViewImage';
+import {STATUS_BAR_STYLE} from '../../store/types/types';
+import {useAppDispatch} from '../../store';
 
 interface ImageScreen {
   navigation: any;
@@ -22,6 +25,8 @@ interface ImageScreen {
 
 const ImageScreen = ({navigation, route}: ImageScreen) => {
   const {attachments} = route.params;
+  const dispatch = useAppDispatch();
+
   const setInitialHeader = () => {
     navigation.setOptions({
       title: '',
@@ -41,7 +46,7 @@ const ImageScreen = ({navigation, route}: ImageScreen) => {
                 fontSize: STYLES.$FONT_SIZES.LARGE,
                 fontFamily: STYLES.$FONT_TYPES.BOLD,
               }}>
-              {'Images'}
+              {'Files'}
             </Text>
           </View>
         </View>
@@ -61,23 +66,27 @@ const ImageScreen = ({navigation, route}: ImageScreen) => {
               marginTop: 20,
             }}
             onPress={() => {
-              Linking.openURL(val?.url);
+              navigation.navigate(CAROUSEL_SCREEN, {data: attachments, index});
+              dispatch({
+                type: STATUS_BAR_STYLE,
+                body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+              });
             }}
             key={val + index}>
             {val?.type === IMAGE_TEXT ? (
-              <Image
-                style={{
-                  height: 250,
-                  width: '100%',
-                  resizeMode: 'contain',
-                }}
-                source={{uri: val?.url}}
-              />
-            ) : val?.type === 'video' ? (
+              <ViewImage val={val} />
+            ) : val?.type === VIDEO_TEXT ? (
               <View>
                 <Pressable
                   onPress={() => {
-                    Linking.openURL(val?.url);
+                    navigation.navigate(CAROUSEL_SCREEN, {
+                      data: attachments,
+                      index,
+                    });
+                    dispatch({
+                      type: STATUS_BAR_STYLE,
+                      body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+                    });
                   }}>
                   <Image
                     style={{
