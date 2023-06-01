@@ -26,6 +26,6 @@ const Base64 = {
 
 export const REGION = Base64.atob('YXAtc291dGgtMQ==');
 export const POOL_ID = Base64.atob(
-  'YXAtc291dGgtMToxODE5NjNiYS1mMmRiLTQ1MGItODE5OS05NjRhOTQxYjM4YzI=',
+  'YXAtc291dGgtMTpkNzNiYzJlZC1iZWRlLTQyYzgtYmFiNy0wYWJlMGEwMDEzMjU=',
 );
-export const BUCKET = Base64.atob('YmV0YS1saWtlbWluZHMtbWVkaWE=');
+export const BUCKET = Base64.atob('cHJvZC1saWtlbWluZHMtbWVkaWE=');
