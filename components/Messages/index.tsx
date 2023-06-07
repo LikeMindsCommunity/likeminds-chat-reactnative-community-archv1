@@ -176,6 +176,7 @@ const Messages = ({
             }}
             reactionArr={reactionArr}
             navigation={navigation}
+            handleFileUpload={handleFileUpload}
           />
         ) : !!!item?.reply_conversation_object && item?.attachment_count > 0 ? (
           <AttachmentConversations

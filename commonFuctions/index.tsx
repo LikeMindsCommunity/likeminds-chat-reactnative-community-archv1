@@ -8,6 +8,7 @@ import {
 } from '../store/types/types';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
+import {diffChars, diffLines, diffWords} from 'diff';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 const REGEX_USER_TAGGING =
@@ -379,4 +380,146 @@ export const getPdfThumbnail = async (selectedFile: any) => {
     arr = [...arr, {uri: selectedFile.uri}];
   }
   return arr;
+};
+
+export function splitWordsWithSpace(input: string) {
+  const words = input.split(' ');
+
+  for (let i = 0; i < words.length; i++) {
+    if (words[i + 1] === '') {
+      words[i] += ' ';
+    }
+  }
+
+  return words;
+}
+
+export function detectMentions(input: string) {
+  const mentionRegex = /@(\w+)/g;
+  const matches = [];
+  let match;
+
+  while ((match = mentionRegex.exec(input)) !== null) {
+    const startIndex = match.index;
+    const endIndex = mentionRegex.lastIndex;
+    const nextChar = input.charAt(endIndex);
+
+    if (nextChar !== ' ' && nextChar !== '@') {
+      matches.push(match[1]);
+    }
+  }
+
+  return matches;
+}
+
+export function replaceLastMention(
+  input: string,
+  taggerUserName: string,
+  mentionUsername: string,
+  memberID: any,
+) {
+  const mentionRegex = new RegExp(
+    `@${taggerUserName}\\b(?!.*@${taggerUserName}\\b)`,
+    'i',
+  );
+  // const mentionRegex = new RegExp(`@${taggerUserName}\\b`, 'gi');
+
+  const replacement = `<<${mentionUsername}|route://member/${memberID}>>`;
+  const replacedString = input.replace(mentionRegex, replacement);
+  console.log('mentionRegex ==', replacement, replacedString);
+  return replacedString;
+}
+
+/**
+ * Generates new value when we changing text.
+ *
+ * @param parts full parts list
+ * @param originalText original plain text
+ * @param changedText changed plain text
+ */
+export const mergeTwoStringsToSaveRouteURL = (
+  originalText: string,
+  changedText: string,
+) => {
+  // const changes = diffChars(originalText, changedText);
+  const changes = diffLines(originalText, changedText);
+  console.log('change ==', changes);
+  console.log('originalText change ==', originalText, changedText);
+
+  // const mergedString = originalText.replace(/<<(.*?)\|route:\/\/.*?>>/, '$&');
+  // console.log('mergedString', mergedString);
+  // Merge strings based on regex pattern
+  const mergedString = originalText.replace(
+    /<<(.*?)\|route:\/\/.*?>>/,
+    (_, username) => {
+      if (username) {
+        return `${changedText} ${username}`;
+      } else {
+        return originalText;
+      }
+    },
+  );
+
+  return mergedString;
+
+  // let newParts: any[] = [];
+
+  // let cursor = 0;
+
+  // changes.forEach(change => {
+  //   switch (true) {
+  //     /**
+  //      * We should:
+  //      * - Move cursor forward on the changed text length
+  //      */
+  //     case change.removed: {
+  //       // cursor += change.count;
+  //       break;
+  //     }
+
+  //     /**
+  //      * We should:
+  //      * - Push new part to the parts with that new text
+  //      */
+  //     case change.added: {
+  //       // newParts.push(generatePlainTextPart(change.value));
+
+  //       break;
+  //     }
+
+  //     /**
+  //      * We should concat parts that didn't change.
+  //      * - In case when we have only one affected part we should push only that one sub-part
+  //      * - In case we have two affected parts we should push first
+  //      */
+  //     default: {
+  //       // if (change.count !== 0) {
+  //       //   newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
+
+  //       //   cursor += change.count;
+  //       // }
+
+  //       break;
+  //     }
+  //   }
+  // });
+};
+
+export const deleteRouteIfAny = (string: string, inputValue: string) => {
+  console.log(
+    'inputValue.endsWith',
+    inputValue.endsWith('>>'),
+    string.indexOf('>') === string.lastIndexOf('>'),
+  );
+  if (
+    inputValue.endsWith('>>') &&
+    string.indexOf('>') === string.lastIndexOf('>')
+  ) {
+    // Replace the entire URL with an empty string
+    const replacedText = string.replace(/<<.*?\|route:\/\/.*?>>/, '');
+
+    return replacedText;
+  } else {
+    return string;
+  }
 };

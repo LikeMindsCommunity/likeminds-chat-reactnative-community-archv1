@@ -59,12 +59,21 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {
+  decode,
+  deleteRouteIfAny,
+  detectMentions,
   fetchResourceFromURI,
   getAllPdfThumbnail,
   getPdfThumbnail,
   getVideoThumbnail,
+  mergeTwoStringsToSaveRouteURL,
+  replaceLastMention,
+  splitWordsWithSpace,
 } from '../../commonFuctions';
 import {requestStoragePermission} from '../../utils/permissions';
+import {FlashList} from '@shopify/flash-list';
+import TextInputMask from 'react-native-text-input-mask';
+import SpannableBuilder from '@mj-studio/react-native-spannable-string';
 
 interface InputBox {
   replyChatID?: any;
@@ -95,6 +104,7 @@ const InputBox = ({
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
+  const [formattedMessage, setFormattedMessage] = useState(previousMessage);
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -102,6 +112,11 @@ const InputBox = ({
   const [isUploading, setIsUploading] = useState(false);
   const [s3UploadResponse, setS3UploadResponse] = useState<any>();
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
+  const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
+  const [isUserTagging, setIsUserTagging] = useState(false);
+  const [userTaggingList, setUserTaggingList] = useState([]);
+  const [taggedUserName, setTaggedUserName] = useState('');
+
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -134,6 +149,7 @@ const InputBox = ({
   useEffect(() => {
     if (!isUploadScreen) {
       setMessage('');
+      setFormattedMessage('');
       setInputHeight(25);
     }
   }, [fileSent]);
@@ -531,6 +547,7 @@ const InputBox = ({
         });
       }
       setMessage('');
+      setFormattedMessage('');
       setInputHeight(25);
 
       if (isReply) {
@@ -656,6 +673,114 @@ const InputBox = ({
       }
     }
   };
+
+  const formatValue = (value: any) => {
+    // Check if the value matches the required pattern
+    const regex = /<<(\w+)\|.*>>/;
+    const match = regex.exec(value);
+
+    if (match && match[1]) {
+      const username = match[1];
+      return `@${username}`;
+    }
+
+    return '';
+  };
+
+  console.log('replaceRoutes ==', message);
+
+  const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
+    const res = await myClient.getTaggingList({
+      page: 1,
+      pageSize: 10,
+      searchName: searchName,
+      chatroomId: 82419,
+      isSecret: false,
+    });
+    return res;
+  };
+
+  const handleInputChange = async (e: any) => {
+    console.log('eee ==>', e);
+    // setInputValue(text);
+    if (chatRequestState === 0 || chatRequestState === null) {
+      if (e.length >= MAX_LENGTH) {
+        dispatch({
+          type: SHOW_TOAST,
+          body: {
+            isToast: true,
+            msg: CHARACTER_LIMIT_MESSAGE,
+          },
+        });
+      } else if (e.length < MAX_LENGTH) {
+        setMessage(e);
+        setFormattedMessage(e);
+      }
+    } else {
+      console.log('-->message-->', message, e);
+      // let mergedMessage = await mergeTwoStringsToSaveRouteURL(message, e);
+      // console.log('-->mergedMessage-->', mergedMessage);
+      let modifiedMessage = deleteRouteIfAny(e, message);
+      setMessage(modifiedMessage);
+      setFormattedMessage(modifiedMessage);
+      // if (mergedMessage) {
+      //   setMessage(mergedMessage);
+      //   setFormattedMessage(mergedMessage);
+      // } else {
+      //   setMessage(e);
+      //   setFormattedMessage(e);
+      // }
+      // Check if the "@" symbol exists after an empty space
+
+      // const words = splitWordsWithSpace(e);
+
+      // console.log('words', words);
+      // Find mentions starting with "@"
+
+      // const newMentions = words
+      //   .filter((word: any) => word.startsWith('@') && !word.endsWith(' '))
+      //   .map((mention: any) => mention.substring(1));
+
+      // const newMentions = detectMentions(e);
+
+      const newMentions = detectMentions(e);
+
+      if (newMentions.length > 0) {
+        const length = newMentions.length;
+        setTaggedUserName(newMentions[length - 1]);
+      }
+      console.log('newMentions', newMentions);
+
+      //debouncing logic
+      clearTimeout(debounceTimeout);
+
+      let len = newMentions.length;
+      if (len > 0) {
+        const timeoutID = setTimeout(async () => {
+          const res = await taggingAPI({
+            page: 1,
+            searchName: newMentions[len - 1],
+            chatroomId: chatroomID,
+            isSecret: false,
+          });
+          if (newMentions.length > 0) {
+            setUserTaggingList(res?.community_members);
+            setIsUserTagging(true);
+          }
+
+          // console.log('newMentions', newMentions, res);
+        }, 500);
+
+        setDebounceTimeout(timeoutID);
+      } else {
+        if (isUserTagging) {
+          setUserTaggingList([]);
+          setIsUserTagging(false);
+        }
+      }
+    }
+  };
+
   return (
     <View>
       <View
@@ -673,7 +798,79 @@ const InputBox = ({
               }
             : null,
         ]}>
-        <View style={isReply && !isUploadScreen ? styles.replyBoxParent : null}>
+        <View
+          style={
+            (isReply && !isUploadScreen) || isUserTagging
+              ? [
+                  styles.replyBoxParent,
+                  {
+                    borderTopWidth:
+                      isReply && !isUploadScreen && !isUserTagging ? 0.2 : 0,
+                    borderTopLeftRadius:
+                      isReply && !isUploadScreen && !isUserTagging ? 10 : 0,
+                    borderTopRightRadius:
+                      isReply && !isUploadScreen && !isUserTagging ? 10 : 0,
+                  },
+                ]
+              : null
+          }>
+          {userTaggingList && isUserTagging ? (
+            <View
+              style={[styles.taggableUsersBox, {bottom: isReply ? 115 : 50}]}>
+              <FlashList
+                data={userTaggingList}
+                renderItem={({item, index}: any) => {
+                  return (
+                    <Pressable
+                      onPress={() => {
+                        console.log('heelo ji', message, taggedUserName);
+                        const res = replaceLastMention(
+                          message,
+                          taggedUserName,
+                          item?.name,
+                          item?.id,
+                        );
+                        console.log('heelo kahiye ===', res);
+                        setMessage(res);
+                        setFormattedMessage(res);
+                      }}
+                      style={styles.taggableUserView}>
+                      <Image
+                        source={
+                          !!item?.image_url
+                            ? {uri: item?.image_url}
+                            : require('../../assets/images/default_pic.png')
+                        }
+                        style={styles.avatar}
+                      />
+
+                      <View
+                        style={[
+                          styles.infoContainer,
+                          {
+                            borderBottomWidth:
+                              index !== userTaggingList?.length - 1 ? 0.2 : 0,
+                          },
+                        ]}>
+                        <Text style={styles.title} numberOfLines={1}>
+                          {item?.name}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                }}
+                extraData={{
+                  value: [message, userTaggingList],
+                }}
+                estimatedItemSize={15}
+                // onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.1}
+                bounces={false}
+                // ListFooterComponent={renderFooter}
+                keyExtractor={(item: any) => item?.id.toString()}
+              />
+            </View>
+          ) : null}
           {isReply && !isUploadScreen && (
             <View style={styles.replyBox}>
               <ReplyBox isIncluded={false} item={replyMessage} />
@@ -699,7 +896,7 @@ const InputBox = ({
                   ? STYLES.$BACKGROUND_COLORS.DARK
                   : STYLES.$BACKGROUND_COLORS.LIGHT,
               },
-              isReply && !isUploadScreen
+              (isReply && !isUploadScreen) || isUserTagging
                 ? {
                     borderWidth: 0,
                   }
@@ -748,25 +945,10 @@ const InputBox = ({
                   : {marginHorizontal: 20},
               ]}>
               <TextInput
-                value={message}
+                // value={message}
                 ref={myRef}
-                onChangeText={e => {
-                  if (chatRequestState === 0 || chatRequestState === null) {
-                    if (e.length >= MAX_LENGTH) {
-                      dispatch({
-                        type: SHOW_TOAST,
-                        body: {
-                          isToast: true,
-                          msg: CHARACTER_LIMIT_MESSAGE,
-                        },
-                      });
-                    } else if (e.length < MAX_LENGTH) {
-                      setMessage(e);
-                    }
-                  } else {
-                    setMessage(e);
-                  }
-                }}
+                onChangeText={handleInputChange}
+                // mask={'+1 ([000]) [000] [00] [00]'}
                 maxLength={
                   chatRequestState === 0 || chatRequestState === null
                     ? MAX_LENGTH
@@ -784,6 +966,7 @@ const InputBox = ({
                       : STYLES.$COLORS.SECONDARY,
                   },
                 ]}
+                // editable={false}
                 numberOfLines={6}
                 multiline={true}
                 onBlur={() => {
@@ -793,8 +976,10 @@ const InputBox = ({
                   setIsKeyBoardFocused(true);
                 }}
                 placeholder="Type a message..."
-                placeholderTextColor="#aaa"
-              />
+                placeholderTextColor="#aaa">
+                {/* <Text>{decode(formattedMessage, false)}</Text> */}
+                <Text>{message}</Text>
+              </TextInput>
             </View>
             {!isUploadScreen &&
             !(chatRequestState === 0 || chatRequestState === null) ? (

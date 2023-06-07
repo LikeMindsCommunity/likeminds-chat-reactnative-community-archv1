@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
     // maxWidth: Layout.window.width - 75,
     width: Layout.window.width - 75,
     borderColor: STYLES.$COLORS.MSG,
-    borderWidth: 1,
+    borderWidth: 0.2,
     // backgroundColor:'pink'
   },
   inputContainer: {
@@ -22,6 +22,7 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-end',
     padding: 5,
     margin: 5,
+    // backgroundColor: 'pink',
   },
   addMoreButton: {
     padding: 10,
@@ -122,8 +123,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    borderColor: STYLES.$COLORS.MSG,
+    borderWidth: 0.2,
+    // padding: 1,
   },
   replyBox: {marginHorizontal: 10, marginTop: 10},
   replyBoxClose: {
@@ -141,4 +143,44 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.PRIMARY,
   },
   iconContainer: {alignItems: 'center', gap: 5},
+  avatar: {
+    width: 30,
+    height: 30,
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+    marginRight: STYLES.$MARGINS.SMALL,
+  },
+  infoContainer: {
+    flex: 1,
+    paddingVertical: 15,
+    borderBottomColor: STYLES.$COLORS.MSG,
+  },
+  title: {
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    color: STYLES.$COLORS.PRIMARY,
+  },
+  messageCustomTitle: {
+    color: STYLES.$COLORS.SECONDARY,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+  },
+  taggableUsersBox: {
+    borderTopRightRadius: 20,
+    borderTopLeftRadius: 20,
+    height: 400,
+    // position: 'absolute',
+    backgroundColor: 'white',
+    borderColor: STYLES.$COLORS.MSG,
+    borderWidth: 0.2,
+    overflow: 'hidden',
+
+    // paddingRight: -10,
+  },
+  taggableUserView: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+    marginTop: 10,
+  },
 });
