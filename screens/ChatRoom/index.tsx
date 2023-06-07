@@ -23,6 +23,7 @@ import {
 } from 'react-native';
 import {myClient} from '../..';
 import {
+  SHOW_LIST_REGEX,
   copySelectedMessages,
   fetchResourceFromURI,
   formatTime,
@@ -150,6 +151,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [DMBlockAlertModalVisible, setDMBlockAlertModalVisible] =
     useState(false);
   const [showDM, setShowDM] = useState<any>(null);
+  const [showList, setShowList] = useState<any>(null);
+  const [isMessagePrivately, setIsMessagePrivately] = useState<any>(false);
+
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
   const {chatroomID, isInvited} = route.params;
@@ -635,7 +639,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setInitialHeader();
   }, [chatroomDetails]);
 
-  // this useEffect call API to InputBox based on showDM key.
+  // this useEffect call API to show InputBox based on showDM key.
   useEffect(() => {
     async function callApi() {
       if (chatroomType == 10) {
@@ -647,6 +651,29 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         });
         if (!!response?.cta) {
           setShowDM(response?.show_dm);
+        }
+      } else if (chatroomType == 0 || chatroomType == 7) {
+        if (!!community?.id) {
+          let payload = {
+            community_id: community?.id,
+            page: 1,
+          };
+          const res = await dispatch(getDMFeedData(payload, false) as any);
+
+          if (!!res) {
+            let response = await myClient.dmStatus({
+              req_from: 'group_channel',
+            });
+            if (!!response) {
+              let routeURL = response?.cta;
+              const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+              if (hasShowList) {
+                const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+                setShowList(showListValue);
+              }
+              setShowDM(response?.show_dm);
+            }
+          }
         }
       }
       let res = await fetchData(false);
@@ -700,6 +727,29 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       previousRoute = routes[routes.length - 2];
     }
   }, [isFocused]);
+
+  //This useEffect has logic to or hide message privately when long press on a message
+  useEffect(() => {
+    
+    if (selectedMessages.length === 1) {
+      let selectedMessagesMember = selectedMessages[0]?.member;
+      if (
+        showDM &&
+        selectedMessagesMember?.id !== user?.id &&
+        !selectedMessages[0]?.deleted_by
+      ) {
+        if (showList == 2 && selectedMessagesMember?.state === 1) {
+          setIsMessagePrivately(true);
+        } else if (showList == 1) {
+          setIsMessagePrivately(true);
+        } else {
+          setIsMessagePrivately(false);
+        }
+      } else {
+        setIsMessagePrivately(false);
+      }
+    }
+  }, [selectedMessages, showDM, showList]);
 
   //function calls paginatedConversations action which internally calls getConversation to update conversation array with the new data.
   async function paginatedData(newPage: number) {
@@ -1610,8 +1660,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  // console.log('selectedMessages ==', selectedMessages);
-
   return (
     <View style={styles.container}>
       <FlashList
@@ -1980,7 +2028,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         <Pressable style={styles.centeredView} onPress={handleReportModalClose}>
           <View>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
-              {selectedMessages.length === 1 ? (
+              {isMessagePrivately ? (
                 <TouchableOpacity
                   onPress={() => {
                     let memberID = selectedMessages[0]?.member?.id;
