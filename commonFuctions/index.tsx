@@ -11,7 +11,7 @@ import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {diffChars, diffLines, diffWords} from 'diff';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
-const REGEX_USER_TAGGING =
+export const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
 
 {

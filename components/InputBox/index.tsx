@@ -12,7 +12,7 @@ import {
   PermissionsAndroid,
   Linking,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {FC, useEffect, useRef, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
@@ -59,6 +59,7 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {
+  REGEX_USER_TAGGING,
   decode,
   deleteRouteIfAny,
   detectMentions,
@@ -74,6 +75,8 @@ import {requestStoragePermission} from '../../utils/permissions';
 import {FlashList} from '@shopify/flash-list';
 import TextInputMask from 'react-native-text-input-mask';
 import SpannableBuilder from '@mj-studio/react-native-spannable-string';
+import {MentionInput} from '../MentionInput';
+import {MentionSuggestionsProps, Suggestion} from '../MentionInput/types';
 
 interface InputBox {
   replyChatID?: any;
@@ -116,7 +119,6 @@ const InputBox = ({
   const [isUserTagging, setIsUserTagging] = useState(false);
   const [userTaggingList, setUserTaggingList] = useState([]);
   const [taggedUserName, setTaggedUserName] = useState('');
-
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -977,8 +979,8 @@ const InputBox = ({
                 }}
                 placeholder="Type a message..."
                 placeholderTextColor="#aaa">
-                {/* <Text>{decode(formattedMessage, false)}</Text> */}
-                <Text>{message}</Text>
+                {/* {REGEX_USER_TAGGING} */}
+                <Text>{decode(message, false)}</Text>
               </TextInput>
             </View>
             {!isUploadScreen &&
@@ -1098,3 +1100,77 @@ const InputBox = ({
 };
 
 export default InputBox;
+
+const renderSuggestions: (
+  suggestions: Suggestion[],
+) => FC<MentionSuggestionsProps> =
+  suggestions =>
+  ({keyword, onSuggestionPress}: any) => {
+    if (keyword == null) {
+      return null;
+    }
+
+    return (
+      <View>
+        {suggestions
+          ?.filter(one =>
+            one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()),
+          )
+          .map(one => (
+            <Pressable
+              key={one.id}
+              onPress={() => onSuggestionPress(one)}
+              style={{padding: 12}}>
+              <Text>{one.name}</Text>
+            </Pressable>
+          ))}
+        {/* <View style={[styles.taggableUsersBox, {bottom: false ? 115 : 50}]}>
+          <FlashList
+            data={suggestions}
+            renderItem={({item, index}: any) => {
+              return (
+                <Pressable
+                  onPress={() => {
+                    onSuggestionPress(item);
+                  }}
+                  style={styles.taggableUserView}>
+                  <Image
+                    source={
+                      !!item?.image_url
+                        ? {uri: item?.image_url}
+                        : require('../../assets/images/default_pic.png')
+                    }
+                    style={styles.avatar}
+                  />
+
+                  <View
+                    style={[
+                      styles.infoContainer,
+                      {
+                        borderBottomWidth:
+                          index !== suggestions?.length - 1 ? 0.2 : 0,
+                      },
+                    ]}>
+                    <Text style={styles.title} numberOfLines={1}>
+                      {item?.name}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            }}
+            extraData={{
+              value: [onSuggestionPress, suggestions],
+            }}
+            estimatedItemSize={15}
+            // onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.1}
+            bounces={false}
+            // ListFooterComponent={renderFooter}
+            keyExtractor={(item: any) => item?.id.toString()}
+          />
+        </View> */}
+      </View>
+    );
+  };
+
+// const renderMentionSuggestions = renderSuggestions(users);
