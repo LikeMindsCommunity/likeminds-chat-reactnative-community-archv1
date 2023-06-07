@@ -74,7 +74,6 @@ import Layout from '../../constants/Layout';
 import EmojiPicker, {EmojiKeyboard} from 'rn-emoji-keyboard';
 import {
   CHATROOM,
-  DM_FEED,
   EXPLORE_FEED,
   HOMEFEED,
   REPORT,
@@ -156,7 +155,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
-  const {chatroomID, isInvited} = route.params;
+  const {chatroomID, isInvited, previousChatroomID} = route.params;
   const isFocused = useIsFocused();
 
   const dispatch = useAppDispatch();
@@ -601,7 +600,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       } else {
         const popAction = StackActions.pop(1);
         navigation.dispatch(popAction);
-        navigation.navigate(HOMEFEED, {screen: DM_FEED});
+        navigation.push(CHATROOM, {
+          chatroomID: previousChatroomID,
+        });
       }
     } else {
       navigation.goBack();
@@ -619,7 +620,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else {
           const popAction = StackActions.pop(1);
           navigation.dispatch(popAction);
-          navigation.navigate(HOMEFEED, {screen: DM_FEED});
+          navigation.push(CHATROOM, {
+            chatroomID: previousChatroomID,
+          });
         }
       } else {
         navigation.goBack();
@@ -730,7 +733,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   //This useEffect has logic to or hide message privately when long press on a message
   useEffect(() => {
-    
     if (selectedMessages.length === 1) {
       let selectedMessagesMember = selectedMessages[0]?.member;
       if (
@@ -1604,7 +1606,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return res;
   };
 
-  const onUserClicked = async (memberID: any) => {
+  const onReplyPrivatelyClick = async (memberID: any) => {
     const res = await myClient.reqDmFeed({
       member_id: memberID,
     });
@@ -1617,7 +1619,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let clickedChatroomID = res?.chatroom_id;
       if (!!clickedChatroomID) {
         navigation.pop(1);
-        navigation.push(CHATROOM, {chatroomID: clickedChatroomID});
+        navigation.push(CHATROOM, {
+          chatroomID: clickedChatroomID,
+          previousChatroomID: chatroomID,
+        });
       } else {
         if (res?.is_request_dm_limit_exceeded === false) {
           let payload = {
@@ -2033,7 +2038,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   onPress={() => {
                     let memberID = selectedMessages[0]?.member?.id;
 
-                    onUserClicked(memberID);
+                    onReplyPrivatelyClick(memberID);
                     dispatch({type: SELECTED_MESSAGES, body: []});
                     setReportModalVisible(false);
                     // handleReportModalClose()
