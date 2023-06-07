@@ -38,6 +38,7 @@ import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DM_FEED, GROUP_FEED } from '../../constants/Screens';
 
 interface Props {
   navigation: any;
@@ -228,7 +229,7 @@ const HomeFeed = ({navigation}: Props) => {
             tabBarIndicatorStyle: {backgroundColor: STYLES.$COLORS.PRIMARY},
           }}>
           <Tab.Screen
-            name="GroupFeed"
+            name={GROUP_FEED}
             options={{
               tabBarLabel: ({focused}) => (
                 <Text
@@ -247,7 +248,7 @@ const HomeFeed = ({navigation}: Props) => {
             component={GroupFeed}
           />
           <Tab.Screen
-            name="DMFeed"
+            name={DM_FEED}
             options={{tabBarLabel: 'DMs'}}
             component={DMFeed}
           />

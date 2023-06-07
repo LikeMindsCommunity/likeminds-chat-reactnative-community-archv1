@@ -22,7 +22,11 @@ import {
   Platform,
 } from 'react-native';
 import {myClient} from '../..';
-import {copySelectedMessages, fetchResourceFromURI} from '../../commonFuctions';
+import {
+  copySelectedMessages,
+  fetchResourceFromURI,
+  formatTime,
+} from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
 import ToastMessage from '../../components/ToastMessage';
@@ -68,6 +72,8 @@ import {getExploreFeedData} from '../../store/actions/explorefeed';
 import Layout from '../../constants/Layout';
 import EmojiPicker, {EmojiKeyboard} from 'rn-emoji-keyboard';
 import {
+  CHATROOM,
+  DM_FEED,
   EXPLORE_FEED,
   HOMEFEED,
   REPORT,
@@ -91,6 +97,7 @@ import {
   AUDIO_TEXT,
   IMAGE_TEXT,
   SUCCESS,
+  REQUEST_DM_LIMIT,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -588,7 +595,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         const popAction = StackActions.pop(2);
         navigation.dispatch(popAction);
       } else {
-        navigation.goBack();
+        const popAction = StackActions.pop(1);
+        navigation.dispatch(popAction);
+        navigation.navigate(HOMEFEED, {screen: DM_FEED});
       }
     } else {
       navigation.goBack();
@@ -604,7 +613,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           const popAction = StackActions.pop(2);
           navigation.dispatch(popAction);
         } else {
-          navigation.goBack();
+          const popAction = StackActions.pop(1);
+          navigation.dispatch(popAction);
+          navigation.navigate(HOMEFEED, {screen: DM_FEED});
         }
       } else {
         navigation.goBack();
@@ -1543,6 +1554,64 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return res;
   };
 
+  const onUserClicked = async (memberID: any) => {
+    const res = await myClient.reqDmFeed({
+      member_id: memberID,
+    });
+    if (res?.success === false) {
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: `${res?.error_message}`},
+      });
+    } else {
+      let clickedChatroomID = res?.chatroom_id;
+      if (!!clickedChatroomID) {
+        navigation.pop(1);
+        navigation.push(CHATROOM, {chatroomID: clickedChatroomID});
+      } else {
+        if (res?.is_request_dm_limit_exceeded === false) {
+          let payload = {
+            community_id: community?.id,
+            member_id: memberID,
+          };
+          const response = await myClient.onCreateDM(payload);
+          if (response?.success === false) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: `${response?.error_message}`},
+            });
+          } else {
+            let createdChatroomID = response?.chatroom?.id;
+            if (!!createdChatroomID) {
+              navigation.pop(1);
+              navigation.push(CHATROOM, {
+                chatroomID: createdChatroomID,
+              });
+            }
+          }
+        } else {
+          let userDMLimit = res?.user_dm_limit;
+          Alert.alert(
+            REQUEST_DM_LIMIT,
+            `You can only send ${
+              userDMLimit?.number_in_duration
+            } DM requests per ${
+              userDMLimit?.duration
+            }.\n\nTry again in ${formatTime(res?.new_request_dm_timestamp)}`,
+            [
+              {
+                text: CANCEL_BUTTON,
+                style: 'default',
+              },
+            ],
+          );
+        }
+      }
+    }
+  };
+
+  // console.log('selectedMessages ==', selectedMessages);
+
   return (
     <View style={styles.container}>
       <FlashList
@@ -1911,6 +1980,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         <Pressable style={styles.centeredView} onPress={handleReportModalClose}>
           <View>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
+              {selectedMessages.length === 1 ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    let memberID = selectedMessages[0]?.member?.id;
+
+                    onUserClicked(memberID);
+                    dispatch({type: SELECTED_MESSAGES, body: []});
+                    setReportModalVisible(false);
+                    // handleReportModalClose()
+                  }}
+                  style={styles.filtersView}>
+                  <Text style={styles.filterText}>Message Privately</Text>
+                </TouchableOpacity>
+              ) : null}
+
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate(REPORT, {
