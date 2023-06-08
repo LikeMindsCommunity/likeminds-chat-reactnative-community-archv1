@@ -682,7 +682,7 @@ const InputBox = ({
     changedMsg = {
       ...selectedMessage,
       answer: editedmessage,
-      is_edited: true
+      is_edited: true,
     };
 
     dispatch({
@@ -697,12 +697,10 @@ const InputBox = ({
     setMessage('');
     setIsEditable(false);
 
-    // await myClient.editConversation({
-    //   conversationId: conversationId,
-    //   text: editedmessage,
-    // });
-    // setIsReact(false);
-    // sendReactionAPI(previousMsg?.id, val);
+    await myClient.editConversation({
+      conversationId: conversationId,
+      text: editedmessage,
+    });
   };
 
   return (
