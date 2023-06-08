@@ -73,8 +73,6 @@ import {
 } from '../../commonFuctions';
 import {requestStoragePermission} from '../../utils/permissions';
 import {FlashList} from '@shopify/flash-list';
-import TextInputMask from 'react-native-text-input-mask';
-import SpannableBuilder from '@mj-studio/react-native-spannable-string';
 import {MentionInput} from '../MentionInput';
 import {MentionSuggestionsProps, Suggestion} from '../MentionInput/types';
 
@@ -947,6 +945,7 @@ const InputBox = ({
                   : {marginHorizontal: 20},
               ]}>
               <TextInput
+                defaultValue={formatValue(message)}
                 // value={message}
                 ref={myRef}
                 onChangeText={handleInputChange}
@@ -980,7 +979,7 @@ const InputBox = ({
                 placeholder="Type a message..."
                 placeholderTextColor="#aaa">
                 {/* {REGEX_USER_TAGGING} */}
-                <Text>{decode(message, false)}</Text>
+                {/* <Text>{decode(message, false)}</Text> */}
               </TextInput>
             </View>
             {!isUploadScreen &&
