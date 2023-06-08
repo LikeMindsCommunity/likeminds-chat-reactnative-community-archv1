@@ -22,7 +22,12 @@ import {
   Platform,
 } from 'react-native';
 import {myClient} from '../..';
-import {copySelectedMessages, fetchResourceFromURI} from '../../commonFuctions';
+import {
+  SHOW_LIST_REGEX,
+  copySelectedMessages,
+  fetchResourceFromURI,
+  formatTime,
+} from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
 import ToastMessage from '../../components/ToastMessage';
@@ -68,6 +73,7 @@ import {getExploreFeedData} from '../../store/actions/explorefeed';
 import Layout from '../../constants/Layout';
 import EmojiPicker, {EmojiKeyboard} from 'rn-emoji-keyboard';
 import {
+  CHATROOM,
   EXPLORE_FEED,
   HOMEFEED,
   REPORT,
@@ -91,6 +97,7 @@ import {
   AUDIO_TEXT,
   IMAGE_TEXT,
   SUCCESS,
+  REQUEST_DM_LIMIT,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -143,9 +150,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [DMBlockAlertModalVisible, setDMBlockAlertModalVisible] =
     useState(false);
   const [showDM, setShowDM] = useState<any>(null);
+  const [showList, setShowList] = useState<any>(null);
+  const [isMessagePrivately, setIsMessagePrivately] = useState<any>(false);
+
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
-  const {chatroomID, isInvited} = route.params;
+  const {chatroomID, isInvited, previousChatroomID} = route.params;
   const isFocused = useIsFocused();
 
   const dispatch = useAppDispatch();
@@ -588,7 +598,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         const popAction = StackActions.pop(2);
         navigation.dispatch(popAction);
       } else {
-        navigation.goBack();
+        const popAction = StackActions.pop(1);
+        navigation.dispatch(popAction);
+        navigation.push(CHATROOM, {
+          chatroomID: previousChatroomID,
+        });
       }
     } else {
       navigation.goBack();
@@ -604,7 +618,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           const popAction = StackActions.pop(2);
           navigation.dispatch(popAction);
         } else {
-          navigation.goBack();
+          const popAction = StackActions.pop(1);
+          navigation.dispatch(popAction);
+          navigation.push(CHATROOM, {
+            chatroomID: previousChatroomID,
+          });
         }
       } else {
         navigation.goBack();
@@ -624,7 +642,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setInitialHeader();
   }, [chatroomDetails]);
 
-  // this useEffect call API to InputBox based on showDM key.
+  // this useEffect call API to show InputBox based on showDM key.
   useEffect(() => {
     async function callApi() {
       if (chatroomType == 10) {
@@ -636,6 +654,29 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         });
         if (!!response?.cta) {
           setShowDM(response?.show_dm);
+        }
+      } else if (chatroomType == 0 || chatroomType == 7) {
+        if (!!community?.id) {
+          let payload = {
+            community_id: community?.id,
+            page: 1,
+          };
+          const res = await dispatch(getDMFeedData(payload, false) as any);
+
+          if (!!res) {
+            let response = await myClient.dmStatus({
+              req_from: 'group_channel',
+            });
+            if (!!response) {
+              let routeURL = response?.cta;
+              const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+              if (hasShowList) {
+                const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+                setShowList(showListValue);
+              }
+              setShowDM(response?.show_dm);
+            }
+          }
         }
       }
       let res = await fetchData(false);
@@ -689,6 +730,28 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       previousRoute = routes[routes.length - 2];
     }
   }, [isFocused]);
+
+  //This useEffect has logic to or hide message privately when long press on a message
+  useEffect(() => {
+    if (selectedMessages.length === 1) {
+      let selectedMessagesMember = selectedMessages[0]?.member;
+      if (
+        showDM &&
+        selectedMessagesMember?.id !== user?.id &&
+        !selectedMessages[0]?.deleted_by
+      ) {
+        if (showList == 2 && selectedMessagesMember?.state === 1) {
+          setIsMessagePrivately(true);
+        } else if (showList == 1) {
+          setIsMessagePrivately(true);
+        } else {
+          setIsMessagePrivately(false);
+        }
+      } else {
+        setIsMessagePrivately(false);
+      }
+    }
+  }, [selectedMessages, showDM, showList]);
 
   //function calls paginatedConversations action which internally calls getConversation to update conversation array with the new data.
   async function paginatedData(newPage: number) {
@@ -1543,6 +1606,65 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return res;
   };
 
+  const onReplyPrivatelyClick = async (memberID: any) => {
+    const res = await myClient.reqDmFeed({
+      member_id: memberID,
+    });
+    if (res?.success === false) {
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: `${res?.error_message}`},
+      });
+    } else {
+      let clickedChatroomID = res?.chatroom_id;
+      if (!!clickedChatroomID) {
+        navigation.pop(1);
+        navigation.push(CHATROOM, {
+          chatroomID: clickedChatroomID,
+          previousChatroomID: chatroomID,
+        });
+      } else {
+        if (res?.is_request_dm_limit_exceeded === false) {
+          let payload = {
+            community_id: community?.id,
+            member_id: memberID,
+          };
+          const response = await myClient.onCreateDM(payload);
+          if (response?.success === false) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: `${response?.error_message}`},
+            });
+          } else {
+            let createdChatroomID = response?.chatroom?.id;
+            if (!!createdChatroomID) {
+              navigation.pop(1);
+              navigation.push(CHATROOM, {
+                chatroomID: createdChatroomID,
+              });
+            }
+          }
+        } else {
+          let userDMLimit = res?.user_dm_limit;
+          Alert.alert(
+            REQUEST_DM_LIMIT,
+            `You can only send ${
+              userDMLimit?.number_in_duration
+            } DM requests per ${
+              userDMLimit?.duration
+            }.\n\nTry again in ${formatTime(res?.new_request_dm_timestamp)}`,
+            [
+              {
+                text: CANCEL_BUTTON,
+                style: 'default',
+              },
+            ],
+          );
+        }
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
       <FlashList
@@ -1911,6 +2033,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         <Pressable style={styles.centeredView} onPress={handleReportModalClose}>
           <View>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
+              {isMessagePrivately ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    let memberID = selectedMessages[0]?.member?.id;
+
+                    onReplyPrivatelyClick(memberID);
+                    dispatch({type: SELECTED_MESSAGES, body: []});
+                    setReportModalVisible(false);
+                    // handleReportModalClose()
+                  }}
+                  style={styles.filtersView}>
+                  <Text style={styles.filterText}>Message Privately</Text>
+                </TouchableOpacity>
+              ) : null}
+
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate(REPORT, {
