@@ -33,6 +33,7 @@ interface ReplyConversations {
   longPressOpenKeyboard: any;
   reactionArr: any;
   navigation: any;
+  handleFileUpload: any;
 }
 
 interface ReplyBox {
@@ -106,6 +107,7 @@ const ReplyConversations = ({
   longPressOpenKeyboard,
   reactionArr,
   navigation,
+  handleFileUpload,
 }: ReplyConversations) => {
   const dispatch = useAppDispatch();
   const {conversations, selectedMessages, stateArr, isLongPress}: any =
@@ -192,6 +194,7 @@ const ReplyConversations = ({
             longPressOpenKeyboard={() => {
               longPressOpenKeyboard();
             }}
+            handleFileUpload={handleFileUpload}
           />
         ) : (
           <View>

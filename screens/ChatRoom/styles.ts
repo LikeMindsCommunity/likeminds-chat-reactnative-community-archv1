@@ -17,12 +17,17 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 35,
+    gap: 25,
   },
   backBtn: {height: 40, width: 40, borderRadius: 10, resizeMode: 'contain'},
   selectedBackBtn: {height: 20, width: 20, resizeMode: 'contain'},
   threeDots: {
     height: 20,
+    width: 30,
+    resizeMode: 'contain',
+  },
+  editIcon: {
+    height: 25,
     width: 30,
     resizeMode: 'contain',
   },

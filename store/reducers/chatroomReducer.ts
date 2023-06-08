@@ -4,6 +4,7 @@ import {
   CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
+  EDIT_CONVERSATION,
   FILE_SENT,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
@@ -129,6 +130,18 @@ export function chatroomReducer(state = initialState, action: any) {
       return {...state, messageSent: messageObj};
     }
     case REACTION_SENT: {
+      const {previousMsg, changedMsg} = action.body;
+      let index = state?.conversations.findIndex(
+        (element: any) => element?.id === changedMsg?.id,
+      );
+
+      let arr = [...(state?.conversations as any)];
+      if (index !== undefined || index !== -1) {
+        arr[index] = changedMsg;
+      }
+      return {...state, conversations: [...arr]};
+    }
+    case EDIT_CONVERSATION: {
       const {previousMsg, changedMsg} = action.body;
       let index = state?.conversations.findIndex(
         (element: any) => element?.id === changedMsg?.id,

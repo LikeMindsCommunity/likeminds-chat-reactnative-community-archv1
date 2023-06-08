@@ -152,6 +152,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [showDM, setShowDM] = useState<any>(null);
   const [showList, setShowList] = useState<any>(null);
   const [isMessagePrivately, setIsMessagePrivately] = useState<any>(false);
+  const [isEditable, setIsEditable] = useState<any>(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
@@ -366,7 +367,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let showCopyIcon = true;
         let isDelete = false;
         let isFirstMessageDeleted = selectedMessages[0]?.deleted_by;
-        for (let i = 0; i < selectedMessages.length; i++) {
+        let isSelectedMessageEditable = false;
+        let selectedMessagesLength = selectedMessages.length;
+
+        //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
+        if (selectedMessagesLength === 1) {
+          if (selectedMessages[0].member.id === user?.id) {
+            isSelectedMessageEditable = true;
+          } else {
+            isSelectedMessageEditable = false;
+          }
+        } else {
+          isSelectedMessageEditable = false;
+        }
+
+        //Logic to set isCopy, showCopyIcon, isDelete true/false, based on that we will show respective icons.
+        for (let i = 0; i < selectedMessagesLength; i++) {
           if (selectedMessages[i].attachment_count > 0) {
             showCopyIcon = false;
           }
@@ -468,6 +484,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 <Image
                   source={require('../../assets/images/copy_icon3x.png')}
                   style={styles.threeDots}
+                />
+              </TouchableOpacity>
+            ) : null}
+
+            {isSelectedMessageEditable ? (
+              <TouchableOpacity
+                onPress={() => {
+                  setIsEditable(true);
+                }}>
+                <Image
+                  source={require('../../assets/images/edit_icon3x.png')}
+                  style={styles.editIcon}
                 />
               </TouchableOpacity>
             ) : null}
@@ -1816,6 +1844,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 isUploadScreen={false}
                 myRef={refInput}
                 handleFileUpload={handleFileUpload}
+                isEditable={isEditable}
+                setIsEditable={(value: boolean) => {
+                  setIsEditable(value);
+                }}
               />
             ) : user.state !== 1 && chatroomDetails?.chatroom.type === 7 ? (
               <View style={styles.disabledInput}>
@@ -1954,6 +1986,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               isPrivateMember={chatroomDetails?.chatroom?.is_private_member}
               myRef={refInput}
               handleFileUpload={handleFileUpload}
+              isEditable={isEditable}
+              setIsEditable={(value: boolean) => {
+                setIsEditable(value);
+              }}
             />
           ) : (
             <View style={styles.disabledInput}>
