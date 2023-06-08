@@ -372,7 +372,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
         //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
         if (selectedMessagesLength === 1) {
-          if (selectedMessages[0].member.id === user?.id) {
+          if (
+            selectedMessages[0].member.id === user?.id &&
+            !!selectedMessages[0].answer
+          ) {
             isSelectedMessageEditable = true;
           } else {
             isSelectedMessageEditable = false;

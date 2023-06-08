@@ -682,6 +682,7 @@ const InputBox = ({
     changedMsg = {
       ...selectedMessage,
       answer: editedmessage,
+      is_edited: true
     };
 
     dispatch({
