@@ -44,7 +44,6 @@
     "react-native-tab-view": "^3.5.0",
     "react-native-video": "^5.2.1",
     "react-redux": "^8.0.5",
-    "reactotron-react-native": "^5.0.3",
     "redux-thunk": "^2.4.2",
     "rn-emoji-keyboard": "^1.2.1"
   },
