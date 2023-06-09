@@ -678,11 +678,11 @@ const InputBox = ({
     let selectedConversation = selectedMessages[0];
     let conversationId = selectedConversation?.id;
     let previousConversation = selectedConversation;
-    let editedmessage = message;
+    let editedConversation = message;
     let changedConversation;
     changedConversation = {
       ...selectedConversation,
-      answer: editedmessage,
+      answer: editedConversation,
       is_edited: true,
     };
 
@@ -702,7 +702,7 @@ const InputBox = ({
       dispatch({
         type: UPDATE_LAST_CONVERSATION,
         body: {
-          lastConversationAnswer: editedmessage,
+          lastConversationAnswer: editedConversation,
           chatroomType: chatroomType,
           chatroomID: chatroomID,
         },
@@ -715,7 +715,7 @@ const InputBox = ({
 
     await myClient.editConversation({
       conversationId: conversationId,
-      text: editedmessage,
+      text: editedConversation,
     });
   };
 
