@@ -114,8 +114,8 @@ export function homefeedReducer(state = initialState, action: any) {
     case UPDATE_LAST_CONVERSATION: {
       const {lastConversationAnswer, chatroomType, chatroomID} = action.body;
 
-      let chatroomList =
-        chatroomType === 10 ? state?.myDMChatrooms : state?.myChatrooms;
+      let isDM = chatroomType === 10 ? true : false;
+      let chatroomList = isDM ? state?.myDMChatrooms : state?.myChatrooms;
       let index = chatroomList.findIndex((element: any) => {
         return element?.chatroom?.id == chatroomID;
       });
@@ -133,8 +133,8 @@ export function homefeedReducer(state = initialState, action: any) {
       }
       return {
         ...state,
-        myChatrooms: chatroomType === 10 ? state?.myChatrooms : [...arr],
-        myDMChatrooms: chatroomType === 10 ? [...arr] : state?.myDMChatrooms,
+        myChatrooms: isDM ? state?.myChatrooms : [...arr],
+        myDMChatrooms: isDM ? [...arr] : state?.myDMChatrooms,
       };
     }
     case INIT_API_SUCCESS: {

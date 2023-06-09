@@ -629,11 +629,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         const popAction = StackActions.pop(2);
         navigation.dispatch(popAction);
       } else {
-        const popAction = StackActions.pop(1);
-        navigation.dispatch(popAction);
-        navigation.push(CHATROOM, {
-          chatroomID: previousChatroomID,
-        });
+        if (previousChatroomID) {
+          const popAction = StackActions.pop(1);
+          navigation.dispatch(popAction);
+          navigation.push(CHATROOM, {
+            chatroomID: previousChatroomID,
+          });
+        } else {
+          navigation.goBack();
+        }
       }
     } else {
       navigation.goBack();
@@ -1837,7 +1841,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               )
             : null}
           {!(Object.keys(chatroomDetails).length === 0) ? (
-            !(user.state !== 1 && chatroomDetails?.chatroom.type === 7) &&
+            !(user.state !== 1 && chatroomDetails?.chatroom?.type === 7) &&
             chatroomFollowStatus &&
             memberRights[3]?.is_selected === true ? (
               <InputBox
@@ -1852,7 +1856,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   setIsEditable(value);
                 }}
               />
-            ) : user.state !== 1 && chatroomDetails?.chatroom.type === 7 ? (
+            ) : user.state !== 1 && chatroomDetails?.chatroom?.type === 7 ? (
               <View style={styles.disabledInput}>
                 <Text style={styles.disabledInputText}>
                   Only Community Manager can message here.
