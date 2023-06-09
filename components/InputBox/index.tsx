@@ -37,6 +37,7 @@ import {
   STATUS_BAR_STYLE,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
+  UPDATE_LAST_CONVERSATION,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -674,13 +675,13 @@ const InputBox = ({
 
   // this function is for editing a conversation
   const onEdit = async () => {
-    let selectedMessage = selectedMessages[0];
-    let conversationId = selectedMessage?.id;
-    let previousMsg = selectedMessage;
+    let selectedConversation = selectedMessages[0];
+    let conversationId = selectedConversation?.id;
+    let previousConversation = selectedConversation;
     let editedmessage = message;
-    let changedMsg;
-    changedMsg = {
-      ...selectedMessage,
+    let changedConversation;
+    changedConversation = {
+      ...selectedConversation,
       answer: editedmessage,
       is_edited: true,
     };
@@ -688,10 +689,25 @@ const InputBox = ({
     dispatch({
       type: EDIT_CONVERSATION,
       body: {
-        previousMsg: previousMsg,
-        changedMsg: changedMsg,
+        previousConversation: previousConversation,
+        changedConversation: changedConversation,
       },
     });
+
+    let index = conversations.findIndex((element: any) => {
+      return element?.id == selectedConversation?.id;
+    });
+
+    if (index === 0) {
+      dispatch({
+        type: UPDATE_LAST_CONVERSATION,
+        body: {
+          lastConversationAnswer: editedmessage,
+          chatroomType: chatroomType,
+          chatroomID: chatroomID,
+        },
+      });
+    }
     dispatch({type: SELECTED_MESSAGES, body: []});
     dispatch({type: LONG_PRESSED, body: false});
     setMessage('');

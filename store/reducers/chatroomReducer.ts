@@ -142,14 +142,14 @@ export function chatroomReducer(state = initialState, action: any) {
       return {...state, conversations: [...arr]};
     }
     case EDIT_CONVERSATION: {
-      const {previousMsg, changedMsg} = action.body;
+      const {previousConversation, changedConversation} = action.body;
       let index = state?.conversations.findIndex(
-        (element: any) => element?.id === changedMsg?.id,
+        (element: any) => element?.id === changedConversation?.id,
       );
 
       let arr = [...(state?.conversations as any)];
       if (index !== undefined || index !== -1) {
-        arr[index] = changedMsg;
+        arr[index] = changedConversation;
       }
       return {...state, conversations: [...arr]};
     }
