@@ -176,6 +176,7 @@ const Messages = ({
             }}
             reactionArr={reactionArr}
             navigation={navigation}
+            handleFileUpload={handleFileUpload}
           />
         ) : !!!item?.reply_conversation_object && item?.attachment_count > 0 ? (
           <AttachmentConversations
@@ -267,7 +268,12 @@ const Messages = ({
                     </Text>
                   )}
                   <Text>{decode(item?.answer, true)}</Text>
-                  <Text style={styles.messageDate}>{item?.created_at}</Text>
+                  <View style={styles.alignTime}>
+                    {item?.is_edited ? (
+                      <Text style={styles.messageDate}>{`Edited • `}</Text>
+                    ) : null}
+                    <Text style={styles.messageDate}>{item?.created_at}</Text>
+                  </View>
                 </View>
                 {(reactionArr.length > 0 ||
                   item?.answer?.split('').length > 100) &&

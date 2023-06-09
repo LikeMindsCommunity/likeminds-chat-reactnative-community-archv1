@@ -71,4 +71,10 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
   displayRow: {flexDirection: 'row', alignItems: 'center', gap: 10},
+  alignTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 3,
+  },
 });
