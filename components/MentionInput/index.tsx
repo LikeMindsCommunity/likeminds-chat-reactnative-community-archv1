@@ -149,38 +149,27 @@ const MentionInput: FC<MentionInputProps> = ({
   // ).map(renderMentionSuggestions);
 
   return (
-    <View>
-      <TextInput
-        multiline
-        {...textInputProps}
-        ref={handleTextInputRef}
-        onChangeText={onChangeInput}
-        onContentSizeChange={onContentSizeChange}
-        onSelectionChange={handleSelectionChange}>
-        <Text>
-          {parts.map(({text, partType, data}, index) =>
-            partType ? (
-              <Text
-                key={`${index}-${data?.trigger ?? 'pattern'}`}
-                style={partType.textStyle ?? defaultMentionTextStyle}>
-                {text}
-              </Text>
-            ) : (
-              <Text key={index}>{text}</Text>
-            ),
-          )}
-        </Text>
-      </TextInput>
-
-      {/* {(
-        partTypes.filter(
-          one =>
-            isMentionPartType(one) &&
-            one.renderSuggestions != null &&
-            one.isBottomMentionSuggestionsRender,
-        ) as MentionPartType[]
-      ).map(renderMentionSuggestions)} */}
-    </View>
+    <TextInput
+      multiline
+      {...textInputProps}
+      ref={handleTextInputRef}
+      onChangeText={onChangeInput}
+      onContentSizeChange={onContentSizeChange}
+      onSelectionChange={handleSelectionChange}>
+      <Text>
+        {parts.map(({text, partType, data}, index) =>
+          partType ? (
+            <Text
+              key={`${index}-${data?.trigger ?? 'pattern'}`}
+              style={partType.textStyle ?? defaultMentionTextStyle}>
+              {text}
+            </Text>
+          ) : (
+            <Text key={index}>{text}</Text>
+          ),
+        )}
+      </Text>
+    </TextInput>
   );
 };
 

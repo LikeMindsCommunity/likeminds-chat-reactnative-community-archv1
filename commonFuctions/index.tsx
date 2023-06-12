@@ -404,9 +404,18 @@ export function detectMentions(input: string) {
     const endIndex = mentionRegex.lastIndex;
     const nextChar = input.charAt(endIndex);
 
-    if (nextChar !== ' ' && nextChar !== '@') {
+    if (
+      nextChar !== ' ' &&
+      nextChar !== '@' &&
+      match[1] !== 'everyone' &&
+      match[1] !== 'participants'
+    ) {
       matches.push(match[1]);
     }
+  }
+
+  if (input.endsWith(' @') || input === '@' || input.endsWith('\n@')) {
+    matches.push('');
   }
 
   return matches;
@@ -418,15 +427,18 @@ export function replaceLastMention(
   mentionUsername: string,
   memberID: any,
 ) {
-  const mentionRegex = new RegExp(
-    `@${taggerUserName}\\b(?!.*@${taggerUserName}\\b)`,
-    'i',
-  );
-  // const mentionRegex = new RegExp(`@${taggerUserName}\\b`, 'gi');
+  let mentionRegex: RegExp;
 
-  const replacement = `@[${mentionUsername}](${memberID})`;
+  if (taggerUserName === '') {
+    mentionRegex = /(?<=^|\s)@($)/g;
+  } else {
+    mentionRegex = new RegExp(
+      `@${taggerUserName}\\b(?!.*@${taggerUserName}\\b)`,
+      'gi',
+    );
+  }
+  const replacement = `@[${mentionUsername}](${memberID}) `;
   const replacedString = input.replace(mentionRegex, replacement);
-  console.log('mentionRegex ==', replacement, replacedString);
   return replacedString;
 }
 

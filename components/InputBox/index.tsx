@@ -11,6 +11,7 @@ import {
   Alert,
   PermissionsAndroid,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import React, {FC, useEffect, useRef, useState} from 'react';
 import {styles} from './styles';
@@ -107,7 +108,7 @@ const InputBox = ({
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
   const [formattedMessage, setFormattedMessage] = useState(previousMessage);
-  const [inputHeight, setInputHeight] = useState(18);
+  const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [progressText, setProgressText] = useState('');
@@ -116,8 +117,11 @@ const InputBox = ({
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
   const [isUserTagging, setIsUserTagging] = useState(false);
-  const [userTaggingList, setUserTaggingList] = useState([]);
+  const [userTaggingList, setUserTaggingList] = useState<any>([]);
+  const [groupTags, setGroupTags] = useState<any>([]);
   const [taggedUserName, setTaggedUserName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -151,7 +155,7 @@ const InputBox = ({
     if (!isUploadScreen) {
       setMessage('');
       setFormattedMessage('');
-      setInputHeight(18);
+      setInputHeight(25);
     }
   }, [fileSent]);
 
@@ -469,10 +473,13 @@ const InputBox = ({
       }
     }
 
-    let conversationText = replaceMentionValues(
-      message,
-      ({id, name}) => `<<${name}|route://member/${id}>>`,
-    );
+    let conversationText = replaceMentionValues(message, ({id, name}) => {
+      if (name === '@participants' || name === '@everyone') {
+        return `<<${name}|route://${name}>>`;
+      } else {
+        return `<<${name}|route://member/${id}>>`;
+      }
+    });
 
     // check if message is empty string or not
     if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
@@ -556,7 +563,7 @@ const InputBox = ({
       }
       setMessage('');
       setFormattedMessage('');
-      setInputHeight(18);
+      setInputHeight(25);
 
       if (isReply) {
         dispatch({type: SET_IS_REPLY, body: {isReply: false}});
@@ -699,13 +706,49 @@ const InputBox = ({
 
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
     const res = await myClient.getTaggingList({
-      page: 1,
+      page: page,
       pageSize: 10,
       searchName: searchName,
-      chatroomId: 82419,
-      isSecret: false,
+      chatroomId: chatroomId,
+      isSecret: isSecret,
     });
     return res;
+  };
+
+  // function shows loader in between calling the API and getting the response
+  const loadData = async (newPage: number) => {
+    setIsLoading(true);
+    const res = await taggingAPI({
+      page: newPage,
+      searchName: taggedUserName,
+      chatroomId: chatroomID,
+      isSecret: false,
+    });
+    if (!!res) {
+      setUserTaggingList([...userTaggingList, ...res?.community_members]);
+      setIsLoading(false);
+    }
+  };
+
+  //function checks the pagination logic, if it verifies the condition then call loadData
+  const handleLoadMore = () => {
+    if (!isLoading && conversations.length > 0) {
+      // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+      if (conversations.length > 15) {
+        const newPage = page + 1;
+        setPage(newPage);
+        loadData(newPage);
+      }
+    }
+  };
+
+  //pagination loader in the footer
+  const renderFooter = () => {
+    return isLoading ? (
+      <View style={{paddingVertical: 20}}>
+        <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+      </View>
+    ) : null;
   };
 
   const handleInputChange = async (e: any) => {
@@ -725,31 +768,9 @@ const InputBox = ({
         setFormattedMessage(e);
       }
     } else {
-      console.log('-->message-->', message, e);
-      // let mergedMessage = await mergeTwoStringsToSaveRouteURL(message, e);
-      // console.log('-->mergedMessage-->', mergedMessage);
       let modifiedMessage = deleteRouteIfAny(e, message);
       setMessage(modifiedMessage);
       setFormattedMessage(modifiedMessage);
-      // if (mergedMessage) {
-      //   setMessage(mergedMessage);
-      //   setFormattedMessage(mergedMessage);
-      // } else {
-      //   setMessage(e);
-      //   setFormattedMessage(e);
-      // }
-      // Check if the "@" symbol exists after an empty space
-
-      // const words = splitWordsWithSpace(e);
-
-      // console.log('words', words);
-      // Find mentions starting with "@"
-
-      // const newMentions = words
-      //   .filter((word: any) => word.startsWith('@') && !word.endsWith(' '))
-      //   .map((mention: any) => mention.substring(1));
-
-      // const newMentions = detectMentions(e);
 
       const newMentions = detectMentions(e);
 
@@ -765,6 +786,7 @@ const InputBox = ({
       let len = newMentions.length;
       if (len > 0) {
         const timeoutID = setTimeout(async () => {
+          setPage(1);
           const res = await taggingAPI({
             page: 1,
             searchName: newMentions[len - 1],
@@ -772,8 +794,8 @@ const InputBox = ({
             isSecret: false,
           });
           if (newMentions.length > 0) {
-            // setUserTaggingList(res?.community_members);
-            setUserTaggingList(res?.members);
+            setUserTaggingList(res?.community_members);
+            setGroupTags(res?.group_tags);
             setIsUserTagging(true);
           }
 
@@ -784,14 +806,14 @@ const InputBox = ({
       } else {
         if (isUserTagging) {
           setUserTaggingList([]);
+          setGroupTags([]);
           setIsUserTagging(false);
         }
       }
     }
   };
 
-  // console.log('userTaggingList ==', userTaggingList);
-  const renderMentionSuggestions = renderSuggestions(userTaggingList);
+  console.log('input Height', inputHeight);
 
   return (
     <View>
@@ -822,15 +844,34 @@ const InputBox = ({
                       isReply && !isUploadScreen && !isUserTagging ? 10 : 0,
                     borderTopRightRadius:
                       isReply && !isUploadScreen && !isUserTagging ? 10 : 0,
+                    backgroundColor: !!isUploadScreen ? 'black' : 'white',
                   },
                 ]
               : null
           }>
           {userTaggingList && isUserTagging ? (
             <View
-              style={[styles.taggableUsersBox, {bottom: isReply ? 115 : 50}]}>
+              style={[
+                styles.taggableUsersBox,
+                {
+                  bottom: isReply
+                    ? // reply message
+                      inputHeight <= 25
+                      ? 115
+                      : inputHeight <= 108 && inputHeight > 25
+                      ? inputHeight + 90
+                      : 205 // when maxHeight is reached
+                    : // normal message
+                    inputHeight <= 25
+                    ? 50
+                    : inputHeight <= 108 && inputHeight > 25
+                    ? inputHeight + 23
+                    : 142, // when maxHeight is reached
+                  backgroundColor: !!isUploadScreen ? 'black' : 'white',
+                },
+              ]}>
               <FlashList
-                data={userTaggingList}
+                data={[...groupTags, ...userTaggingList]}
                 renderItem={({item, index}: any) => {
                   return (
                     <Pressable
@@ -845,6 +886,9 @@ const InputBox = ({
                         console.log('heelo kahiye ===', res);
                         setMessage(res);
                         setFormattedMessage(res);
+                        setUserTaggingList([]);
+                        setGroupTags([]);
+                        setIsUserTagging(false);
                       }}
                       style={styles.taggableUserView}>
                       <Image
@@ -864,7 +908,16 @@ const InputBox = ({
                               index !== userTaggingList?.length - 1 ? 0.2 : 0,
                           },
                         ]}>
-                        <Text style={styles.title} numberOfLines={1}>
+                        <Text
+                          style={[
+                            styles.title,
+                            {
+                              color: !!isUploadScreen
+                                ? STYLES.$COLORS.TERTIARY
+                                : STYLES.$COLORS.PRIMARY,
+                            },
+                          ]}
+                          numberOfLines={1}>
                           {item?.name}
                         </Text>
                       </View>
@@ -875,16 +928,16 @@ const InputBox = ({
                   value: [message, userTaggingList],
                 }}
                 estimatedItemSize={15}
-                // onEndReached={handleLoadMore}
+                onEndReached={handleLoadMore}
                 onEndReachedThreshold={0.1}
                 bounces={false}
-                // ListFooterComponent={renderFooter}
-                keyExtractor={(item: any) => item?.id.toString()}
+                ListFooterComponent={renderFooter}
+                keyExtractor={(item: any, index) => {
+                  return index?.toString();
+                }}
               />
             </View>
           ) : null}
-
-          {/* {true ? renderSuggestions(userTaggingList as any) : null} */}
 
           {isReply && !isUploadScreen && (
             <View style={styles.replyBox}>
@@ -959,43 +1012,6 @@ const InputBox = ({
                     }
                   : {marginHorizontal: 20},
               ]}>
-              {/* <TextInput
-                // value={message}
-                ref={myRef}
-                onChangeText={handleInputChange}
-                maxLength={
-                  chatRequestState === 0 || chatRequestState === null
-                    ? MAX_LENGTH
-                    : undefined
-                }
-                onContentSizeChange={event => {
-                  console.log(
-                    'event.nativeEvent.contentSize.height ==',
-                    event.nativeEvent.contentSize.height,
-                  );
-                  setInputHeight(event.nativeEvent.contentSize.height);
-                }}
-                style={[
-                  styles.input,
-                  {height: Math.max(18, inputHeight)},
-                  {
-                    color: !!isUploadScreen
-                      ? STYLES.$BACKGROUND_COLORS.LIGHT
-                      : STYLES.$COLORS.SECONDARY,
-                  },
-                ]}
-                numberOfLines={6}
-                multiline={true}
-                onBlur={() => {
-                  setIsKeyBoardFocused(false);
-                }}
-                onFocus={() => {
-                  setIsKeyBoardFocused(true);
-                }}
-                placeholder="Type a message..."
-                placeholderTextColor="#aaa">
-                <Text>{message}</Text>
-              </TextInput> */}
               <MentionInput
                 defaultValue={message}
                 onChange={handleInputChange}
@@ -1016,27 +1032,23 @@ const InputBox = ({
                 }}
                 style={[
                   styles.input,
-                  {height: Math.max(18, inputHeight)},
+                  {height: Math.max(25, inputHeight)},
                   {
                     color: !!isUploadScreen
                       ? STYLES.$BACKGROUND_COLORS.LIGHT
                       : STYLES.$COLORS.SECONDARY,
-                    backgroundColor: 'yellow',
                   },
                 ]}
                 numberOfLines={6}
-                // multiline={true}
                 onBlur={() => {
                   setIsKeyBoardFocused(false);
                 }}
                 onFocus={() => {
                   setIsKeyBoardFocused(true);
                 }}
-                // style={{padding: 12}}
                 partTypes={[
                   {
                     trigger: '@', // Should be a single character like '@' or '#'
-                    renderSuggestions: renderMentionSuggestions,
                     textStyle: {fontWeight: 'bold', color: 'blue'}, // The mention style in the input
                   },
                 ]}
@@ -1159,79 +1171,3 @@ const InputBox = ({
 };
 
 export default InputBox;
-
-const renderSuggestions: (
-  suggestions: Suggestion[],
-) => FC<MentionSuggestionsProps> =
-  suggestions =>
-  ({keyword, onSuggestionPress}: any) => {
-    // if (keyword == null) {
-    //   return null;
-    // }
-
-    return (
-      <View>
-        {/* {suggestions
-          ?.filter(one =>
-            one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()),
-          )
-          .map(one => (
-            <Pressable
-              key={one.id}
-              onPress={() => onSuggestionPress(one)}
-              style={{padding: 12}}>
-              <Text>{one.name}</Text>
-            </Pressable>
-          ))} */}
-        <View style={[styles.taggableUsersBox, {bottom: false ? 115 : 50}]}>
-          <FlashList
-            data={suggestions?.filter(one =>
-              one.name
-                .toLocaleLowerCase()
-                .includes(keyword?.toLocaleLowerCase()),
-            )}
-            renderItem={({item, index}: any) => {
-              return (
-                <Pressable
-                  onPress={() => {
-                    onSuggestionPress(item);
-                  }}
-                  style={styles.taggableUserView}>
-                  <Image
-                    source={
-                      !!item?.image_url
-                        ? {uri: item?.image_url}
-                        : require('../../assets/images/default_pic.png')
-                    }
-                    style={styles.avatar}
-                  />
-
-                  <View
-                    style={[
-                      styles.infoContainer,
-                      {
-                        borderBottomWidth:
-                          index !== suggestions?.length - 1 ? 0.2 : 0,
-                      },
-                    ]}>
-                    <Text style={styles.title} numberOfLines={1}>
-                      {item?.name}
-                    </Text>
-                  </View>
-                </Pressable>
-              );
-            }}
-            extraData={{
-              value: [onSuggestionPress, suggestions],
-            }}
-            estimatedItemSize={15}
-            // onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.1}
-            bounces={false}
-            // ListFooterComponent={renderFooter}
-            keyExtractor={(item: any) => item?.id.toString()}
-          />
-        </View>
-      </View>
-    );
-  };

@@ -166,7 +166,7 @@ export const styles = StyleSheet.create({
   taggableUsersBox: {
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
-    height: 400,
+    height: 300,
     width: '100%',
     position: 'absolute',
     backgroundColor: 'white',
