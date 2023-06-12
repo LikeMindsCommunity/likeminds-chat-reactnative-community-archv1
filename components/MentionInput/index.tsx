@@ -18,7 +18,7 @@ import {
 } from './utils';
 
 const MentionInput: FC<MentionInputProps> = ({
-  value,
+  defaultValue,
   onChange,
 
   partTypes = [],
@@ -28,6 +28,7 @@ const MentionInput: FC<MentionInputProps> = ({
   containerStyle,
 
   onSelectionChange,
+  onContentSizeChange,
 
   ...textInputProps
 }) => {
@@ -36,13 +37,14 @@ const MentionInput: FC<MentionInputProps> = ({
   const [selection, setSelection] = useState({start: 0, end: 0});
 
   const {plainText, parts} = useMemo(
-    () => parseValue(value, partTypes),
-    [value, partTypes],
+    () => parseValue(defaultValue, partTypes),
+    [defaultValue, partTypes],
   );
 
   const handleSelectionChange = (
     event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
   ) => {
+    console.log('sndk ', event.nativeEvent.selection);
     setSelection(event.nativeEvent.selection);
 
     onSelectionChange && onSelectionChange(event);
@@ -131,22 +133,29 @@ const MentionInput: FC<MentionInputProps> = ({
     </React.Fragment>
   );
 
-  return (
-    <View style={containerStyle}>
-      {(
-        partTypes.filter(
-          one =>
-            isMentionPartType(one) &&
-            one.renderSuggestions != null &&
-            !one.isBottomMentionSuggestionsRender,
-        ) as MentionPartType[]
-      ).map(renderMentionSuggestions)}
+  // useEffect(() => {
+  //   renderMentionSuggestions()
+  // }, [])
 
+  // export renderMentionSuggestions;
+
+  // (
+  //   partTypes.filter(
+  //     one =>
+  //       isMentionPartType(one) &&
+  //       one.renderSuggestions != null &&
+  //       !one.isBottomMentionSuggestionsRender,
+  //   ) as MentionPartType[]
+  // ).map(renderMentionSuggestions);
+
+  return (
+    <View>
       <TextInput
         multiline
         {...textInputProps}
         ref={handleTextInputRef}
         onChangeText={onChangeInput}
+        onContentSizeChange={onContentSizeChange}
         onSelectionChange={handleSelectionChange}>
         <Text>
           {parts.map(({text, partType, data}, index) =>
@@ -163,14 +172,14 @@ const MentionInput: FC<MentionInputProps> = ({
         </Text>
       </TextInput>
 
-      {(
+      {/* {(
         partTypes.filter(
           one =>
             isMentionPartType(one) &&
             one.renderSuggestions != null &&
             one.isBottomMentionSuggestionsRender,
         ) as MentionPartType[]
-      ).map(renderMentionSuggestions)}
+      ).map(renderMentionSuggestions)} */}
     </View>
   );
 };

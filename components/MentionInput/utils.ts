@@ -21,8 +21,8 @@ import {
  * - Name - "Full Name"
  * - Id - "123abc"
  */
-// const mentionRegEx = /((.)\[([^[]*)]\(([^(^)]*)\))/gi;
-const mentionRegEx = /<<([^|]*)\|route:\/\/member\/([^>]*)>>/gi;
+const mentionRegEx = /((.)\[([^[]*)]\(([^(^)]*)\))/gi;
+// const mentionRegEx = /<<([^|]*)\|route:\/\/member\/([^>]*)>>/gi;
 
 const defaultMentionTextStyle: StyleProp<TextStyle> = {
   fontWeight: 'bold',
@@ -32,7 +32,7 @@ const defaultMentionTextStyle: StyleProp<TextStyle> = {
 const defaultPlainStringGenerator = (
   {trigger}: MentionPartType,
   {name}: MentionData,
-) => `${trigger}${name}`;
+) => `${name}`;
 
 const isMentionPartType = (partType: PartType): partType is MentionPartType => {
   return (partType as MentionPartType).trigger != null;
@@ -425,8 +425,8 @@ const generateRegexResultPart = (
  */
 // <<Full Name|route://member/123abc>>
 const getMentionValue = (trigger: string, suggestion: Suggestion) =>
-    `<<${suggestion.name}|route://member/${suggestion.id}>>`;
-//   `${trigger}[${suggestion.name}](${suggestion.id})`;
+  // `<<${suggestion.name}|route://member/${suggestion.id}>>`;
+  `${trigger}[${suggestion.name}](${suggestion.id})`;
 
 const getMentionDataFromRegExMatchResult = ([
   ,

@@ -75,6 +75,7 @@ import {requestStoragePermission} from '../../utils/permissions';
 import {FlashList} from '@shopify/flash-list';
 import {MentionInput} from '../MentionInput';
 import {MentionSuggestionsProps, Suggestion} from '../MentionInput/types';
+import {replaceMentionValues} from '../MentionInput/utils';
 
 interface InputBox {
   replyChatID?: any;
@@ -106,7 +107,7 @@ const InputBox = ({
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
   const [formattedMessage, setFormattedMessage] = useState(previousMessage);
-  const [inputHeight, setInputHeight] = useState(25);
+  const [inputHeight, setInputHeight] = useState(18);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [progressText, setProgressText] = useState('');
@@ -150,9 +151,11 @@ const InputBox = ({
     if (!isUploadScreen) {
       setMessage('');
       setFormattedMessage('');
-      setInputHeight(25);
+      setInputHeight(18);
     }
   }, [fileSent]);
+
+  // console.log('inputHeight ==', inputHeight);
 
   const handleVideoThumbnail = async (images: any) => {
     const res = await getVideoThumbnail({
@@ -466,6 +469,11 @@ const InputBox = ({
       }
     }
 
+    let conversationText = replaceMentionValues(
+      message,
+      ({id, name}) => `<<${name}|route://member/${id}>>`,
+    );
+
     // check if message is empty string or not
     if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
@@ -474,7 +482,7 @@ const InputBox = ({
         replyObj.reply_conversation_object = replyMessage;
         replyObj.member.name = user?.name;
         replyObj.member.id = user?.id;
-        replyObj.answer = message.trim();
+        replyObj.answer = conversationText.trim();
         replyObj.created_at = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
           useGrouping: false,
@@ -505,7 +513,7 @@ const InputBox = ({
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
       obj.member.id = user?.id;
-      obj.answer = message.trim();
+      obj.answer = conversationText.trim();
       obj.created_at = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,
         useGrouping: false,
@@ -548,7 +556,7 @@ const InputBox = ({
       }
       setMessage('');
       setFormattedMessage('');
-      setInputHeight(25);
+      setInputHeight(18);
 
       if (isReply) {
         dispatch({type: SET_IS_REPLY, body: {isReply: false}});
@@ -599,7 +607,7 @@ const InputBox = ({
             chatroom_id: chatroomID,
             created_at: new Date(Date.now()),
             has_files: false,
-            text: message.trim(),
+            text: conversationText.trim(),
             temporary_id: ID,
             attachment_count: attachmentsCount,
             replied_conversation_id: replyMessage?.id,
@@ -626,7 +634,7 @@ const InputBox = ({
             chatroom_id: chatroomID,
             created_at: new Date(Date.now()),
             has_files: true,
-            text: message.trim(),
+            text: conversationText.trim(),
             temporary_id: ID,
             attachment_count: attachmentsCount,
             replied_conversation_id: replyMessage?.id,
@@ -764,7 +772,8 @@ const InputBox = ({
             isSecret: false,
           });
           if (newMentions.length > 0) {
-            setUserTaggingList(res?.community_members);
+            // setUserTaggingList(res?.community_members);
+            setUserTaggingList(res?.members);
             setIsUserTagging(true);
           }
 
@@ -780,6 +789,9 @@ const InputBox = ({
       }
     }
   };
+
+  // console.log('userTaggingList ==', userTaggingList);
+  const renderMentionSuggestions = renderSuggestions(userTaggingList);
 
   return (
     <View>
@@ -871,6 +883,9 @@ const InputBox = ({
               />
             </View>
           ) : null}
+
+          {/* {true ? renderSuggestions(userTaggingList as any) : null} */}
+
           {isReply && !isUploadScreen && (
             <View style={styles.replyBox}>
               <ReplyBox isIncluded={false} item={replyMessage} />
@@ -944,30 +959,31 @@ const InputBox = ({
                     }
                   : {marginHorizontal: 20},
               ]}>
-              <TextInput
-                defaultValue={formatValue(message)}
+              {/* <TextInput
                 // value={message}
                 ref={myRef}
                 onChangeText={handleInputChange}
-                // mask={'+1 ([000]) [000] [00] [00]'}
                 maxLength={
                   chatRequestState === 0 || chatRequestState === null
                     ? MAX_LENGTH
                     : undefined
                 }
                 onContentSizeChange={event => {
+                  console.log(
+                    'event.nativeEvent.contentSize.height ==',
+                    event.nativeEvent.contentSize.height,
+                  );
                   setInputHeight(event.nativeEvent.contentSize.height);
                 }}
                 style={[
                   styles.input,
-                  {height: Math.max(25, inputHeight)},
+                  {height: Math.max(18, inputHeight)},
                   {
                     color: !!isUploadScreen
                       ? STYLES.$BACKGROUND_COLORS.LIGHT
                       : STYLES.$COLORS.SECONDARY,
                   },
                 ]}
-                // editable={false}
                 numberOfLines={6}
                 multiline={true}
                 onBlur={() => {
@@ -978,9 +994,53 @@ const InputBox = ({
                 }}
                 placeholder="Type a message..."
                 placeholderTextColor="#aaa">
-                {/* {REGEX_USER_TAGGING} */}
-                {/* <Text>{decode(message, false)}</Text> */}
-              </TextInput>
+                <Text>{message}</Text>
+              </TextInput> */}
+              <MentionInput
+                defaultValue={message}
+                onChange={handleInputChange}
+                placeholder="Type here..."
+                placeholderTextColor="#aaa"
+                inputRef={myRef}
+                maxLength={
+                  chatRequestState === 0 || chatRequestState === null
+                    ? MAX_LENGTH
+                    : undefined
+                }
+                onContentSizeChange={event => {
+                  console.log(
+                    'event.nativeEvent.contentSize.height ==',
+                    event.nativeEvent.contentSize.height,
+                  );
+                  setInputHeight(event.nativeEvent.contentSize.height);
+                }}
+                style={[
+                  styles.input,
+                  {height: Math.max(18, inputHeight)},
+                  {
+                    color: !!isUploadScreen
+                      ? STYLES.$BACKGROUND_COLORS.LIGHT
+                      : STYLES.$COLORS.SECONDARY,
+                    backgroundColor: 'yellow',
+                  },
+                ]}
+                numberOfLines={6}
+                // multiline={true}
+                onBlur={() => {
+                  setIsKeyBoardFocused(false);
+                }}
+                onFocus={() => {
+                  setIsKeyBoardFocused(true);
+                }}
+                // style={{padding: 12}}
+                partTypes={[
+                  {
+                    trigger: '@', // Should be a single character like '@' or '#'
+                    renderSuggestions: renderMentionSuggestions,
+                    textStyle: {fontWeight: 'bold', color: 'blue'}, // The mention style in the input
+                  },
+                ]}
+              />
             </View>
             {!isUploadScreen &&
             !(chatRequestState === 0 || chatRequestState === null) ? (
@@ -1105,13 +1165,13 @@ const renderSuggestions: (
 ) => FC<MentionSuggestionsProps> =
   suggestions =>
   ({keyword, onSuggestionPress}: any) => {
-    if (keyword == null) {
-      return null;
-    }
+    // if (keyword == null) {
+    //   return null;
+    // }
 
     return (
       <View>
-        {suggestions
+        {/* {suggestions
           ?.filter(one =>
             one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()),
           )
@@ -1122,10 +1182,14 @@ const renderSuggestions: (
               style={{padding: 12}}>
               <Text>{one.name}</Text>
             </Pressable>
-          ))}
-        {/* <View style={[styles.taggableUsersBox, {bottom: false ? 115 : 50}]}>
+          ))} */}
+        <View style={[styles.taggableUsersBox, {bottom: false ? 115 : 50}]}>
           <FlashList
-            data={suggestions}
+            data={suggestions?.filter(one =>
+              one.name
+                .toLocaleLowerCase()
+                .includes(keyword?.toLocaleLowerCase()),
+            )}
             renderItem={({item, index}: any) => {
               return (
                 <Pressable
@@ -1167,9 +1231,7 @@ const renderSuggestions: (
             // ListFooterComponent={renderFooter}
             keyExtractor={(item: any) => item?.id.toString()}
           />
-        </View> */}
+        </View>
       </View>
     );
   };
-
-// const renderMentionSuggestions = renderSuggestions(users);

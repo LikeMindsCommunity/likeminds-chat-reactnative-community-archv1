@@ -98,7 +98,7 @@ type Part = {
 };
 
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
-  value: string;
+  defaultValue: string;
   onChange: (value: string) => any;
 
   partTypes?: PartType[];

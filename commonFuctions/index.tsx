@@ -424,7 +424,7 @@ export function replaceLastMention(
   );
   // const mentionRegex = new RegExp(`@${taggerUserName}\\b`, 'gi');
 
-  const replacement = `<<${mentionUsername}|route://member/${memberID}>>`;
+  const replacement = `@[${mentionUsername}](${memberID})`;
   const replacedString = input.replace(mentionRegex, replacement);
   console.log('mentionRegex ==', replacement, replacedString);
   return replacedString;
