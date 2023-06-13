@@ -123,7 +123,7 @@ export const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
     borderColor: STYLES.$COLORS.MSG,
-    borderWidth: 0.2,
+    // borderWidth: 0.2,
     // padding: 1,
   },
   replyBox: {marginHorizontal: 10, marginTop: 10},
@@ -158,6 +158,11 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
   },
+  subTitle: {
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
+  },
   messageCustomTitle: {
     color: STYLES.$COLORS.SECONDARY,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
@@ -166,12 +171,14 @@ export const styles = StyleSheet.create({
   taggableUsersBox: {
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
-    height: 300,
+    // maxHeight: 300,
+    // minHeight: 100,
+    // height: 58,
     width: '100%',
-    position: 'absolute',
+    position: Platform.OS === 'ios' ? 'absolute' : 'relative',
     backgroundColor: 'white',
     borderColor: STYLES.$COLORS.MSG,
-    borderWidth: 0.2,
+    // borderWidth: 0.2,
     overflow: 'hidden',
 
     // paddingRight: -10,

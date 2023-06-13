@@ -118,6 +118,7 @@ const InputBox = ({
   const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
   const [isUserTagging, setIsUserTagging] = useState(false);
   const [userTaggingList, setUserTaggingList] = useState<any>([]);
+  const [userTaggingListHeight, setUserTaggingListHeight] = useState<any>(116);
   const [groupTags, setGroupTags] = useState<any>([]);
   const [taggedUserName, setTaggedUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -794,6 +795,13 @@ const InputBox = ({
             isSecret: false,
           });
           if (newMentions.length > 0) {
+            let arrLength =
+              res?.community_members.length + res?.group_tags?.length;
+            if (arrLength > 5) {
+              setUserTaggingListHeight(5 * 58);
+            } else if (arrLength < 5) {
+              setUserTaggingListHeight(arrLength * 58);
+            }
             setUserTaggingList(res?.community_members);
             setGroupTags(res?.group_tags);
             setIsUserTagging(true);
@@ -839,7 +847,7 @@ const InputBox = ({
                   styles.replyBoxParent,
                   {
                     borderTopWidth:
-                      isReply && !isUploadScreen && !isUserTagging ? 0.2 : 0,
+                      isReply && !isUploadScreen && !isUserTagging ? 0 : 0,
                     borderTopLeftRadius:
                       isReply && !isUploadScreen && !isUserTagging ? 10 : 0,
                     borderTopRightRadius:
@@ -854,25 +862,30 @@ const InputBox = ({
               style={[
                 styles.taggableUsersBox,
                 {
-                  bottom: isReply
-                    ? // reply message
-                      inputHeight <= 25
-                      ? 115
-                      : inputHeight <= 108 && inputHeight > 25
-                      ? inputHeight + 90
-                      : 205 // when maxHeight is reached
-                    : // normal message
-                    inputHeight <= 25
-                    ? 50
-                    : inputHeight <= 108 && inputHeight > 25
-                    ? inputHeight + 23
-                    : 142, // when maxHeight is reached
+                  bottom:
+                    Platform.OS === 'ios'
+                      ? isReply
+                        ? // reply message
+                          inputHeight <= 25
+                          ? 115
+                          : inputHeight <= 108 && inputHeight > 25
+                          ? inputHeight + 90
+                          : 205 // when maxHeight is reached
+                        : // normal message
+                        inputHeight <= 25
+                        ? 50
+                        : inputHeight <= 108 && inputHeight > 25
+                        ? inputHeight + 23
+                        : 142 // when maxHeight is reached
+                      : 0,
                   backgroundColor: !!isUploadScreen ? 'black' : 'white',
+                  height: userTaggingListHeight,
                 },
               ]}>
               <FlashList
                 data={[...groupTags, ...userTaggingList]}
                 renderItem={({item, index}: any) => {
+                  let description = item?.description;
                   return (
                     <Pressable
                       onPress={() => {
@@ -904,8 +917,8 @@ const InputBox = ({
                         style={[
                           styles.infoContainer,
                           {
-                            borderBottomWidth:
-                              index !== userTaggingList?.length - 1 ? 0.2 : 0,
+                            borderBottomWidth: 0.2,
+                            gap: Platform.OS === 'ios' ? 5 : 0,
                           },
                         ]}>
                         <Text
@@ -920,6 +933,20 @@ const InputBox = ({
                           numberOfLines={1}>
                           {item?.name}
                         </Text>
+                        {!!description ? (
+                          <Text
+                            style={[
+                              styles.subTitle,
+                              {
+                                color: !!isUploadScreen
+                                  ? STYLES.$COLORS.TERTIARY
+                                  : STYLES.$COLORS.PRIMARY,
+                              },
+                            ]}
+                            numberOfLines={1}>
+                            {description}
+                          </Text>
+                        ) : null}
                       </View>
                     </Pressable>
                   );
@@ -929,7 +956,7 @@ const InputBox = ({
                 }}
                 estimatedItemSize={15}
                 onEndReached={handleLoadMore}
-                onEndReachedThreshold={0.1}
+                onEndReachedThreshold={3}
                 bounces={false}
                 ListFooterComponent={renderFooter}
                 keyExtractor={(item: any, index) => {
@@ -967,6 +994,7 @@ const InputBox = ({
               (isReply && !isUploadScreen) || isUserTagging
                 ? {
                     borderWidth: 0,
+                    margin: Platform.OS === 'ios' ? 0 : 2,
                   }
                 : null,
             ]}>
@@ -1049,7 +1077,7 @@ const InputBox = ({
                 partTypes={[
                   {
                     trigger: '@', // Should be a single character like '@' or '#'
-                    textStyle: {fontWeight: 'bold', color: 'blue'}, // The mention style in the input
+                    textStyle: {color: STYLES.$COLORS.LIGHT_BLUE}, // The mention style in the input
                   },
                 ]}
               />
