@@ -184,11 +184,10 @@ const InputBox = ({
         editConversation?.answer,
         ({URLwithID, name}) => {
           // this is used to extract ID from route://member/4544 from this kind if url
-          const match = URLwithID.match(routeRegex);
           if (!!!Number(URLwithID)) {
             return `@[${name}](${name})`;
           } else {
-            return `@[${name}](${match[1]})`;
+            return `@[${name}](${URLwithID})`;
           }
         },
       );
