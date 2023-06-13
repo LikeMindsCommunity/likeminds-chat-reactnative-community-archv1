@@ -44,7 +44,6 @@ const MentionInput: FC<MentionInputProps> = ({
   const handleSelectionChange = (
     event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
   ) => {
-    console.log('sndk ', event.nativeEvent.selection);
     setSelection(event.nativeEvent.selection);
 
     onSelectionChange && onSelectionChange(event);
@@ -87,8 +86,6 @@ const MentionInput: FC<MentionInputProps> = ({
         selection,
         suggestion,
       );
-
-      console.log('newValue ==', newValue);
 
       if (!newValue) {
         return;

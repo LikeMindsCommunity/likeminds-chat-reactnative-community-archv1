@@ -466,12 +466,6 @@ const parseValue = (
     parts.push(generatePlainTextPart(value, positionOffset));
   } else {
     const [partType, ...restPartTypes] = partTypes;
-
-    // console.log(
-    //   'isMentionPartType(partType) ==',
-    //   isMentionPartType(partType),
-    //   partType,
-    // );
     const regex = isMentionPartType(partType) ? mentionRegEx : partType.pattern;
 
     const matches: RegexMatchResult[] = Array.from(
@@ -526,8 +520,6 @@ const parseValue = (
           result,
           positionOffset + plainText.length,
         );
-
-        console.log('part =====>', part);
         parts.push(part);
 
         plainText += part.text;

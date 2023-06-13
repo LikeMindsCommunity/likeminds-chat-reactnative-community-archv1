@@ -453,13 +453,6 @@ export const mergeTwoStringsToSaveRouteURL = (
   originalText: string,
   changedText: string,
 ) => {
-  // const changes = diffChars(originalText, changedText);
-  const changes = diffLines(originalText, changedText);
-  console.log('change ==', changes);
-  console.log('originalText change ==', originalText, changedText);
-
-  // const mergedString = originalText.replace(/<<(.*?)\|route:\/\/.*?>>/, '$&');
-  // console.log('mergedString', mergedString);
   // Merge strings based on regex pattern
   const mergedString = originalText.replace(
     /<<(.*?)\|route:\/\/.*?>>/,
@@ -518,11 +511,6 @@ export const mergeTwoStringsToSaveRouteURL = (
 };
 
 export const deleteRouteIfAny = (string: string, inputValue: string) => {
-  console.log(
-    'inputValue.endsWith',
-    inputValue.endsWith('>>'),
-    string.indexOf('>') === string.lastIndexOf('>'),
-  );
   if (
     inputValue.endsWith('>>') &&
     string.indexOf('>') === string.lastIndexOf('>')

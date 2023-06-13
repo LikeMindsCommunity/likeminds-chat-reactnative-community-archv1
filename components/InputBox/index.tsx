@@ -160,8 +160,6 @@ const InputBox = ({
     }
   }, [fileSent]);
 
-  // console.log('inputHeight ==', inputHeight);
-
   const handleVideoThumbnail = async (images: any) => {
     const res = await getVideoThumbnail({
       selectedImages: images,
@@ -703,8 +701,6 @@ const InputBox = ({
     return '';
   };
 
-  console.log('replaceRoutes ==', message);
-
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
     const res = await myClient.getTaggingList({
       page: page,
@@ -753,8 +749,6 @@ const InputBox = ({
   };
 
   const handleInputChange = async (e: any) => {
-    console.log('eee ==>', e);
-    // setInputValue(text);
     if (chatRequestState === 0 || chatRequestState === null) {
       if (e.length >= MAX_LENGTH) {
         dispatch({
@@ -779,7 +773,6 @@ const InputBox = ({
         const length = newMentions.length;
         setTaggedUserName(newMentions[length - 1]);
       }
-      console.log('newMentions', newMentions);
 
       //debouncing logic
       clearTimeout(debounceTimeout);
@@ -806,8 +799,6 @@ const InputBox = ({
             setGroupTags(res?.group_tags);
             setIsUserTagging(true);
           }
-
-          // console.log('newMentions', newMentions, res);
         }, 500);
 
         setDebounceTimeout(timeoutID);
@@ -820,8 +811,6 @@ const InputBox = ({
       }
     }
   };
-
-  console.log('input Height', inputHeight);
 
   return (
     <View>
@@ -889,14 +878,12 @@ const InputBox = ({
                   return (
                     <Pressable
                       onPress={() => {
-                        console.log('heelo ji', message, taggedUserName);
                         const res = replaceLastMention(
                           message,
                           taggedUserName,
                           item?.name,
                           item?.id,
                         );
-                        console.log('heelo kahiye ===', res);
                         setMessage(res);
                         setFormattedMessage(res);
                         setUserTaggingList([]);
@@ -1052,10 +1039,6 @@ const InputBox = ({
                     : undefined
                 }
                 onContentSizeChange={event => {
-                  console.log(
-                    'event.nativeEvent.contentSize.height ==',
-                    event.nativeEvent.contentSize.height,
-                  );
                   setInputHeight(event.nativeEvent.contentSize.height);
                 }}
                 style={[
