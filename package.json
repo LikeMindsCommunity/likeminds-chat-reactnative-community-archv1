@@ -26,7 +26,7 @@
     "buffer": "^6.0.3",
     "diff": "^5.1.0",
     "firebase": "^9.17.1",
-    "likeminds-chat-rn-beta": "^1.0.72",
+    "likeminds-chat-rn-beta": "^1.0.76",
     "react": "18.2.0",
     "react-native": "0.71.1",
     "react-native-create-thumbnail": "^1.6.4",

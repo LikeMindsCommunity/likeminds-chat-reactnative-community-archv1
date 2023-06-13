@@ -122,7 +122,12 @@ const AttachmentConversations = ({
         <View style={styles.messageText as any}>
           {decode(item?.answer, true)}
         </View>
-        <Text style={styles.messageDate}>{item?.created_at}</Text>
+        <View style={styles.alignTime}>
+          {item?.is_edited ? (
+            <Text style={styles.messageDate}>{`Edited • `}</Text>
+          ) : null}
+          <Text style={styles.messageDate}>{item?.created_at}</Text>
+        </View>
       </View>
 
       {!isTypeSent && !(attachment0?.type === AUDIO_TEXT) ? (

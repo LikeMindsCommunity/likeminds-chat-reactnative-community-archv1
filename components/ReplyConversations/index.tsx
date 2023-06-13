@@ -201,7 +201,12 @@ const ReplyConversations = ({
             <View style={styles.messageText as any}>
               {decode(item?.answer, true)}
             </View>
-            <Text style={styles.messageDate}>{item?.created_at}</Text>
+            <View style={styles.alignTime}>
+              {item?.is_edited ? (
+                <Text style={styles.messageDate}>{`Edited • `}</Text>
+              ) : null}
+              <Text style={styles.messageDate}>{item?.created_at}</Text>
+            </View>
           </View>
         )}
       </View>

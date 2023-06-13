@@ -21,12 +21,15 @@ import {
   CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
+  EDIT_CONVERSATION,
   FILE_SENT,
   IS_FILE_UPLOADING,
+  LONG_PRESSED,
   MESSAGE_SENT,
   SELECTED_FILES_TO_UPLOAD,
   SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
   SELECTED_FILE_TO_VIEW,
+  SELECTED_MESSAGES,
   SELECTED_MORE_FILES_TO_UPLOAD,
   SET_FILE_UPLOADING_MESSAGES,
   SET_IS_REPLY,
@@ -35,6 +38,7 @@ import {
   STATUS_BAR_STYLE,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
+  UPDATE_LAST_CONVERSATION,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -90,6 +94,8 @@ interface InputBox {
   myRef?: any;
   previousMessage?: string;
   handleFileUpload: any;
+  isEditable: boolean;
+  setIsEditable: any;
 }
 
 const InputBox = ({
@@ -104,6 +110,8 @@ const InputBox = ({
   myRef,
   previousMessage = '',
   handleFileUpload,
+  isEditable,
+  setIsEditable,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -131,6 +139,7 @@ const InputBox = ({
     selectedFilesToUpload = [],
     selectedFilesToUploadThumbnails = [],
     conversations = [],
+    selectedMessages = [],
   }: any = useAppSelector(state => state.chatroom);
   const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
@@ -159,6 +168,13 @@ const InputBox = ({
       setInputHeight(25);
     }
   }, [fileSent]);
+
+  // to clear message on ChatScreen InputBox when fileSent from UploadScreen
+  useEffect(() => {
+    if (isEditable) {
+      setMessage(selectedMessages[0]?.answer);
+    }
+  }, [isEditable]);
 
   const handleVideoThumbnail = async (images: any) => {
     const res = await getVideoThumbnail({
@@ -812,7 +828,53 @@ const InputBox = ({
         }
       }
     }
+  }
+  // this function is for editing a conversation
+  const onEdit = async () => {
+    let selectedConversation = selectedMessages[0];
+    let conversationId = selectedConversation?.id;
+    let previousConversation = selectedConversation;
+    let editedConversation = message;
+    let changedConversation;
+    changedConversation = {
+      ...selectedConversation,
+      answer: editedConversation,
+      is_edited: true,
+    };
+
+    dispatch({
+      type: EDIT_CONVERSATION,
+      body: {
+        previousConversation: previousConversation,
+        changedConversation: changedConversation,
+      },
+    });
+
+    let index = conversations.findIndex((element: any) => {
+      return element?.id == selectedConversation?.id;
+    });
+
+    if (index === 0) {
+      dispatch({
+        type: UPDATE_LAST_CONVERSATION,
+        body: {
+          lastConversationAnswer: editedConversation,
+          chatroomType: chatroomType,
+          chatroomID: chatroomID,
+        },
+      });
+    }
+    dispatch({type: SELECTED_MESSAGES, body: []});
+    dispatch({type: LONG_PRESSED, body: false});
+    setMessage('');
+    setIsEditable(false);
+
+    await myClient.editConversation({
+      conversationId: conversationId,
+      text: editedConversation,
+    });
   };
+  
 
   return (
     <View>
@@ -833,7 +895,7 @@ const InputBox = ({
         ]}>
         <View
           style={
-            (isReply && !isUploadScreen) || isUserTagging
+            (isReply && !isUploadScreen) || isUserTagging || isEditable
               ? [
                   styles.replyBoxParent,
                   {
@@ -957,6 +1019,27 @@ const InputBox = ({
             </View>
           )}
 
+          {isEditable ? (
+            <View style={styles.replyBox}>
+              <ReplyBox isIncluded={false} item={selectedMessages[0]} />
+              <TouchableOpacity
+                onPress={() => {
+                  setIsEditable(false);
+                  setMessage('');
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [],
+                  });
+                }}
+                style={styles.replyBoxClose}>
+                <Image
+                  style={styles.replyCloseImg}
+                  source={require('../../assets/images/close_icon.png')}
+                />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+
           <View
             style={[
               styles.textInput,
@@ -965,7 +1048,7 @@ const InputBox = ({
                   ? STYLES.$BACKGROUND_COLORS.DARK
                   : STYLES.$BACKGROUND_COLORS.LIGHT,
               },
-              (isReply && !isUploadScreen) || isUserTagging
+              (isReply && !isUploadScreen) || isEditable || isUserTagging
                 ? {
                     borderWidth: 0,
                     margin: Platform.OS === 'ios' ? 0 : 2,
@@ -1053,7 +1136,8 @@ const InputBox = ({
               />
             </View>
             {!isUploadScreen &&
-            !(chatRequestState === 0 || chatRequestState === null) ? (
+            !(chatRequestState === 0 || chatRequestState === null) &&
+            !isEditable ? (
               <TouchableOpacity
                 style={styles.emojiButton}
                 onPress={() => {
@@ -1078,7 +1162,11 @@ const InputBox = ({
             ) {
               sendDmRequest();
             } else {
-              onSend();
+              if (isEditable) {
+                onEdit();
+              } else {
+                onSend();
+              }
             }
           }}
           style={styles.sendButton}>

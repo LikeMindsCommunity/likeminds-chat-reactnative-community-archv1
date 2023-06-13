@@ -14,6 +14,8 @@ const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 export const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
 
+export const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
+
 {
   /* This is a generic arrow function to remove a specific key. 
   The first argument is the name of the key to remove, the second is the object from where you want to remove the key. 

@@ -9,3 +9,5 @@ export const DM_ALL_MEMBERS = 'DMAllMembers';
 export const FILE_UPLOAD = 'FileUpload';
 export const VIDEO_PLAYER = 'VideoPlayer';
 export const CAROUSEL_SCREEN = 'CarouselScreen';
+export const GROUP_FEED = 'GroupFeed';
+export const DM_FEED = 'DMFeed';
