@@ -326,7 +326,11 @@ const HomeFeedItem: React.FC<Props> = ({
           {!!time ? <Text style={styles.time}>{time}</Text> : null}
         </View>
         {!!lastConversation && !!!inviteReceiver ? (
-          <Text style={styles.parentLastMessage}>
+          <Text
+            style={[
+              styles.parentLastMessage,
+              {width: chatroomType === 10 ? '100%' : '75%'},
+            ]}>
             {!!deletedBy ? (
               <Text
                 style={

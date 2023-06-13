@@ -8,9 +8,10 @@ import {
 } from '../store/types/types';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
+import {diffChars, diffLines, diffWords} from 'diff';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
-const REGEX_USER_TAGGING =
+export const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
 
 export const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
@@ -381,4 +382,77 @@ export const getPdfThumbnail = async (selectedFile: any) => {
     arr = [...arr, {uri: selectedFile.uri}];
   }
   return arr;
+};
+
+//this function detect "@" mentions/tags while typing.
+export function detectMentions(input: string) {
+  const mentionRegex = /(?:^|\s)@(\w+)/g;
+  const matches = [];
+  let match;
+
+  while ((match = mentionRegex.exec(input)) !== null) {
+    const startIndex = match.index;
+    const endIndex = mentionRegex.lastIndex;
+    const nextChar = input.charAt(endIndex);
+
+    if (nextChar !== ' ' && nextChar !== '@') {
+      matches.push(match[1]);
+    }
+  }
+
+  if (input.endsWith(' @') || input === '@' || input.endsWith('\n@')) {
+    matches.push('');
+  }
+
+  return matches;
+}
+
+// this function replaces the last @mention from the textInput if we have clicked on a tag from suggestion
+export function replaceLastMention(
+  input: string,
+  taggerUserName: string,
+  mentionUsername: string,
+  memberID: any,
+) {
+  let mentionRegex: RegExp;
+
+  if (taggerUserName === '') {
+    mentionRegex = /(?<=^|\s)@($)/g;
+  } else {
+    mentionRegex = new RegExp(
+      `@${taggerUserName}\\b(?!.*@${taggerUserName}\\b)`,
+      'gi',
+    );
+  }
+  const replacement = `@[${mentionUsername}](${memberID}) `;
+  const replacedString = input.replace(mentionRegex, replacement);
+  return replacedString;
+}
+
+// this function delete the tag from textInput if we are delete even a single word of tag.
+export const deleteRouteIfAny = (string: string, inputValue: string) => {
+  if (
+    inputValue.endsWith('>>') &&
+    string.indexOf('>') === string.lastIndexOf('>')
+  ) {
+    // Replace the entire URL with an empty string
+    const replacedText = string.replace(/<<.*?\|route:\/\/.*?>>/, '');
+
+    return replacedText;
+  } else {
+    return string;
+  }
+};
+
+export const formatValue = (value: any) => {
+  // Check if the value matches the required pattern
+  const regex = /<<(\w+)\|.*>>/;
+  const match = regex.exec(value);
+
+  if (match && match[1]) {
+    const username = match[1];
+    return `@${username}`;
+  }
+
+  return '';
 };

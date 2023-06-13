@@ -56,6 +56,7 @@ import {
   REJECT_INVITE_SUCCESS,
   SELECTED_MESSAGES,
   SET_DM_PAGE,
+  SET_EDIT_MESSAGE,
   SET_EXPLORE_FEED_PAGE,
   SET_FILE_UPLOADING_MESSAGES,
   SET_IS_REPLY,
@@ -491,10 +492,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               </TouchableOpacity>
             ) : null}
 
-            {isSelectedMessageEditable ? (
+            {isSelectedMessageEditable &&
+            (chatroomType === 10 ? !!chatRequestState : true) ? ( // this condition checks in case of DM, chatRequestState != 0 && chatRequestState != null then only show edit Icon
               <TouchableOpacity
                 onPress={() => {
                   setIsEditable(true);
+                  dispatch({
+                    type: SET_EDIT_MESSAGE,
+                    body: {editConversation: {...selectedMessages[0]}},
+                  });
+                  dispatch({type: SELECTED_MESSAGES, body: []});
                 }}>
                 <Image
                   source={require('../../assets/images/edit_icon3x.png')}

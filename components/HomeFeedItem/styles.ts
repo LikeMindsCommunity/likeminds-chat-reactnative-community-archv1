@@ -43,7 +43,6 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.PRIMARY,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
-    width: '85%',
   },
   lastMessage: {
     color: STYLES.$COLORS.PRIMARY,

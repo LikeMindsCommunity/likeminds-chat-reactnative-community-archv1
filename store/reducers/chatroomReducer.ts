@@ -18,6 +18,7 @@ import {
   SELECTED_FILE_TO_VIEW,
   SELECTED_MESSAGES,
   SELECTED_MORE_FILES_TO_UPLOAD,
+  SET_EDIT_MESSAGE,
   SET_IS_REPLY,
   SET_POSITION,
   SET_REPLY_MESSAGE,
@@ -38,6 +39,7 @@ const initialState = {
   selectedFileToView: {} as any,
   isReply: false,
   replyMessage: '',
+  editConversation: '',
   fileSent: 0,
 };
 
@@ -189,6 +191,10 @@ export function chatroomReducer(state = initialState, action: any) {
     case SET_REPLY_MESSAGE: {
       const {replyMessage = ''} = action.body;
       return {...state, replyMessage: replyMessage};
+    }
+    case SET_EDIT_MESSAGE: {
+      const {editConversation = ''} = action.body;
+      return {...state, editConversation: editConversation};
     }
     case FILE_SENT: {
       const {status = ''} = action.body;
