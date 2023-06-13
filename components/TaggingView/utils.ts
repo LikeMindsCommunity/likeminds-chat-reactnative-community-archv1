@@ -30,7 +30,7 @@ const mentionRegEx = /((.)\[([^[]*)]\(([^(^)]*)\))/gi;
  * - Name - "User3"
  * - Id - "route://member/88752" -- To decode ID from this use @routeRegex
  */
-const convertionRegex = /<<(.*?)\|route:\/\/(.*?)>>/g;
+const convertionRegex = /<<([^|]*)\|[^>]*\/([^>]*)>>/g;
 export const routeRegex = /member\/(\d+)/;
 
 const defaultMentionTextStyle: StyleProp<TextStyle> = {
