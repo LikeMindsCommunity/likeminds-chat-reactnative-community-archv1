@@ -31,6 +31,7 @@ import {
   SELECTED_FILE_TO_VIEW,
   SELECTED_MESSAGES,
   SELECTED_MORE_FILES_TO_UPLOAD,
+  SET_EDIT_MESSAGE,
   SET_FILE_UPLOADING_MESSAGES,
   SET_IS_REPLY,
   SET_REPLY_MESSAGE,
@@ -80,7 +81,11 @@ import {requestStoragePermission} from '../../utils/permissions';
 import {FlashList} from '@shopify/flash-list';
 import {MentionInput} from '../MentionInput';
 import {MentionSuggestionsProps, Suggestion} from '../MentionInput/types';
-import {replaceMentionValues} from '../MentionInput/utils';
+import {
+  convertToMentionValues,
+  replaceMentionValues,
+  routeRegex,
+} from '../MentionInput/utils';
 
 interface InputBox {
   replyChatID?: any;
@@ -144,7 +149,7 @@ const InputBox = ({
   const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
   );
-  const {chatroomDetails, isReply, replyMessage, fileSent}: any =
+  const {chatroomDetails, isReply, replyMessage, editMessage, fileSent}: any =
     useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
@@ -172,9 +177,21 @@ const InputBox = ({
   // to clear message on ChatScreen InputBox when fileSent from UploadScreen
   useEffect(() => {
     if (isEditable) {
-      setMessage(selectedMessages[0]?.answer);
+      let convertedText = convertToMentionValues(
+        editMessage?.answer,
+        ({URLwithID, name}) => {
+          // this is used to extract ID from route://member/4544 from this kind if url
+          const match = URLwithID.match(routeRegex);
+          if (name === '@participants' || name === '@everyone') {
+            return `@[${name}](${name})`;
+          } else {
+            return `@[${name}](${match[1]})`;
+          }
+        },
+      );
+      setMessage(convertedText);
     }
-  }, [isEditable]);
+  }, [isEditable, selectedMessages]);
 
   const handleVideoThumbnail = async (images: any) => {
     const res = await getVideoThumbnail({
@@ -828,14 +845,23 @@ const InputBox = ({
         }
       }
     }
-  }
+  };
   // this function is for editing a conversation
   const onEdit = async () => {
-    let selectedConversation = selectedMessages[0];
+    let selectedConversation = editMessage;
     let conversationId = selectedConversation?.id;
     let previousConversation = selectedConversation;
-    let editedConversation = message;
+
     let changedConversation;
+    let conversationText = replaceMentionValues(message, ({id, name}) => {
+      if (name === '@participants' || name === '@everyone') {
+        return `<<${name}|route://${name}>>`;
+      } else {
+        return `<<${name}|route://member/${id}>>`;
+      }
+    });
+
+    let editedConversation = conversationText;
     changedConversation = {
       ...selectedConversation,
       answer: editedConversation,
@@ -847,6 +873,13 @@ const InputBox = ({
       body: {
         previousConversation: previousConversation,
         changedConversation: changedConversation,
+      },
+    });
+
+    dispatch({
+      type: SET_EDIT_MESSAGE,
+      body: {
+        editMessage: '',
       },
     });
 
@@ -874,7 +907,6 @@ const InputBox = ({
       text: editedConversation,
     });
   };
-  
 
   return (
     <View>
@@ -1021,11 +1053,17 @@ const InputBox = ({
 
           {isEditable ? (
             <View style={styles.replyBox}>
-              <ReplyBox isIncluded={false} item={selectedMessages[0]} />
+              <ReplyBox isIncluded={false} item={editMessage} />
               <TouchableOpacity
                 onPress={() => {
                   setIsEditable(false);
                   setMessage('');
+                  dispatch({
+                    type: SET_EDIT_MESSAGE,
+                    body: {
+                      editMessage: '',
+                    },
+                  });
                   dispatch({
                     type: SELECTED_MESSAGES,
                     body: [],

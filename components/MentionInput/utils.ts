@@ -22,7 +22,16 @@ import {
  * - Id - "123abc"
  */
 const mentionRegEx = /((.)\[([^[]*)]\(([^(^)]*)\))/gi;
-// const mentionRegEx = /<<([^|]*)\|route:\/\/member\/([^>]*)>>/gi;
+
+/**
+ * RegEx grouped results. Example - "<<User3|route://member/88752>>"
+ * We have 4 groups here:
+ * - The whole original string - "<<User3|route://member/88752>>"
+ * - Name - "User3"
+ * - Id - "route://member/88752" -- To decode ID from this use @routeRegex
+ */
+const convertionRegex = /<<(.*?)\|route:\/\/(.*?)>>/g;
+export const routeRegex = /member\/(\d+)/;
 
 const defaultMentionTextStyle: StyleProp<TextStyle> = {
   fontWeight: 'bold',
@@ -582,6 +591,18 @@ const replaceMentionValues = (
     }),
   );
 
+const convertToMentionValues = (
+  value: string,
+  replacer: (mention: any) => string,
+) =>
+  value.replace(convertionRegex, (original, name, URLwithID) =>
+    replacer({
+      original,
+      name,
+      URLwithID,
+    }),
+  );
+
 export {
   mentionRegEx,
   defaultMentionTextStyle,
@@ -595,4 +616,5 @@ export {
   parseValue,
   getValueFromParts,
   replaceMentionValues,
+  convertToMentionValues,
 };
