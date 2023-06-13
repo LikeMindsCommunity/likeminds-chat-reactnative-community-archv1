@@ -101,10 +101,6 @@ const MentionInput: FC<MentionInputProps> = ({
        *
        * Not working now due to the RN bug
        */
-      // const newCursorPosition = currentPart.position.start + triggerPartIndex + trigger.length +
-      // suggestion.name.length + 1;
-
-      // textInput.current?.setNativeProps({selection: {start: newCursorPosition, end: newCursorPosition}});
     };
 
   const handleTextInputRef = (ref: TextInput) => {
@@ -129,21 +125,6 @@ const MentionInput: FC<MentionInputProps> = ({
         })}
     </React.Fragment>
   );
-
-  // useEffect(() => {
-  //   renderMentionSuggestions()
-  // }, [])
-
-  // export renderMentionSuggestions;
-
-  // (
-  //   partTypes.filter(
-  //     one =>
-  //       isMentionPartType(one) &&
-  //       one.renderSuggestions != null &&
-  //       !one.isBottomMentionSuggestionsRender,
-  //   ) as MentionPartType[]
-  // ).map(renderMentionSuggestions);
 
   return (
     <TextInput
