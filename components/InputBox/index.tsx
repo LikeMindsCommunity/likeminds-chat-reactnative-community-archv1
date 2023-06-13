@@ -945,6 +945,7 @@ const InputBox = ({
                 data={[...groupTags, ...userTaggingList]}
                 renderItem={({item, index}: any) => {
                   let description = item?.description;
+                  let imageUrl = item?.image_url;
                   return (
                     <Pressable
                       onPress={() => {
@@ -963,8 +964,8 @@ const InputBox = ({
                       style={styles.taggableUserView}>
                       <Image
                         source={
-                          !!item?.image_url
-                            ? {uri: item?.image_url}
+                          !!imageUrl
+                            ? {uri: imageUrl}
                             : require('../../assets/images/default_pic.png')
                         }
                         style={styles.avatar}

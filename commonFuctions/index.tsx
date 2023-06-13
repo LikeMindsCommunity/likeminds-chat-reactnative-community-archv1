@@ -386,19 +386,14 @@ export const getPdfThumbnail = async (selectedFile: any) => {
 
 //this function detect "@" mentions/tags while typing.
 export function detectMentions(input: string) {
-  // const mentionRegex = /@(\w+)/g;
   const mentionRegex = /(?:^|\s)@(\w+)/g;
   const matches = [];
   let match;
-
-  // console.log('mentionRegex.exec(input) ==', mentionRegex.exec(input));
 
   while ((match = mentionRegex.exec(input)) !== null) {
     const startIndex = match.index;
     const endIndex = mentionRegex.lastIndex;
     const nextChar = input.charAt(endIndex);
-
-    // console.log('endIndex ==', endIndex, nextChar, startIndex);
 
     if (nextChar !== ' ' && nextChar !== '@') {
       matches.push(match[1]);
