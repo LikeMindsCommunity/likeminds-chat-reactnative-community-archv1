@@ -384,34 +384,23 @@ export const getPdfThumbnail = async (selectedFile: any) => {
   return arr;
 };
 
-export function splitWordsWithSpace(input: string) {
-  const words = input.split(' ');
-
-  for (let i = 0; i < words.length; i++) {
-    if (words[i + 1] === '') {
-      words[i] += ' ';
-    }
-  }
-
-  return words;
-}
-
+//this function detect "@" mentions/tags while typing.
 export function detectMentions(input: string) {
-  const mentionRegex = /@(\w+)/g;
+  // const mentionRegex = /@(\w+)/g;
+  const mentionRegex = /(?:^|\s)@(\w+)/g;
   const matches = [];
   let match;
+
+  // console.log('mentionRegex.exec(input) ==', mentionRegex.exec(input));
 
   while ((match = mentionRegex.exec(input)) !== null) {
     const startIndex = match.index;
     const endIndex = mentionRegex.lastIndex;
     const nextChar = input.charAt(endIndex);
 
-    if (
-      nextChar !== ' ' &&
-      nextChar !== '@' &&
-      match[1] !== 'everyone' &&
-      match[1] !== 'participants'
-    ) {
+    // console.log('endIndex ==', endIndex, nextChar, startIndex);
+
+    if (nextChar !== ' ' && nextChar !== '@') {
       matches.push(match[1]);
     }
   }
@@ -423,6 +412,7 @@ export function detectMentions(input: string) {
   return matches;
 }
 
+// this function replaces the last @mention from the textInput if we have clicked on a tag from suggestion
 export function replaceLastMention(
   input: string,
   taggerUserName: string,
@@ -444,6 +434,7 @@ export function replaceLastMention(
   return replacedString;
 }
 
+// this function delete the tag from textInput if we are delete even a single word of tag.
 export const deleteRouteIfAny = (string: string, inputValue: string) => {
   if (
     inputValue.endsWith('>>') &&
@@ -456,4 +447,17 @@ export const deleteRouteIfAny = (string: string, inputValue: string) => {
   } else {
     return string;
   }
+};
+
+export const formatValue = (value: any) => {
+  // Check if the value matches the required pattern
+  const regex = /<<(\w+)\|.*>>/;
+  const match = regex.exec(value);
+
+  if (match && match[1]) {
+    const username = match[1];
+    return `@${username}`;
+  }
+
+  return '';
 };

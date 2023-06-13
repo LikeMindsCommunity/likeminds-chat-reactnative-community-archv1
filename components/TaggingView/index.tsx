@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 
-import {MentionInputProps, MentionPartType, Suggestion} from './types';
+import {TaggingViewProps, MentionPartType, Suggestion} from './types';
 import {
   defaultMentionTextStyle,
   generateValueFromPartsAndChangedText,
@@ -17,7 +17,7 @@ import {
   parseValue,
 } from './utils';
 
-const MentionInput: FC<MentionInputProps> = ({
+const TaggingView: FC<TaggingViewProps> = ({
   defaultValue,
   onChange,
 
@@ -151,4 +151,4 @@ const MentionInput: FC<MentionInputProps> = ({
   );
 };
 
-export {MentionInput};
+export {TaggingView};

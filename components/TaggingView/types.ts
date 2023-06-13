@@ -97,7 +97,7 @@ type Part = {
   data?: MentionData;
 };
 
-type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
+type TaggingViewProps = Omit<TextInputProps, 'onChange'> & {
   defaultValue: string;
   onChange: (value: string) => any;
 
@@ -119,5 +119,5 @@ export type {
   MentionPartType,
   PatternPartType,
   PartType,
-  MentionInputProps,
+  TaggingViewProps,
 };

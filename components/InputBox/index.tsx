@@ -74,17 +74,15 @@ import {
   getPdfThumbnail,
   getVideoThumbnail,
   replaceLastMention,
-  splitWordsWithSpace,
 } from '../../commonFuctions';
 import {requestStoragePermission} from '../../utils/permissions';
 import {FlashList} from '@shopify/flash-list';
-import {MentionInput} from '../MentionInput';
-import {MentionSuggestionsProps, Suggestion} from '../MentionInput/types';
+import {TaggingView} from '../TaggingView';
 import {
   convertToMentionValues,
   replaceMentionValues,
   routeRegex,
-} from '../MentionInput/utils';
+} from '../TaggingView/utils';
 
 interface InputBox {
   replyChatID?: any;
@@ -119,7 +117,8 @@ const InputBox = ({
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
-  const [formattedMessage, setFormattedMessage] = useState(previousMessage);
+  const [formattedConversation, setFormattedConversation] =
+    useState(previousMessage);
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -148,8 +147,13 @@ const InputBox = ({
   const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
   );
-  const {chatroomDetails, isReply, replyMessage, editMessage, fileSent}: any =
-    useAppSelector(state => state.chatroom);
+  const {
+    chatroomDetails,
+    isReply,
+    replyMessage,
+    editConversation,
+    fileSent,
+  }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const dispatch = useAppDispatch();
@@ -168,7 +172,7 @@ const InputBox = ({
   useEffect(() => {
     if (!isUploadScreen) {
       setMessage('');
-      setFormattedMessage('');
+      setFormattedConversation('');
       setInputHeight(25);
     }
   }, [fileSent]);
@@ -177,11 +181,11 @@ const InputBox = ({
   useEffect(() => {
     if (isEditable) {
       let convertedText = convertToMentionValues(
-        editMessage?.answer,
+        editConversation?.answer,
         ({URLwithID, name}) => {
           // this is used to extract ID from route://member/4544 from this kind if url
           const match = URLwithID.match(routeRegex);
-          if (name === '@participants' || name === '@everyone') {
+          if (!!!Number(URLwithID)) {
             return `@[${name}](${name})`;
           } else {
             return `@[${name}](${match[1]})`;
@@ -505,7 +509,7 @@ const InputBox = ({
     }
 
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      if (name === '@participants' || name === '@everyone') {
+      if (!!!Number(id)) {
         return `<<${name}|route://${name}>>`;
       } else {
         return `<<${name}|route://member/${id}>>`;
@@ -593,7 +597,7 @@ const InputBox = ({
         });
       }
       setMessage('');
-      setFormattedMessage('');
+      setFormattedConversation('');
       setInputHeight(25);
 
       if (isReply) {
@@ -720,19 +724,6 @@ const InputBox = ({
     }
   };
 
-  const formatValue = (value: any) => {
-    // Check if the value matches the required pattern
-    const regex = /<<(\w+)\|.*>>/;
-    const match = regex.exec(value);
-
-    if (match && match[1]) {
-      const username = match[1];
-      return `@${username}`;
-    }
-
-    return '';
-  };
-
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
     const res = await myClient.getTaggingList({
       page: page,
@@ -792,12 +783,12 @@ const InputBox = ({
         });
       } else if (e.length < MAX_LENGTH) {
         setMessage(e);
-        setFormattedMessage(e);
+        setFormattedConversation(e);
       }
     } else {
-      let modifiedMessage = deleteRouteIfAny(e, message);
-      setMessage(modifiedMessage);
-      setFormattedMessage(modifiedMessage);
+      let modifiedConversation = deleteRouteIfAny(e, message);
+      setMessage(modifiedConversation);
+      setFormattedConversation(modifiedConversation);
 
       const newMentions = detectMentions(e);
 
@@ -847,13 +838,13 @@ const InputBox = ({
   };
   // this function is for editing a conversation
   const onEdit = async () => {
-    let selectedConversation = editMessage;
+    let selectedConversation = editConversation;
     let conversationId = selectedConversation?.id;
     let previousConversation = selectedConversation;
 
     let changedConversation;
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      if (name === '@participants' || name === '@everyone') {
+      if (!!!Number(id)) {
         return `<<${name}|route://${name}>>`;
       } else {
         return `<<${name}|route://member/${id}>>`;
@@ -878,7 +869,7 @@ const InputBox = ({
     dispatch({
       type: SET_EDIT_MESSAGE,
       body: {
-        editMessage: '',
+        editConversation: '',
       },
     });
 
@@ -964,7 +955,7 @@ const InputBox = ({
                           item?.id,
                         );
                         setMessage(res);
-                        setFormattedMessage(res);
+                        setFormattedConversation(res);
                         setUserTaggingList([]);
                         setGroupTags([]);
                         setIsUserTagging(false);
@@ -1052,7 +1043,7 @@ const InputBox = ({
 
           {isEditable ? (
             <View style={styles.replyBox}>
-              <ReplyBox isIncluded={false} item={editMessage} />
+              <ReplyBox isIncluded={false} item={editConversation} />
               <TouchableOpacity
                 onPress={() => {
                   setIsEditable(false);
@@ -1060,7 +1051,7 @@ const InputBox = ({
                   dispatch({
                     type: SET_EDIT_MESSAGE,
                     body: {
-                      editMessage: '',
+                      editConversation: '',
                     },
                   });
                   dispatch({
@@ -1134,7 +1125,7 @@ const InputBox = ({
                     }
                   : {marginHorizontal: 20},
               ]}>
-              <MentionInput
+              <TaggingView
                 defaultValue={message}
                 onChange={handleInputChange}
                 placeholder="Type here..."

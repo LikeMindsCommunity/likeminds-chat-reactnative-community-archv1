@@ -10,11 +10,9 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     borderRadius: 30,
     overflow: 'hidden',
-    // maxWidth: Layout.window.width - 75,
     width: Layout.window.width - 75,
     borderColor: STYLES.$COLORS.MSG,
     borderWidth: 0.2,
-    // backgroundColor:'pink'
   },
   inputContainer: {
     display: 'flex',
@@ -22,7 +20,6 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-end',
     padding: 5,
     margin: 5,
-    // backgroundColor: 'pink',
   },
   addMoreButton: {
     padding: 10,
@@ -62,7 +59,6 @@ export const styles = StyleSheet.create({
   sendButton: {
     height: 50,
     width: 50,
-    // padding: 15,
     backgroundColor: STYLES.$COLORS.SECONDARY,
     borderRadius: 50,
     display: 'flex',
@@ -80,7 +76,6 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#f2f2f2',
     padding: 10,
-    // elevation: 2,
   },
 
   centeredView: {
@@ -123,8 +118,6 @@ export const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
     borderColor: STYLES.$COLORS.MSG,
-    // borderWidth: 0.2,
-    // padding: 1,
   },
   replyBox: {marginHorizontal: 10, marginTop: 10},
   replyBoxClose: {
@@ -171,17 +164,11 @@ export const styles = StyleSheet.create({
   taggableUsersBox: {
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
-    // maxHeight: 300,
-    // minHeight: 100,
-    // height: 58,
     width: '100%',
     position: 'relative',
     backgroundColor: 'white',
     borderColor: STYLES.$COLORS.MSG,
-    // borderWidth: 0.2,
     overflow: 'hidden',
-
-    // paddingRight: -10,
   },
   taggableUserView: {
     display: 'flex',

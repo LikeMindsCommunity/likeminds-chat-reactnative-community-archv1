@@ -39,7 +39,7 @@ const initialState = {
   selectedFileToView: {} as any,
   isReply: false,
   replyMessage: '',
-  editMessage: '',
+  editConversation: '',
   fileSent: 0,
 };
 
@@ -193,8 +193,8 @@ export function chatroomReducer(state = initialState, action: any) {
       return {...state, replyMessage: replyMessage};
     }
     case SET_EDIT_MESSAGE: {
-      const {editMessage = ''} = action.body;
-      return {...state, editMessage: editMessage};
+      const {editConversation = ''} = action.body;
+      return {...state, editConversation: editConversation};
     }
     case FILE_SENT: {
       const {status = ''} = action.body;

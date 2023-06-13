@@ -141,8 +141,10 @@ const HomeFeed = ({navigation}: Props) => {
 
   async function fetchData() {
     let payload = {
-      user_unique_id: '',
-      user_name: '',
+      // user_unique_id: '9d97a2ed-8122-47b1-8a8a-5d82da4630c8',
+      // user_unique_id: '22dacc8d-6eca-4e3d-b1ce-d9dd15f45eb5',
+      user_unique_id: 'db4ed209-f511-4f92-85e7-17b503c33276',
+      user_name: 'Jai',
       is_guest: false,
     };
     let res = await dispatch(initAPI(payload) as any);

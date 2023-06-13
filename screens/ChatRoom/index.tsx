@@ -499,7 +499,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   setIsEditable(true);
                   dispatch({
                     type: SET_EDIT_MESSAGE,
-                    body: {editMessage: {...selectedMessages[0]}},
+                    body: {editConversation: {...selectedMessages[0]}},
                   });
                   dispatch({type: SELECTED_MESSAGES, body: []});
                 }}>
