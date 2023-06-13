@@ -73,7 +73,6 @@ import {
   getAllPdfThumbnail,
   getPdfThumbnail,
   getVideoThumbnail,
-  mergeTwoStringsToSaveRouteURL,
   replaceLastMention,
   splitWordsWithSpace,
 } from '../../commonFuctions';
