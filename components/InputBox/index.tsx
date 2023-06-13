@@ -788,12 +788,14 @@ const InputBox = ({
             isSecret: false,
           });
           if (newMentions.length > 0) {
-            let arrLength =
-              res?.community_members.length + res?.group_tags?.length;
+            let groupTagsLength = res?.group_tags?.length;
+            let communityMembersLength = res?.community_members.length;
+            let arrLength = communityMembersLength + groupTagsLength;
             if (arrLength > 5) {
               setUserTaggingListHeight(5 * 58);
             } else if (arrLength < 5) {
-              setUserTaggingListHeight(arrLength * 58);
+              let height = communityMembersLength * 58 + groupTagsLength * 80;
+              setUserTaggingListHeight(height);
             }
             setUserTaggingList(res?.community_members);
             setGroupTags(res?.group_tags);
@@ -838,9 +840,9 @@ const InputBox = ({
                     borderTopWidth:
                       isReply && !isUploadScreen && !isUserTagging ? 0 : 0,
                     borderTopLeftRadius:
-                      isReply && !isUploadScreen && !isUserTagging ? 10 : 0,
+                      isReply && !isUploadScreen && !isUserTagging ? 10 : 20,
                     borderTopRightRadius:
-                      isReply && !isUploadScreen && !isUserTagging ? 10 : 0,
+                      isReply && !isUploadScreen && !isUserTagging ? 10 : 20,
                     backgroundColor: !!isUploadScreen ? 'black' : 'white',
                   },
                 ]
@@ -851,22 +853,6 @@ const InputBox = ({
               style={[
                 styles.taggableUsersBox,
                 {
-                  bottom:
-                    Platform.OS === 'ios'
-                      ? isReply
-                        ? // reply message
-                          inputHeight <= 25
-                          ? 115
-                          : inputHeight <= 108 && inputHeight > 25
-                          ? inputHeight + 90
-                          : 205 // when maxHeight is reached
-                        : // normal message
-                        inputHeight <= 25
-                        ? 50
-                        : inputHeight <= 108 && inputHeight > 25
-                        ? inputHeight + 23
-                        : 142 // when maxHeight is reached
-                      : 0,
                   backgroundColor: !!isUploadScreen ? 'black' : 'white',
                   height: userTaggingListHeight,
                 },
@@ -942,6 +928,7 @@ const InputBox = ({
                   value: [message, userTaggingList],
                 }}
                 estimatedItemSize={15}
+                keyboardShouldPersistTaps={'handled'}
                 onEndReached={handleLoadMore}
                 onEndReachedThreshold={3}
                 bounces={false}

@@ -175,7 +175,7 @@ export const styles = StyleSheet.create({
     // minHeight: 100,
     // height: 58,
     width: '100%',
-    position: Platform.OS === 'ios' ? 'absolute' : 'relative',
+    position: 'relative',
     backgroundColor: 'white',
     borderColor: STYLES.$COLORS.MSG,
     // borderWidth: 0.2,
