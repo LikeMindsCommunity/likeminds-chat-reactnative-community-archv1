@@ -181,7 +181,7 @@ const InputBox = ({
   useEffect(() => {
     if (isEditable) {
       let convertedText = convertToMentionValues(
-        editConversation?.answer,
+        `${editConversation?.answer} `, // to put extra space after a message whwn we want to edit a message
         ({URLwithID, name}) => {
           // this is used to extract ID from route://member/4544 from this kind if url
           if (!!!Number(URLwithID)) {
@@ -751,9 +751,10 @@ const InputBox = ({
 
   //function checks the pagination logic, if it verifies the condition then call loadData
   const handleLoadMore = () => {
-    if (!isLoading && conversations.length > 0) {
+    let userTaggingListLength = userTaggingList.length;
+    if (!isLoading && userTaggingListLength > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
+      if (userTaggingListLength >= 10 * page) {
         const newPage = page + 1;
         setPage(newPage);
         loadData(newPage);
@@ -809,7 +810,7 @@ const InputBox = ({
             chatroomId: chatroomID,
             isSecret: false,
           });
-          if (newMentions.length > 0) {
+          if (len > 0) {
             let groupTagsLength = res?.group_tags?.length;
             let communityMembersLength = res?.community_members.length;
             let arrLength = communityMembersLength + groupTagsLength;
@@ -1014,7 +1015,7 @@ const InputBox = ({
                 estimatedItemSize={15}
                 keyboardShouldPersistTaps={'handled'}
                 onEndReached={handleLoadMore}
-                onEndReachedThreshold={3}
+                onEndReachedThreshold={1}
                 bounces={false}
                 ListFooterComponent={renderFooter}
                 keyExtractor={(item: any, index) => {
