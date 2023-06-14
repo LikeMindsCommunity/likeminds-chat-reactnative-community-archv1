@@ -41,6 +41,7 @@ interface AttachmentConversations {
   longPressOpenKeyboard: any;
   isReplyConversation?: any;
   handleFileUpload: any;
+  isReply?: any;
 }
 
 const AttachmentConversations = ({
@@ -52,6 +53,7 @@ const AttachmentConversations = ({
   longPressOpenKeyboard,
   isReplyConversation,
   handleFileUpload,
+  isReply,
 }: AttachmentConversations) => {
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
@@ -74,7 +76,7 @@ const AttachmentConversations = ({
           isTypeSent ? styles.sentMessage : styles.receivedMessage,
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
-        {!!(item?.member?.id === user?.id) ? null : (
+        {!!(item?.member?.id === user?.id) || isReply ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
             {!!item?.member?.custom_title ? (

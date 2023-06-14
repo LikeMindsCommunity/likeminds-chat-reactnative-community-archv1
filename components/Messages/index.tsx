@@ -431,9 +431,16 @@ const Messages = ({
         setModalVisible={val => {
           setModalVisible(val);
         }}
-        removeReaction={() => {
-          removeReaction();
-          setModalVisible(false);
+        removeReaction={(clickedIndex: any) => {
+          removeReaction(clickedIndex);
+
+          //logic to check clicked index and findIndex are same so that we can remove reaction
+          let index = item?.reactions.findIndex(
+            (val: any) => val?.member?.id === user?.id,
+          );
+          if (index !== -1 && index === clickedIndex) {
+            setModalVisible(false);
+          }
         }}
       />
     </View>

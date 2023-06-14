@@ -208,6 +208,7 @@ const ReplyConversations = ({
               longPressOpenKeyboard();
             }}
             handleFileUpload={handleFileUpload}
+            isReply={true}
           />
         ) : (
           <View>

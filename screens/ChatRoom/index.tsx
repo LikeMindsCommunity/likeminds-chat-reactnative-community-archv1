@@ -1254,7 +1254,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   // this function is for removing a reaction from conversation
-  const removeReaction = (item: any) => {
+  const removeReaction = (item: any, clickedIndex: any) => {
     let previousMsg = item;
     let changedMsg;
     let val;
@@ -1262,28 +1262,32 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let index = item?.reactions.findIndex(
         (val: any) => val?.member?.id === user?.id,
       );
-      let tempArr = [...item?.reactions];
 
-      val = tempArr[index];
+      // check condition user has a reaction && clickedIndex is same as findIndex
+      if (index !== -1 && index === clickedIndex) {
+        let tempArr = [...item?.reactions];
 
-      if (index !== undefined || index !== -1) {
-        tempArr.splice(index, 1);
+        val = tempArr[index];
+
+        if (index !== undefined || index !== -1) {
+          tempArr.splice(index, 1);
+        }
+
+        changedMsg = {
+          ...item,
+          reactions: tempArr,
+        };
+
+        dispatch({
+          type: REACTION_SENT,
+          body: {
+            previousMsg: previousMsg,
+            changedMsg: changedMsg,
+          },
+        });
+        removeReactionAPI(previousMsg?.id, val?.reaction);
       }
-
-      changedMsg = {
-        ...item,
-        reactions: tempArr,
-      };
-
-      dispatch({
-        type: REACTION_SENT,
-        body: {
-          previousMsg: previousMsg,
-          changedMsg: changedMsg,
-        },
-      });
     }
-    removeReactionAPI(previousMsg?.id, val?.reaction);
   };
 
   //this function is for sending a reaction to a message
@@ -1813,8 +1817,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       selectedMessages,
                     );
                   }}
-                  removeReaction={() => {
-                    removeReaction(item);
+                  removeReaction={(index: any) => {
+                    removeReaction(item, index);
                   }}
                   handleTapToUndo={() => {
                     onTapToUndo();
