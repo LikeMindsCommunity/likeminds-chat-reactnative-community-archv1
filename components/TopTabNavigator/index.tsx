@@ -8,14 +8,14 @@ import {useAppSelector} from '../../store';
 
 interface PeopleWhoReactedDefault {
   item: any;
-  removeReaction: () => void;
+  removeReaction: any;
   user: any;
 }
 
 interface PeopleWhoReacted {
   item: any;
   title: any;
-  removeReaction: () => void;
+  removeReaction: any;
   user: any;
 }
 
@@ -45,7 +45,7 @@ export const PeopleWhoReactedDefault = ({
                 </View>
                 <TouchableOpacity
                   onPress={() => {
-                    removeReaction();
+                    removeReaction(index);
                   }}
                   style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.member?.name}</Text>
@@ -90,7 +90,7 @@ export const PeopleWhoReacted = ({
                 </View>
                 <TouchableOpacity
                   onPress={() => {
-                    removeReaction();
+                    removeReaction(index);
                   }}
                   style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.name}</Text>
