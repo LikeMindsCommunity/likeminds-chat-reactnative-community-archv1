@@ -810,7 +810,7 @@ const InputBox = ({
             chatroomId: chatroomID,
             isSecret: false,
           });
-          if (newMentions.length > 0) {
+          if (len > 0) {
             let groupTagsLength = res?.group_tags?.length;
             let communityMembersLength = res?.community_members.length;
             let arrLength = communityMembersLength + groupTagsLength;
@@ -1015,7 +1015,7 @@ const InputBox = ({
                 estimatedItemSize={15}
                 keyboardShouldPersistTaps={'handled'}
                 onEndReached={handleLoadMore}
-                onEndReachedThreshold={3}
+                onEndReachedThreshold={1}
                 bounces={false}
                 ListFooterComponent={renderFooter}
                 keyExtractor={(item: any, index) => {
