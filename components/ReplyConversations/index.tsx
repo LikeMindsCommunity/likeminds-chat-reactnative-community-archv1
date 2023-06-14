@@ -112,6 +112,7 @@ const ReplyConversations = ({
   const dispatch = useAppDispatch();
   const {conversations, selectedMessages, stateArr, isLongPress}: any =
     useAppSelector(state => state.chatroom);
+  const {user} = useAppSelector(state => state.homefeed);
 
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
@@ -172,6 +173,18 @@ const ReplyConversations = ({
           isTypeSent ? styles.sentMessage : styles.receivedMessage,
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
+        {/* Reply conversation message sender name */}
+        {!!(item?.member?.id === user?.id) ? null : (
+          <Text style={styles.messageInfo} numberOfLines={1}>
+            {item?.member?.name}
+            {!!item?.member?.custom_title ? (
+              <Text
+                style={
+                  styles.messageCustomTitle
+                }>{` • ${item?.member?.custom_title}`}</Text>
+            ) : null}
+          </Text>
+        )}
         <TouchableOpacity
           onLongPress={handleLongPress}
           delayLongPress={200}

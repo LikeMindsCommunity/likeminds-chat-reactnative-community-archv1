@@ -502,6 +502,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     body: {editConversation: {...selectedMessages[0]}},
                   });
                   dispatch({type: SELECTED_MESSAGES, body: []});
+                  refInput.current.focus();
                 }}>
                 <Image
                   source={require('../../assets/images/edit_icon3x.png')}
@@ -623,6 +624,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       type: SET_REPLY_MESSAGE,
       body: {replyMessage: ''},
     });
+  }, []);
+
+  useEffect(() => {
     fetchChatroomDetails();
     setInitialHeader();
   }, [navigation]);
@@ -660,11 +664,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           const popAction = StackActions.pop(2);
           navigation.dispatch(popAction);
         } else {
-          const popAction = StackActions.pop(1);
-          navigation.dispatch(popAction);
-          navigation.push(CHATROOM, {
-            chatroomID: previousChatroomID,
-          });
+          if (previousChatroomID) {
+            const popAction = StackActions.pop(1);
+            navigation.dispatch(popAction);
+            navigation.push(CHATROOM, {
+              chatroomID: previousChatroomID,
+            });
+          } else {
+            navigation.goBack();
+          }
         }
       } else {
         navigation.goBack();
