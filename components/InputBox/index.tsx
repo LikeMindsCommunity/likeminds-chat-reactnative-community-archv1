@@ -11,8 +11,9 @@ import {
   Alert,
   PermissionsAndroid,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {FC, useEffect, useRef, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
@@ -20,13 +21,17 @@ import {
   CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
+  EDIT_CONVERSATION,
   FILE_SENT,
   IS_FILE_UPLOADING,
+  LONG_PRESSED,
   MESSAGE_SENT,
   SELECTED_FILES_TO_UPLOAD,
   SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
   SELECTED_FILE_TO_VIEW,
+  SELECTED_MESSAGES,
   SELECTED_MORE_FILES_TO_UPLOAD,
+  SET_EDIT_MESSAGE,
   SET_FILE_UPLOADING_MESSAGES,
   SET_IS_REPLY,
   SET_REPLY_MESSAGE,
@@ -34,6 +39,7 @@ import {
   STATUS_BAR_STYLE,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
+  UPDATE_LAST_CONVERSATION,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -59,12 +65,24 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {
+  REGEX_USER_TAGGING,
+  decode,
+  deleteRouteIfAny,
+  detectMentions,
   fetchResourceFromURI,
   getAllPdfThumbnail,
   getPdfThumbnail,
   getVideoThumbnail,
+  replaceLastMention,
 } from '../../commonFuctions';
 import {requestStoragePermission} from '../../utils/permissions';
+import {FlashList} from '@shopify/flash-list';
+import {TaggingView} from '../TaggingView';
+import {
+  convertToMentionValues,
+  replaceMentionValues,
+  routeRegex,
+} from '../TaggingView/utils';
 
 interface InputBox {
   replyChatID?: any;
@@ -78,6 +96,8 @@ interface InputBox {
   myRef?: any;
   previousMessage?: string;
   handleFileUpload: any;
+  isEditable?: boolean;
+  setIsEditable?: any;
 }
 
 const InputBox = ({
@@ -92,9 +112,13 @@ const InputBox = ({
   myRef,
   previousMessage = '',
   handleFileUpload,
+  isEditable,
+  setIsEditable,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
+  const [formattedConversation, setFormattedConversation] =
+    useState(previousMessage);
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -102,6 +126,14 @@ const InputBox = ({
   const [isUploading, setIsUploading] = useState(false);
   const [s3UploadResponse, setS3UploadResponse] = useState<any>();
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
+  const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
+  const [isUserTagging, setIsUserTagging] = useState(false);
+  const [userTaggingList, setUserTaggingList] = useState<any>([]);
+  const [userTaggingListHeight, setUserTaggingListHeight] = useState<any>(116);
+  const [groupTags, setGroupTags] = useState<any>([]);
+  const [taggedUserName, setTaggedUserName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -110,12 +142,18 @@ const InputBox = ({
     selectedFilesToUpload = [],
     selectedFilesToUploadThumbnails = [],
     conversations = [],
+    selectedMessages = [],
   }: any = useAppSelector(state => state.chatroom);
   const {myChatrooms, user, community}: any = useAppSelector(
     state => state.homefeed,
   );
-  const {chatroomDetails, isReply, replyMessage, fileSent}: any =
-    useAppSelector(state => state.chatroom);
+  const {
+    chatroomDetails,
+    isReply,
+    replyMessage,
+    editConversation,
+    fileSent,
+  }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const dispatch = useAppDispatch();
@@ -134,9 +172,28 @@ const InputBox = ({
   useEffect(() => {
     if (!isUploadScreen) {
       setMessage('');
+      setFormattedConversation('');
       setInputHeight(25);
     }
   }, [fileSent]);
+
+  // to clear message on ChatScreen InputBox when fileSent from UploadScreen
+  useEffect(() => {
+    if (isEditable) {
+      let convertedText = convertToMentionValues(
+        `${editConversation?.answer} `, // to put extra space after a message whwn we want to edit a message
+        ({URLwithID, name}) => {
+          // this is used to extract ID from route://member/4544 from this kind if url
+          if (!!!Number(URLwithID)) {
+            return `@[${name}](${name})`;
+          } else {
+            return `@[${name}](${URLwithID})`;
+          }
+        },
+      );
+      setMessage(convertedText);
+    }
+  }, [isEditable, selectedMessages]);
 
   const handleVideoThumbnail = async (images: any) => {
     const res = await getVideoThumbnail({
@@ -450,6 +507,14 @@ const InputBox = ({
       }
     }
 
+    let conversationText = replaceMentionValues(message, ({id, name}) => {
+      if (!!!Number(id)) {
+        return `<<${name}|route://${name}>>`;
+      } else {
+        return `<<${name}|route://member/${id}>>`;
+      }
+    });
+
     // check if message is empty string or not
     if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
@@ -458,7 +523,7 @@ const InputBox = ({
         replyObj.reply_conversation_object = replyMessage;
         replyObj.member.name = user?.name;
         replyObj.member.id = user?.id;
-        replyObj.answer = message.trim();
+        replyObj.answer = conversationText.trim();
         replyObj.created_at = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
           useGrouping: false,
@@ -489,7 +554,7 @@ const InputBox = ({
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
       obj.member.id = user?.id;
-      obj.answer = message.trim();
+      obj.answer = conversationText.trim();
       obj.created_at = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,
         useGrouping: false,
@@ -531,6 +596,7 @@ const InputBox = ({
         });
       }
       setMessage('');
+      setFormattedConversation('');
       setInputHeight(25);
 
       if (isReply) {
@@ -582,7 +648,7 @@ const InputBox = ({
             chatroom_id: chatroomID,
             created_at: new Date(Date.now()),
             has_files: false,
-            text: message.trim(),
+            text: conversationText.trim(),
             temporary_id: ID,
             attachment_count: attachmentsCount,
             replied_conversation_id: replyMessage?.id,
@@ -609,7 +675,7 @@ const InputBox = ({
             chatroom_id: chatroomID,
             created_at: new Date(Date.now()),
             has_files: true,
-            text: message.trim(),
+            text: conversationText.trim(),
             temporary_id: ID,
             attachment_count: attachmentsCount,
             replied_conversation_id: replyMessage?.id,
@@ -656,6 +722,182 @@ const InputBox = ({
       }
     }
   };
+
+  const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
+    const res = await myClient.getTaggingList({
+      page: page,
+      pageSize: 10,
+      searchName: searchName,
+      chatroomId: chatroomId,
+      isSecret: isSecret,
+    });
+    return res;
+  };
+
+  // function shows loader in between calling the API and getting the response
+  const loadData = async (newPage: number) => {
+    setIsLoading(true);
+    const res = await taggingAPI({
+      page: newPage,
+      searchName: taggedUserName,
+      chatroomId: chatroomID,
+      isSecret: false,
+    });
+    if (!!res) {
+      setUserTaggingList([...userTaggingList, ...res?.community_members]);
+      setIsLoading(false);
+    }
+  };
+
+  //function checks the pagination logic, if it verifies the condition then call loadData
+  const handleLoadMore = () => {
+    let userTaggingListLength = userTaggingList.length;
+    if (!isLoading && userTaggingListLength > 0) {
+      // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+      if (userTaggingListLength >= 10 * page) {
+        const newPage = page + 1;
+        setPage(newPage);
+        loadData(newPage);
+      }
+    }
+  };
+
+  //pagination loader in the footer
+  const renderFooter = () => {
+    return isLoading ? (
+      <View style={{paddingVertical: 20}}>
+        <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+      </View>
+    ) : null;
+  };
+
+  const handleInputChange = async (e: any) => {
+    if (chatRequestState === 0 || chatRequestState === null) {
+      if (e.length >= MAX_LENGTH) {
+        dispatch({
+          type: SHOW_TOAST,
+          body: {
+            isToast: true,
+            msg: CHARACTER_LIMIT_MESSAGE,
+          },
+        });
+      } else if (e.length < MAX_LENGTH) {
+        setMessage(e);
+        setFormattedConversation(e);
+      }
+    } else {
+      let modifiedConversation = deleteRouteIfAny(e, message);
+      setMessage(modifiedConversation);
+      setFormattedConversation(modifiedConversation);
+
+      const newMentions = detectMentions(e);
+
+      if (newMentions.length > 0) {
+        const length = newMentions.length;
+        setTaggedUserName(newMentions[length - 1]);
+      }
+
+      //debouncing logic
+      clearTimeout(debounceTimeout);
+
+      let len = newMentions.length;
+      if (len > 0) {
+        const timeoutID = setTimeout(async () => {
+          setPage(1);
+          const res = await taggingAPI({
+            page: 1,
+            searchName: newMentions[len - 1],
+            chatroomId: chatroomID,
+            isSecret: false,
+          });
+          if (len > 0) {
+            let groupTagsLength = res?.group_tags?.length;
+            let communityMembersLength = res?.community_members.length;
+            let arrLength = communityMembersLength + groupTagsLength;
+            if (arrLength > 5) {
+              setUserTaggingListHeight(5 * 58);
+            } else if (arrLength < 5) {
+              let height = communityMembersLength * 58 + groupTagsLength * 80;
+              setUserTaggingListHeight(height);
+            }
+            setUserTaggingList(res?.community_members);
+            setGroupTags(res?.group_tags);
+            setIsUserTagging(true);
+          }
+        }, 500);
+
+        setDebounceTimeout(timeoutID);
+      } else {
+        if (isUserTagging) {
+          setUserTaggingList([]);
+          setGroupTags([]);
+          setIsUserTagging(false);
+        }
+      }
+    }
+  };
+  // this function is for editing a conversation
+  const onEdit = async () => {
+    let selectedConversation = editConversation;
+    let conversationId = selectedConversation?.id;
+    let previousConversation = selectedConversation;
+
+    let changedConversation;
+    let conversationText = replaceMentionValues(message, ({id, name}) => {
+      if (!!!Number(id)) {
+        return `<<${name}|route://${name}>>`;
+      } else {
+        return `<<${name}|route://member/${id}>>`;
+      }
+    });
+
+    let editedConversation = conversationText;
+    changedConversation = {
+      ...selectedConversation,
+      answer: editedConversation,
+      is_edited: true,
+    };
+
+    dispatch({
+      type: EDIT_CONVERSATION,
+      body: {
+        previousConversation: previousConversation,
+        changedConversation: changedConversation,
+      },
+    });
+
+    dispatch({
+      type: SET_EDIT_MESSAGE,
+      body: {
+        editConversation: '',
+      },
+    });
+
+    let index = conversations.findIndex((element: any) => {
+      return element?.id == selectedConversation?.id;
+    });
+
+    if (index === 0) {
+      dispatch({
+        type: UPDATE_LAST_CONVERSATION,
+        body: {
+          lastConversationAnswer: editedConversation,
+          chatroomType: chatroomType,
+          chatroomID: chatroomID,
+        },
+      });
+    }
+    dispatch({type: SELECTED_MESSAGES, body: []});
+    dispatch({type: LONG_PRESSED, body: false});
+    setMessage('');
+    setIsEditable(false);
+
+    await myClient.editConversation({
+      conversationId: conversationId,
+      text: editedConversation,
+    });
+  };
+
   return (
     <View>
       <View
@@ -673,7 +915,116 @@ const InputBox = ({
               }
             : null,
         ]}>
-        <View style={isReply && !isUploadScreen ? styles.replyBoxParent : null}>
+        <View
+          style={
+            (isReply && !isUploadScreen) || isUserTagging || isEditable
+              ? [
+                  styles.replyBoxParent,
+                  {
+                    borderTopWidth:
+                      isReply && !isUploadScreen && !isUserTagging ? 0 : 0,
+                    borderTopLeftRadius:
+                      isReply && !isUploadScreen && !isUserTagging ? 10 : 20,
+                    borderTopRightRadius:
+                      isReply && !isUploadScreen && !isUserTagging ? 10 : 20,
+                    backgroundColor: !!isUploadScreen ? 'black' : 'white',
+                  },
+                ]
+              : null
+          }>
+          {userTaggingList && isUserTagging ? (
+            <View
+              style={[
+                styles.taggableUsersBox,
+                {
+                  backgroundColor: !!isUploadScreen ? 'black' : 'white',
+                  height: userTaggingListHeight,
+                },
+              ]}>
+              <FlashList
+                data={[...groupTags, ...userTaggingList]}
+                renderItem={({item, index}: any) => {
+                  let description = item?.description;
+                  let imageUrl = item?.image_url;
+                  return (
+                    <Pressable
+                      onPress={() => {
+                        const res = replaceLastMention(
+                          message,
+                          taggedUserName,
+                          item?.name,
+                          item?.id,
+                        );
+                        setMessage(res);
+                        setFormattedConversation(res);
+                        setUserTaggingList([]);
+                        setGroupTags([]);
+                        setIsUserTagging(false);
+                      }}
+                      style={styles.taggableUserView}>
+                      <Image
+                        source={
+                          !!imageUrl
+                            ? {uri: imageUrl}
+                            : require('../../assets/images/default_pic.png')
+                        }
+                        style={styles.avatar}
+                      />
+
+                      <View
+                        style={[
+                          styles.infoContainer,
+                          {
+                            borderBottomWidth: 0.2,
+                            gap: Platform.OS === 'ios' ? 5 : 0,
+                          },
+                        ]}>
+                        <Text
+                          style={[
+                            styles.title,
+                            {
+                              color: !!isUploadScreen
+                                ? STYLES.$COLORS.TERTIARY
+                                : STYLES.$COLORS.PRIMARY,
+                            },
+                          ]}
+                          numberOfLines={1}>
+                          {item?.name}
+                        </Text>
+                        {!!description ? (
+                          <Text
+                            style={[
+                              styles.subTitle,
+                              {
+                                color: !!isUploadScreen
+                                  ? STYLES.$COLORS.TERTIARY
+                                  : STYLES.$COLORS.PRIMARY,
+                              },
+                            ]}
+                            numberOfLines={1}>
+                            {description}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </Pressable>
+                  );
+                }}
+                extraData={{
+                  value: [message, userTaggingList],
+                }}
+                estimatedItemSize={15}
+                keyboardShouldPersistTaps={'handled'}
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={1}
+                bounces={false}
+                ListFooterComponent={renderFooter}
+                keyExtractor={(item: any, index) => {
+                  return index?.toString();
+                }}
+              />
+            </View>
+          ) : null}
+
           {isReply && !isUploadScreen && (
             <View style={styles.replyBox}>
               <ReplyBox isIncluded={false} item={replyMessage} />
@@ -691,6 +1042,33 @@ const InputBox = ({
             </View>
           )}
 
+          {isEditable ? (
+            <View style={styles.replyBox}>
+              <ReplyBox isIncluded={false} item={editConversation} />
+              <TouchableOpacity
+                onPress={() => {
+                  setIsEditable(false);
+                  setMessage('');
+                  dispatch({
+                    type: SET_EDIT_MESSAGE,
+                    body: {
+                      editConversation: '',
+                    },
+                  });
+                  dispatch({
+                    type: SELECTED_MESSAGES,
+                    body: [],
+                  });
+                }}
+                style={styles.replyBoxClose}>
+                <Image
+                  style={styles.replyCloseImg}
+                  source={require('../../assets/images/close_icon.png')}
+                />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+
           <View
             style={[
               styles.textInput,
@@ -699,9 +1077,10 @@ const InputBox = ({
                   ? STYLES.$BACKGROUND_COLORS.DARK
                   : STYLES.$BACKGROUND_COLORS.LIGHT,
               },
-              isReply && !isUploadScreen
+              (isReply && !isUploadScreen) || isEditable || isUserTagging
                 ? {
                     borderWidth: 0,
+                    margin: Platform.OS === 'ios' ? 0 : 2,
                   }
                 : null,
             ]}>
@@ -747,26 +1126,12 @@ const InputBox = ({
                     }
                   : {marginHorizontal: 20},
               ]}>
-              <TextInput
-                value={message}
-                ref={myRef}
-                onChangeText={e => {
-                  if (chatRequestState === 0 || chatRequestState === null) {
-                    if (e.length >= MAX_LENGTH) {
-                      dispatch({
-                        type: SHOW_TOAST,
-                        body: {
-                          isToast: true,
-                          msg: CHARACTER_LIMIT_MESSAGE,
-                        },
-                      });
-                    } else if (e.length < MAX_LENGTH) {
-                      setMessage(e);
-                    }
-                  } else {
-                    setMessage(e);
-                  }
-                }}
+              <TaggingView
+                defaultValue={message}
+                onChange={handleInputChange}
+                placeholder="Type here..."
+                placeholderTextColor="#aaa"
+                inputRef={myRef}
                 maxLength={
                   chatRequestState === 0 || chatRequestState === null
                     ? MAX_LENGTH
@@ -785,19 +1150,26 @@ const InputBox = ({
                   },
                 ]}
                 numberOfLines={6}
-                multiline={true}
                 onBlur={() => {
                   setIsKeyBoardFocused(false);
                 }}
                 onFocus={() => {
                   setIsKeyBoardFocused(true);
                 }}
-                placeholder="Type a message..."
-                placeholderTextColor="#aaa"
+                partTypes={[
+                  {
+                    trigger: '@', // Should be a single character like '@' or '#'
+                    textStyle: {
+                      color: STYLES.$COLORS.LIGHT_BLUE,
+                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                    }, // The mention style in the input
+                  },
+                ]}
               />
             </View>
             {!isUploadScreen &&
-            !(chatRequestState === 0 || chatRequestState === null) ? (
+            !(chatRequestState === 0 || chatRequestState === null) &&
+            !isEditable ? (
               <TouchableOpacity
                 style={styles.emojiButton}
                 onPress={() => {
@@ -822,7 +1194,11 @@ const InputBox = ({
             ) {
               sendDmRequest();
             } else {
-              onSend();
+              if (isEditable) {
+                onEdit();
+              } else {
+                onSend();
+              }
             }
           }}
           style={styles.sendButton}>

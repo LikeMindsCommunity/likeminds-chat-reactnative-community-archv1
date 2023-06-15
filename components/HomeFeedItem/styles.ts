@@ -43,7 +43,6 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.PRIMARY,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
-    width: '85%',
   },
   lastMessage: {
     color: STYLES.$COLORS.PRIMARY,
@@ -63,6 +62,7 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     marginRight: 5,
     alignSelf: 'flex-end',
+    marginBottom: Platform.OS === 'android' ? -3 : -1,
   },
   pinned: {
     width: 20,
@@ -119,7 +119,7 @@ export const styles = StyleSheet.create({
   alignCenter: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
   icon: {
     height: 15,

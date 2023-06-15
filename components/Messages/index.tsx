@@ -176,6 +176,7 @@ const Messages = ({
             }}
             reactionArr={reactionArr}
             navigation={navigation}
+            handleFileUpload={handleFileUpload}
           />
         ) : !!!item?.reply_conversation_object && item?.attachment_count > 0 ? (
           <AttachmentConversations
@@ -267,7 +268,12 @@ const Messages = ({
                     </Text>
                   )}
                   <Text>{decode(item?.answer, true)}</Text>
-                  <Text style={styles.messageDate}>{item?.created_at}</Text>
+                  <View style={styles.alignTime}>
+                    {item?.is_edited ? (
+                      <Text style={styles.messageDate}>{`Edited • `}</Text>
+                    ) : null}
+                    <Text style={styles.messageDate}>{item?.created_at}</Text>
+                  </View>
                 </View>
                 {(reactionArr.length > 0 ||
                   item?.answer?.split('').length > 100) &&
@@ -425,9 +431,20 @@ const Messages = ({
         setModalVisible={val => {
           setModalVisible(val);
         }}
-        removeReaction={() => {
-          removeReaction();
-          setModalVisible(false);
+        removeReaction={(reactionArr: any, removeFromList?: any) => {
+          removeReaction(item, reactionArr, removeFromList);
+
+          //logic to check clicked index and findIndex are same so that we can remove reaction
+          let index = item?.reactions.findIndex(
+            (val: any) => val?.member?.id === user?.id,
+          );
+
+          if (
+            index !== -1 &&
+            item?.reactions[index]?.member?.id === reactionArr?.id // this condition checks if clicked reaction ID matches the findIndex ID
+          ) {
+            setModalVisible(false);
+          }
         }}
       />
     </View>

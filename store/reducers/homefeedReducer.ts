@@ -14,6 +14,7 @@ import {
   UPDATE_DMFEED_CHAT_SUCCESS,
   UPDATE_HOMEFEED_CHAT_SUCCESS,
   UPDATE_INVITES_SUCCESS,
+  UPDATE_LAST_CONVERSATION,
 } from '../types/types';
 
 const initialState = {
@@ -108,6 +109,32 @@ export function homefeedReducer(state = initialState, action: any) {
       return {
         ...state,
         myDMChatrooms: [...state.myDMChatrooms, ...dm_chatrooms],
+      };
+    }
+    case UPDATE_LAST_CONVERSATION: {
+      const {lastConversationAnswer, chatroomType, chatroomID} = action.body;
+
+      let isDM = chatroomType === 10 ? true : false;
+      let chatroomList = isDM ? state?.myDMChatrooms : state?.myChatrooms;
+      let index = chatroomList.findIndex((element: any) => {
+        return element?.chatroom?.id == chatroomID;
+      });
+
+      let arr = [...(chatroomList as any)];
+      if (index !== undefined || index !== -1) {
+        let chatroomObject = arr[index];
+        arr[index] = {
+          ...chatroomObject,
+          last_conversation: {
+            ...chatroomObject?.last_conversation,
+            answer: lastConversationAnswer,
+          },
+        };
+      }
+      return {
+        ...state,
+        myChatrooms: isDM ? state?.myChatrooms : [...arr],
+        myDMChatrooms: isDM ? [...arr] : state?.myDMChatrooms,
       };
     }
     case INIT_API_SUCCESS: {

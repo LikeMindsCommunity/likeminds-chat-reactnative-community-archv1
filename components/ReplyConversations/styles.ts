@@ -71,4 +71,21 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
   displayRow: {flexDirection: 'row', alignItems: 'center', gap: 10},
+  alignTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 3,
+  },
+  messageInfo: {
+    color: 'green',
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.BOLD,
+    marginBottom: STYLES.$MARGINS.XS,
+  },
+  messageCustomTitle: {
+    color: STYLES.$COLORS.MSG,
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+  },
 });

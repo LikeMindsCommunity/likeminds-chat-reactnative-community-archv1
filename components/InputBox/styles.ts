@@ -10,11 +10,9 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     borderRadius: 30,
     overflow: 'hidden',
-    // maxWidth: Layout.window.width - 75,
     width: Layout.window.width - 75,
     borderColor: STYLES.$COLORS.MSG,
-    borderWidth: 1,
-    // backgroundColor:'pink'
+    borderWidth: 0.2,
   },
   inputContainer: {
     display: 'flex',
@@ -42,7 +40,6 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     marginVertical: 10,
     paddingLeft: 0,
     // width: Layout.window.width - 180,
@@ -62,7 +59,6 @@ export const styles = StyleSheet.create({
   sendButton: {
     height: 50,
     width: 50,
-    // padding: 15,
     backgroundColor: STYLES.$COLORS.SECONDARY,
     borderRadius: 50,
     display: 'flex',
@@ -80,7 +76,6 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#f2f2f2',
     padding: 10,
-    // elevation: 2,
   },
 
   centeredView: {
@@ -122,8 +117,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    borderColor: STYLES.$COLORS.MSG,
   },
   replyBox: {marginHorizontal: 10, marginTop: 10},
   replyBoxClose: {
@@ -141,4 +135,46 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.PRIMARY,
   },
   iconContainer: {alignItems: 'center', gap: 5},
+  avatar: {
+    width: 30,
+    height: 30,
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+    marginRight: STYLES.$MARGINS.SMALL,
+  },
+  infoContainer: {
+    flex: 1,
+    paddingVertical: 15,
+    borderBottomColor: STYLES.$COLORS.MSG,
+  },
+  title: {
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    color: STYLES.$COLORS.PRIMARY,
+  },
+  subTitle: {
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
+  },
+  messageCustomTitle: {
+    color: STYLES.$COLORS.SECONDARY,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+  },
+  taggableUsersBox: {
+    borderTopRightRadius: 20,
+    borderTopLeftRadius: 20,
+    width: '100%',
+    position: 'relative',
+    backgroundColor: 'white',
+    borderColor: STYLES.$COLORS.MSG,
+    overflow: 'hidden',
+  },
+  taggableUserView: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+    marginTop: 10,
+  },
 });

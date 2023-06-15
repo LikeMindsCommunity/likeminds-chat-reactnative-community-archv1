@@ -11,7 +11,7 @@ import {
   Pressable,
 } from 'react-native';
 import {myClient} from '../../../..';
-import {getNameInitials} from '../../../../commonFuctions';
+import {SHOW_LIST_REGEX, getNameInitials} from '../../../../commonFuctions';
 import HomeFeedExplore from '../../../../components/HomeFeedExplore';
 import HomeFeedItem from '../../../../components/HomeFeedItem';
 import STYLES from '../../../../constants/Styles';
@@ -50,8 +50,6 @@ const DMFeed = ({navigation}: Props) => {
   const [showList, setShowList] = useState<any>(null);
   const [FCMToken, setFCMToken] = useState('');
   const dispatch = useAppDispatch();
-
-  const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
 
   const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
