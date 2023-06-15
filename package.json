@@ -1,7 +1,7 @@
 {
   "name": "likeminds_chat_sx",
-  "versionCode": "8",
-  "versionName": "0.9.0",
+  "versionCode": "9",
+  "versionName": "1.0.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -24,8 +24,9 @@
     "@shopify/flash-list": "^1.4.3",
     "aws-sdk": "^2.1380.0",
     "buffer": "^6.0.3",
+    "diff": "^5.1.0",
     "firebase": "^9.17.1",
-    "likeminds-chat-rn-beta": "^1.0.71",
+    "likeminds-chat-rn-beta": "^1.0.77",
     "react": "18.2.0",
     "react-native": "0.71.1",
     "react-native-create-thumbnail": "^1.6.4",
@@ -44,6 +45,7 @@
     "react-native-tab-view": "^3.5.0",
     "react-native-video": "^5.2.1",
     "react-redux": "^8.0.5",
+    "reactotron-react-native": "^5.0.3",
     "redux-thunk": "^2.4.2",
     "rn-emoji-keyboard": "^1.2.1"
   },
@@ -54,6 +56,7 @@
     "@react-native-community/eslint-config": "^3.0.0",
     "@tsconfig/react-native": "^2.0.2",
     "@types/aws-sdk": "^2.7.0",
+    "@types/diff": "^5.0.3",
     "@types/jest": "^29.2.1",
     "@types/react": "^18.0.24",
     "@types/react-native-video": "^5.0.14",

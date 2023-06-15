@@ -4,6 +4,7 @@ import {
   CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
+  EDIT_CONVERSATION,
   FILE_SENT,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
@@ -17,6 +18,7 @@ import {
   SELECTED_FILE_TO_VIEW,
   SELECTED_MESSAGES,
   SELECTED_MORE_FILES_TO_UPLOAD,
+  SET_EDIT_MESSAGE,
   SET_IS_REPLY,
   SET_POSITION,
   SET_REPLY_MESSAGE,
@@ -30,13 +32,14 @@ const initialState = {
   messageSent: '' as any,
   isLongPress: false,
   selectedMessages: [],
-  stateArr: [1, 2, 3, 7, 8, 9, 20, 19, 17], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
+  stateArr: [1, 2, 3, 7, 8, 9, 20, 19, 17, 15], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
   position: {x: 0, y: 0} as any,
   selectedFilesToUpload: [],
   selectedFilesToUploadThumbnails: [],
   selectedFileToView: {} as any,
   isReply: false,
   replyMessage: '',
+  editConversation: '',
   fileSent: 0,
 };
 
@@ -140,6 +143,18 @@ export function chatroomReducer(state = initialState, action: any) {
       }
       return {...state, conversations: [...arr]};
     }
+    case EDIT_CONVERSATION: {
+      const {previousConversation, changedConversation} = action.body;
+      let index = state?.conversations.findIndex(
+        (element: any) => element?.id === changedConversation?.id,
+      );
+
+      let arr = [...(state?.conversations as any)];
+      if (index !== undefined || index !== -1) {
+        arr[index] = changedConversation;
+      }
+      return {...state, conversations: [...arr]};
+    }
     case SET_POSITION: {
       const {pageX, pageY} = action.body;
       return {...state, position: {x: pageX, y: pageY}};
@@ -176,6 +191,10 @@ export function chatroomReducer(state = initialState, action: any) {
     case SET_REPLY_MESSAGE: {
       const {replyMessage = ''} = action.body;
       return {...state, replyMessage: replyMessage};
+    }
+    case SET_EDIT_MESSAGE: {
+      const {editConversation = ''} = action.body;
+      return {...state, editConversation: editConversation};
     }
     case FILE_SENT: {
       const {status = ''} = action.body;

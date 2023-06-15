@@ -150,4 +150,10 @@ export const styles = StyleSheet.create({
   textCenterAlign: {
     textAlign: 'center',
   },
+  alignTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 3,
+  },
 });

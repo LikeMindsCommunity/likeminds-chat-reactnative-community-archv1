@@ -69,9 +69,9 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 5,
   },
-  doubleImg: {height: 150, width: '100%', resizeMode: 'cover', borderRadius: 5},
+  doubleImg: {height: 130, width: '100%', resizeMode: 'cover', borderRadius: 5},
   multipleImg: {
-    height: 150,
+    height: 130,
     resizeMode: 'cover',
     borderRadius: 5,
   },
@@ -87,7 +87,7 @@ export const styles = StyleSheet.create({
   tripleImgOverlay: {
     position: 'absolute',
     right: 0,
-    height: 150,
+    height: 130,
     width: '50%',
     backgroundColor: 'black',
     opacity: 0.5,
@@ -96,7 +96,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  touchableImg: {height: 150, width: '49%'},
+  touchableImg: {height: 130, width: '49%'},
   deletedMsg: {
     color: STYLES.$COLORS.MSG,
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
@@ -146,5 +146,11 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.MSG,
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
+  },
+  alignTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 3,
   },
 });
