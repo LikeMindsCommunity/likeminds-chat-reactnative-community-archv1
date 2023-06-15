@@ -221,7 +221,7 @@ const HomeFeedItem: React.FC<Props> = ({
       );
     } else if (pdfCount > 0) {
       return (
-        <View style={styles.alignCenter}>
+        <View style={[styles.alignCenter]}>
           {pdfCount > 1 && (
             <Text style={styles.attachment_msg}>{pdfCount}</Text>
           )}
@@ -229,7 +229,7 @@ const HomeFeedItem: React.FC<Props> = ({
             source={require('../../assets/images/document_icon3x.png')}
             style={styles.icon}
           />
-          <Text style={styles.lastMessage}>
+          <Text style={styles.attachment_msg}>
             {pdfCount > 1 ? 'Documents' : 'Document'}
           </Text>
         </View>
@@ -327,9 +327,12 @@ const HomeFeedItem: React.FC<Props> = ({
         </View>
         {!!lastConversation && !!!inviteReceiver ? (
           <Text
+            numberOfLines={1}
             style={[
               styles.parentLastMessage,
-              {width: chatroomType === 10 ? '100%' : '75%'},
+              {
+                width: '80%',
+              },
             ]}>
             {!!deletedBy ? (
               <Text
@@ -337,7 +340,14 @@ const HomeFeedItem: React.FC<Props> = ({
                   styles.deletedMessage
                 }>{`This message has been deleted`}</Text>
             ) : (
-              <View style={[styles.alignCenter]}>
+              <Text
+                style={[
+                  styles.alignCenter,
+                  {
+                    width: Layout.window.width - 130,
+                    overflow: 'hidden',
+                  },
+                ]}>
                 {chatroomType !== 10 ? (
                   <Text
                     style={
@@ -345,22 +355,12 @@ const HomeFeedItem: React.FC<Props> = ({
                     }>{`${lastConversationMember}: `}</Text>
                 ) : null}
 
-                <Text
-                  numberOfLines={1}
-                  style={[
-                    styles.parentLastMessage,
-                    {
-                      width:
-                        Platform.OS === 'ios'
-                          ? '70%'
-                          : Layout.window.width / 2.25,
-                    },
-                  ]}>
+                <Text numberOfLines={1} style={[styles.parentLastMessage]}>
                   {!!lastConversation?.has_files
                     ? getFeedIconAttachment(lastConversation)
                     : decode(lastMessage, false)}
                 </Text>
-              </View>
+              </Text>
             )}
           </Text>
         ) : !!inviteReceiver ? (
