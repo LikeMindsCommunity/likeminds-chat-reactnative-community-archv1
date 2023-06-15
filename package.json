@@ -1,7 +1,7 @@
 {
   "name": "likeminds_chat_sx",
-  "versionCode": "8",
-  "versionName": "0.9.0",
+  "versionCode": "9",
+  "versionName": "1.0.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -26,7 +26,7 @@
     "buffer": "^6.0.3",
     "diff": "^5.1.0",
     "firebase": "^9.17.1",
-    "likeminds-chat-rn-beta": "^1.0.76",
+    "likeminds-chat-rn-beta": "^1.0.77",
     "react": "18.2.0",
     "react-native": "0.71.1",
     "react-native-create-thumbnail": "^1.6.4",
@@ -45,6 +45,7 @@
     "react-native-tab-view": "^3.5.0",
     "react-native-video": "^5.2.1",
     "react-redux": "^8.0.5",
+    "reactotron-react-native": "^5.0.3",
     "redux-thunk": "^2.4.2",
     "rn-emoji-keyboard": "^1.2.1"
   },
