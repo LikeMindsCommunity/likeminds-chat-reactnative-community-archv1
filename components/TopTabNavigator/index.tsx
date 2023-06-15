@@ -45,7 +45,7 @@ export const PeopleWhoReactedDefault = ({
                 </View>
                 <TouchableOpacity
                   onPress={() => {
-                    removeReaction(index);
+                    removeReaction(val?.member, false);
                   }}
                   style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.member?.name}</Text>
@@ -90,7 +90,7 @@ export const PeopleWhoReacted = ({
                 </View>
                 <TouchableOpacity
                   onPress={() => {
-                    removeReaction(index);
+                    removeReaction(val, true);
                   }}
                   style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.name}</Text>
@@ -127,7 +127,7 @@ const renderTabBar = (props: any) => (
 interface MyTabs {
   reactionArr: any;
   defaultReactionArr: any;
-  removeReaction: () => void;
+  removeReaction: any;
   selectedReaction?: any;
 }
 
