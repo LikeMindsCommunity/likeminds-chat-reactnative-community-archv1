@@ -108,3 +108,5 @@ export const SET_IS_REPLY = 'SET_IS_REPLY';
 export const SET_REPLY_MESSAGE = 'SET_REPLY_MESSAGE';
 export const SET_EDIT_MESSAGE = 'SET_EDIT_MESSAGE';
 export const FILE_SENT = 'FILE_SENT';
+export const SET_TAGGED = 'SET_TAGGED';
+export const SET_PREVIOUS_TAG = 'SET_PREVIOUS_TAG';

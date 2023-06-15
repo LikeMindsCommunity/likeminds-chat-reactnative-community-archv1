@@ -21,7 +21,9 @@ import {
   SET_EDIT_MESSAGE,
   SET_IS_REPLY,
   SET_POSITION,
+  SET_PREVIOUS_TAG,
   SET_REPLY_MESSAGE,
+  SET_TAGGED,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
 } from '../types/types';
@@ -41,6 +43,8 @@ const initialState = {
   replyMessage: '',
   editConversation: '',
   fileSent: 0,
+  taggedData: [],
+  previuosTaggedData: [],
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -199,6 +203,14 @@ export function chatroomReducer(state = initialState, action: any) {
     case FILE_SENT: {
       const {status = ''} = action.body;
       return {...state, fileSent: status};
+    }
+    case SET_TAGGED: {
+      const {taggingData = ''} = action.body;
+      return {...state, taggedData: taggingData};
+    }
+    case SET_PREVIOUS_TAG: {
+      const {taggingData = ''} = action.body;
+      return {...state, previousTaggedData: [...taggingData]};
     }
     default:
       return state;

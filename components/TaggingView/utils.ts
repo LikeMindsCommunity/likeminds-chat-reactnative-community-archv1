@@ -570,7 +570,12 @@ const parseValue = (
  * @param parts
  */
 const getValueFromParts = (parts: Part[]) =>
-  parts.map(item => (item.data ? item.data.original : item.text)).join('');
+  parts
+    .map(item => {
+      console.log('getValueFromParts ==', item);
+      return item.data ? item.data.original : item.text;
+    })
+    .join('');
 
 /**
  * Replace all mention values in value to some specified format
@@ -609,12 +614,13 @@ export {
   isMentionPartType,
   getMentionPartSuggestionKeywords,
   generateValueFromPartsAndChangedText,
-  generateValueWithAddedSuggestion,
+  // generateValueWithAddedSuggestion,
   generatePlainTextPart,
   generateMentionPart,
   getMentionValue,
   parseValue,
-  getValueFromParts,
+  // getValueFromParts,
   replaceMentionValues,
   convertToMentionValues,
+  getPartsInterval,
 };
