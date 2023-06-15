@@ -103,20 +103,23 @@ const TaggingView: FC<TaggingViewProps> = ({
         taggingData: [...taggedData],
       },
     });
+    dispatch({type: SET_TAGGED, body: {taggingData: []}});
+    console.log(' hey yayo getValueFromParts ==');
     return parts
       .map((item, index) => {
         console.log('getValueFromParts ==', item, !!item?.data);
         if (!!item?.data) {
           // dispatch({type: SET_TAGGED, body: {taggingData: [...taggedData,item?.text]}});
 
-          if (taggedData?.length === 0) {
-            dispatch({
-              type: SET_TAGGED,
-              body: {
-                taggingData: [...taggedData, {text: item?.text, index: index}],
-              },
-            });
-          }
+          dispatch({
+            type: SET_TAGGED,
+            body: {
+              taggingData: [...taggedData, {text: item?.text, index: index}],
+            },
+          });
+
+          console.log('taggedData ==', taggedData);
+
           return item?.data ? item?.data?.original : item?.text;
         } else {
           // console.log('taggedData ==', taggedData, item?.text);
@@ -125,6 +128,8 @@ const TaggingView: FC<TaggingViewProps> = ({
           let findIndex = previousTaggedData.findIndex(
             (element: any) => element?.index === index,
           );
+
+          console.log('findIndex ==', findIndex, previousTaggedData);
 
           {
             /* taggedData = Gaurav, item?.text = Gaura
