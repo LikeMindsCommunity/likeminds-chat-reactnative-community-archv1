@@ -1159,7 +1159,10 @@ const InputBox = ({
                 partTypes={[
                   {
                     trigger: '@', // Should be a single character like '@' or '#'
-                    textStyle: {color: STYLES.$COLORS.LIGHT_BLUE}, // The mention style in the input
+                    textStyle: {
+                      color: STYLES.$COLORS.LIGHT_BLUE,
+                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                    }, // The mention style in the input
                   },
                 ]}
               />
