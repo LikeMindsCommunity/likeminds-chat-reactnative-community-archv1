@@ -1254,22 +1254,36 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   // this function is for removing a reaction from conversation
-  const removeReaction = (item: any, clickedIndex: any) => {
+  const removeReaction = (
+    item: any,
+    reactionArr: any,
+    removeFromList?: any,
+  ) => {
     let previousMsg = item;
     let changedMsg;
     let val;
-    if (item?.reactions.length > 0) {
+
+    if (item?.reactions?.length > 0) {
       let index = item?.reactions.findIndex(
         (val: any) => val?.member?.id === user?.id,
       );
 
-      // check condition user has a reaction && clickedIndex is same as findIndex
-      if (index !== -1 && index === clickedIndex) {
+      // this condition checks if clicked reaction ID matches the findIndex ID
+      let isIndexMatches =
+        item?.reactions[index]?.member?.id === reactionArr?.id;
+
+      let isIndexExist = index !== -1 ? true : false;
+
+      // check condition user has a reaction && isIndexMatches(true if clicked reaction ID is same as findReactionID)
+      if (
+        (isIndexExist && isIndexMatches) || // condition to remove reaction from list of all reactions
+        (isIndexExist && !!removeFromList && isIndexMatches) // condition to remove reaction from list specific reaction
+      ) {
         let tempArr = [...item?.reactions];
 
         val = tempArr[index];
 
-        if (index !== undefined || index !== -1) {
+        if (index !== undefined || isIndexExist) {
           tempArr.splice(index, 1);
         }
 
@@ -1817,8 +1831,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       selectedMessages,
                     );
                   }}
-                  removeReaction={(index: any) => {
-                    removeReaction(item, index);
+                  removeReaction={(
+                    item: any,
+                    reactionArr: any,
+                    removeFromList?: any,
+                  ) => {
+                    removeReaction(item, reactionArr, removeFromList);
                   }}
                   handleTapToUndo={() => {
                     onTapToUndo();

@@ -431,14 +431,18 @@ const Messages = ({
         setModalVisible={val => {
           setModalVisible(val);
         }}
-        removeReaction={(clickedIndex: any) => {
-          removeReaction(clickedIndex);
+        removeReaction={(reactionArr: any, removeFromList?: any) => {
+          removeReaction(item, reactionArr, removeFromList);
 
           //logic to check clicked index and findIndex are same so that we can remove reaction
           let index = item?.reactions.findIndex(
             (val: any) => val?.member?.id === user?.id,
           );
-          if (index !== -1 && index === clickedIndex) {
+
+          if (
+            index !== -1 &&
+            item?.reactions[index]?.member?.id === reactionArr?.id // this condition checks if clicked reaction ID matches the findIndex ID
+          ) {
             setModalVisible(false);
           }
         }}
