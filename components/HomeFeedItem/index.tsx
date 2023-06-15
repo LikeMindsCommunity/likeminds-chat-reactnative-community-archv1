@@ -331,7 +331,7 @@ const HomeFeedItem: React.FC<Props> = ({
             style={[
               styles.parentLastMessage,
               {
-                width: chatroomType === 10 ? '80%' : '80%',
+                width: '80%',
               },
             ]}>
             {!!deletedBy ? (
