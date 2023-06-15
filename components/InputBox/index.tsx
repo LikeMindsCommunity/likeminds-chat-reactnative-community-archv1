@@ -96,8 +96,8 @@ interface InputBox {
   myRef?: any;
   previousMessage?: string;
   handleFileUpload: any;
-  isEditable: boolean;
-  setIsEditable: any;
+  isEditable?: boolean;
+  setIsEditable?: any;
 }
 
 const InputBox = ({
