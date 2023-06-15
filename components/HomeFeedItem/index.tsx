@@ -337,7 +337,7 @@ const HomeFeedItem: React.FC<Props> = ({
                   styles.deletedMessage
                 }>{`This message has been deleted`}</Text>
             ) : (
-              <View style={styles.alignCenter}>
+              <View style={[styles.alignCenter]}>
                 {chatroomType !== 10 ? (
                   <Text
                     style={
@@ -352,8 +352,8 @@ const HomeFeedItem: React.FC<Props> = ({
                     {
                       width:
                         Platform.OS === 'ios'
-                          ? '85%'
-                          : Layout.window.width / 1.75,
+                          ? '70%'
+                          : Layout.window.width / 2.25,
                     },
                   ]}>
                   {!!lastConversation?.has_files
