@@ -17,7 +17,7 @@ export const getExploreFeedData =
       return await dispatch({
         type: GET_EXPLORE_FEED_CHAT_SUCCESS,
         [CALL_API]: {
-          func: myClient.fetchFeedData(payload),
+          func: myClient.getExploreFeed(payload),
           body: payload,
           types: [
             GET_EXPLORE_FEED_CHAT,
@@ -38,7 +38,7 @@ export const updateExploreFeedData =
       return await dispatch({
         type: UPDATE_EXPLORE_FEED_CHAT_SUCCESS,
         [CALL_API]: {
-          func: myClient.fetchFeedData(payload),
+          func: myClient.getExploreFeed(payload),
           body: payload,
           types: [
             UPDATE_EXPLORE_FEED_CHAT,
