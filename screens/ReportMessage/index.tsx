@@ -76,7 +76,7 @@ const ReportScreen = ({navigation, route}: Props) => {
         const res = await myClient.getReportTags({
           type: isDM === true ? 1 : 0,
         });
-        setReasons(res.report_tags);
+        setReasons(res?.data?.report_tags);
       } catch (error) {
         //    Alert.alert('API failed')
       }
@@ -87,9 +87,9 @@ const ReportScreen = ({navigation, route}: Props) => {
   const reportMessage = async () => {
     try {
       const call = await myClient.pushReport({
-        conversation_id: conversationID,
-        tag_id: selectedId,
-        reason: otherReason != '' ? otherReason : undefined,
+        conversationId: Number(conversationID),
+        tagId: Number(selectedId),
+        reason: otherReason != '' ? otherReason : '',
       });
       dispatch({
         type: SHOW_TOAST,
