@@ -65,7 +65,6 @@ const HomeFeedItem: React.FC<Props> = ({
   inviteReceiver,
   chatroomType,
 }) => {
-  // let dateOrTime = getFullDate(time);
   const dispatch = useAppDispatch();
 
   const showJoinAlert = () =>
@@ -81,8 +80,8 @@ const HomeFeedItem: React.FC<Props> = ({
           text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
-              channel_id: `${chatroomID}`,
-              invite_status: 1,
+              channelId: `${chatroomID}`,
+              inviteStatus: 1,
             });
             dispatch({
               type: SHOW_TOAST,
@@ -113,8 +112,8 @@ const HomeFeedItem: React.FC<Props> = ({
           text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
-              channel_id: `${chatroomID}`,
-              invite_status: 2,
+              channelId: `${chatroomID}`,
+              inviteStatus: 2,
             });
             dispatch({
               type: SHOW_TOAST,
