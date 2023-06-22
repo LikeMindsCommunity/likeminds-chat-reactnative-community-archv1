@@ -772,8 +772,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let conversationID = firebaseData?.collabcard?.answer_id;
 
         let payload = {
-          chatroom_id: chatroomID,
-          conversation_id: firebaseData?.collabcard?.answer_id,
+          chatroomId: chatroomID,
+          conversationId: firebaseData?.collabcard?.answer_id,
         };
         if (conversationID) {
           const res = await dispatch(
