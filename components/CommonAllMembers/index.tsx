@@ -221,7 +221,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   //function fetch all members of the community.
   const fetchParticipants = async () => {
     const res = await myClient.getAllMembers({page: 1});
-    setParticipants(res?.members);
+    setParticipants(res?.data?.members);
   };
 
   //function fetch all members of the community for DM.
@@ -238,7 +238,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             member_state: 1,
           };
     const res = await myClient.dmAllMembers(initialPayload);
-    setParticipants(res?.members);
+    setParticipants(res?.data?.members);
   };
 
   //function search members in the community.
@@ -247,18 +247,19 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
       showList == 1
         ? {
             search: search,
-            search_type: 'name',
+            searchType: 'name',
             page: 1,
-            page_size: 10,
+            pageSize: 10,
           }
         : {
             search: search,
-            search_type: 'name',
+            searchType: 'name',
             page: 1,
-            page_size: 10,
-            member_states: '[1]',
+            pageSize: 10,
+            memberStates: '[1]',
           };
-    const res = await myClient.searchMembers(initialPayload);
+    const apiRes = await myClient.searchMembers(initialPayload);
+    const res = apiRes?.data;
     setSearchPage(1);
     setSearchedParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
@@ -266,7 +267,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
       const response = await myClient.searchMembers(changedPayload);
       setSearchedParticipants((searchedParticipants: any) => [
         ...searchedParticipants,
-        ...response?.members,
+        ...response?.data?.members,
       ]);
       setSearchPage(2);
       setIsEmptyMessageShow(true);
@@ -278,9 +279,9 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   // this function calls to send secret chatroom invites, here chatroomID would be same id of chatroom which we wanna invite.
   const sendInvites = async () => {
     const res = await myClient.sendInvites({
-      chatroom_id: chatroomID,
-      is_secret: true,
-      chatroom_participants: selectedParticipants,
+      chatroomId: chatroomID,
+      isSecret: true,
+      chatroomParticipants: selectedParticipants,
     });
     const popAction = StackActions.pop(2);
     navigation.dispatch(popAction);
@@ -297,19 +298,19 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
         showList == 1
           ? {
               search: search,
-              search_type: 'name',
-              page: newPage,
-              page_size: 10,
+              searchType: 'name',
+              page: 1,
+              pageSize: 10,
             }
           : {
               search: search,
-              search_type: 'name',
-              page: newPage,
-              page_size: 10,
-              member_states: '[1]',
+              searchType: 'name',
+              page: 1,
+              pageSize: 10,
+              memberStates: '[1]',
             };
       const res = await myClient.searchMembers(initialPayload);
-      return res;
+      return res?.data;
     } else {
       if (isDM) {
         const res = await myClient.dmAllMembers(
@@ -324,10 +325,10 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
                 member_state: 1,
               },
         );
-        return res;
+        return res?.data;
       } else {
         const res = await myClient.getAllMembers({page: newPage});
-        return res;
+        return res?.data;
       }
     }
   }
@@ -383,13 +384,14 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
 
   // this function calls when user click for DM on members screen. Here ChatroomID is gonna be clicked chatroomID
   const onUserClicked = async (memberID: any) => {
-    const res = await myClient.reqDmFeed({
-      member_id: memberID,
+    const apiRes = await myClient.checkDMLimit({
+      memberId: memberID,
     });
-    if (res?.success === false) {
+    const res = apiRes?.data;
+    if (apiRes?.success === false) {
       dispatch({
         type: SHOW_TOAST,
-        body: {isToast: true, msg: `${res?.error_message}`},
+        body: {isToast: true, msg: `${apiRes?.error_message}`},
       });
     } else {
       let clickedChatroomID = res?.chatroom_id;
@@ -398,14 +400,14 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
       } else {
         if (res?.is_request_dm_limit_exceeded === false) {
           let payload = {
-            community_id: community?.id,
-            member_id: memberID,
+            memberId: memberID,
           };
-          const response = await myClient.onCreateDM(payload);
-          if (response?.success === false) {
+          const apiResponse = await myClient.createDMChatroom(payload);
+          const response = apiResponse?.data;
+          if (apiResponse?.success === false) {
             dispatch({
               type: SHOW_TOAST,
-              body: {isToast: true, msg: `${response?.error_message}`},
+              body: {isToast: true, msg: `${apiResponse?.error_message}`},
             });
           } else {
             let createdChatroomID = response?.chatroom?.id;
