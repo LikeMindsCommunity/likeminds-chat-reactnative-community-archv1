@@ -67,9 +67,10 @@ const DMFeed = ({navigation}: Props) => {
       const res = await dispatch(getDMFeedData(payload) as any);
 
       if (!!res) {
-        let response = await myClient.dmStatus({
-          req_from: 'dm_feed_v2',
+        let apiRes = await myClient.checkDMStatus({
+          requestFrom: 'dm_feed_v2',
         });
+        let response = apiRes?.data;
         if (!!response) {
           let routeURL = response?.cta;
           const hasShowList = SHOW_LIST_REGEX.test(routeURL);
