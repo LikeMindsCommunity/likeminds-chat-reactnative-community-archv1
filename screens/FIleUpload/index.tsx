@@ -149,7 +149,7 @@ const FileUpload = ({navigation, route}: any) => {
       };
 
       //for video thumbnail
-      const thumnnailUrlParams = {
+      const thumnnailUrlParams: any = {
         Bucket: BUCKET,
         Key: thumbnailUrlPath,
         Body: thumbnailUrlImg,
@@ -178,8 +178,8 @@ const FileUpload = ({navigation, route}: any) => {
           }
 
           let payload = {
-            conversation_id: conversationID,
-            files_count: selectedImages?.length,
+            conversationId: conversationID,
+            filesCount: selectedImages?.length,
             index: i,
             meta:
               fileType === VIDEO_TEXT
@@ -199,11 +199,11 @@ const FileUpload = ({navigation, route}: any) => {
                 : selectedFilesToUpload[i]?.fileName,
             type: fileType,
             url: awsResponse,
-            thumbnail_url:
+            thumbnailUrl:
               fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
 
-          const uploadRes = await myClient.onUploadFile(payload as any);
+          const uploadRes = await myClient.putMultimedia(payload as any);
         }
       } catch (error) {
         dispatch({

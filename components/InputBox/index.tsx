@@ -612,9 +612,9 @@ const InputBox = ({
         chatRequestState === null &&
         isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
-        let response = await myClient.requestDmAction({
-          chatroom_id: chatroomID,
-          chat_request_state: 0,
+        let response = await myClient.sendDMRequest({
+          chatroomId: chatroomID,
+          chatRequestState: 0,
           text: message.trim(),
         });
 
@@ -633,9 +633,9 @@ const InputBox = ({
         chatRequestState === null &&
         !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
-        let response = await myClient.requestDmAction({
-          chatroom_id: chatroomID,
-          chat_request_state: 1,
+        let response = await myClient.sendDMRequest({
+          chatroomId: chatroomID,
+          chatRequestState: 1,
           text: message.trim(),
         });
         dispatch({
@@ -645,13 +645,12 @@ const InputBox = ({
       } else {
         if (!isUploadScreen) {
           let payload = {
-            chatroom_id: chatroomID,
-            created_at: new Date(Date.now()),
-            has_files: false,
+            chatroomId: chatroomID,
+            hasFiles: false,
             text: conversationText.trim(),
-            temporary_id: ID,
-            attachment_count: attachmentsCount,
-            replied_conversation_id: replyMessage?.id,
+            temporaryId: ID.toString(),
+            attachmentCount: attachmentsCount,
+            repliedConversationId: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
 
@@ -672,13 +671,12 @@ const InputBox = ({
           });
           navigation.goBack();
           let payload = {
-            chatroom_id: chatroomID,
-            created_at: new Date(Date.now()),
-            has_files: true,
+            chatroomId: chatroomID,
+            hasFiles: false,
             text: conversationText.trim(),
-            temporary_id: ID,
-            attachment_count: attachmentsCount,
-            replied_conversation_id: replyMessage?.id,
+            temporaryId: ID.toString(),
+            attachmentCount: attachmentsCount,
+            repliedConversationId: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
           if (response === undefined) {
@@ -731,7 +729,7 @@ const InputBox = ({
       chatroomId: chatroomId,
       isSecret: isSecret,
     });
-    return res;
+    return res?.data;
   };
 
   // function shows loader in between calling the API and getting the response
