@@ -128,24 +128,26 @@ const ViewParticipants = ({navigation, route}: any) => {
   };
 
   const fetchParticipants = async () => {
-    const res = await myClient.viewParticipants({
-      chatroom_id: chatroomID,
-      is_secret: isSecret,
+    const apiRes = await myClient.viewParticipants({
+      chatroomId: chatroomID,
+      isSecret: isSecret,
       page: 1,
-      page_size: 10,
-      participant_name: search,
-    });
+      pageSize: 10,
+      participantName: search,
+    } as any);
+    const res = apiRes?.data;
     setTotalChatroomCount(res?.total_participants_count);
     setParticipants(res?.participants);
 
     if (!!res && res?.participants.length === 10) {
-      const response = await myClient.viewParticipants({
-        chatroom_id: chatroomID,
-        is_secret: isSecret,
+      const apiResponse = await myClient.viewParticipants({
+        chatroomId: chatroomID,
+        isSecret: isSecret,
         page: 2,
-        page_size: 10,
-        participant_name: search,
-      });
+        pageSize: 10,
+        participantName: search,
+      } as any);
+      const response = apiResponse?.data;
       setParticipants((participants: any) => [
         ...participants,
         ...response?.participants,
@@ -193,15 +195,15 @@ const ViewParticipants = ({navigation, route}: any) => {
   }, [isSearch]);
 
   async function updateData(newPage: number) {
-    let payload = {
-      chatroom_id: chatroomID,
-      is_secret: isSecret,
+    let payload: any = {
+      chatroomId: chatroomID,
+      isSecret: isSecret,
       page: newPage,
-      page_size: 10,
-      participant_name: search,
+      pageSize: 10,
+      participantName: search,
     };
-    let response = myClient.viewParticipants(payload);
-    return response;
+    let response = await myClient.viewParticipants(payload);
+    return response?.data;
   }
 
   const loadData = async (newPage: number) => {
@@ -310,7 +312,7 @@ const ViewParticipants = ({navigation, route}: any) => {
         ListFooterComponent={renderFooter}
         keyExtractor={(item: any) => item?.id.toString()}
       />
-      {participants.length === 0 && (
+      {participants?.length === 0 && (
         <View style={[styles.justifyCenter]}>
           <Text style={styles.title}>No search results found</Text>
         </View>
