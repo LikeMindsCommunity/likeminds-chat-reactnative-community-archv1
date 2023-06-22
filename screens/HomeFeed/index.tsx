@@ -38,7 +38,7 @@ import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DM_FEED, GROUP_FEED } from '../../constants/Screens';
+import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 
 interface Props {
   navigation: any;
@@ -153,7 +153,7 @@ const HomeFeed = ({navigation}: Props) => {
           member_id: res?.user?.id,
         }) as any,
       );
-      setCommunityId(res.community.id);
+      setCommunityId(res?.community?.id);
       setAccessToken(res?.access_token);
     }
 
