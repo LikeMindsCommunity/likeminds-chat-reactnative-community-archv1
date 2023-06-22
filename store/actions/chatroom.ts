@@ -26,7 +26,7 @@ export const getConversations =
       return await dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         [CALL_API]: {
-          func: myClient.getConversations(payload),
+          func: myClient.getConversation(payload),
           body: payload,
           types: [
             GET_CONVERSATIONS,
@@ -47,7 +47,7 @@ export const paginatedConversations =
       return await dispatch({
         type: PAGINATED_CONVERSATIONS_SUCCESS,
         [CALL_API]: {
-          func: myClient.getConversations(payload),
+          func: myClient.getConversation(payload),
           body: payload,
           types: [
             PAGINATED_CONVERSATIONS,
@@ -68,7 +68,7 @@ export const firebaseConversation =
       return await dispatch({
         type: FIREBASE_CONVERSATIONS_SUCCESS,
         [CALL_API]: {
-          func: myClient.getConversationsMeta(payload),
+          func: myClient.conversationsFetch(payload),
           body: payload,
           types: [
             FIREBASE_CONVERSATIONS,
@@ -89,7 +89,7 @@ export const onConversationsCreate =
       return await dispatch({
         type: ON_CONVERSATIONS_CREATE_SUCCESS,
         [CALL_API]: {
-          func: myClient.onConversationsCreate(payload),
+          func: myClient.postConversation(payload),
           body: payload,
           types: [
             ON_CONVERSATIONS_CREATE,
