@@ -8,9 +8,9 @@ import {
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Provider as ReduxProvider} from 'react-redux';
 import store from './store';
-import SwitchComponent from './navigation/SwitchComponent';
+import SwitchComponent from './ChatSX/navigation/SwitchComponent';
 import notifee, {EventType} from '@notifee/react-native';
-import {getRoute} from './notifications/routes';
+import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './RootNavigation';
 
 const Stack = createNativeStackNavigator();
