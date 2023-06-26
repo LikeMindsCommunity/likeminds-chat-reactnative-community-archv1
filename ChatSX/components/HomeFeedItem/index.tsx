@@ -47,6 +47,7 @@ interface Props {
   deletedBy?: number;
   inviteReceiver?: any;
   chatroomType: number;
+  muteStatus: boolean;
 }
 
 const HomeFeedItem: React.FC<Props> = ({
@@ -64,6 +65,7 @@ const HomeFeedItem: React.FC<Props> = ({
   deletedBy,
   inviteReceiver,
   chatroomType,
+  muteStatus,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -319,6 +321,12 @@ const HomeFeedItem: React.FC<Props> = ({
               <Image
                 source={require('../../assets/images/lock_icon3x.png')}
                 style={styles.lockIcon}
+              />
+            ) : null}
+            {muteStatus ? (
+              <Image
+                source={require('../../assets/images/mute_icon.png')}
+                style={[styles.lockIcon, {tintColor: '#5A5A5A'}]}
               />
             ) : null}
           </Text>

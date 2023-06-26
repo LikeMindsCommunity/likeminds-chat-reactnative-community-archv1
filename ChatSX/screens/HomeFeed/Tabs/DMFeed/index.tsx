@@ -222,6 +222,7 @@ const DMFeed = ({navigation}: Props) => {
               deletedBy: item?.last_conversation?.deleted_by,
               isSecret: chatroom?.is_secret,
               chatroomType: chatroom?.type,
+              muteStatus: chatroom?.mute_status,
             };
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}

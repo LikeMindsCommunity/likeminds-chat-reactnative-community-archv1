@@ -180,6 +180,7 @@ const GroupFeed = ({navigation}: Props) => {
             deletedBy: item?.last_conversation?.deleted_by,
             inviteReceiver: item?.invite_receiver,
             chatroomType: item?.chatroom?.type,
+            muteStatus: item?.chatroom?.mute_status,
           };
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}
