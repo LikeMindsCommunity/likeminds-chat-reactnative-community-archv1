@@ -612,7 +612,7 @@ const InputBox = ({
         chatRequestState === null &&
         isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
-        let response = await myClient.sendDMRequest({
+        let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 0,
           text: message.trim(),
@@ -633,7 +633,7 @@ const InputBox = ({
         chatRequestState === null &&
         !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
-        let response = await myClient.sendDMRequest({
+        let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 1,
           text: message.trim(),
@@ -722,7 +722,7 @@ const InputBox = ({
   };
 
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
-    const res = await myClient.getTaggingList({
+    const res = await myClient?.getTaggingList({
       page: page,
       pageSize: 10,
       searchName: searchName,
@@ -890,7 +890,7 @@ const InputBox = ({
     setMessage('');
     setIsEditable(false);
 
-    await myClient.editConversation({
+    await myClient?.editConversation({
       conversationId: conversationId,
       text: editedConversation,
     });

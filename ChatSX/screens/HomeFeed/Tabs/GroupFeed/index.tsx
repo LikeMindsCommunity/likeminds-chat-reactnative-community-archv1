@@ -49,7 +49,7 @@ const GroupFeed = ({navigation}: Props) => {
     community,
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
-  const db = myClient.fbInstance();
+  const db = myClient?.fbInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
 
   async function fetchData() {

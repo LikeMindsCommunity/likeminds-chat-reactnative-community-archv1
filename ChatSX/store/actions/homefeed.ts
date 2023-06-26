@@ -40,7 +40,7 @@ export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
     return await dispatch({
       type: INIT_API_SUCCESS,
       [CALL_API]: {
-        func: myClient.initiateUser(payload),
+        func: myClient?.initiateUser(payload),
         body: payload,
         types: [INIT_API, INIT_API_SUCCESS, INIT_API_FAILED],
         showLoader: true,
@@ -56,7 +56,7 @@ export const profileData = (payload: any) => async (dispatch: Dispatch) => {
     return await dispatch({
       type: PROFILE_DATA_SUCCESS,
       [CALL_API]: {
-        func: myClient.profileData(payload),
+        func: myClient?.profileData(payload),
         body: payload,
         types: [PROFILE_DATA, PROFILE_DATA_SUCCESS, PROFILE_DATA_FAILED],
         showLoader: true,
@@ -73,7 +73,7 @@ export const getInvites =
       return await dispatch({
         type: GET_INVITES_SUCCESS,
         [CALL_API]: {
-          func: myClient.getInvites(payload),
+          func: myClient?.getInvites(payload),
           body: payload,
           types: [GET_INVITES, GET_INVITES_SUCCESS, GET_INVITES_FAILED],
           showLoader: showLoader,
@@ -90,7 +90,7 @@ export const updateInvites =
       return await dispatch({
         type: UPDATE_INVITES_SUCCESS,
         [CALL_API]: {
-          func: myClient.getInvites(payload),
+          func: myClient?.getInvites(payload),
           body: payload,
           types: [
             UPDATE_INVITES,
@@ -110,7 +110,7 @@ export const updateInvites =
 //     return await dispatch({
 //       type: ACCEPT_INVITE_SUCCESS,
 //       [CALL_API]: {
-//         func: myClient.inviteAction(payload),
+//         func: myClient?.inviteAction(payload),
 //         body: payload,
 //         types: [
 //           ACCEPT_INVITE,
@@ -130,7 +130,7 @@ export const updateInvites =
 //     return await dispatch({
 //       type: REJECT_INVITE_SUCCESS,
 //       [CALL_API]: {
-//         func: myClient.inviteAction(payload),
+//         func: myClient?.inviteAction(payload),
 //         body: payload,
 //         types: [
 //           REJECT_INVITE,
@@ -151,7 +151,7 @@ export const getHomeFeedData =
       return await dispatch({
         type: GET_HOMEFEED_CHAT_SUCCESS,
         [CALL_API]: {
-          func: myClient.getHomeFeed(payload),
+          func: myClient?.getHomeFeed(payload),
           body: payload,
           types: [
             GET_HOMEFEED_CHAT,
@@ -172,7 +172,7 @@ export const updateHomeFeedData =
       return await dispatch({
         type: UPDATE_HOMEFEED_CHAT_SUCCESS,
         [CALL_API]: {
-          func: myClient.getHomeFeed(payload),
+          func: myClient?.getHomeFeed(payload),
           body: payload,
           types: [
             UPDATE_HOMEFEED_CHAT,
@@ -193,7 +193,7 @@ export const getDMFeedData =
       return await dispatch({
         type: GET_DMFEED_CHAT_SUCCESS,
         [CALL_API]: {
-          func: myClient.fetchDMFeed(payload),
+          func: myClient?.fetchDMFeed(payload),
           body: payload,
           types: [
             GET_DMFEED_CHAT,
@@ -214,7 +214,7 @@ export const updateDMFeedData =
       return await dispatch({
         type: UPDATE_DMFEED_CHAT_SUCCESS,
         [CALL_API]: {
-          func: myClient.fetchDMFeed(payload),
+          func: myClient?.fetchDMFeed(payload),
           body: payload,
           types: [
             UPDATE_DMFEED_CHAT,

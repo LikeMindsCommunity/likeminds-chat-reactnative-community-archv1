@@ -132,7 +132,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
   let refInput = useRef<any>();
 
-  const db = myClient.fbInstance();
+  const db = myClient?.fbInstance();
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -579,11 +579,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ) as any,
     );
     if (!isInvited) {
-      const response = await myClient.markReadChatroom({
+      const response = await myClient?.markReadChatroom({
         chatroomId: chatroomID,
       });
 
-      const res = await myClient.chatroomSeen({
+      const res = await myClient?.chatroomSeen({
         collabcardId: chatroomID,
         memberId: user?.id,
         collabcardType: chatroomType,
@@ -699,7 +699,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     async function callApi() {
       if (chatroomType == 10) {
-        let apiRes = await myClient.canDmFeed({
+        let apiRes = await myClient?.canDmFeed({
           req_from: 'chatroom',
           chatroom_id: chatroomID,
           community_id: community?.id,
@@ -718,7 +718,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           const res = await dispatch(getDMFeedData(payload, false) as any);
 
           if (!!res) {
-            let apiRes = await myClient.checkDMStatus({
+            let apiRes = await myClient?.checkDMStatus({
               requestFrom: 'group_channel',
             });
             let response = apiRes?.data;
@@ -1086,7 +1086,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         {
           text: CONFIRM_BUTTON,
           onPress: async () => {
-            let res = await myClient.inviteAction({
+            let res = await myClient?.inviteAction({
               channelId: `${chatroomID}`,
               inviteStatus: 1,
             });
@@ -1120,7 +1120,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         {
           text: CONFIRM_BUTTON,
           onPress: async () => {
-            let res = await myClient.inviteAction({
+            let res = await myClient?.inviteAction({
               channelId: `${chatroomID}`,
               inviteStatus: 2,
             });
@@ -1150,7 +1150,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function calls sendReactionAPI
   const sendReactionAPI = async (consversationID: any, reaction: any) => {
-    const res = await myClient.putReaction({
+    const res = await myClient?.putReaction({
       chatroomId: chatroomID,
       conversationId: consversationID,
       reaction: reaction,
@@ -1159,7 +1159,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function calls removeReactionAPI
   const removeReactionAPI = async (consversationID: any, reaction: any) => {
-    const res = await myClient.deleteReaction({
+    const res = await myClient?.deleteReaction({
       chatroomId: chatroomID,
       conversationId: consversationID,
       reaction: reaction,
@@ -1420,7 +1420,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function calls API to approve DM request
   const onApprove = async () => {
-    let response = await myClient.sendDMRequest({
+    let response = await myClient?.sendDMRequest({
       chatroomId: chatroomID,
       chatRequestState: 1,
     });
@@ -1436,7 +1436,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function calls API to reject DM request
   const onReject = async () => {
-    let response = await myClient.sendDMRequest({
+    let response = await myClient?.sendDMRequest({
       chatroomId: chatroomID,
       chatRequestState: 2,
     });
@@ -1452,7 +1452,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function calls API to approve DM request on click TapToUndo
   const onTapToUndo = async () => {
-    let response = await myClient.blockMember({
+    let response = await myClient?.blockMember({
       chatroomId: chatroomID,
       status: 1,
     });
@@ -1473,7 +1473,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroomId: chatroomID,
       status: 0,
     };
-    myClient.blockMember(payload).then((res: any) => {
+    myClient?.blockMember(payload).then((res: any) => {
       fetchChatroomDetails();
       dispatch({
         type: SHOW_TOAST,
@@ -1488,7 +1488,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroomId: chatroomID,
       status: 1,
     };
-    myClient.blockMember(payload).then((res: any) => {
+    myClient?.blockMember(payload).then((res: any) => {
       fetchChatroomDetails();
       dispatch({
         type: SHOW_TOAST,
@@ -1631,7 +1631,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
 
-          const uploadRes = await myClient.putMultimedia(payload as any);
+          const uploadRes = await myClient?.putMultimedia(payload as any);
         }
       } catch (error) {
         dispatch({
@@ -1686,7 +1686,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   const onReplyPrivatelyClick = async (memberID: any) => {
-    const apiRes = await myClient.checkDMLimit({
+    const apiRes = await myClient?.checkDMLimit({
       memberId: memberID,
     });
     const res = apiRes?.data;
@@ -1708,7 +1708,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           let payload = {
             memberId: memberID,
           };
-          const apiResponse = await myClient.createDMChatroom(payload);
+          const apiResponse = await myClient?.createDMChatroom(payload);
           const response = apiResponse?.data;
           if (apiResponse?.success === false) {
             dispatch({

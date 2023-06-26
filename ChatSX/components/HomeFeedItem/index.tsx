@@ -79,7 +79,7 @@ const HomeFeedItem: React.FC<Props> = ({
         {
           text: CONFIRM_BUTTON,
           onPress: async () => {
-            let res = await myClient.inviteAction({
+            let res = await myClient?.inviteAction({
               channelId: `${chatroomID}`,
               inviteStatus: 1,
             });
@@ -111,7 +111,7 @@ const HomeFeedItem: React.FC<Props> = ({
         {
           text: CONFIRM_BUTTON,
           onPress: async () => {
-            let res = await myClient.inviteAction({
+            let res = await myClient?.inviteAction({
               channelId: `${chatroomID}`,
               inviteStatus: 2,
             });

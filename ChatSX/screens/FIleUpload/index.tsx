@@ -203,7 +203,7 @@ const FileUpload = ({navigation, route}: any) => {
               fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
 
-          const uploadRes = await myClient.putMultimedia(payload as any);
+          const uploadRes = await myClient?.putMultimedia(payload as any);
         }
       } catch (error) {
         dispatch({

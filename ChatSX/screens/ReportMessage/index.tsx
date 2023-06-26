@@ -73,7 +73,7 @@ const ReportScreen = ({navigation, route}: Props) => {
   useEffect(() => {
     const getTags = async () => {
       try {
-        const res = await myClient.getReportTags({
+        const res = await myClient?.getReportTags({
           type: isDM === true ? 1 : 0,
         });
         setReasons(res?.data?.report_tags);
@@ -86,7 +86,7 @@ const ReportScreen = ({navigation, route}: Props) => {
 
   const reportMessage = async () => {
     try {
-      const call = await myClient.pushReport({
+      const call = await myClient?.pushReport({
         conversationId: Number(conversationID),
         tagId: Number(selectedId),
         reason: otherReason != '' ? otherReason : '',

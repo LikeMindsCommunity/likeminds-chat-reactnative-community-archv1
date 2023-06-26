@@ -55,7 +55,7 @@ const DMFeed = ({navigation}: Props) => {
     useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
 
-  const db = myClient.fbInstance();
+  const db = myClient?.fbInstance();
   const chatrooms = [...myDMChatrooms];
 
   async function fetchData() {
@@ -67,7 +67,7 @@ const DMFeed = ({navigation}: Props) => {
       const res = await dispatch(getDMFeedData(payload) as any);
 
       if (!!res) {
-        let apiRes = await myClient.checkDMStatus({
+        let apiRes = await myClient?.checkDMStatus({
           requestFrom: 'dm_feed_v2',
         });
         let response = apiRes?.data;

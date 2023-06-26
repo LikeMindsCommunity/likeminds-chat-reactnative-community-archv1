@@ -128,7 +128,7 @@ const ViewParticipants = ({navigation, route}: any) => {
   };
 
   const fetchParticipants = async () => {
-    const apiRes = await myClient.viewParticipants({
+    const apiRes = await myClient?.viewParticipants({
       chatroomId: chatroomID,
       isSecret: isSecret,
       page: 1,
@@ -140,7 +140,7 @@ const ViewParticipants = ({navigation, route}: any) => {
     setParticipants(res?.participants);
 
     if (!!res && res?.participants.length === 10) {
-      const apiResponse = await myClient.viewParticipants({
+      const apiResponse = await myClient?.viewParticipants({
         chatroomId: chatroomID,
         isSecret: isSecret,
         page: 2,
@@ -202,7 +202,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       pageSize: 10,
       participantName: search,
     };
-    let response = await myClient.viewParticipants(payload);
+    let response = await myClient?.viewParticipants(payload);
     return response?.data;
   }
 
