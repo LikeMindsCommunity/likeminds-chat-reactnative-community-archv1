@@ -11,6 +11,7 @@ import {
   GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   MESSAGE_SENT,
+  ON_CONVERSATIONS_CREATE_SUCCESS,
   PAGINATED_CONVERSATIONS_SUCCESS,
   REACTION_SENT,
   SELECTED_FILES_TO_UPLOAD,
@@ -72,7 +73,33 @@ export function chatroomReducer(state = initialState, action: any) {
     case FIREBASE_CONVERSATIONS_SUCCESS: {
       const data = action.body;
       const {conversations = []} = data;
-      let temporaryID = conversations[0]?.temporary_id;
+      let ID = conversations[0]?.id;
+      let conversationsList = [...state.conversations];
+      let conversationArr: any = [...conversationsList];
+      // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
+      let index = conversationsList.findIndex((element: any) => {
+        return (
+          element?.id?.toString() === ID.toString() || // to check locally handled item id with ID
+          element?.temporary_id?.toString() === ID.toString() // to replace the messsage if message is already there by verifying message's ID with conversationMeta ID;
+        );
+      });
+      //replacing the value from the index that matches ID
+      if (conversations.length > 0 && index !== -1) {
+        conversationArr[index] = conversations[0];
+      }
+      // return;
+      return {
+        ...state,
+        conversations:
+          index === -1 && conversationsList.length > 0 // no such element present already && conversationsList length > 0
+            ? [conversations[0], ...conversationArr]
+            : conversationArr,
+      };
+    }
+    case ON_CONVERSATIONS_CREATE_SUCCESS: {
+      const data = action.body;
+      const {conversation = []} = data;
+      let temporaryID = conversation?.temporary_id;
 
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
@@ -86,14 +113,14 @@ export function chatroomReducer(state = initialState, action: any) {
       });
 
       //replacing the value from the index that matches temporaryID
-      if (conversations.length > 0 && index !== -1) {
-        conversationArr[index] = conversations[0];
+      if (index !== -1) {
+        conversationArr[index] = conversation;
       }
       return {
         ...state,
         conversations:
           index === -1 && conversationsList.length > 0 // no such element present already && conversationsList length > 0
-            ? [conversations[0], ...conversationArr]
+            ? [conversation, ...conversationArr]
             : conversationArr,
       };
     }
