@@ -26,7 +26,7 @@ export const getConversations =
       return await dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         [CALL_API]: {
-          func: myClient.getConversation(payload),
+          func: myClient?.getConversation(payload),
           body: payload,
           types: [
             GET_CONVERSATIONS,
@@ -47,7 +47,7 @@ export const paginatedConversations =
       return await dispatch({
         type: PAGINATED_CONVERSATIONS_SUCCESS,
         [CALL_API]: {
-          func: myClient.getConversation(payload),
+          func: myClient?.getConversation(payload),
           body: payload,
           types: [
             PAGINATED_CONVERSATIONS,
@@ -68,7 +68,7 @@ export const firebaseConversation =
       return await dispatch({
         type: FIREBASE_CONVERSATIONS_SUCCESS,
         [CALL_API]: {
-          func: myClient.conversationsFetch(payload),
+          func: myClient?.conversationsFetch(payload),
           body: payload,
           types: [
             FIREBASE_CONVERSATIONS,
@@ -89,7 +89,7 @@ export const onConversationsCreate =
       return await dispatch({
         type: ON_CONVERSATIONS_CREATE_SUCCESS,
         [CALL_API]: {
-          func: myClient.postConversation(payload),
+          func: myClient?.postConversation(payload),
           body: payload,
           types: [
             ON_CONVERSATIONS_CREATE,
@@ -109,7 +109,7 @@ export const getChatroom = (payload: any) => async (dispatch: Dispatch) => {
     return await dispatch({
       type: GET_CHATROOM_SUCCESS,
       [CALL_API]: {
-        func: myClient.getChatroom(payload),
+        func: myClient?.getChatroom(payload),
         body: payload,
         types: [GET_CHATROOM, GET_CHATROOM_SUCCESS, GET_CHATROOM_FAILED],
         showLoader: false,
