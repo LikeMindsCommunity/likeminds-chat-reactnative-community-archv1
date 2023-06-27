@@ -11,7 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@likeminds.community/chat-js-beta": "^1.1.56",
+    "@likeminds.community/chat-js-beta": "^1.1.57",
     "@notifee/react-native": "^7.6.1",
     "@react-native-async-storage/async-storage": "^1.18.1",
     "@react-native-clipboard/clipboard": "^1.11.2",
@@ -67,7 +67,6 @@
     "metro-react-native-babel-preset": "0.73.7",
     "prettier": "^2.4.1",
     "react-test-renderer": "18.2.0",
-    "reactotron-react-native": "^5.0.3",
     "typescript": "4.8.4"
   },
   "jest": {
