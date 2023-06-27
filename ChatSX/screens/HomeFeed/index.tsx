@@ -117,23 +117,12 @@ const HomeFeed = ({navigation}: Props) => {
   const pushAPI = async (fcmToken: any, accessToken: any) => {
     const deviceID = await getUniqueId();
     try {
-      const response = await fetch(
-        'https://auth.likeminds.community/user/device/push',
-        {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'x-device-id': `${deviceID}`,
-            'x-platform-code': Platform.OS === 'ios' ? 'ios' : 'an',
-            Authorization: `${accessToken}`,
-          },
-          body: JSON.stringify({
-            token: fcmToken,
-          }),
-        },
-      );
-      let res = await response.json();
+      const payload = {
+        token: fcmToken,
+        xDeviceId: deviceID,
+        xPlatformCode: Platform.OS === 'ios' ? 'ios' : 'an',
+      };
+      await myClient.registerDevice(payload);
     } catch (error) {
       Alert.alert(`${error}`);
     }
@@ -141,8 +130,8 @@ const HomeFeed = ({navigation}: Props) => {
 
   async function fetchData() {
     let payload = {
-      userUniqueId: '0878acca-094b-4d70-a105-81a1938f73dc',
-      userName: 'Jai',
+      userUniqueId: '',
+      userName: '',
       isGuest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
