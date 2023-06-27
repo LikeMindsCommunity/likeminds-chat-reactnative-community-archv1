@@ -45,7 +45,9 @@ export function getFullDate(time: any) {
 }
 
 function detectLinks(message: string, isLongPress?: boolean) {
-  const regex = /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?)/i;
+  const regex =
+    /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b)/i;
+
   let parts = message.split(regex);
   let i = 0;
   if (parts?.length > 0) {
@@ -58,10 +60,15 @@ function detectLinks(message: string, isLongPress?: boolean) {
               <Text
                 onPress={async () => {
                   if (!!!isLongPress) {
-                    let urlRegex = /(https?:\/\/[^\s]+)/gi;
-                    let isMatched = urlRegex.test(val);
+                    const urlRegex = /(https?:\/\/[^\s]+)/gi;
+                    const emailRegex =
+                      /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+                    let isURL = urlRegex.test(val);
+                    let isEmail = emailRegex.test(val);
 
-                    if (isMatched) {
+                    if (isEmail) {
+                      await Linking.openURL(`mailto:${val}`);
+                    } else if (isURL) {
                       await Linking.openURL(val);
                     } else {
                       await Linking.openURL(`https://${val}`);

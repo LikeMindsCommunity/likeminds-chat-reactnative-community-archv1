@@ -229,15 +229,13 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
     let initialPayload =
       showList == 1
         ? {
-            community_id: community?.id,
             page: 1,
           }
         : {
-            community_id: community?.id,
             page: 1,
-            member_state: 1,
+            memberState: 1,
           };
-    const res = await myClient.dmAllMembers(initialPayload);
+    const res = await myClient.getAllMembers(initialPayload);
     setParticipants(res?.data?.members);
   };
 
@@ -313,16 +311,14 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
       return res?.data;
     } else {
       if (isDM) {
-        const res = await myClient?.dmAllMembers(
+        const res = await myClient?.getAllMembers(
           showList == 1
             ? {
-                community_id: community?.id,
                 page: newPage,
               }
             : {
-                community_id: community?.id,
                 page: newPage,
-                member_state: 1,
+                memberState: 1,
               },
         );
         return res?.data;
