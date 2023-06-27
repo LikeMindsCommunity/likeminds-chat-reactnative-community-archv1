@@ -2,6 +2,12 @@
  * @format
  */
 
+// need to remove Reactotron code from index.js and
+// `@react-native-async-storage/async-storage`, `reactotron-react-native` packages from package.json
+// as they are only for debugging purpose only
+if (__DEV__) {
+  import('./ReactotronConfig').then();
+}
 
 import {AppRegistry} from 'react-native';
 import App from './App';
@@ -9,8 +15,8 @@ import {name as appName} from './app.json';
 import messaging from '@react-native-firebase/messaging';
 import LMChatClient from '@likeminds.community/chat-js-beta';
 import notifee, {EventType} from '@notifee/react-native';
-import getNotification from './notifications';
-import {getRoute} from './notifications/routes';
+import getNotification from './ChatSX/notifications';
+import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './RootNavigation';
 import React from 'react';
 
@@ -30,7 +36,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 });
 
 export const myClient: LMChatClient = LMChatClient.setApiKey(
-  '',
+  'a80df679-4fdc-4a4f-b646-dafd10603b62',
 )
   .setPlatformCode('rn')
   .setVersionCode(parseInt('9'))
