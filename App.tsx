@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -12,10 +12,13 @@ import SwitchComponent from './ChatSX/navigation/SwitchComponent';
 import notifee, {EventType} from '@notifee/react-native';
 import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './RootNavigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import FetchKeyInputScreen from './Sample';
 
 const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
+  const [userUniqueID, setUserUniqueID] = useState<any>();
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
     async function bootstrap() {
@@ -29,7 +32,16 @@ function App(): JSX.Element {
     bootstrap();
   }, []);
 
-  return (
+  // this useEffect is for the sample app only
+  useEffect(() => {
+    async function invokeDataLayer() {
+      const userUniqueID = await AsyncStorage.getItem('userUniqueID');
+      setUserUniqueID(userUniqueID);
+    }
+    invokeDataLayer();
+  }, []);
+
+  return userUniqueID ? (
     <ReduxProvider store={store}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -37,6 +49,8 @@ function App(): JSX.Element {
         <SwitchComponent />
       </KeyboardAvoidingView>
     </ReduxProvider>
+  ) : (
+    <FetchKeyInputScreen />
   );
 }
 

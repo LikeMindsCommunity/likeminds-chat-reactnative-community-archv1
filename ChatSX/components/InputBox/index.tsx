@@ -63,7 +63,7 @@ import {
 } from '../../constants/Strings';
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
-import {BUCKET, POOL_ID, REGION} from '../../../aws-exports';
+import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {
   REGEX_USER_TAGGING,
   decode,
