@@ -1,39 +1,61 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState} from 'react';
-import {View, TextInput, Button, StyleSheet} from 'react-native';
-import {LikeMindsChatClient} from '..';
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+} from 'react-native';
+import STYLES from '../ChatSX/constants/Styles';
 
 const FetchKeyInputScreen = () => {
-  const [input1, setInput1] = useState('');
-  const [input2, setInput2] = useState('');
+  const [userUniqueID, setUserUniqueID] = useState('');
+  const [isButtonClicked, setIsButtonClicked] = useState(false);
 
   const handleButtonPress = () => {
     // Perform some action when the button is pressed
     // You can access the input values from input1 and input2 variables
-
-    let CHAT_CLIENT = new LikeMindsChatClient();
-    CHAT_CLIENT.addApiKey(input1);
-    console.log('Input 1:', input1);
-    console.log('Input 2:', input2);
-    AsyncStorage.setItem('apiKey', input1);
-    AsyncStorage.setItem('userUniqueID', input2);
+    AsyncStorage.setItem('userUniqueID', userUniqueID);
+    setIsButtonClicked(true);
   };
 
   return (
     <View style={styles.container}>
       <TextInput
         style={styles.input}
-        placeholder="Type here..."
-        value={input1}
-        onChangeText={text => setInput1(text)}
+        placeholder="User unique ID"
+        value={userUniqueID}
+        onChangeText={text => setUserUniqueID(text)}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Type here..."
-        value={input2}
-        onChangeText={text => setInput2(text)}
-      />
-      <Button title="Press me" onPress={handleButtonPress} />
+      <TouchableOpacity
+        style={{
+          backgroundColor: STYLES.$COLORS.LIGHT_BLUE,
+          padding: 10,
+          borderRadius: 10,
+        }}
+        onPress={handleButtonPress}>
+        <Text
+          style={{
+            color: STYLES.$COLORS.TERTIARY,
+            fontSize: STYLES.$FONT_SIZES.XL,
+            fontFamily: STYLES.$FONT_TYPES.LIGHT,
+          }}>
+          Press me
+        </Text>
+      </TouchableOpacity>
+
+      {!!userUniqueID && !!isButtonClicked ? (
+        <Text
+          style={{
+            color: STYLES.$COLORS.PRIMARY,
+            fontSize: STYLES.$FONT_SIZES.MEDIUM,
+            fontFamily: STYLES.$FONT_TYPES.LIGHT,
+          }}>
+          Please kill the app and open it again
+        </Text>
+      ) : null}
     </View>
   );
 };

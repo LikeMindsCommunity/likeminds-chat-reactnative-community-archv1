@@ -104,7 +104,7 @@ import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
 import BlockDMRequestModal from '../../customModals/BlockDMRequest';
 import RejectDMRequestModal from '../../customModals/RejectDMRequest';
-import {BUCKET, POOL_ID, REGION} from '../../../aws-exports';
+import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';

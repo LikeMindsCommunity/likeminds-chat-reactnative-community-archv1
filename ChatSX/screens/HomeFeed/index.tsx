@@ -140,9 +140,12 @@ const HomeFeed = ({navigation}: Props) => {
   };
 
   async function fetchData() {
+    //this line of code is for the sample app only, pass your userUniqueID instead of this.
+    const API_KEY = await AsyncStorage.getItem('userUniqueID');
+
     let payload = {
-      userUniqueId: '0878acca-094b-4d70-a105-81a1938f73dc',
-      userName: 'Jai',
+      userUniqueId: API_KEY,
+      userName: '',
       isGuest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
