@@ -514,8 +514,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               <TouchableOpacity
                 onPress={async () => {
                   const res = await myClient
-                    .deleteMsg({
-                      conversation_ids: selectedMessagesIDArr,
+                    .deleteConversation({
+                      conversationIds: selectedMessagesIDArr,
                       reason: 'none',
                     })
                     .then(async () => {
@@ -524,7 +524,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       setInitialHeader();
                       let payload = {
                         chatroomID: chatroomID,
-                        page: conversations.length * 2,
+                        paginateBy: conversations.length * 2,
+                        topNavigate: false,
                       };
                       await dispatch(getConversations(payload, false) as any);
                     })
@@ -570,7 +571,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   //this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
-    let payload = {chatroomID: chatroomID, page: 100};
+    let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
     let response = await dispatch(
       getConversations(
         payload,
@@ -578,12 +579,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ) as any,
     );
     if (!isInvited) {
-      const response = await myClient.markReadFn({chatroom_id: chatroomID});
+      const response = await myClient.markReadChatroom({
+        chatroomId: chatroomID,
+      });
 
-      const res = await myClient.crSeenFn({
-        collabcard_id: chatroomID,
-        member_id: user?.id,
-        collabcard_type: chatroomType,
+      const res = await myClient.chatroomSeen({
+        collabcardId: chatroomID,
+        memberId: user?.id,
+        collabcardType: chatroomType,
       });
 
       updatePageInRedux();
@@ -602,7 +605,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   //this function fetchChatroomDetails when we first move inside Chatroom
   async function fetchChatroomDetails() {
-    let payload = {chatroom_id: chatroomID};
+    let payload = {chatroomId: chatroomID};
     let response = await dispatch(getChatroom(payload) as any);
     return response;
   }
@@ -696,12 +699,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     async function callApi() {
       if (chatroomType == 10) {
-        let response = await myClient.canDmFeed({
+        let apiRes = await myClient.canDmFeed({
           req_from: 'chatroom',
           chatroom_id: chatroomID,
           community_id: community?.id,
           member_id: chatroomWithUser?.id,
         });
+        let response = apiRes?.data;
         if (!!response?.cta) {
           setShowDM(response?.show_dm);
         }
@@ -714,9 +718,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           const res = await dispatch(getDMFeedData(payload, false) as any);
 
           if (!!res) {
-            let response = await myClient.dmStatus({
-              req_from: 'group_channel',
+            let apiRes = await myClient.checkDMStatus({
+              requestFrom: 'group_channel',
             });
+            let response = apiRes?.data;
             if (!!response) {
               let routeURL = response?.cta;
               const hasShowList = SHOW_LIST_REGEX.test(routeURL);
@@ -764,11 +769,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return onValue(query, async (snapshot: DataSnapshot) => {
       if (snapshot.exists()) {
         let firebaseData = snapshot.val();
+        let conversationID = firebaseData?.collabcard?.answer_id;
+
         let payload = {
-          chatroomID: chatroomID,
+          chatroomId: chatroomID,
           conversationId: firebaseData?.collabcard?.answer_id,
         };
-        const res = await dispatch(firebaseConversation(payload, false) as any);
+        if (conversationID) {
+          const res = await dispatch(
+            firebaseConversation(payload, false) as any,
+          );
+        }
       }
     });
   }, []);
@@ -807,9 +818,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function paginatedData(newPage: number) {
     let payload = {
       chatroomID: chatroomID,
-      page: 50,
-      conversation_id: conversations[conversations.length - 1]?.id,
-      scroll_direction: 0,
+      conversationID: conversations[conversations.length - 1]?.id,
+      scrollDirection: 0,
+      paginateBy: 50,
+      topNavigate: false,
     };
     let response = await dispatch(paginatedConversations(payload, true) as any);
     return response;
@@ -857,18 +869,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const leaveChatroom = async () => {
     const payload = {
-      collabcard_id: chatroomID,
-      member_id: user?.id,
+      collabcardId: chatroomID,
+      memberId: user?.id,
       value: false,
     };
     const res = await myClient
-      .leaveChatroom(payload)
+      .followChatroom(payload)
       .then(async () => {
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
           let payload2 = {
-            community_id: community?.id,
-            order_type: 0,
+            orderType: 0,
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
@@ -906,8 +917,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const leaveSecretChatroom = async () => {
     const payload = {
-      chatroom_id: chatroomID,
-      member_id: user?.id,
+      chatroomId: chatroomID,
+      memberId: user?.id,
     };
     const res = await myClient
       .leaveSecretChatroom(payload)
@@ -915,8 +926,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
           let payload2 = {
-            community_id: community?.id,
-            order_type: 0,
+            orderType: 0,
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
@@ -953,18 +963,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const joinChatroom = async () => {
     const payload = {
-      collabcard_id: chatroomID,
-      member_id: user?.id,
+      collabcardId: chatroomID,
+      memberId: user?.id,
       value: true,
     };
     const res = await myClient
-      .leaveChatroom(payload)
+      .followChatroom(payload)
       .then(async () => {
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
           let payload2 = {
-            community_id: community?.id,
-            order_type: 0,
+            orderType: 0,
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
@@ -993,24 +1002,27 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const joinSecretChatroom = async () => {
     const payload = {
-      collabcard_id: chatroomID,
-      member_id: user?.id,
+      collabcardId: chatroomID,
+      memberId: user?.id,
       value: true,
     };
     const res = await myClient
-      .leaveChatroom(payload)
+      .followChatroom(payload)
       .then(async () => {
         let payload = {chatroom_id: chatroomID};
         await dispatch(getChatroom(payload) as any);
 
-        let payload1 = {chatroomID: chatroomID, page: 100};
+        let payload1 = {
+          chatroomID: chatroomID,
+          paginateBy: 100,
+          topNavigate: false,
+        };
         await dispatch(getConversations(payload1, true) as any);
 
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
           let payload2 = {
-            community_id: community?.id,
-            order_type: 0,
+            orderType: 0,
             page: 1,
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
@@ -1030,12 +1042,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const muteNotifications = async () => {
     const payload = {
-      chatroom_id: chatroomID,
+      chatroomId: chatroomID,
       value: true,
     };
     myClient
-      .muteNotification(payload)
-      .then(res => {
+      .muteChatroom(payload)
+      .then((res: any) => {
         fetchChatroomDetails();
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
@@ -1047,11 +1059,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const unmuteNotifications = async () => {
     const payload = {
-      chatroom_id: chatroomID,
+      chatroomId: chatroomID,
       value: false,
     };
     const res = await myClient
-      .muteNotification(payload)
+      .muteChatroom(payload)
       .then(() => {
         fetchChatroomDetails();
         setMsg('Notifications unmuted for this chatroom');
@@ -1075,8 +1087,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
-              channel_id: `${chatroomID}`,
-              invite_status: 1,
+              channelId: `${chatroomID}`,
+              inviteStatus: 1,
             });
             dispatch({
               type: SHOW_TOAST,
@@ -1109,8 +1121,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           text: CONFIRM_BUTTON,
           onPress: async () => {
             let res = await myClient.inviteAction({
-              channel_id: `${chatroomID}`,
-              invite_status: 2,
+              channelId: `${chatroomID}`,
+              inviteStatus: 2,
             });
             dispatch({
               type: SHOW_TOAST,
@@ -1138,18 +1150,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function calls sendReactionAPI
   const sendReactionAPI = async (consversationID: any, reaction: any) => {
-    const res = await myClient.addAction({
-      chatroom_id: chatroomID,
-      conversation_id: consversationID,
+    const res = await myClient.putReaction({
+      chatroomId: chatroomID,
+      conversationId: consversationID,
       reaction: reaction,
     });
   };
 
   // this function calls removeReactionAPI
   const removeReactionAPI = async (consversationID: any, reaction: any) => {
-    const res = await myClient.removeAction({
-      chatroom_id: chatroomID,
-      conversation_id: consversationID,
+    const res = await myClient.deleteReaction({
+      chatroomId: chatroomID,
+      conversationId: consversationID,
       reaction: reaction,
     });
   };
@@ -1408,9 +1420,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function calls API to approve DM request
   const onApprove = async () => {
-    let response = await myClient.requestDmAction({
-      chatroom_id: chatroomID,
-      chat_request_state: 1,
+    let response = await myClient.sendDMRequest({
+      chatroomId: chatroomID,
+      chatRequestState: 1,
     });
     fetchData();
     fetchChatroomDetails();
@@ -1424,11 +1436,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function calls API to reject DM request
   const onReject = async () => {
-    let response = await myClient.requestDmAction({
-      chatroom_id: chatroomID,
-      chat_request_state: 2,
+    let response = await myClient.sendDMRequest({
+      chatroomId: chatroomID,
+      chatRequestState: 2,
     });
-
     fetchData();
     fetchChatroomDetails();
 
@@ -1441,8 +1452,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function calls API to approve DM request on click TapToUndo
   const onTapToUndo = async () => {
-    let response = await myClient.blockCR({
-      chatroom_id: chatroomID,
+    let response = await myClient.blockMember({
+      chatroomId: chatroomID,
       status: 1,
     });
 
@@ -1459,10 +1470,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function calls API to block a member
   const blockMember = () => {
     let payload = {
-      chatroom_id: chatroomID,
+      chatroomId: chatroomID,
       status: 0,
     };
-    myClient.blockCR(payload).then(res => {
+    myClient.blockMember(payload).then((res: any) => {
       fetchChatroomDetails();
       dispatch({
         type: SHOW_TOAST,
@@ -1474,10 +1485,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function calls API to unblock a member
   const unblockMember = () => {
     let payload = {
-      chatroom_id: chatroomID,
+      chatroomId: chatroomID,
       status: 1,
     };
-    myClient.blockCR(payload).then(res => {
+    myClient.blockMember(payload).then((res: any) => {
       fetchChatroomDetails();
       dispatch({
         type: SHOW_TOAST,
@@ -1566,7 +1577,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       };
 
       //for video thumbnail
-      const thumnnailUrlParams = {
+      const thumnnailUrlParams: any = {
         Bucket: BUCKET,
         Key: thumbnailUrlPath,
         Body: thumbnailUrlImg,
@@ -1595,8 +1606,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           }
 
           let payload = {
-            conversation_id: conversationID,
-            files_count: selectedImages?.length,
+            conversationId: conversationID,
+            filesCount: selectedImages?.length,
             index: i,
             meta:
               fileType === VIDEO_TEXT
@@ -1616,11 +1627,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 : selectedFilesToUpload[i]?.fileName,
             type: fileType,
             url: awsResponse,
-            thumbnail_url:
+            thumbnailUrl:
               fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
 
-          const uploadRes = await myClient.onUploadFile(payload as any);
+          const uploadRes = await myClient.putMultimedia(payload as any);
         }
       } catch (error) {
         dispatch({
@@ -1675,13 +1686,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   const onReplyPrivatelyClick = async (memberID: any) => {
-    const res = await myClient.reqDmFeed({
-      member_id: memberID,
+    const apiRes = await myClient.checkDMLimit({
+      memberId: memberID,
     });
-    if (res?.success === false) {
+    const res = apiRes?.data;
+    if (apiRes?.success === false) {
       dispatch({
         type: SHOW_TOAST,
-        body: {isToast: true, msg: `${res?.error_message}`},
+        body: {isToast: true, msg: `${apiRes?.error_message}`},
       });
     } else {
       let clickedChatroomID = res?.chatroom_id;
@@ -1694,14 +1706,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       } else {
         if (res?.is_request_dm_limit_exceeded === false) {
           let payload = {
-            community_id: community?.id,
-            member_id: memberID,
+            memberId: memberID,
           };
-          const response = await myClient.onCreateDM(payload);
-          if (response?.success === false) {
+          const apiResponse = await myClient.createDMChatroom(payload);
+          const response = apiResponse?.data;
+          if (apiResponse?.success === false) {
             dispatch({
               type: SHOW_TOAST,
-              body: {isToast: true, msg: `${response?.error_message}`},
+              body: {isToast: true, msg: `${apiResponse?.error_message}`},
             });
           } else {
             let createdChatroomID = response?.chatroom?.id;

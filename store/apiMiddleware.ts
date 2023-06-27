@@ -6,9 +6,12 @@ export const NETWORK_FAILED = 'Network request failed';
 
 type FuncType = (payload: any) => Promise<Response>;
 
-async function invokeAPI(func: Function, payload: any) {
-  const response = await func;
-  return response;
+async function invokeAPI(func: Function, payload: any, name = '') {
+  if (func === undefined) {
+    return;
+  }
+  const response: any = await func;
+  return response?.data;
 }
 
 export const CALL_API = 'Call API';
@@ -19,7 +22,13 @@ const apiMiddleware: Middleware = store => next => async action => {
     return next(action);
   }
 
-  const {func, types = [], showLoader = false, body} = action[CALL_API];
+  const {
+    func,
+    types = [],
+    showLoader = false,
+    body,
+    name = '',
+  } = action[CALL_API];
 
   const [requestType, successType, errorType] = types;
 
@@ -31,7 +40,7 @@ const apiMiddleware: Middleware = store => next => async action => {
       //TODO: Dispatch show modal loader now.
     }
 
-    const responseBody = await invokeAPI(func, JSON.stringify(body));
+    const responseBody = await invokeAPI(func, JSON.stringify(body), name);
 
     successType &&
       next({

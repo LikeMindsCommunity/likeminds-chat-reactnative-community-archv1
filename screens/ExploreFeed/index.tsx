@@ -67,8 +67,7 @@ const ExploreFeed = ({navigation}: Props) => {
     // let payload = {chatroomID: 69285, page: 1000};
     dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
     let payload = {
-      community_id: community?.id,
-      order_type: filterState,
+      orderType: filterState,
       page: 1,
     };
     let response = await dispatch(getExploreFeedData(payload) as any);

@@ -54,7 +54,7 @@ const GroupFeed = ({navigation}: Props) => {
 
   async function fetchData() {
     const invitesRes = await dispatch(
-      getInvites({channel_type: 1, page: 1, page_size: 10}, true) as any,
+      getInvites({channelType: 1, page: 1, pageSize: 10}, true) as any,
     );
 
     if (!!invitesRes?.user_invites) {

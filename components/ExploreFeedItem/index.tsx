@@ -49,16 +49,15 @@ const ExploreFeedItem: React.FC<Props> = ({
 
   const leaveChatroom = async (val: boolean) => {
     const payload = {
-      collabcard_id: chatroomID,
-      member_id: user?.id,
+      collabcardId: chatroomID,
+      memberId: user?.id,
       value: val,
     };
     const res = await myClient
-      .leaveChatroom(payload)
+      .followChatroom(payload)
       .then(async () => {
         let payload = {
-          community_id: community?.id,
-          order_type: filterState,
+          orderType: filterState,
           page: 1,
         };
         if (val) {
