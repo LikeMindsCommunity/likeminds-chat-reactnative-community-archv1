@@ -76,8 +76,7 @@ const ExploreFeed = ({navigation}: Props) => {
 
   async function updateData(newPage: number) {
     let payload = {
-      community_id: community?.id,
-      order_type: filterState,
+      orderType: filterState,
       page: newPage,
     };
     let response = await dispatch(updateExploreFeedData(payload) as any);

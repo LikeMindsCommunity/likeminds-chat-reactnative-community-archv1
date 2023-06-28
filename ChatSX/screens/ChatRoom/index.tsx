@@ -1151,7 +1151,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function calls sendReactionAPI
   const sendReactionAPI = async (consversationID: any, reaction: any) => {
     const res = await myClient?.putReaction({
-      chatroomId: chatroomID,
       conversationId: consversationID,
       reaction: reaction,
     });

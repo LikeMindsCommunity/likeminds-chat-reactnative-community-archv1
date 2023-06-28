@@ -18,6 +18,7 @@ export const styles = StyleSheet.create({
     width: 15,
     height: 15,
     resizeMode: 'contain',
+    marginLeft: 10,
   },
   infoContainer: {
     flex: 1,
