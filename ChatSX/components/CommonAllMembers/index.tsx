@@ -504,7 +504,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
         ListFooterComponent={renderFooter}
         keyExtractor={(item: any) => item?.id.toString()}
       />
-      {isSearch && isEmptyMessageShow && searchedParticipants.length === 0 && (
+      {isSearch && isEmptyMessageShow && searchedParticipants?.length === 0 && (
         <View style={[styles.justifyCenter]}>
           <Text style={styles.title}>No search results found</Text>
         </View>
