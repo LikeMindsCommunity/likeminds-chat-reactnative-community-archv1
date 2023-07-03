@@ -249,9 +249,9 @@ const HomeFeedItem: React.FC<Props> = ({
           )}
           <Image
             source={require('../../assets/images/video_icon3x.png')}
-            style={styles.icon}
+            style={[styles.icon, {height: Platform.OS === 'ios' ? 15 : 10}]}
           />
-          <Text style={styles.lastMessage}>
+          <Text style={styles.attachment_msg}>
             {videosCount > 1 ? 'Videos' : 'Video'}
           </Text>
         </View>
