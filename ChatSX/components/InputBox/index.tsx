@@ -1145,7 +1145,7 @@ const InputBox = ({
                   {
                     color: !!isUploadScreen
                       ? STYLES.$BACKGROUND_COLORS.LIGHT
-                      : STYLES.$COLORS.SECONDARY,
+                      : STYLES.$BACKGROUND_COLORS.DARK,
                   },
                 ]}
                 numberOfLines={6}
