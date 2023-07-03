@@ -6,7 +6,7 @@ import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
 import messaging from '@react-native-firebase/messaging';
-import LMChatClient from '@likeminds.community/chat-js';
+import LMChatClient from '@likeminds.community/chat-js-beta';
 import notifee, {EventType} from '@notifee/react-native';
 import getNotification from './ChatSX/notifications';
 import {getRoute} from './ChatSX/notifications/routes';
@@ -28,12 +28,14 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
   return val;
 });
 
-export const myClient = LMChatClient.setApiKey('')
+export const myClient: LMChatClient = LMChatClient.setApiKey(
+  '',
+)
   .setPlatformCode('rn')
-  .setVersionCode(parseInt('10'))
+  .setVersionCode(parseInt('9'))
   .build();
 
-function HeadlessCheck({isHeadless}) {
+function HeadlessCheck({isHeadless}: any) {
   if (isHeadless) {
     // App has been launched in the background by iOS, ignore
     return null;
