@@ -1070,7 +1070,7 @@ const InputBox = ({
           <View
             style={[
               styles.textInput,
-              styles.inputBoxWithShadow,
+              !(isEditable || isReply) ? styles.inputBoxWithShadow : null,
               {
                 backgroundColor: !!isUploadScreen
                   ? STYLES.$BACKGROUND_COLORS.DARK
