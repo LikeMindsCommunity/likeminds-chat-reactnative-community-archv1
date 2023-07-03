@@ -323,12 +323,6 @@ const HomeFeedItem: React.FC<Props> = ({
                 style={styles.lockIcon}
               />
             ) : null}
-            {muteStatus ? (
-              <Image
-                source={require('../../assets/images/mute_icon.png')}
-                style={[styles.lockIcon, {tintColor: '#5A5A5A'}]}
-              />
-            ) : null}
           </Text>
           {!!time ? <Text style={styles.time}>{time}</Text> : null}
         </View>
@@ -402,6 +396,19 @@ const HomeFeedItem: React.FC<Props> = ({
         </View>
       ) : null}
       {/* {pinned && <View style={styles.pinned} />} */}
+      {muteStatus ? (
+        <View
+          style={[
+            styles.unreadCountContainer,
+            {backgroundColor: 'transparent'},
+            unreadCount > 0 ? {right: 45} : null,
+          ]}>
+          <Image
+            source={require('../../assets/images/mute_icon.png')}
+            style={[styles.muteIcon, {tintColor: '#5A5A5A'}]}
+          />
+        </View>
+      ) : null}
       {!!unreadCount
         ? unreadCount > 0 && (
             <View style={styles.unreadCountContainer}>

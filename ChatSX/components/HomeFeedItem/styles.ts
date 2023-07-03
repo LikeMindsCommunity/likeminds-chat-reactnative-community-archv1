@@ -20,6 +20,12 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginLeft: 10,
   },
+  muteIcon: {
+    width: 17,
+    height: 17,
+    resizeMode: 'contain',
+    marginLeft: 10,
+  },
   infoContainer: {
     flex: 1,
   },

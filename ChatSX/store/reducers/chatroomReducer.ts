@@ -74,13 +74,14 @@ export function chatroomReducer(state = initialState, action: any) {
       const data = action.body;
       const {conversations = []} = data;
       let ID = conversations[0]?.id;
+      let temporaryID = conversations[0]?.temporary_id;
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
       let index = conversationsList.findIndex((element: any) => {
         return (
-          element?.id?.toString() === ID.toString() || // to check locally handled item id with ID
-          element?.temporary_id?.toString() === ID.toString() // to replace the messsage if message is already there by verifying message's ID with conversationMeta ID;
+          element?.id?.toString() === ID?.toString() || // to check locally handled item id with ID
+          element?.id?.toString() === temporaryID?.toString() // to replace the messsage if message is already there by verifying message's ID with conversationMeta ID;
         );
       });
       //replacing the value from the index that matches ID
@@ -99,6 +100,10 @@ export function chatroomReducer(state = initialState, action: any) {
     case ON_CONVERSATIONS_CREATE_SUCCESS: {
       const data = action.body;
       const {conversation = []} = data;
+
+      if (conversation?.has_files || !!conversation?.reply_conversation) {
+        return {...state};
+      }
       let temporaryID = conversation?.temporary_id;
 
       let conversationsList = [...state.conversations];

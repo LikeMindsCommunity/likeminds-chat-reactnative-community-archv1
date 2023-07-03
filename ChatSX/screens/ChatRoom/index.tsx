@@ -1009,7 +1009,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .followChatroom(payload)
       .then(async () => {
-        let payload = {chatroom_id: chatroomID};
+        let payload = {chatroomId: chatroomID};
         await dispatch(getChatroom(payload) as any);
 
         let payload1 = {
@@ -1097,7 +1097,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
             updatePageInRedux();
-            await dispatch(getChatroom({chatroom_id: chatroomID}) as any);
+            await dispatch(getChatroom({chatroomId: chatroomID}) as any);
             await dispatch(getHomeFeedData({page: 1}, false) as any);
           },
           style: 'default',
