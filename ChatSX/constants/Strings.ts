@@ -53,3 +53,4 @@ export const CHARACTER_LIMIT_MESSAGE = 'Your message exceeds character limit';
 export const CAMERA_TEXT = 'Camera';
 export const PHOTOS_AND_VIDEOS_TEXT = 'Photos & Videos';
 export const DOCUMENTS_TEXT = 'Documents';
+export const POLL_TEXT = 'Poll';

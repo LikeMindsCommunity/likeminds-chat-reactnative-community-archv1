@@ -1,6 +1,6 @@
 export default {
   $COLORS: {
-    PRIMARY: '#121e3b',
+    PRIMARY: 'hsl(222, 53%, 15%)',
     SECONDARY: '#2a4074',
     TERTIARY: '#ffffff',
     MSG: '#777e8e',

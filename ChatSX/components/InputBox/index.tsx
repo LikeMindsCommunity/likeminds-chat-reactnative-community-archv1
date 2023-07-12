@@ -58,6 +58,7 @@ import {
   IMAGE_TEXT,
   PDF_TEXT,
   PHOTOS_AND_VIDEOS_TEXT,
+  POLL_TEXT,
   SUCCESS,
   VIDEO_TEXT,
 } from '../../constants/Strings';
@@ -83,6 +84,7 @@ import {
   replaceMentionValues,
   routeRegex,
 } from '../TaggingView/utils';
+import PollModal from '../Poll';
 
 interface InputBox {
   replyChatID?: any;
@@ -122,6 +124,7 @@ const InputBox = ({
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [pollModalVisible, setPollModalVisible] = useState(false);
   const [progressText, setProgressText] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [s3UploadResponse, setS3UploadResponse] = useState<any>();
@@ -1261,6 +1264,20 @@ const InputBox = ({
                   </TouchableOpacity>
                   <Text style={styles.iconText}>{DOCUMENTS_TEXT}</Text>
                 </View>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                  onPress={() => {
+                    setModalVisible(false);
+                    setPollModalVisible(true)
+                  }}
+                  style={styles.pollStyle}>
+                    <Image
+                      source={require('../../assets/images/poll_icon3x.png')}
+                      style={styles.emoji}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.iconText}>{POLL_TEXT}</Text>
+                </View>
               </View>
             </Pressable>
           </View>
@@ -1273,6 +1290,8 @@ const InputBox = ({
         DMSentAlertModalVisible={DMSentAlertModalVisible}
         onSend={onSend}
       />
+
+      <PollModal setPollModalVisible={setPollModalVisible} pollModalVisible={pollModalVisible} />
 
       {/* {showEmoji && (
         <View style={styles.emojiPicker}>
