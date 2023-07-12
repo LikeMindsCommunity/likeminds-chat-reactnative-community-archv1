@@ -54,3 +54,7 @@ export const CAMERA_TEXT = 'Camera';
 export const PHOTOS_AND_VIDEOS_TEXT = 'Photos & Videos';
 export const DOCUMENTS_TEXT = 'Documents';
 export const POLL_TEXT = 'Poll';
+
+export const DATE_TEXT = 'date';
+export const TIME_TEXT = 'time';
+export const DATE_TIME_TEXT = 'datetime';

@@ -12,6 +12,7 @@ import {
 import React, {useState} from 'react';
 import {styles} from './styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { DATE_TEXT, DATE_TIME_TEXT, TIME_TEXT } from '../../constants/Strings';
 
 const PollModal = ({pollModalVisible, setPollModalVisible}: any) => {
   const handleModalClose = () => {
@@ -63,12 +64,12 @@ const PollScreen = () => {
 
     // iOS DateTime Picker logic
     if (isIOS) {
-      if (mode === 'date') {
+      if (mode === DATE_TEXT) {
         const currentDate = selectedValue || newDate;
         setDate(currentDate);
-        setMode('time');
+        setMode(TIME_TEXT);
         setShow(true); // to show the picker again in time mode
-      } else if (mode === 'time') {
+      } else if (mode === TIME_TEXT) {
         const selectedTime = selectedValue || newDate;
         setTime(selectedTime);
         setMode('');
@@ -78,16 +79,16 @@ const PollScreen = () => {
     } else {
       // Android DateTime Picker logic
       setShow(false);
-      if (mode == 'date') {
+      if (mode == DATE_TEXT) {
         const currentDate = selectedValue || newDate;
         setDate(currentDate);
-        setMode('time');
+        setMode(TIME_TEXT);
         setShow(true); // to show the picker again in time mode
       } else {
         const selectedTime = selectedValue || newDate;
         setTime(selectedTime);
         setShow(false);
-        setMode('date');
+        setMode(DATE_TEXT);
       }
     }
   };
@@ -98,15 +99,15 @@ const PollScreen = () => {
   };
 
   const showDatePicker = () => {
-    showMode('date');
+    showMode(DATE_TEXT);
   };
 
   const showTimePicker = () => {
-    showMode('time');
+    showMode(TIME_TEXT);
   };
 
   const showDateTimePicker = () => {
-    showMode('datetime');
+    showMode(DATE_TIME_TEXT);
   };
 
   const handleShowAdvanceOption = (val: boolean) => {
@@ -136,9 +137,7 @@ const PollScreen = () => {
       mode={mode}
       onChange={onChange}
       hue={150}
-      // showTimePicker={showTimePicker}
       showDatePicker={showDatePicker}
-      showDateTimePicker={showDateTimePicker}
       showAdvancedOption={showAdvancedOption}
       formatedDateTime={formatDate(date, time)}
       addOptionsEnabled={addOptionsEnabled}
