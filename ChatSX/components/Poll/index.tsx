@@ -115,6 +115,7 @@ const PollScreen = () => {
       date={date}
       mode={mode}
       onChange={onChange}
+      hue={150}
       // showTimePicker={showTimePicker}
       showDatePicker={showDatePicker}
       showDateTimePicker={showDateTimePicker}
@@ -134,6 +135,7 @@ const PollScreen = () => {
 };
 
 const PollUI = ({
+  hue,
   show,
   date,
   mode,
@@ -158,7 +160,13 @@ const PollUI = ({
       {/* Header */}
       <View style={[styles.alignRow, styles.header]}>
         <View style={styles.viewStyle}>
-          <Text style={[styles.font]}>Cancel</Text>
+          <Text
+            style={[
+              styles.font,
+              hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+            ]}>
+            Cancel
+          </Text>
         </View>
         <View style={[styles.viewStyle]}>
           <Text
@@ -172,12 +180,18 @@ const PollUI = ({
       {/* Poll question */}
       <View style={styles.pollQuestion}>
         <View>
-          <Text style={[styles.font]}>Poll question</Text>
+          <Text
+            style={[
+              styles.font,
+              hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+            ]}>
+            Poll question
+          </Text>
         </View>
         <View style={styles.question}>
           <TextInput
             placeholder={'Which is the best design tool that you have used?'}
-            style={[styles.font]}
+            style={[styles.font, styles.blackColor]}
             placeholderTextColor="#aaa"
             multiline
           />
@@ -187,26 +201,40 @@ const PollUI = ({
       {/* Answers options */}
       <View style={styles.answerOptions}>
         <View>
-          <Text style={[styles.font]}>Answer options</Text>
+          <Text
+            style={[
+              styles.font,
+              hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+            ]}>
+            Answer options
+          </Text>
         </View>
         <View style={styles.question}>
           <TextInput
             placeholder={'Option'}
-            style={[styles.font, styles.option]}
+            style={[styles.font, styles.option, styles.blackColor]}
             placeholderTextColor="#aaa"
           />
           <TextInput
             placeholder={'Option'}
-            style={[styles.font, styles.option]}
+            style={[styles.font, styles.option, styles.blackColor]}
             placeholderTextColor="#aaa"
           />
         </View>
         <View style={[styles.alignRow]}>
           <Image
-            style={styles.optionIcon}
+            style={[
+              styles.optionIcon,
+              hue ? {tintColor: `hsl(${hue}, 53%, 15%)`} : null,
+            ]}
             source={require('../../assets/images/add_options3x.png')}
           />
-          <Text style={[styles.text, styles.addOptionText]}>
+          <Text
+            style={[
+              styles.text,
+              styles.addOptionText,
+              hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+            ]}>
             Add an option...
           </Text>
         </View>
@@ -215,7 +243,13 @@ const PollUI = ({
       {/* Poll expire Time and Date selection */}
       <View style={styles.answerOptions}>
         <View>
-          <Text style={[styles.font]}>Poll expires on</Text>
+          <Text
+            style={[
+              styles.font,
+              hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+            ]}>
+            Poll expires on
+          </Text>
         </View>
         <View style={styles.question}>
           <TouchableOpacity
@@ -231,7 +265,7 @@ const PollUI = ({
                 {'DD-MM-YYYY hh:mm'}
               </Text>
             ) : (
-              <Text style={[styles.font, styles.placeHolder]}>
+              <Text style={[styles.font, styles.blackColor]}>
                 {formatedDateTime}
               </Text>
             )}
@@ -277,11 +311,13 @@ const PollUI = ({
             <Switch
               trackColor={{
                 false: styles.lightGreyBackground.color,
-                true: styles.primaryColor.color,
+                true: hue ? `hsl(${hue}, 53%, 15%)` : styles.primaryColor.color,
               }}
               thumbColor={
                 addOptionsEnabled
-                  ? styles.lightPrimaryColor.color
+                  ? hue
+                    ? `hsl(${hue}, 40%, 40%)`
+                    : styles.lightPrimaryColor.color
                   : styles.lightGreyThumb.color
               }
               ios_backgroundColor={styles.lightGreyBackground.color}
@@ -295,11 +331,13 @@ const PollUI = ({
             <Switch
               trackColor={{
                 false: styles.lightGreyBackground.color,
-                true: styles.primaryColor.color,
+                true: hue ? `hsl(${hue}, 53%, 15%)` : styles.primaryColor.color,
               }}
               thumbColor={
                 anonymousPollEnabled
-                  ? styles.lightPrimaryColor.color
+                  ? hue
+                    ? `hsl(${hue}, 40%, 40%)`
+                    : styles.lightPrimaryColor.color
                   : styles.lightGreyThumb.color
               }
               ios_backgroundColor={styles.lightGreyBackground.color}
@@ -315,11 +353,13 @@ const PollUI = ({
             <Switch
               trackColor={{
                 false: styles.lightGreyBackground.color,
-                true: styles.primaryColor.color,
+                true: hue ? `hsl(${hue}, 53%, 15%)` : styles.primaryColor.color,
               }}
               thumbColor={
                 liveResultsEnabled
-                  ? styles.lightPrimaryColor.color
+                  ? hue
+                    ? `hsl(${hue}, 40%, 40%)`
+                    : styles.lightPrimaryColor.color
                   : styles.lightGreyThumb.color
               }
               ios_backgroundColor={styles.lightGreyBackground.color}
@@ -331,7 +371,12 @@ const PollUI = ({
       ) : null}
 
       {/* Post button */}
-      <TouchableOpacity style={[styles.extraMarginSpace, styles.postButton]}>
+      <TouchableOpacity
+        style={[
+          styles.extraMarginSpace,
+          styles.postButton,
+          hue ? {backgroundColor: `hsl(${hue}, 53%, 15%)`} : null,
+        ]}>
         <Text style={[styles.font, styles.whiteColor]}>POST</Text>
       </TouchableOpacity>
     </View>
