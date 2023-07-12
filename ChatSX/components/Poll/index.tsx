@@ -47,7 +47,7 @@ const PollScreen = () => {
   const [liveResultsEnabled, setLiveResultsEnabled] = useState(false);
   const [userVoteFor, setUserVoteFor] = useState('Exactly');
   const [date, setDate] = useState(new Date());
-  const [mode, setMode] = useState('date');
+  const [mode, setMode] = useState('');
   const [show, setShow] = useState(false);
   const [time, setTime] = useState(new Date());
 
@@ -58,17 +58,37 @@ const PollScreen = () => {
   };
 
   const onChange = (event: any, selectedValue: any) => {
-    setShow(Platform.OS === 'ios');
-    if (mode == 'date') {
-      const currentDate = selectedValue || new Date();
-      setDate(currentDate);
-      setMode('time');
-      setShow(Platform.OS !== 'ios'); // to show the picker again in time mode
+    const isIOS = Platform.OS === 'ios';
+    const newDate = new Date();
+
+    // iOS DateTime Picker logic
+    if (isIOS) {
+      if (mode === 'date') {
+        const currentDate = selectedValue || newDate;
+        setDate(currentDate);
+        setMode('time');
+        setShow(true); // to show the picker again in time mode
+      } else if (mode === 'time') {
+        const selectedTime = selectedValue || newDate;
+        setTime(selectedTime);
+        setMode('');
+      } else {
+        setShow(false);
+      }
     } else {
-      const selectedTime = selectedValue || new Date();
-      setTime(selectedTime);
-      setShow(Platform.OS === 'ios');
-      setMode('date');
+      // Android DateTime Picker logic
+      setShow(false);
+      if (mode == 'date') {
+        const currentDate = selectedValue || newDate;
+        setDate(currentDate);
+        setMode('time');
+        setShow(true); // to show the picker again in time mode
+      } else {
+        const selectedTime = selectedValue || newDate;
+        setTime(selectedTime);
+        setShow(false);
+        setMode('date');
+      }
     }
   };
 
@@ -254,21 +274,15 @@ const PollUI = ({
         <View style={styles.question}>
           <TouchableOpacity
             onPress={() => {
-              if (Platform.OS !== 'ios') {
-                showDateTimePicker();
-              } else {
-                showDatePicker();
-              }
+              showDatePicker();
             }}>
-            {!show ? (
-              <Text style={[styles.font, styles.placeHolder]}>
-                {'DD-MM-YYYY hh:mm'}
-              </Text>
-            ) : (
-              <Text style={[styles.font, styles.blackColor]}>
-                {formatedDateTime}
-              </Text>
-            )}
+            <Text
+              style={[
+                styles.font,
+                formatedDateTime ? styles.blackColor : styles.placeHolder,
+              ]}>
+              {formatedDateTime ? formatedDateTime : 'DD-MM-YYYY hh:mm'}
+            </Text>
             {/* Date Time Picker */}
             {show && (
               <DateTimePicker
@@ -276,7 +290,7 @@ const PollUI = ({
                 timeZoneOffsetInMinutes={0}
                 value={date}
                 mode={mode}
-                is24Hour={true}
+                is24Hour={false}
                 display="default"
                 onChange={onChange}
               />
