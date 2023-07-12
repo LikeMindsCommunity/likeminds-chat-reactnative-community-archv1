@@ -12,7 +12,7 @@ import {
 import React, {useState} from 'react';
 import {styles} from './styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { DATE_TEXT, DATE_TIME_TEXT, TIME_TEXT } from '../../constants/Strings';
+import {DATE_TEXT, DATE_TIME_TEXT, TIME_TEXT} from '../../constants/Strings';
 
 const PollModal = ({pollModalVisible, setPollModalVisible}: any) => {
   const handleModalClose = () => {
@@ -30,7 +30,7 @@ const PollModal = ({pollModalVisible, setPollModalVisible}: any) => {
         <View style={styles.modalViewParent}>
           <Pressable onPress={() => {}} style={[styles.modalView]}>
             <View style={styles.alignModalElements}>
-              <PollScreen />
+              <PollScreen handleModalClose={handleModalClose} />
             </View>
           </Pressable>
         </View>
@@ -41,7 +41,7 @@ const PollModal = ({pollModalVisible, setPollModalVisible}: any) => {
 
 export default PollModal;
 
-const PollScreen = () => {
+const PollScreen = ({handleModalClose}: any) => {
   const [showAdvancedOption, setShowAdvancedOption] = useState(false);
   const [addOptionsEnabled, setAddOptionsEnabled] = useState(false);
   const [anonymousPollEnabled, setAnonymousPollEnabled] = useState(false);
@@ -136,7 +136,7 @@ const PollScreen = () => {
       date={date}
       mode={mode}
       onChange={onChange}
-      hue={150}
+      // hue={150}
       showDatePicker={showDatePicker}
       showAdvancedOption={showAdvancedOption}
       formatedDateTime={formatDate(date, time)}
@@ -149,6 +149,7 @@ const PollScreen = () => {
       handleAnonymousPoll={handleAnonymousPoll}
       handleLiveResults={handleLiveResults}
       handleUserVoteFor={handleUserVoteFor}
+      onCancel={handleModalClose}
     />
   );
 };
@@ -173,12 +174,13 @@ const PollUI = ({
   handleAnonymousPoll,
   handleLiveResults,
   handleUserVoteFor,
+  onCancel,
 }: any) => {
   return (
     <View>
       {/* Header */}
       <View style={[styles.alignRow, styles.header]}>
-        <View style={styles.viewStyle}>
+        <TouchableOpacity onPress={onCancel} style={styles.viewStyle}>
           <Text
             style={[
               styles.font,
@@ -186,7 +188,7 @@ const PollUI = ({
             ]}>
             Cancel
           </Text>
-        </View>
+        </TouchableOpacity>
         <View style={[styles.viewStyle]}>
           <Text
             style={[styles.font, styles.newPollText, {textAlign: 'center'}]}>
