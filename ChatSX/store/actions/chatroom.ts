@@ -37,7 +37,7 @@ export const getConversations =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`);
+      // process error
     }
   };
 
@@ -58,7 +58,7 @@ export const paginatedConversations =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`);
+      // process error
     }
   };
 
@@ -79,7 +79,7 @@ export const firebaseConversation =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`);
+      // process error
     }
   };
 
@@ -100,7 +100,7 @@ export const onConversationsCreate =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`);
+      // process error
     }
   };
 
@@ -116,6 +116,6 @@ export const getChatroom = (payload: any) => async (dispatch: Dispatch) => {
       },
     });
   } catch (error) {
-    Alert.alert(`${error}`);
+    // process error
   }
 };
