@@ -20,6 +20,11 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginLeft: 10,
   },
+  secretInviteIcons: {
+    width: 15,
+    height: 15,
+    resizeMode: 'contain',
+  },
   muteIcon: {
     width: 17,
     height: 17,
