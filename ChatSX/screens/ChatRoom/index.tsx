@@ -1916,6 +1916,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 setIsEditable={(value: boolean) => {
                   setIsEditable(value);
                 }}
+                isSecret={isSecret}
               />
             ) : user.state !== 1 && chatroomDetails?.chatroom?.type === 7 ? (
               <View style={styles.disabledInput}>
