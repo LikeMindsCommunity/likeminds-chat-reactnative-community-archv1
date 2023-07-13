@@ -37,7 +37,6 @@ const apiMiddleware: Middleware = store => next => async action => {
   try {
     if (showLoader) {
       next({type: START_LOADING});
-      //TODO: Dispatch show modal loader now.
     }
 
     const responseBody = await invokeAPI(func, JSON.stringify(body), name);
@@ -62,7 +61,6 @@ const apiMiddleware: Middleware = store => next => async action => {
   } finally {
     if (showLoader) {
       next({type: STOP_LOADING});
-      //TODO: Dispatch hide modal loader now.
     }
   }
 };
