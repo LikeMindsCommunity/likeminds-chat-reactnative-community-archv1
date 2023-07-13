@@ -11,19 +11,21 @@ export function getRoute(route: any) {
   while ((match = regexToExtractParams.exec(route))) {
     params[match[1]] = match[2];
   }
-  
-  switch (navigationRoute[1]) {
-    case ROUTE_CHATROOM: {
-      let paramsKey = Object.keys(params);
-      return {route: CHATROOM, params: {chatroomID: params[paramsKey[0]]}};
-    }
 
-    case ROUTE_CHATROOM_DETAIL: {
-      let paramsKey = Object.keys(params);
-      return {route: CHATROOM, params: {chatroomID: params[paramsKey[0]]}};
+  if (navigationRoute) {
+    switch (navigationRoute[1]) {
+      case ROUTE_CHATROOM: {
+        let paramsKey = Object.keys(params);
+        return {route: CHATROOM, params: {chatroomID: params[paramsKey[0]]}};
+      }
+      case ROUTE_CHATROOM_DETAIL: {
+        let paramsKey = Object.keys(params);
+        return {route: CHATROOM, params: {chatroomID: params[paramsKey[0]]}};
+      }
+      default:
+        return {route: HOMEFEED, params: {}};
     }
-
-    default:
-      return {route: HOMEFEED, params: {}};
+  } else {
+    return {route: HOMEFEED, params: {}};
   }
 }
