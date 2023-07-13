@@ -99,6 +99,8 @@ import {
   IMAGE_TEXT,
   SUCCESS,
   REQUEST_DM_LIMIT,
+  WARNING_MSG_PRIVATE_CHATROOM,
+  WARNING_MSG_PUBLIC_CHATROOM,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -108,6 +110,7 @@ import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
+import WarningMessageModal from '../../customModals/WarningMessage';
 
 interface Data {
   id: string;
@@ -154,6 +157,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [showList, setShowList] = useState<any>(null);
   const [isMessagePrivately, setIsMessagePrivately] = useState<any>(false);
   const [isEditable, setIsEditable] = useState<any>(false);
+  const [isWarningMessageModalState, setIsWarningMessageModalState] = useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
@@ -915,10 +919,19 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return res;
   };
 
+  const showWarningAlert = () => {
+    setIsWarningMessageModalState(true);
+  };
+
+  const hideWarningAlert = () => {
+    setIsWarningMessageModalState(false);
+  };
+
   const leaveSecretChatroom = async () => {
     const payload = {
       chatroomId: chatroomID,
       memberId: user?.id,
+      isSecret:isSecret
     };
     const res = await myClient
       .leaveSecretChatroom(payload)
@@ -2077,9 +2090,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         });
                       } else if (val?.id === 9 || val?.id === 15) {
                         if (isSecret) {
-                          leaveSecretChatroom();
+                          showWarningAlert();
                         } else if (!isSecret) {
-                          leaveChatroom();
+                          showWarningAlert();
                         }
 
                         setModalVisible(false);
@@ -2247,6 +2260,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           </View>
         </Pressable>
       </Modal>
+
+      {/* CHATROOM LEAVING WARNING message modal */}
+      <WarningMessageModal 
+        hideWarningAlert={hideWarningAlert}
+        warningMessageModalState={isWarningMessageModalState} 
+        warningMessage = {isSecret?WARNING_MSG_PRIVATE_CHATROOM:WARNING_MSG_PUBLIC_CHATROOM}
+        leaveChatroom={() => {
+          if(isSecret) {
+            leaveSecretChatroom();
+          } else {
+            leaveChatroom();
+          }
+        }}
+      />
 
       {/* APPROVE DM request Modal */}
       <ApproveDMRequestModal
