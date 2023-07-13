@@ -51,12 +51,12 @@ export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
   }
 };
 
-export const profileData = (payload: any) => async (dispatch: Dispatch) => {
+export const getMemberState = (payload: any) => async (dispatch: Dispatch) => {
   try {
     return await dispatch({
       type: PROFILE_DATA_SUCCESS,
       [CALL_API]: {
-        func: myClient?.profileData(payload),
+        func: myClient?.getMemberState(payload),
         body: payload,
         types: [PROFILE_DATA, PROFILE_DATA_SUCCESS, PROFILE_DATA_FAILED],
         showLoader: true,
