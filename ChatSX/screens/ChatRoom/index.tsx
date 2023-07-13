@@ -2089,12 +2089,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                           isSecret: isSecret,
                         });
                       } else if (val?.id === 9 || val?.id === 15) {
-                        if (isSecret) {
-                          showWarningModal();
-                        } else if (!isSecret) {
-                          showWarningModal();
-                        }
-
+                        showWarningModal();
                         setModalVisible(false);
                       } else if (val?.id === 4) {
                         if (!isSecret) {
