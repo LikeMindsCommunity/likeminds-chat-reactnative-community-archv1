@@ -788,14 +788,15 @@ const InputBox = ({
       setMessage(modifiedConversation);
       setFormattedConversation(modifiedConversation);
 
-      const newMentions = detectMentions(e);
+      // chatroomType === 10 (if DM don't detect and show user tags)
+      const newMentions = chatroomType === 10 ? [] : detectMentions(e);
 
       if (newMentions.length > 0) {
         const length = newMentions.length;
         setTaggedUserName(newMentions[length - 1]);
       }
 
-      //debouncing logic
+      // debouncing logic
       clearTimeout(debounceTimeout);
 
       let len = newMentions.length;
