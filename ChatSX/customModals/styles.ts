@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     width: '80%',
   },
   title: {
-    fontSize: STYLES.$FONT_SIZES.XL,
+    fontSize: STYLES.$FONT_SIZES.XXL,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
     marginBottom: 20,

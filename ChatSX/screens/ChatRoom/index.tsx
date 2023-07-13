@@ -157,7 +157,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [showList, setShowList] = useState<any>(null);
   const [isMessagePrivately, setIsMessagePrivately] = useState<any>(false);
   const [isEditable, setIsEditable] = useState<any>(false);
-  const [isWarningMessageModalState, setIsWarningMessageModalState] = useState(false);
+  const [isWarningMessageModalState, setIsWarningMessageModalState] =
+    useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
@@ -931,7 +932,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const payload = {
       chatroomId: chatroomID,
       memberId: user?.id,
-      isSecret:isSecret
+      isSecret: isSecret,
     };
     const res = await myClient
       .leaveSecretChatroom(payload)
@@ -2257,12 +2258,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       </Modal>
 
       {/* CHATROOM LEAVING WARNING message modal */}
-      <WarningMessageModal 
+      <WarningMessageModal
         hideWarningModal={hideWarningModal}
-        warningMessageModalState={isWarningMessageModalState} 
-        warningMessage = {isSecret?WARNING_MSG_PRIVATE_CHATROOM:WARNING_MSG_PUBLIC_CHATROOM}
+        warningMessageModalState={isWarningMessageModalState}
+        warningMessage={
+          isSecret ? WARNING_MSG_PRIVATE_CHATROOM : WARNING_MSG_PUBLIC_CHATROOM
+        }
         leaveChatroom={() => {
-          if(isSecret) {
+          if (isSecret) {
             leaveSecretChatroom();
           } else {
             leaveChatroom();
