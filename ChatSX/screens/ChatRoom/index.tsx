@@ -919,11 +919,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return res;
   };
 
-  const showWarningAlert = () => {
+  const showWarningModal = () => {
     setIsWarningMessageModalState(true);
   };
 
-  const hideWarningAlert = () => {
+  const hideWarningModal = () => {
     setIsWarningMessageModalState(false);
   };
 
@@ -2090,9 +2090,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         });
                       } else if (val?.id === 9 || val?.id === 15) {
                         if (isSecret) {
-                          showWarningAlert();
+                          showWarningModal();
                         } else if (!isSecret) {
-                          showWarningAlert();
+                          showWarningModal();
                         }
 
                         setModalVisible(false);
@@ -2263,7 +2263,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
       {/* CHATROOM LEAVING WARNING message modal */}
       <WarningMessageModal 
-        hideWarningAlert={hideWarningAlert}
+        hideWarningModal={hideWarningModal}
         warningMessageModalState={isWarningMessageModalState} 
         warningMessage = {isSecret?WARNING_MSG_PRIVATE_CHATROOM:WARNING_MSG_PUBLIC_CHATROOM}
         leaveChatroom={() => {

@@ -7,7 +7,7 @@ import {
 } from '../../constants/Strings';
 
 const WarningMessageModal = ({
-  hideWarningAlert,
+  hideWarningModal,
   warningMessageModalState,
   warningMessage,
   leaveChatroom
@@ -17,14 +17,14 @@ const WarningMessageModal = ({
       visible={warningMessageModalState}
       animationType="fade"
       transparent={true}
-      onRequestClose={hideWarningAlert}>
-      <Pressable style={styles.modal} onPress={hideWarningAlert}>
+      onRequestClose={hideWarningModal}>
+      <Pressable style={styles.modal} onPress={hideWarningModal}>
         <Pressable onPress={() => {}} style={styles.modalContainer}>
         <Text style={styles.title}>
             {warningMessage}
         </Text>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={hideWarningAlert}>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={hideWarningModal}>
               <Text style={[styles.buttonText, styles.cancelButtonText]}>
                 {CANCEL_BUTTON}
               </Text>
@@ -33,7 +33,7 @@ const WarningMessageModal = ({
               style={[styles.button, styles.okButton]}
               onPress={() => {
                 leaveChatroom();
-                hideWarningAlert();
+                hideWarningModal();
               }}>
               <Text style={styles.buttonText}>{CONFIRM_BUTTON}</Text>
             </TouchableOpacity>
