@@ -98,6 +98,7 @@ interface InputBox {
   handleFileUpload: any;
   isEditable?: boolean;
   setIsEditable?: any;
+  isSecret?: any;
 }
 
 const InputBox = ({
@@ -114,6 +115,7 @@ const InputBox = ({
   handleFileUpload,
   isEditable,
   setIsEditable,
+  isSecret
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -739,10 +741,10 @@ const InputBox = ({
       page: newPage,
       searchName: taggedUserName,
       chatroomId: chatroomID,
-      isSecret: false,
+      isSecret: isSecret,
     });
     if (!!res) {
-      setUserTaggingList([...userTaggingList, ...res?.community_members]);
+      isSecret?setUserTaggingList([...userTaggingList, ...res?.chatroom_participants]):setUserTaggingList([...userTaggingList, ...res?.community_members]);
       setIsLoading(false);
     }
   };
@@ -806,11 +808,11 @@ const InputBox = ({
             page: 1,
             searchName: newMentions[len - 1],
             chatroomId: chatroomID,
-            isSecret: false,
+            isSecret: isSecret,
           });
           if (len > 0) {
             let groupTagsLength = res?.group_tags?.length;
-            let communityMembersLength = res?.community_members.length;
+            let communityMembersLength = isSecret?res?.chatroom_participants.length:res?.community_members.length;
             let arrLength = communityMembersLength + groupTagsLength;
             if (arrLength > 5) {
               setUserTaggingListHeight(5 * 58);
@@ -818,7 +820,7 @@ const InputBox = ({
               let height = communityMembersLength * 58 + groupTagsLength * 80;
               setUserTaggingListHeight(height);
             }
-            setUserTaggingList(res?.community_members);
+            isSecret?setUserTaggingList(res?.chatroom_participants):setUserTaggingList(res?.community_members);
             setGroupTags(res?.group_tags);
             setIsUserTagging(true);
           }
