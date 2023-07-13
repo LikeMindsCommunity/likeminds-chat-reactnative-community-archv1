@@ -14,13 +14,13 @@ import {styles} from './styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {DATE_TEXT, DATE_TIME_TEXT, TIME_TEXT} from '../../constants/Strings';
 
-const PollModal = ({pollModalVisible, setPollModalVisible}: any) => {
+const CreatePollModal = ({pollModalVisible, setPollModalVisible}: any) => {
   const handleModalClose = () => {
     setPollModalVisible(false);
   };
   return (
     <Modal
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       visible={pollModalVisible}
       onRequestClose={() => {
@@ -30,7 +30,7 @@ const PollModal = ({pollModalVisible, setPollModalVisible}: any) => {
         <View style={styles.modalViewParent}>
           <Pressable onPress={() => {}} style={[styles.modalView]}>
             <View style={styles.alignModalElements}>
-              <PollScreen handleModalClose={handleModalClose} />
+              <CreatePollScreen handleModalClose={handleModalClose} />
             </View>
           </Pressable>
         </View>
@@ -39,9 +39,9 @@ const PollModal = ({pollModalVisible, setPollModalVisible}: any) => {
   );
 };
 
-export default PollModal;
+export default CreatePollModal;
 
-const PollScreen = ({handleModalClose}: any) => {
+const CreatePollScreen = ({handleModalClose}: any) => {
   const [showAdvancedOption, setShowAdvancedOption] = useState(false);
   const [addOptionsEnabled, setAddOptionsEnabled] = useState(false);
   const [anonymousPollEnabled, setAnonymousPollEnabled] = useState(false);
@@ -131,7 +131,7 @@ const PollScreen = ({handleModalClose}: any) => {
   };
 
   return (
-    <PollUI
+    <CreatePollUI
       show={show}
       date={date}
       mode={mode}
@@ -154,7 +154,7 @@ const PollScreen = ({handleModalClose}: any) => {
   );
 };
 
-const PollUI = ({
+const CreatePollUI = ({
   hue,
   show,
   date,
@@ -398,4 +398,12 @@ const PollUI = ({
   );
 };
 
-export {PollUI, PollScreen};
+export {CreatePollUI, CreatePollScreen};
+
+const PollConversationUI = () => {
+  return (
+    <View>
+      <Text>PollConversationUI</Text>
+    </View>
+  );
+};

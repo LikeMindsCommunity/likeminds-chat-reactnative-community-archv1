@@ -84,7 +84,7 @@ import {
   replaceMentionValues,
   routeRegex,
 } from '../TaggingView/utils';
-import PollModal from '../Poll';
+import CreatePollModal from '../Poll';
 
 interface InputBox {
   replyChatID?: any;
@@ -1266,11 +1266,11 @@ const InputBox = ({
                 </View>
                 <View style={styles.iconContainer}>
                   <TouchableOpacity
-                  onPress={() => {
-                    setModalVisible(false);
-                    setPollModalVisible(true)
-                  }}
-                  style={styles.pollStyle}>
+                    onPress={() => {
+                      setModalVisible(false);
+                      setPollModalVisible(true);
+                    }}
+                    style={styles.pollStyle}>
                     <Image
                       source={require('../../assets/images/poll_icon3x.png')}
                       style={styles.emoji}
@@ -1291,7 +1291,10 @@ const InputBox = ({
         onSend={onSend}
       />
 
-      <PollModal setPollModalVisible={setPollModalVisible} pollModalVisible={pollModalVisible} />
+      <CreatePollModal
+        setPollModalVisible={setPollModalVisible}
+        pollModalVisible={pollModalVisible}
+      />
 
       {/* {showEmoji && (
         <View style={styles.emojiPicker}>
