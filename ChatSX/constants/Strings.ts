@@ -31,6 +31,10 @@ export const REQUEST_SENT =
   'Messaging would be enabled once your request is approved.';
 export const COMMUNITY_MANAGER_DISABLED_CHAT =
   'Messaging would be enabled once your request is approved.';
+export const WARNING_MSG_PRIVATE_CHATROOM =
+  "Are you sure you want to leave this private group? To join back, you'll need to reach out to the admin";
+export const WARNING_MSG_PUBLIC_CHATROOM =
+  'Are you sure you want to leave this group?';
 
 export const CANCEL_BUTTON = 'Cancel';
 export const APPROVE_BUTTON = 'Approve';

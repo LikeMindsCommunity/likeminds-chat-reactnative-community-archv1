@@ -12,25 +12,11 @@ import {
 } from 'react-native';
 import {myClient} from '../../..';
 import {getNameInitials} from '../../commonFuctions';
-import HomeFeedExplore from '../../components/HomeFeedExplore';
-import HomeFeedItem from '../../components/HomeFeedItem';
 import STYLES from '../../constants/Styles';
-import {onValue, ref} from '@firebase/database';
 import {useAppDispatch, useAppSelector} from '../../../store';
-import {
-  getHomeFeedData,
-  getInvites,
-  initAPI,
-  profileData,
-  updateHomeFeedData,
-  updateInvites,
-} from '../../store/actions/homefeed';
+import {getMemberState, initAPI} from '../../store/actions/homefeed';
 import styles from './styles';
-import {
-  SET_FILE_UPLOADING_MESSAGES,
-  SET_PAGE,
-  UPDATE_FILE_UPLOADING_OBJECT,
-} from '../../store/types/types';
+import {UPDATE_FILE_UPLOADING_OBJECT} from '../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../notifications';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
@@ -140,9 +126,8 @@ const HomeFeed = ({navigation}: Props) => {
     let res = await dispatch(initAPI(payload) as any);
     if (!!res) {
       await dispatch(
-        profileData({
-          community_id: res?.community?.id,
-          member_id: res?.user?.id,
+        getMemberState({
+          memberId: res?.user?.id,
         }) as any,
       );
       setCommunityId(res?.community?.id);
