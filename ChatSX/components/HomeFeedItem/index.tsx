@@ -379,7 +379,7 @@ const HomeFeedItem: React.FC<Props> = ({
             }}
             style={styles.inviteIcon}>
             <Image
-              style={styles.lockIcon}
+              style={styles.secretInviteIcons}
               source={require('../../assets/images/invite_cross3x.png')}
             />
           </TouchableOpacity>
@@ -389,7 +389,7 @@ const HomeFeedItem: React.FC<Props> = ({
             }}
             style={[styles.inviteIcon, {borderColor: '#5046E5'}]}>
             <Image
-              style={styles.lockIcon}
+              style={styles.secretInviteIcons}
               source={require('../../assets/images/invite_tick3x.png')}
             />
           </TouchableOpacity>

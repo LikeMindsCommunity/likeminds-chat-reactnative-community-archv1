@@ -19,8 +19,6 @@ import {useAppDispatch, useAppSelector} from '../../../../../store';
 import {
   getHomeFeedData,
   getInvites,
-  initAPI,
-  profileData,
   updateHomeFeedData,
   updateInvites,
 } from '../../../../store/actions/homefeed';
