@@ -180,7 +180,7 @@ const FileUpload = ({navigation, route}: any) => {
           let payload = {
             conversationId: conversationID,
             filesCount: selectedImages?.length,
-            index: i,
+            index: i + 1,
             meta:
               fileType === VIDEO_TEXT
                 ? {

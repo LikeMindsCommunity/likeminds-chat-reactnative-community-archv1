@@ -1616,7 +1616,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           let payload = {
             conversationId: conversationID,
             filesCount: selectedImages?.length,
-            index: i,
+            index: i + 1,
             meta:
               fileType === VIDEO_TEXT
                 ? {
