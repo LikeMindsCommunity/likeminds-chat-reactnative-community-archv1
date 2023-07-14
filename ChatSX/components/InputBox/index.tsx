@@ -822,7 +822,7 @@ const InputBox = ({
               ? res?.chatroom_participants.length
               : res?.community_members.length;
             let arrLength = communityMembersLength + groupTagsLength;
-            if (arrLength > 5) {
+            if (arrLength >= 5) {
               setUserTaggingListHeight(5 * 58);
             } else if (arrLength < 5) {
               let height = communityMembersLength * 58 + groupTagsLength * 80;
