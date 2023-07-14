@@ -598,9 +598,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
       //if isDM
       if (chatroomType === 10) {
-        dispatch(
-          getDMFeedData({community_id: community?.id, page: 1}, false) as any,
-        );
+        dispatch(getDMFeedData({page: 1}, false) as any);
       } else {
         await dispatch(getHomeFeedData({page: 1}, false) as any);
       }
@@ -705,10 +703,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     async function callApi() {
       if (chatroomType == 10) {
         let apiRes = await myClient?.canDmFeed({
-          req_from: 'chatroom',
-          chatroom_id: chatroomID,
-          community_id: community?.id,
-          member_id: chatroomWithUser?.id,
+          reqFrom: 'chatroom',
+          chatroomId: chatroomID,
+          memberId: chatroomWithUser?.id,
         });
         let response = apiRes?.data;
         if (!!response?.cta) {
@@ -717,7 +714,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       } else if (chatroomType == 0 || chatroomType == 7) {
         if (!!community?.id) {
           let payload = {
-            community_id: community?.id,
             page: 1,
           };
           const res = await dispatch(getDMFeedData(payload, false) as any);
@@ -931,7 +927,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const leaveSecretChatroom = async () => {
     const payload = {
       chatroomId: chatroomID,
-      memberId: user?.id,
       isSecret: isSecret,
     };
     const res = await myClient

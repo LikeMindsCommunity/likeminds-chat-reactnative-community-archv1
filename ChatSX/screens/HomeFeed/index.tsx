@@ -125,11 +125,7 @@ const HomeFeed = ({navigation}: Props) => {
     };
     let res = await dispatch(initAPI(payload) as any);
     if (!!res) {
-      await dispatch(
-        getMemberState({
-          memberId: res?.user?.id,
-        }) as any,
-      );
+      await dispatch(getMemberState() as any);
       setCommunityId(res?.community?.id);
       setAccessToken(res?.access_token);
     }
