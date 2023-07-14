@@ -47,11 +47,11 @@ export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
       },
     });
   } catch (error) {
-    Alert.alert(`${error}`)
+    Alert.alert(`${error}`);
   }
 };
 
-export const getMemberState = (payload: any) => async (dispatch: Dispatch) => {
+export const getMemberState = (payload?: any) => async (dispatch: Dispatch) => {
   try {
     return await dispatch({
       type: PROFILE_DATA_SUCCESS,
@@ -63,7 +63,7 @@ export const getMemberState = (payload: any) => async (dispatch: Dispatch) => {
       },
     });
   } catch (error) {
-    Alert.alert(`${error}`)
+    Alert.alert(`${error}`);
   }
 };
 
@@ -80,7 +80,7 @@ export const getInvites =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };
 
@@ -101,7 +101,7 @@ export const updateInvites =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };
 
@@ -162,7 +162,7 @@ export const getHomeFeedData =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };
 
@@ -183,7 +183,7 @@ export const updateHomeFeedData =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };
 
@@ -204,7 +204,7 @@ export const getDMFeedData =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };
 
@@ -225,6 +225,6 @@ export const updateDMFeedData =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };

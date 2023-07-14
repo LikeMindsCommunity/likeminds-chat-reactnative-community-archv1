@@ -11,7 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@likeminds.community/chat-js": "^1.4.1",
+    "@likeminds.community/chat-js": "^1.4.2",
     "@notifee/react-native": "^7.6.1",
     "@react-native-async-storage/async-storage": "^1.18.1",
     "@react-native-clipboard/clipboard": "^1.11.2",
