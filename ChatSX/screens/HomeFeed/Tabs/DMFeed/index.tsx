@@ -22,7 +22,6 @@ import {
   getHomeFeedData,
   getInvites,
   initAPI,
-  profileData,
   updateDMFeedData,
   updateHomeFeedData,
   updateInvites,
@@ -61,7 +60,6 @@ const DMFeed = ({navigation}: Props) => {
   async function fetchData() {
     if (!!community?.id) {
       let payload = {
-        community_id: community?.id,
         page: 1,
       };
       const res = await dispatch(getDMFeedData(payload) as any);
@@ -104,7 +102,6 @@ const DMFeed = ({navigation}: Props) => {
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {
     let payload = {
-      community_id: community?.id,
       page: newPage,
     };
     let response = await dispatch(updateDMFeedData(payload, false) as any);
@@ -149,9 +146,7 @@ const DMFeed = ({navigation}: Props) => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
-        dispatch(
-          getDMFeedData({community_id: community?.id, page: 1}, false) as any,
-        );
+        dispatch(getDMFeedData({page: 1}, false) as any);
         dispatch({type: SET_DM_PAGE, body: 1});
       }
     });
