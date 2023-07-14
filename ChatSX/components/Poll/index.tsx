@@ -398,12 +398,24 @@ const CreatePollUI = ({
   );
 };
 
-export {CreatePollUI, CreatePollScreen};
-
 const PollConversationUI = () => {
   return (
     <View>
-      <Text>PollConversationUI</Text>
+      <View>
+        <Text>Instant Poll</Text>
+        <Text>Open Voting</Text>
+      </View>
+      <View>
+        <Image
+          source={require('../../assets/images/poll_icon3x.png')}
+          // style={styles.emoji}
+        />
+      </View>
+      <View>
+        
+      </View>
     </View>
   );
 };
+
+export {CreatePollUI, CreatePollScreen, PollConversationUI};

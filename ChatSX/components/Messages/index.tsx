@@ -12,6 +12,7 @@ import {
   SELECTED_MESSAGES,
   SET_POSITION,
 } from '../../store/types/types';
+import {PollConversationUI} from '../Poll';
 
 interface Messages {
   item: any;
@@ -248,7 +249,7 @@ const Messages = ({
                     justifyContent: isTypeSent ? 'flex-end' : 'flex-start',
                   },
                 ]}>
-                <View
+                {/* <View
                   style={[
                     styles.message,
                     isTypeSent ? styles.sentMessage : styles.receivedMessage,
@@ -291,7 +292,17 @@ const Messages = ({
                       source={require('../../assets/images/add_more_emojis3x.png')}
                     />
                   </Pressable>
-                ) : null}
+                ) : null} */}
+                <View
+                  style={[
+                    styles.message,
+                    isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                    isIncluded
+                      ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                      : null,
+                  ]}>
+                  <PollConversationUI />
+                </View>
               </View>
             )}
           </View>
