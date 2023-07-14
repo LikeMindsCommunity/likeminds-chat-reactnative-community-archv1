@@ -47,7 +47,7 @@ export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
       },
     });
   } catch (error) {
-    // process error
+    Alert.alert(`${error}`)
   }
 };
 
@@ -63,7 +63,7 @@ export const getMemberState = (payload: any) => async (dispatch: Dispatch) => {
       },
     });
   } catch (error) {
-    // process error
+    Alert.alert(`${error}`)
   }
 };
 
@@ -80,7 +80,7 @@ export const getInvites =
         },
       });
     } catch (error) {
-      // process error
+      Alert.alert(`${error}`)
     }
   };
 
@@ -101,7 +101,7 @@ export const updateInvites =
         },
       });
     } catch (error) {
-      // process error
+      Alert.alert(`${error}`)
     }
   };
 
@@ -121,7 +121,7 @@ export const updateInvites =
 //       },
 //     });
 //   } catch (error) {
-//     // process error
+//     Alert.alert(`${error}`)
 //   }
 // });
 
@@ -141,7 +141,7 @@ export const updateInvites =
 //       },
 //     });
 //   } catch (error) {
-//     // process error
+//     Alert.alert(`${error}`)
 //   }
 // });
 
@@ -162,7 +162,7 @@ export const getHomeFeedData =
         },
       });
     } catch (error) {
-      // process error
+      Alert.alert(`${error}`)
     }
   };
 
@@ -183,7 +183,7 @@ export const updateHomeFeedData =
         },
       });
     } catch (error) {
-      // process error
+      Alert.alert(`${error}`)
     }
   };
 
@@ -204,7 +204,7 @@ export const getDMFeedData =
         },
       });
     } catch (error) {
-      // process error
+      Alert.alert(`${error}`)
     }
   };
 
@@ -225,6 +225,6 @@ export const updateDMFeedData =
         },
       });
     } catch (error) {
-      // process error
+      Alert.alert(`${error}`)
     }
   };

@@ -28,7 +28,7 @@ export const getExploreFeedData =
         },
       });
     } catch (error) {
-      // process error
+      Alert.alert(`${error}`)
     }
   };
 
@@ -49,6 +49,6 @@ export const updateExploreFeedData =
         },
       });
     } catch (error) {
-      // process error
+      Alert.alert(`${error}`)
     }
   };
