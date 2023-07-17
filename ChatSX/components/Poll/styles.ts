@@ -9,6 +9,9 @@ export const styles = StyleSheet.create({
   lightGreyThumb: {
     color: '#f4f3f4',
   },
+  greyColor: {
+    color: 'grey',
+  },
   primaryColor: {
     // color: STYLES.$COLORS.PRIMARY,
     color: 'hsl(222, 53%, 15%)',
@@ -27,6 +30,12 @@ export const styles = StyleSheet.create({
   },
   extraMarginSpace: {
     marginTop: 20,
+  },
+  gap: {
+    gap: 5,
+  },
+  gap10: {
+    gap: 10,
   },
   centeredView: {
     flexGrow: 1,
@@ -69,6 +78,11 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
   },
+  smallText: {
+    fontSize: 12,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.PRIMARY,
+  },
   newPollText: {
     color: 'black',
   },
@@ -77,7 +91,6 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
 
     flexGrow: 1,
-    // justifyContent: 'space-between',
     alignItems: 'center',
   },
   justifySpace: {
@@ -119,6 +132,19 @@ export const styles = StyleSheet.create({
     marginLeft: -5,
     tintColor: STYLES.$COLORS.PRIMARY,
   },
+  pollIconParent: {
+    height: 30,
+    width: 30,
+    borderRadius: 50,
+    backgroundColor: STYLES.$COLORS.PRIMARY,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pollIcon: {
+    height: 15,
+    width: 15,
+    resizeMode: 'contain',
+  },
   placeHolder: {
     color: '#D3D3D3',
   },
@@ -128,5 +154,15 @@ export const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: STYLES.$COLORS.PRIMARY,
     alignSelf: 'center',
+  },
+  pollButton: {
+    borderRadius: 8,
+    borderColor: STYLES.$COLORS.SECONDARY,
+    borderWidth: 1,
+  },
+  pollButtonBackground: {
+    margin: 2,
+    padding: 13,
+    borderRadius: 5,
   },
 });

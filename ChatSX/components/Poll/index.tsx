@@ -398,21 +398,103 @@ const CreatePollUI = ({
   );
 };
 
-const PollConversationUI = () => {
+const PollConversationUI = ({hue, votes = 1}: any) => {
   return (
     <View>
-      <View>
-        <Text>Instant Poll</Text>
-        <Text>Open Voting</Text>
+      {/* Poll heading */}
+      <View style={[styles.alignRow, styles.gap]}>
+        <Text style={[styles.smallText, styles.greyColor]}>Instant Poll</Text>
+        <Text
+          style={[styles.smallText, styles.greyColor]}>{`• Open Voting`}</Text>
       </View>
-      <View>
-        <Image
-          source={require('../../assets/images/poll_icon3x.png')}
-          // style={styles.emoji}
-        />
+
+      {/* Poll question */}
+      <View style={styles.extraMarginSpace}>
+        <View
+          style={[
+            styles.pollIconParent,
+            hue ? {backgroundColor: `hsl(${hue}, 53%, 15%)`} : null,
+          ]}>
+          <Image
+            source={require('../../assets/images/poll_icon3x.png')}
+            style={styles.pollIcon}
+          />
+        </View>
+
+        <Text style={[styles.text, styles.blackColor, styles.marginSpace]}>
+          Which is the best design tool you have used?
+        </Text>
       </View>
+
+      {/* Poll Options*/}
+      <View style={[styles.extraMarginSpace, styles.gap10]}>
+        <Pressable
+          style={({pressed}) => [
+            styles.pollButton,
+            {opacity: pressed ? 0.5 : 1},
+            hue ? {borderColor: `hsl(${hue}, 47%, 31%)`} : null,
+          ]}>
+          <View
+            style={[
+              styles.pollButtonBackground,
+              votes > 0
+                ? {
+                    width: '80%',
+                    backgroundColor: hue
+                      ? `hsl(${hue}, 60%, 85%)`
+                      : `hsl(222, 60%, 85%)`,
+                  }
+                : null,
+            ]}>
+            <Text style={[styles.text, styles.blackColor]}>Sketch</Text>
+          </View>
+        </Pressable>
+        <Pressable
+          style={({pressed}) => [
+            styles.pollButton,
+            {opacity: pressed ? 0.5 : 1},
+            hue ? {borderColor: `hsl(${hue}, 47%, 31%)`} : null,
+          ]}>
+          <View style={[styles.pollButtonBackground]}>
+            <Text style={[styles.text, styles.blackColor]}>Adobe</Text>
+          </View>
+        </Pressable>
+        <Pressable
+          style={({pressed}) => [
+            styles.pollButton,
+            {opacity: pressed ? 0.5 : 1},
+            hue ? {borderColor: `hsl(${hue}, 47%, 31%)`} : null,
+          ]}>
+          <View style={[styles.pollButtonBackground]}>
+            <Text style={[styles.text, styles.blackColor]}>Figma</Text>
+          </View>
+        </Pressable>
+      </View>
+
+      {/* Add more options button */}
+      <View style={[styles.extraMarginSpace]}>
+        <Pressable
+          style={({pressed}) => [
+            styles.pollButton,
+            {opacity: pressed ? 0.5 : 1, padding: 12},
+            hue ? {borderColor: `hsl(${hue}, 47%, 31%)`} : null,
+          ]}>
+          <Text
+            style={[styles.text, styles.blackColor, styles.textAlignCenter]}>
+            + Add an option
+          </Text>
+        </Pressable>
+      </View>
+
       <View>
-        
+        <Text
+          style={[
+            styles.smallText,
+            styles.marginSpace,
+            hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+          ]}>
+          1 person voted on this poll
+        </Text>
       </View>
     </View>
   );

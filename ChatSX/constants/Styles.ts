@@ -1,7 +1,7 @@
 export default {
   $COLORS: {
     PRIMARY: 'hsl(222, 53%, 15%)',
-    SECONDARY: '#2a4074',
+    SECONDARY: 'hsl(222, 47%, 31%)',
     TERTIARY: '#ffffff',
     MSG: '#777e8e',
     JOINED_BTN: '#e9ecf1',
