@@ -25,6 +25,9 @@ export const styles = StyleSheet.create({
   blackColor: {
     color: '#000000',
   },
+  padding20: {
+    padding: 20,
+  },
   marginSpace: {
     marginTop: 10,
   },
@@ -47,6 +50,13 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     width: Layout.window.width,
     height: Layout.window.height,
+  },
+  addOptionsModalViewParent: {
+    position: 'absolute',
+    bottom: 0,
+    flexGrow: 1,
+    width: Layout.window.width,
+    height: Layout.window.height / 3,
   },
   modalView: {
     // margin: 10,
@@ -76,6 +86,16 @@ export const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.PRIMARY,
+  },
+  boldText: {
+    fontSize: 16,
+    fontFamily: STYLES.$FONT_TYPES.BOLD,
+    color: STYLES.$COLORS.PRIMARY,
+  },
+  mediumBoldText: {
+    fontSize: 16,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
   },
   smallText: {
@@ -164,5 +184,28 @@ export const styles = StyleSheet.create({
     margin: 2,
     padding: 13,
     borderRadius: 5,
+  },
+  submitButton: {
+    borderRadius: 50,
+    width: 150,
+    backgroundColor: STYLES.$COLORS.PRIMARY,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    alignSelf: 'center',
+    padding: 12,
+  },
+  textInput: {
+    padding: 12,
+    borderRadius: 8,
+    borderColor: '#c5c5c5',
+    borderWidth: 1,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    fontSize: 14,
   },
 });

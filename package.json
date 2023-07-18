@@ -11,7 +11,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "@likeminds.community/chat-js": "^1.4.1",
+    "@likeminds.community/chat-js": "^1.4.2",
+    "@likeminds.community/chat-js-beta": "^1.1.77",
     "@notifee/react-native": "^7.6.1",
     "@react-native-async-storage/async-storage": "^1.18.1",
     "@react-native-clipboard/clipboard": "^1.11.2",
@@ -46,6 +47,7 @@
     "react-native-tab-view": "^3.5.0",
     "react-native-video": "^5.2.1",
     "react-redux": "^8.0.5",
+    "reactotron-react-native": "^5.0.3",
     "redux-thunk": "^2.4.2",
     "rn-emoji-keyboard": "^1.2.1"
   },

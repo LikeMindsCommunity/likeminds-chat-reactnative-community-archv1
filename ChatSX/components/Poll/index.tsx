@@ -398,6 +398,15 @@ const CreatePollUI = ({
   );
 };
 
+const PollConversationView = () => {
+  return (
+    <View>
+      <PollConversationUI />
+      {/* {true ? <AddOptionsModal /> : null} */}
+    </View>
+  );
+};
+
 const PollConversationUI = ({hue, votes = 1}: any) => {
   return (
     <View>
@@ -500,4 +509,87 @@ const PollConversationUI = ({hue, votes = 1}: any) => {
   );
 };
 
-export {CreatePollUI, CreatePollScreen, PollConversationUI};
+const AddOptionsModal = ({
+  addOptionsModalVisible = true,
+  setAddOptionsVisible,
+}: any) => {
+  const handleModalClose = () => {
+    setAddOptionsVisible(false);
+  };
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={addOptionsModalVisible}
+      onRequestClose={() => {
+        setAddOptionsVisible(!addOptionsModalVisible);
+      }}>
+      <Pressable style={styles.centeredView} onPress={handleModalClose}>
+        <View style={styles.addOptionsModalViewParent}>
+          <Pressable onPress={() => {}} style={[styles.modalView]}>
+            <View style={styles.alignModalElements}>
+              <AddOptionUI />
+            </View>
+          </Pressable>
+        </View>
+      </Pressable>
+    </Modal>
+  );
+};
+
+const AddOptionUI = ({hue, value, setValue}: any) => {
+  return (
+    <View>
+      <View style={styles.padding20}>
+        <View style={[{alignSelf: 'flex-end'}]}>
+          <Image
+            style={[styles.pollIcon, {tintColor: styles.blackColor.color}]}
+            source={require('../../assets/images/cross_icon3x.png')}
+          />
+        </View>
+        <View>
+          <Text style={[styles.boldText, styles.blackColor]}>
+            Add new poll option
+          </Text>
+          <Text
+            style={[styles.smallText, styles.greyColor, styles.marginSpace]}>
+            Enter an option that you thinkis missing in this poll. This can not
+            be undone.
+          </Text>
+        </View>
+        <View style={styles.extraMarginSpace}>
+          <TextInput
+            value={value}
+            onChangeText={setValue}
+            placeholder={'Type new option'}
+            placeholderTextColor="#aaa"
+            style={styles.textInput}
+          />
+        </View>
+        <View style={styles.extraMarginSpace}>
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              hue ? {backgroundColor: `hsl(${hue}, 47%, 31%)`} : null,
+            ]}>
+            <Text
+              style={[
+                styles.mediumBoldText,
+                styles.whiteColor,
+                styles.textAlignCenter,
+              ]}>
+              SUBMIT
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export {
+  CreatePollUI,
+  CreatePollScreen,
+  PollConversationUI,
+  PollConversationView,
+};
