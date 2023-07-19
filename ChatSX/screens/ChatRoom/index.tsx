@@ -1646,7 +1646,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           type: SET_FILE_UPLOADING_MESSAGES,
           body: {
             message: {
-              ...uploadingFilesMessages[conversationID.toString()],
+              ...uploadingFilesMessages[conversationID?.toString()],
               isInProgress: FAILED,
             },
             ID: conversationID,
@@ -1758,8 +1758,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       <FlashList
         ref={flatlistRef}
         data={conversations}
-        keyExtractor={(item: any) => {
-          return item?.id?.toString();
+        keyExtractor={(item: any, index) => {
+          let isArray = Array.isArray(item);
+          return isArray ? index?.toString() : item?.id?.toString();
         }}
         extraData={{
           value: [
@@ -1773,7 +1774,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         renderItem={({item: value, index}: any) => {
           let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
           let item = {...value};
-          if (uploadingFilesMessagesIDArr.includes(value?.id.toString())) {
+          if (uploadingFilesMessagesIDArr.includes(value?.id?.toString())) {
             item = uploadingFilesMessages[value?.id];
           }
 

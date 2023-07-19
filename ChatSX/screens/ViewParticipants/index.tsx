@@ -310,7 +310,7 @@ const ViewParticipants = ({navigation, route}: any) => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => item?.id.toString()}
+        keyExtractor={(item: any) => item?.id?.toString()}
       />
       {participants?.length === 0 && (
         <View style={[styles.justifyCenter]}>

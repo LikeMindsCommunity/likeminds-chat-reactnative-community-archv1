@@ -189,7 +189,7 @@ const GroupFeed = ({navigation}: Props) => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => item?.chatroom?.id.toString()}
+        keyExtractor={(item: any) => item?.chatroom?.id?.toString()}
       />
     </View>
   );

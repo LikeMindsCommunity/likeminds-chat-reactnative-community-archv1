@@ -69,6 +69,7 @@ import {
   decode,
   deleteRouteIfAny,
   detectMentions,
+  extractPathfromRouteQuery,
   fetchResourceFromURI,
   getAllPdfThumbnail,
   getPdfThumbnail,
@@ -81,7 +82,6 @@ import {TaggingView} from '../TaggingView';
 import {
   convertToMentionValues,
   replaceMentionValues,
-  routeRegex,
 } from '../TaggingView/utils';
 
 interface InputBox {
@@ -185,8 +185,7 @@ const InputBox = ({
       let convertedText = convertToMentionValues(
         `${editConversation?.answer} `, // to put extra space after a message whwn we want to edit a message
         ({URLwithID, name}) => {
-          // this is used to extract ID from route://member/4544 from this kind if url
-          if (!!!Number(URLwithID)) {
+          if (!!!URLwithID) {
             return `@[${name}](${name})`;
           } else {
             return `@[${name}](${URLwithID})`;
@@ -508,12 +507,14 @@ const InputBox = ({
         }
       }
     }
-
+    [];
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      if (!!!Number(id)) {
+      // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
+      let PATH = extractPathfromRouteQuery(id);
+      if (!!!PATH) {
         return `<<${name}|route://${name}>>`;
       } else {
-        return `<<${name}|route://member/${id}>>`;
+        return `<<${name}|route://${id}>>`;
       }
     });
 
@@ -650,7 +651,7 @@ const InputBox = ({
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText.trim(),
-            temporaryId: ID.toString(),
+            temporaryId: ID?.toString(),
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
@@ -676,7 +677,7 @@ const InputBox = ({
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText.trim(),
-            temporaryId: ID.toString(),
+            temporaryId: ID?.toString(),
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
@@ -854,10 +855,12 @@ const InputBox = ({
 
     let changedConversation;
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      if (!!!Number(id)) {
+      // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
+      let PATH = extractPathfromRouteQuery(id);
+      if (!!!PATH) {
         return `<<${name}|route://${name}>>`;
       } else {
-        return `<<${name}|route://member/${id}>>`;
+        return `<<${name}|route://${id}>>`;
       }
     });
 
@@ -959,11 +962,12 @@ const InputBox = ({
                   return (
                     <Pressable
                       onPress={() => {
+                        let uuid = item?.sdk_client_info?.uuid;
                         const res = replaceLastMention(
                           message,
                           taggedUserName,
                           item?.name,
-                          item?.id,
+                          uuid ? `user_profile/${uuid}` : uuid,
                         );
                         setMessage(res);
                         setFormattedConversation(res);

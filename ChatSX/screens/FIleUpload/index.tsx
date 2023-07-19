@@ -210,7 +210,7 @@ const FileUpload = ({navigation, route}: any) => {
           type: SET_FILE_UPLOADING_MESSAGES,
           body: {
             message: {
-              ...uploadingFilesMessages[conversationID.toString()],
+              ...uploadingFilesMessages[conversationID?.toString()],
               isInProgress: FAILED,
             },
             ID: conversationID,

@@ -16,6 +16,8 @@ export const REGEX_USER_TAGGING =
 
 export const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
 
+export const EXTRACT_PATH_FROM_ROUTE_QUERY = /\/([^/].*)/;
+
 {
   /* This is a generic arrow function to remove a specific key. 
   The first argument is the name of the key to remove, the second is the object from where you want to remove the key. 
@@ -419,7 +421,7 @@ export function replaceLastMention(
   input: string,
   taggerUserName: string,
   mentionUsername: string,
-  memberID: any,
+  UUID: string,
 ) {
   let mentionRegex: RegExp;
 
@@ -431,7 +433,7 @@ export function replaceLastMention(
       'gi',
     );
   }
-  const replacement = `@[${mentionUsername}](${memberID}) `;
+  const replacement = `@[${mentionUsername}](${UUID}) `;
   const replacedString = input.replace(mentionRegex, replacement);
   return replacedString;
 }
@@ -463,3 +465,13 @@ export const formatValue = (value: any) => {
 
   return '';
 };
+
+// this function is used to extract path from from route query, i.e routeQuery: `user_profile/skjdnc-lskdnjcs-lkdnsm`, path: `skjdnc-lskdnjcs-lkdnsm`
+export function extractPathfromRouteQuery(inputString: string): string | null {
+  const match = inputString.match(EXTRACT_PATH_FROM_ROUTE_QUERY);
+  if (match && match[1]) {
+    return match[1];
+  } else {
+    return null;
+  }
+}
