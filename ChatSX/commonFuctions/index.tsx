@@ -13,16 +13,10 @@ import {diffChars, diffLines, diffWords} from 'diff';
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
 export const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
-// export const REGEX_USER_TAGGING =
-//   /<<(?<name>[^|]+)\|route:\/\/(?<route>[^>]+)>>/;
 
 export const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
 
-// Regular expression to check if string is a valid UUID
-// const UUID_REGEX =
-//   /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export const EXTRACT_PATH_FROM_ROUTE_QUERY = /\/([^/].*)/;
 
 {
   /* This is a generic arrow function to remove a specific key. 
@@ -138,7 +132,6 @@ export const decode = (
       if (!!matchResult.match(REGEX_USER_TAGGING)) {
         let match = REGEX_USER_TAGGING.exec(matchResult);
         if (match !== null) {
-          // console.log('matchResult ==', matchResult, match);
           const {name, route} = match?.groups!;
           arr.push({key: name, route: route});
         }
@@ -473,7 +466,11 @@ export const formatValue = (value: any) => {
   return '';
 };
 
-/* Check if string is valid UUID */
-export function checkIfValidUUID(str: string) {
-  return UUID_REGEX.test(str);
+export function extractPathfromRouteQuery(inputString: string): string | null {
+  const match = inputString.match(EXTRACT_PATH_FROM_ROUTE_QUERY);
+  if (match && match[1]) {
+    return match[1];
+  } else {
+    return null;
+  }
 }

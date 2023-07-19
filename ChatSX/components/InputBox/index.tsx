@@ -66,10 +66,10 @@ import AWS from 'aws-sdk';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {
   REGEX_USER_TAGGING,
-  checkIfValidUUID,
   decode,
   deleteRouteIfAny,
   detectMentions,
+  extractPathfromRouteQuery,
   fetchResourceFromURI,
   getAllPdfThumbnail,
   getPdfThumbnail,
@@ -82,7 +82,6 @@ import {TaggingView} from '../TaggingView';
 import {
   convertToMentionValues,
   replaceMentionValues,
-  routeRegex,
 } from '../TaggingView/utils';
 
 interface InputBox {
@@ -186,8 +185,7 @@ const InputBox = ({
       let convertedText = convertToMentionValues(
         `${editConversation?.answer} `, // to put extra space after a message whwn we want to edit a message
         ({URLwithID, name}) => {
-          // this is used to extract ID from route://member/4544 from this kind if url
-          if (!!!Number(URLwithID)) {
+          if (!!!URLwithID) {
             return `@[${name}](${name})`;
           } else {
             return `@[${name}](${URLwithID})`;
@@ -511,12 +509,12 @@ const InputBox = ({
     }
     [];
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      let isValidUUID = checkIfValidUUID(id);
-      console.log('id ==', id, isValidUUID);
-      if (!!!isValidUUID) {
+      // example ID = `user_info/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
+      let PATH = extractPathfromRouteQuery(id);
+      if (!!!PATH) {
         return `<<${name}|route://${name}>>`;
       } else {
-        return `<<${name}|route://user_info/${id}>>`;
+        return `<<${name}|route://${id}>>`;
       }
     });
 
@@ -857,11 +855,12 @@ const InputBox = ({
 
     let changedConversation;
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      let isValidUUID = checkIfValidUUID(id);
-      if (!!!isValidUUID) {
+      // example ID = `user_info/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
+      let PATH = extractPathfromRouteQuery(id);
+      if (!!!PATH) {
         return `<<${name}|route://${name}>>`;
       } else {
-        return `<<${name}|route://user_info/${id}>>`;
+        return `<<${name}|route://${id}>>`;
       }
     });
 
@@ -967,8 +966,9 @@ const InputBox = ({
                           message,
                           taggedUserName,
                           item?.name,
-                          // item?.id,
-                          item?.sdk_client_info?.uuid,
+                          item?.sdk_client_info?.uuid
+                            ? `user_info/${item?.sdk_client_info?.uuid}`
+                            : item?.sdk_client_info?.uuid,
                         );
                         setMessage(res);
                         setFormattedConversation(res);
