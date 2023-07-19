@@ -13,6 +13,7 @@ import React, {useState} from 'react';
 import {styles} from './styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {DATE_TEXT, DATE_TIME_TEXT, TIME_TEXT} from '../../constants/Strings';
+import {POLL_RESULT} from '../../constants/Screens';
 
 const CreatePollModal = ({pollModalVisible, setPollModalVisible}: any) => {
   const handleModalClose = () => {
@@ -398,16 +399,20 @@ const CreatePollUI = ({
   );
 };
 
-const PollConversationView = () => {
+const PollConversationView = ({navigation}: any) => {
+  // const navigation = useNavigation()
+  const onNavigate = () => {
+    navigation.navigate(POLL_RESULT);
+  };
   return (
     <View>
-      <PollConversationUI />
+      <PollConversationUI onNavigate={onNavigate} />
       {/* {true ? <AddOptionsModal /> : null} */}
     </View>
   );
 };
 
-const PollConversationUI = ({hue, votes = 1}: any) => {
+const PollConversationUI = ({hue, votes = 1, onNavigate}: any) => {
   return (
     <View>
       {/* Poll heading */}
@@ -430,7 +435,9 @@ const PollConversationUI = ({hue, votes = 1}: any) => {
           />
         </View>
 
-        <Text style={[styles.text, styles.blackColor, styles.marginSpace]}>
+        <Text
+          onPress={onNavigate}
+          style={[styles.text, styles.blackColor, styles.marginSpace]}>
           Which is the best design tool you have used?
         </Text>
       </View>

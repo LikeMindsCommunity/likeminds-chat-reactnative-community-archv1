@@ -55,9 +55,11 @@ import {
   VIEW_PARTICIPANTS,
   VIDEO_PLAYER,
   CAROUSEL_SCREEN,
+  POLL_RESULT,
 } from '../constants/Screens';
 import VideoPlayer from '../screens/VideoPlayer';
 import CarouselScreen from '../screens/CarouselScreen';
+import PollResult from '../components/PollResult';
 
 const Stack = createNativeStackNavigator();
 
@@ -146,6 +148,11 @@ const SwitchComponent = () => {
             options={{gestureEnabled: false}}
             name={CAROUSEL_SCREEN}
             component={CarouselScreen}
+          />
+          <Stack.Screen
+            options={{gestureEnabled: false}}
+            name={POLL_RESULT}
+            component={PollResult}
           />
         </Stack.Navigator>
       </NavigationContainer>
