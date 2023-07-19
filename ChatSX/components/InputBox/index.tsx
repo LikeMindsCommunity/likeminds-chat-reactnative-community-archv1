@@ -66,6 +66,7 @@ import AWS from 'aws-sdk';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {
   REGEX_USER_TAGGING,
+  checkIfValidUUID,
   decode,
   deleteRouteIfAny,
   detectMentions,
@@ -508,12 +509,14 @@ const InputBox = ({
         }
       }
     }
-
+    [];
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      if (!!!Number(id)) {
+      let isValidUUID = checkIfValidUUID(id);
+      console.log('id ==', id, isValidUUID);
+      if (!!!isValidUUID) {
         return `<<${name}|route://${name}>>`;
       } else {
-        return `<<${name}|route://member/${id}>>`;
+        return `<<${name}|route://user_info/${id}>>`;
       }
     });
 
@@ -853,10 +856,11 @@ const InputBox = ({
 
     let changedConversation;
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      if (!!!Number(id)) {
+      let isValidUUID = checkIfValidUUID(id);
+      if (!!!isValidUUID) {
         return `<<${name}|route://${name}>>`;
       } else {
-        return `<<${name}|route://member/${id}>>`;
+        return `<<${name}|route://user_info/${id}>>`;
       }
     });
 
@@ -962,7 +966,8 @@ const InputBox = ({
                           message,
                           taggedUserName,
                           item?.name,
-                          item?.id,
+                          // item?.id,
+                          item?.sdk_client_info?.uuid,
                         );
                         setMessage(res);
                         setFormattedConversation(res);
