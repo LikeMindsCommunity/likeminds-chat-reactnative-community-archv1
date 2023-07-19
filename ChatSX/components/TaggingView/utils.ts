@@ -25,13 +25,12 @@ const mentionRegEx = /((.)\[([^[]*)]\(([^(^)]*)\))/gi;
 
 /**
  * RegEx grouped results. Example - "<<User3|route://member/88752>>"
- * We have 4 groups here:
+ * We have 3 groups here:
  * - The whole original string - "<<User3|route://member/88752>>"
  * - Name - "User3"
- * - Id - "route://member/88752" -- To decode ID from this use @routeRegex
+ * - Id - "route://user_profiel/UUID" -- To decode UUID
  */
-const convertionRegex = /<<([^|]*)\|[^>]*\/([^>]*)>>/g;
-export const routeRegex = /member\/(\d+)/;
+const convertionRegex = /<<([^|]*)\|route:\/\/([^>]*)>>/g;
 
 const defaultMentionTextStyle: StyleProp<TextStyle> = {
   fontWeight: 'bold',
