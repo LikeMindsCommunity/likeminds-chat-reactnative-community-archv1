@@ -502,7 +502,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => item?.id.toString()}
+        keyExtractor={(item: any) => item?.id?.toString()}
       />
       {isSearch && isEmptyMessageShow && searchedParticipants?.length === 0 && (
         <View style={[styles.justifyCenter]}>
