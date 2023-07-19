@@ -509,7 +509,7 @@ const InputBox = ({
     }
     [];
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      // example ID = `user_info/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
+      // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
         return `<<${name}|route://${name}>>`;
@@ -854,7 +854,7 @@ const InputBox = ({
 
     let changedConversation;
     let conversationText = replaceMentionValues(message, ({id, name}) => {
-      // example ID = `user_info/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
+      // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
         return `<<${name}|route://${name}>>`;
@@ -966,7 +966,7 @@ const InputBox = ({
                           message,
                           taggedUserName,
                           item?.name,
-                          uuid ? `user_info/${uuid}` : uuid,
+                          uuid ? `user_profile/${uuid}` : uuid,
                         );
                         setMessage(res);
                         setFormattedConversation(res);
