@@ -651,7 +651,7 @@ const InputBox = ({
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText.trim(),
-            temporaryId: ID.toString(),
+            temporaryId: ID?.toString(),
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
@@ -677,7 +677,7 @@ const InputBox = ({
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText.trim(),
-            temporaryId: ID.toString(),
+            temporaryId: ID?.toString(),
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
