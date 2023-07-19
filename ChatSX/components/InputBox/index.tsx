@@ -965,13 +965,12 @@ const InputBox = ({
                   return (
                     <Pressable
                       onPress={() => {
+                        let uuid = item?.sdk_client_info?.uuid;
                         const res = replaceLastMention(
                           message,
                           taggedUserName,
                           item?.name,
-                          item?.sdk_client_info?.uuid
-                            ? `user_info/${item?.sdk_client_info?.uuid}`
-                            : item?.sdk_client_info?.uuid,
+                          uuid ? `user_info/${uuid}` : uuid,
                         );
                         setMessage(res);
                         setFormattedConversation(res);
