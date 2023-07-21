@@ -16,11 +16,23 @@ export function getRoute(route: any) {
     switch (navigationRoute[1]) {
       case ROUTE_CHATROOM: {
         let paramsKey = Object.keys(params);
-        return {route: CHATROOM, params: {chatroomID: params[paramsKey[0]]}};
+        return {
+          route: CHATROOM,
+          params: {
+            chatroomID: params[paramsKey[0]],
+            navigationFromNotification: true,
+          },
+        };
       }
       case ROUTE_CHATROOM_DETAIL: {
         let paramsKey = Object.keys(params);
-        return {route: CHATROOM, params: {chatroomID: params[paramsKey[0]]}};
+        return {
+          route: CHATROOM,
+          params: {
+            chatroomID: params[paramsKey[0]],
+            navigationFromNotification: true,
+          },
+        };
       }
       default:
         return {route: HOMEFEED, params: {}};
