@@ -30,13 +30,13 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 
 export const myClient = LMChatClient.setApiKey('')
   .setPlatformCode('rn')
-  .setVersionCode(parseInt('12'))
+  .setVersionCode(parseInt('13'))
   .build();
 
 function HeadlessCheck({isHeadless}) {
   if (isHeadless) {
     // App has been launched in the background by iOS, ignore
-    return null;
+  return null;
   }
 
   return <App />;
