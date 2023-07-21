@@ -623,6 +623,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return response;
   }
 
+  // this function fetch initiate API
   async function fetchInitAPI() {
     //this line of code is for the sample app only, pass your userUniqueID instead of this.
     const UUID = await AsyncStorage.getItem('userUniqueID');
@@ -655,8 +656,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   }, []);
 
+  //this useEffect fetch chatroom details only after initiate API got fetched if `navigation from Notification` else fetch chatroom details
   useEffect(() => {
-    const func = async () => {
+    const invokeFunction = async () => {
       if (navigationFromNotification) {
         await fetchInitAPI();
         fetchChatroomDetails();
@@ -666,7 +668,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         setInitialHeader();
       }
     };
-    func();
+    invokeFunction();
   }, [navigation]);
 
   //Logic for navigation backAction
