@@ -75,10 +75,13 @@ const getPartIndexByCursor = (
  * @param cursor current cursor position
  * @param count count of characters that didn't change
  */
+
+
 const getPartsInterval = (
   parts: Part[],
   cursor: number,
   count: number,
+  isFirst: boolean
 ): Part[] => {
   const newCursor = cursor + count;
 
@@ -91,7 +94,7 @@ const getPartsInterval = (
   let partsInterval: Part[] = [];
 
   if (!currentPart || !newPart) {
-    return partsInterval;
+    return parts;
   }
 
   // Push whole first affected part or sub-part of the first affected part
@@ -101,11 +104,21 @@ const getPartsInterval = (
   ) {
     partsInterval.push(currentPart);
   } else {
-    partsInterval.push(
-      generatePlainTextPart(
-        currentPart.text.substr(cursor - currentPart.position.start, count),
-      ),
-    );
+    // For case when tagged user is at the beginning
+    if(currentPart.text==parts[0].text && isFirst){
+      partsInterval.push(
+        generatePlainTextPart(
+          currentPart.text.substr(0, currentPart.position.end-currentPart.position.start),
+        ),
+      );
+      currentPart.text=' ';
+    } else{
+      partsInterval.push(
+        generatePlainTextPart(
+          currentPart.text.substr(cursor - currentPart.position.start, count),
+        ),
+      );
+    }
   }
 
   if (newPartIndex > currentPartIndex) {
@@ -223,71 +236,6 @@ const getMentionPartSuggestionKeywords = (
     });
 
   return keywordByTrigger;
-};
-
-/**
- * Generates new value when we changing text.
- *
- * @param parts full parts list
- * @param originalText original plain text
- * @param changedText changed plain text
- */
-const generateValueFromPartsAndChangedText = (
-  parts: Part[],
-  originalText: string,
-  changedText: string,
-) => {
-  const changes = diffChars(
-    originalText,
-    changedText,
-  ) as CharactersDiffChange[];
-
-  let newParts: Part[] = [];
-
-  let cursor = 0;
-
-  changes.forEach(change => {
-    switch (true) {
-      /**
-       * We should:
-       * - Move cursor forward on the changed text length
-       */
-      case change.removed: {
-        cursor += change.count;
-
-        break;
-      }
-
-      /**
-       * We should:
-       * - Push new part to the parts with that new text
-       */
-      case change.added: {
-        newParts.push(generatePlainTextPart(change.value));
-
-        break;
-      }
-
-      /**
-       * We should concat parts that didn't change.
-       * - In case when we have only one affected part we should push only that one sub-part
-       * - In case we have two affected parts we should push first
-       */
-      default: {
-        if (change.count !== 0) {
-          newParts = newParts.concat(
-            getPartsInterval(parts, cursor, change.count),
-          );
-
-          cursor += change.count;
-        }
-
-        break;
-      }
-    }
-  });
-
-  return getValueFromParts(newParts);
 };
 
 /**
@@ -613,7 +561,6 @@ export {
   defaultMentionTextStyle,
   isMentionPartType,
   getMentionPartSuggestionKeywords,
-  generateValueFromPartsAndChangedText,
   // generateValueWithAddedSuggestion,
   generatePlainTextPart,
   generateMentionPart,

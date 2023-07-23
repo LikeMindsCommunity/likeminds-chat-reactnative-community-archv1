@@ -791,9 +791,8 @@ const InputBox = ({
         setFormattedConversation(e);
       }
     } else {
-      let modifiedConversation = deleteRouteIfAny(e, message);
-      setMessage(modifiedConversation);
-      setFormattedConversation(modifiedConversation);
+      setMessage(e);
+      setFormattedConversation(e);
 
       // chatroomType === 10 (if DM don't detect and show user tags)
       const newMentions = chatroomType === 10 ? [] : detectMentions(e);

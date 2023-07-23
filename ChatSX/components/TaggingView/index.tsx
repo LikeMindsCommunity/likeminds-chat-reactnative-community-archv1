@@ -19,7 +19,6 @@ import {
   defaultMentionTextStyle,
   generateMentionPart,
   generatePlainTextPart,
-  generateValueFromPartsAndChangedText,
   // generateValueWithAddedSuggestion,
   getMentionPartSuggestionKeywords,
   getMentionValue,
@@ -27,7 +26,7 @@ import {
   isMentionPartType,
   parseValue,
 } from './utils';
-import {useAppDispatch, useAppSelector} from '../../store';
+import {useAppDispatch, useAppSelector} from '../../../store';
 import {SET_PREVIOUS_TAG, SET_TAGGED} from '../../store/types/types';
 import {diffChars} from 'diff';
 
@@ -49,6 +48,7 @@ const TaggingView: FC<TaggingViewProps> = ({
   const textInput = useRef<TextInput | null>(null);
 
   const [selection, setSelection] = useState({start: 0, end: 0});
+  const [inputLen, setInputLen] = useState(0);
 
   const dispatch = useAppDispatch();
   const {taggedData = [], previousTaggedData = []} = useAppSelector(
@@ -73,9 +73,32 @@ const TaggingView: FC<TaggingViewProps> = ({
    *
    * @param changedText
    */
+  {/*
+   1. Firstly current length is compared to previous length to check for backspace event
+   2. Iterating on the parts array and checking if the current cursor position is at end position of any object of the parts array and if it is, checking whether it is tagged user or a simple text
+   3. If it is tagged user, making isFirst true which is used to handle cases where tagged user is at the beginning of the input followed by removing of that tagged member object from the parts array 
+   4. Updating the current length with previous one
+   5. Calling the callback of onChange
+  */}
   const onChangeInput = (changedText: string) => {
+    let isFirst = false;
+    let changedLen = changedText.length;
+    
+    if (changedLen < inputLen) {
+      for (let i = 0; i < parts.length; i++) {
+        const cursorPosition = selection?.end ?? 0;
+        const endPosition = parts[i].position.end;
+        if (cursorPosition==endPosition && parts[i].data?.original?.match(new RegExp(/@\[(.*?)\]\((.*?)\)/))) {
+            if(i==0) {isFirst = true;}  
+            parts.splice(i, 1); 
+            break;
+        }
+      }
+    }
+
+    setInputLen(changedLen);
     onChange(
-      generateValueFromPartsAndChangedText(parts, plainText, changedText),
+      generateValueFromPartsAndChangedText(parts, plainText, changedText,isFirst),
     );
   };
 
@@ -97,52 +120,17 @@ const TaggingView: FC<TaggingViewProps> = ({
    * @param parts
    */
   const getValueFromParts = (parts: Part[]) => {
-    dispatch({
-      type: SET_PREVIOUS_TAG,
-      body: {
-        taggingData: [...taggedData],
-      },
-    });
-    dispatch({type: SET_TAGGED, body: {taggingData: []}});
-    console.log(' hey yayo getValueFromParts ==');
     return parts
       .map((item, index) => {
-        console.log('getValueFromParts ==', item, !!item?.data);
         if (!!item?.data) {
-          // dispatch({type: SET_TAGGED, body: {taggingData: [...taggedData,item?.text]}});
-
-          dispatch({
-            type: SET_TAGGED,
-            body: {
-              taggingData: [...taggedData, {text: item?.text, index: index}],
-            },
-          });
-
-          console.log('taggedData ==', taggedData);
 
           return item?.data ? item?.data?.original : item?.text;
         } else {
-          // console.log('taggedData ==', taggedData, item?.text);
-          // const changes = diffChars(taggedData, item?.text);
-          // dispatch({type: SET_TAGGED, body: {taggingData: ''}});
           let findIndex = previousTaggedData.findIndex(
             (element: any) => element?.index === index,
           );
-
-          console.log('findIndex ==', findIndex, previousTaggedData);
-
-          {
-            /* taggedData = Gaurav, item?.text = Gaura
-            changes =  [{"count": 5, "value": "Gaura"}, {"added": undefined, "count": 1, "removed": true, "value": "v"}]*/
-          }
-          // console.log('diffChars changes ==', changes[1]?.count);
-          // return changes[1]?.count === 1 && !!changes[1]?.removed
-          //   ? ''
-          //   : item?.text;
           return findIndex === index ? '' : item?.text;
         }
-
-        // return item.data ? item.data.original : item.text;
       })
       .join('');
   };
@@ -234,6 +222,7 @@ const TaggingView: FC<TaggingViewProps> = ({
     parts: Part[],
     originalText: string,
     changedText: string,
+    isFirst: boolean,
   ) => {
     const changes = diffChars(
       originalText,
@@ -252,7 +241,6 @@ const TaggingView: FC<TaggingViewProps> = ({
          */
         case change.removed: {
           cursor += change.count;
-
           break;
         }
 
@@ -262,7 +250,6 @@ const TaggingView: FC<TaggingViewProps> = ({
          */
         case change.added: {
           newParts.push(generatePlainTextPart(change.value));
-
           break;
         }
 
@@ -274,7 +261,7 @@ const TaggingView: FC<TaggingViewProps> = ({
         default: {
           if (change.count !== 0) {
             newParts = newParts.concat(
-              getPartsInterval(parts, cursor, change.count),
+              getPartsInterval(parts, cursor, change.count,isFirst),
             );
 
             cursor += change.count;

@@ -10,9 +10,9 @@ import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {diffChars, diffLines, diffWords} from 'diff';
 
-const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
-export const REGEX_USER_TAGGING =
-  /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
+const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/[^>]+>>)/gu;
+
+export const REGEX_USER_TAGGING = /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
 
 export const SHOW_LIST_REGEX = /[?&]show_list=([^&]+)/;
 
@@ -114,6 +114,7 @@ export function getNameInitials(name: string) {
 // test string = '<<Sanjay kumar 🤖|route://member/1260>> <<Ishaan Jain|route://member/1003>> Hey google.com';
 // This decode function helps us to decode tagged messages like the above test string in to readable format.
 // This function has two responses: one for Homefeed screen and other is for chat screen(Pressable ones are for chat screen).
+// The REGEX_USER_SPLITTING is used to split the text into different parts based on the regex specified and then using a for loop tags are shown differently along with name and route
 export const decode = (
   text: string | undefined,
   enableClick: boolean,
@@ -407,7 +408,17 @@ export function detectMentions(input: string) {
     }
   }
 
-  if (input.endsWith(' @') || input === '@' || input.endsWith('\n@')) {
+  const myArray = input.split(" ");
+  const doesExists = myArray.includes('@');
+
+  {/* It basically checks that for the below four conditions:
+   1. if '@' is at end preceded by a whitespace
+   2. if input only contains '@'
+   3. if '@' occurs at new line
+   4. doesExists checks whether '@' has been typed between two strings
+   If any of the above condition is true, it pushes it in the matches list which indicates that member list has to be shown 
+  */}
+  if (input.endsWith(' @') || input === '@' || input.endsWith('\n@') || doesExists) {
     matches.push('');
   }
 
@@ -419,19 +430,19 @@ export function replaceLastMention(
   input: string,
   taggerUserName: string,
   mentionUsername: string,
-  memberID: any,
+  UUID: string,
 ) {
   let mentionRegex: RegExp;
 
   if (taggerUserName === '') {
-    mentionRegex = /(?<=^|\s)@($)/g;
+    mentionRegex = /(?<=^|\s)@(?=\s|$)/g;
   } else {
     mentionRegex = new RegExp(
       `@${taggerUserName}\\b(?!.*@${taggerUserName}\\b)`,
       'gi',
     );
   }
-  const replacement = `@[${mentionUsername}](${memberID}) `;
+  const replacement = `@[${mentionUsername}](${UUID}) `;
   const replacedString = input.replace(mentionRegex, replacement);
   return replacedString;
 }
