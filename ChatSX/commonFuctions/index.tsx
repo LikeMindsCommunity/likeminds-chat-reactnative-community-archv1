@@ -405,7 +405,7 @@ export function detectMentions(input: string) {
     const endIndex = mentionRegex.lastIndex;
     const nextChar = input.charAt(endIndex);
 
-    if (nextChar !== ' ' && nextChar !== '@') {
+    if (nextChar !== '@') {
       matches.push(match[1]);
     }
   }
