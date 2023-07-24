@@ -19,7 +19,6 @@ import {
   defaultMentionTextStyle,
   generateMentionPart,
   generatePlainTextPart,
-  // generateValueWithAddedSuggestion,
   getMentionPartSuggestionKeywords,
   getMentionValue,
   getPartsInterval,
@@ -48,7 +47,7 @@ const TaggingView: FC<TaggingViewProps> = ({
   const textInput = useRef<TextInput | null>(null);
 
   const [selection, setSelection] = useState({start: 0, end: 0});
-  const [inputLen, setInputLen] = useState(0);
+  const [inputLength, setInputLength] = useState(0);
 
   const dispatch = useAppDispatch();
   const {taggedData = [], previousTaggedData = []} = useAppSelector(
@@ -84,7 +83,7 @@ const TaggingView: FC<TaggingViewProps> = ({
     let isFirst = false;
     let changedLen = changedText.length;
     
-    if (changedLen < inputLen) {
+    if (changedLen < inputLength) {
       for (let i = 0; i < parts.length; i++) {
         const cursorPosition = selection?.end ?? 0;
         const endPosition = parts[i].position.end;
@@ -96,7 +95,7 @@ const TaggingView: FC<TaggingViewProps> = ({
       }
     }
 
-    setInputLen(changedLen);
+    setInputLength(changedLen);
     onChange(
       generateValueFromPartsAndChangedText(parts, plainText, changedText,isFirst),
     );
