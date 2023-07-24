@@ -37,7 +37,7 @@ const TaggingView: FC<TaggingViewProps> = ({
   const [selection, setSelection] = useState({start: 0, end: 0});
   const [inputLength, setInputLength] = useState(0);
 
-  const {plainText, parts} = useMemo(
+  let {plainText, parts} = useMemo(
     () => parseValue(defaultValue, partTypes),
     [defaultValue, partTypes],
   );
@@ -72,7 +72,8 @@ const TaggingView: FC<TaggingViewProps> = ({
         const endPosition = parts[i].position.end;
         if (cursorPosition==endPosition && parts[i].data?.original?.match(new RegExp(/@\[(.*?)\]\((.*?)\)/))) {
             if(i==0) {isFirst = true;}  
-            parts.splice(i, 1); 
+            parts = [  ...parts.slice(0, i),
+              ...parts.slice(i + 1)]
             break;
         }
       }
