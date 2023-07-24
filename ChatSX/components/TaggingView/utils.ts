@@ -78,6 +78,7 @@ const getPartsInterval = (
   parts: Part[],
   cursor: number,
   count: number,
+  isFirst: boolean
 ): Part[] => {
   const newCursor = cursor + count;
 
@@ -90,7 +91,7 @@ const getPartsInterval = (
   let partsInterval: Part[] = [];
 
   if (!currentPart || !newPart) {
-    return partsInterval;
+    return parts;
   }
 
   // Push whole first affected part or sub-part of the first affected part
@@ -100,11 +101,21 @@ const getPartsInterval = (
   ) {
     partsInterval.push(currentPart);
   } else {
-    partsInterval.push(
-      generatePlainTextPart(
-        currentPart.text.substr(cursor - currentPart.position.start, count),
-      ),
-    );
+    // For case when tagged user is at the beginning
+    if(currentPart.text==parts[0].text && isFirst){
+      partsInterval.push(
+        generatePlainTextPart(
+          currentPart.text.substr(0, currentPart.position.end-currentPart.position.start),
+        ),
+      );
+      currentPart.text=' ';
+    } else{
+      partsInterval.push(
+        generatePlainTextPart(
+          currentPart.text.substr(cursor - currentPart.position.start, count),
+        ),
+      );
+    }
   }
 
   if (newPartIndex > currentPartIndex) {
@@ -235,6 +246,7 @@ const generateValueFromPartsAndChangedText = (
   parts: Part[],
   originalText: string,
   changedText: string,
+  isFirst: boolean
 ) => {
   const changes = diffChars(
     originalText,
@@ -253,7 +265,6 @@ const generateValueFromPartsAndChangedText = (
        */
       case change.removed: {
         cursor += change.count;
-
         break;
       }
 
@@ -263,7 +274,6 @@ const generateValueFromPartsAndChangedText = (
        */
       case change.added: {
         newParts.push(generatePlainTextPart(change.value));
-
         break;
       }
 
@@ -275,7 +285,7 @@ const generateValueFromPartsAndChangedText = (
       default: {
         if (change.count !== 0) {
           newParts = newParts.concat(
-            getPartsInterval(parts, cursor, change.count),
+            getPartsInterval(parts, cursor, change.count,isFirst),
           );
 
           cursor += change.count;
