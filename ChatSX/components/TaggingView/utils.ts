@@ -108,7 +108,7 @@ const getPartsInterval = (
           currentPart.text.substr(0, currentPart.position.end-currentPart.position.start),
         ),
       );
-      currentPart.text=' ';
+      currentPart.text='';
     } else{
       partsInterval.push(
         generatePlainTextPart(
