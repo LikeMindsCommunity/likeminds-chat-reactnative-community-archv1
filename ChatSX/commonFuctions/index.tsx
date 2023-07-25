@@ -405,7 +405,7 @@ export function detectMentions(input: string) {
     const endIndex = mentionRegex.lastIndex;
     const nextChar = input.charAt(endIndex);
 
-    if (nextChar !== ' ' && nextChar !== '@') {
+    if (nextChar !== '@') {
       matches.push(match[1]);
     }
   }
@@ -420,7 +420,7 @@ export function detectMentions(input: string) {
    4. doesExists checks whether '@' has been typed between two strings
    If any of the above condition is true, it pushes it in the matches list which indicates that member list has to be shown 
   */}
-  if (input.endsWith(' @') || input === '@' || input.endsWith('\n@') || doesExists) {
+  if (input.endsWith(' @') || input === '@' || input.endsWith('\n@') || (doesExists && !input.endsWith(' '))) {
     matches.push('');
   }
 
