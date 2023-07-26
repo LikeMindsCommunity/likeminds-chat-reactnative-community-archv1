@@ -1,15 +1,17 @@
 import {View, Text, Image, Alert, TouchableOpacity} from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import styles from './styles';
 import STYLES from '../../constants/Styles';
 import {FlashList} from '@shopify/flash-list';
-import {POLL_RESULT_TEXT} from '../../constants/Strings';
+import {NO_RESPONSES, POLL_RESULT_TEXT} from '../../constants/Strings';
+import {myClient} from '../../..';
 
 const PollStack = createMaterialTopTabNavigator();
 
 const PollResult = ({navigation, route}: any) => {
-  const {tabsValueArr = []} = route.params;
+  const {tabsValueArr = [], conversationID} = route.params;
+
   const setInitialHeader = () => {
     navigation.setOptions({
       title: '',
@@ -60,22 +62,41 @@ const PollResult = ({navigation, route}: any) => {
             <PollStack.Screen
               key={val?.id}
               name={val?.text}
+              children={(props: any) => (
+                <TabScreenUI
+                  pollID={val?.id}
+                  conversationID={conversationID}
+                  {...props}
+                />
+              )}
               options={{
                 tabBarLabel: ({focused}) => (
-                  <Text
-                    style={[
-                      styles.font,
-                      {
-                        color: focused
-                          ? STYLES.$COLORS.PRIMARY
-                          : STYLES.$COLORS.MSG,
-                      },
-                    ]}>
-                    {val?.text}
-                  </Text>
+                  <View>
+                    <Text
+                      style={[
+                        styles.font,
+                        {
+                          color: focused
+                            ? STYLES.$COLORS.PRIMARY
+                            : STYLES.$COLORS.MSG,
+                          textAlign: 'center',
+                        },
+                      ]}>
+                      {val?.no_votes}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.font,
+                        {
+                          color: STYLES.$COLORS.MSG,
+                          marginTop: 5,
+                        },
+                      ]}>
+                      {val?.text}
+                    </Text>
+                  </View>
                 ),
               }}
-              component={TabScreenUI}
             />
           );
         })}
@@ -84,69 +105,81 @@ const PollResult = ({navigation, route}: any) => {
   );
 };
 
-const TabScreenUI = () => {
+const TabScreenUI = ({pollID, conversationID}: any) => {
+  const [users, setUsers] = useState([]);
+  useEffect(() => {
+    fetchPollUsers(pollID);
+  }, []);
+  const fetchPollUsers = async (pollID?: string) => {
+    const payload: any = {
+      pollId: pollID,
+      conversationId: conversationID,
+    };
+    // console.log('payload =====', payload);
+    const res: any = await myClient.getPollUsers({
+      pollId: parseInt(pollID!),
+      conversationId: conversationID,
+    });
+    // console.log('resss ==', res);
+    if (res?.success) {
+      setUsers(res?.data?.members);
+    }
+  };
+  // console.log('users =====', users);
   return (
     <View style={styles.page}>
-      <FlashList
-        data={[
-          {
-            custom_intro_text: 'Created this community on 09 May 2023',
-            custom_title: 'Owner',
-            id: 88738,
-            image_url: '',
-            is_guest: false,
-            is_owner: true,
-            member_since: 'Member since May 09 2023',
-            member_since_epoch: 1683627214,
-            name: 'NewDM bot',
-            organisation_name: null,
-            route:
-              'route://member_community_profile?community_id=50506&member_id=88738',
-            state: 1,
-            updated_at: 1683692723,
-            user_unique_id: 'fae1b9e9-75b3-4902-a5a1-4ca71acaee47',
-            uuid: 'fae1b9e9-75b3-4902-a5a1-4ca71acaee47',
-          },
-        ]}
-        // extraData={{
-        //   value: [user, participants, isSecret],
-        // }}
-        estimatedItemSize={1}
-        renderItem={({item}: any) => {
-          return (
-            <View key={item?.id} style={styles.participants}>
-              <Image
-                source={
-                  !!item?.image_url
-                    ? {uri: item?.image_url}
-                    : require('../../assets/images/default_pic.png')
-                }
-                style={styles.avatar}
-              />
-              <View style={styles.infoContainer}>
-                <Text style={styles.title} numberOfLines={1}>
-                  {item?.name}
-                  {!!item?.custom_title ? (
-                    <Text
-                      style={
-                        styles.messageCustomTitle
-                      }>{` • ${item?.custom_title}`}</Text>
-                  ) : null}
-                </Text>
-              </View>
-            </View>
-          );
-        }}
-        // onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
-        // ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => item?.id.toString()}
-      />
-      {/* {participants?.length === 0 && (
-        <View style={[styles.justifyCenter]}>
-          <Text style={styles.title}>No search results found</Text>
+      {users.length < 1 ? (
+        <View style={styles.nothingDM}>
+          <View style={[styles.justifyCenter]}>
+            <Image
+              style={styles.nothingImg}
+              source={require('../../assets/images/nothing3x.png')}
+            />
+            <Text style={styles.title}>{NO_RESPONSES}</Text>
+          </View>
         </View>
-      )} */}
+      ) : (
+        <FlashList
+          data={users}
+          estimatedItemSize={1}
+          renderItem={({item}: any) => {
+            return (
+              <View key={item?.id} style={styles.participants}>
+                <Image
+                  source={
+                    !!item?.image_url
+                      ? {uri: item?.image_url}
+                      : require('../../assets/images/default_pic.png')
+                  }
+                  style={styles.avatar}
+                />
+                <View style={styles.gap}>
+                  <View>
+                    <Text style={styles.title} numberOfLines={1}>
+                      {item?.name}
+                      {!!item?.custom_title ? (
+                        <Text
+                          style={
+                            styles.messageCustomTitle
+                          }>{` • ${item?.custom_title}`}</Text>
+                      ) : null}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text style={[styles.secondaryTitle]} numberOfLines={1}>
+                      {item?.member_since}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            );
+          }}
+          // onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1}
+          // ListFooterComponent={renderFooter}
+          keyExtractor={(item: any) => item?.id.toString()}
+        />
+      )}
     </View>
   );
 };

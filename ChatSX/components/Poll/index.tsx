@@ -131,61 +131,8 @@ const CreatePollScreen = ({navigation, route}: any) => {
 
     let formattedTime = moment(date).format('DD/MM/YYYY hh:mm');
 
-    // return `${date?.getDate()}/${
-    //   date?.getMonth() + 1
-    // }/${date?.getFullYear()} ${time?.getHours()}:${time?.getMinutes()}`;
     return formattedTime;
   };
-
-  // const formatDate = (dateString: any, timeString: any) => {
-  //   // const dateString = '2021-10-22T00:00:00';
-  //   const [fullDate, time] = dateString.split('T');
-  //   const [year, month, date] = fullDate.split('-');
-  //   const [hour, minute, second] = time.split(':');
-  //   const dateTime = new Date(year, month, date, hour, minute, second);
-  //   // return dateTime.toISOString();
-  //   return `${date}/${month}/${year} ${hour}:${minute}`;
-  // };
-
-  // const formatDate = (date: any, time: any) => {
-  //   let dateTimeString =
-  //     date.getDate() +
-  //     '-' +
-  //     (date.getMonth() + 1) +
-  //     '-' +
-  //     date.getFullYear() +
-  //     ' ' +
-  //     time.getHours() +
-  //     ':' +
-  //     time.getMinutes();
-
-  //   return dateTimeString; // It will look something like this 3-5-2021 16:23
-  // };
-
-  // const formatDate = (date: any, time: any) => {
-  //   // Get IST offset in minutes (Indian Standard Time is UTC+05:30)
-  //   const istOffsetInMinutes = 330;
-
-  //   // Adjust date and time to IST
-  //   date.setMinutes(date.getMinutes() + istOffsetInMinutes);
-  //   time.setMinutes(time.getMinutes() + istOffsetInMinutes);
-
-  //   // Helper function to add leading zeros to single-digit numbers
-  //   const addLeadingZero = (num: any) => (num < 10 ? `0${num}` : num);
-
-  //   // Format date
-  //   const formattedDate = `${addLeadingZero(date.getDate())}/${addLeadingZero(
-  //     date.getMonth() + 1,
-  //   )}/${date.getFullYear()}`;
-
-  //   // Format time
-  //   const hours = addLeadingZero(time.getHours() % 12);
-  //   const minutes = addLeadingZero(time.getMinutes());
-  //   const amPm = time.getHours() >= 12 ? 'PM' : 'AM';
-  //   const formattedTime = `${hours}:${minutes} ${amPm}`;
-
-  //   return `${formattedDate} ${formattedTime}`;
-  // };
 
   function handleInputOptionsChangeFunction(index: any, value: any) {
     const newOptions: any = [...optionsArray];
@@ -819,9 +766,12 @@ const PollConversationView = ({navigation, item}: any) => {
   const dispatch = useAppDispatch();
 
   let pollsArr = item?.polls;
-  // const navigation = useNavigation()
-  const onNavigate = (screen: string) => {
-    navigation.navigate(POLL_RESULT, {screen: '', tabsValueArr: pollsArr});
+
+  const onNavigate = () => {
+    navigation.navigate(POLL_RESULT, {
+      tabsValueArr: pollsArr,
+      conversationID: item?.id,
+    });
   };
 
   useEffect(() => {
@@ -906,6 +856,14 @@ const PollConversationView = ({navigation, item}: any) => {
     }
   });
 
+  async function reloadConversation() {
+    let payload = {
+      chatroomId: item?.chatroom_id,
+      conversationId: item?.id,
+    };
+    const res = await dispatch(firebaseConversation(payload, false) as any);
+  }
+
   async function addPollOption() {
     try {
       if (addOptionInputField.length === 0) {
@@ -922,11 +880,7 @@ const PollConversationView = ({navigation, item}: any) => {
         poll: pollObject,
       });
 
-      let payload = {
-        chatroomId: item?.chatroom_id,
-        conversationId: item?.id,
-      };
-      const res = await dispatch(firebaseConversation(payload, false) as any);
+      await reloadConversation();
     } catch (error) {
       console.log('error at addPollOption');
       console.log(error);
@@ -956,19 +910,7 @@ const PollConversationView = ({navigation, item}: any) => {
         conversationId: item?.id,
         polls: polls,
       });
-      // const payload: any = {
-      //   chatroomID: chatroomID,
-      //   // conversationID: conversation.id,
-      //   // include: true,
-      //   paginateBy: 100,
-      // };
-      // const conversations = await myClient.getConversation(payload);
-      // const lastConvo = conversations?.data?.conversations.splice(-1);
-      // const newConvos = [...chatroomContext.conversationList];
-      // const newConvosLength = newConvos.length;
-      // newConvos[newConvosLength - 1] = lastConvo[0];
-
-      // chatroomContext.setConversationList(conversations?.data?.conversations);
+      await reloadConversation();
     } catch (error) {
       console.log('error at poll submission');
       console.log(error);
@@ -994,6 +936,7 @@ const PollConversationView = ({navigation, item}: any) => {
     user: user,
     isEdited: item?.is_edited,
     createdAt: item?.created_at,
+    pollAnswerText: item?.poll_answer_text,
   };
 
   return (
@@ -1046,6 +989,7 @@ const PollConversationUI = ({
   user,
   isEdited,
   createdAt,
+  pollAnswerText,
 }: any) => {
   // console.log('PollConversationUI', optionArr);
   console.log('selectedPoll', selectedPolls, expiryTime);
@@ -1184,7 +1128,7 @@ const PollConversationUI = ({
 
               <Pressable
                 onPress={() => {
-                  onNavigate(element?.text);
+                  onNavigate();
                 }}>
                 <Text
                   style={[
@@ -1221,7 +1165,7 @@ const PollConversationUI = ({
       {toShowResults === true ? (
         <Pressable
           onPress={() => {
-            onNavigate('');
+            onNavigate();
           }}>
           <Text
             style={[
@@ -1229,11 +1173,8 @@ const PollConversationUI = ({
               styles.extraMarginSpace,
               hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
             ]}>
-            {votes
-              ? `${votes} ${
-                  votes > 1 ? 'members' : 'member'
-                } voted on this poll`
-              : `Be the first to vote`}
+
+            {pollAnswerText}
           </Text>
         </Pressable>
       ) : null}

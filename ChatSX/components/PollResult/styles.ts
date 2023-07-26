@@ -7,8 +7,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatar: {
-    width: 36,
-    height: 36,
+    width: 50,
+    height: 50,
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
     marginRight: STYLES.$MARGINS.SMALL,
   },
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   participants: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'center',
+    // justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 15,
     paddingVertical: 10,
@@ -39,6 +39,11 @@ const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.PRIMARY,
   },
+  secondaryTitle: {
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    color: STYLES.$COLORS.MSG,
+  },
   headingContainer: {
     display: 'flex',
     flexDirection: 'row',
@@ -48,6 +53,23 @@ const styles = StyleSheet.create({
   backBtn: {height: 40, width: 40, resizeMode: 'contain'},
   search: {height: 20, width: 20, resizeMode: 'contain'},
   chatRoomInfo: {gap: 5},
+  nothingImg: {height: 100, width: 100, resizeMode: 'contain'},
+  nothingDM: {display: 'flex', flexGrow: 1},
+  justifyCenter: {
+    padding: STYLES.$PADDINGS.MEDIUM,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: STYLES.$COLORS.TERTIARY,
+    flex: 1,
+    gap: 10,
+  },
+  subTitle: {
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
+    textAlign: 'center',
+  },
+  gap: {gap: 5},
 });
 
 export default styles;

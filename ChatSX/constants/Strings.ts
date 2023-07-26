@@ -63,3 +63,5 @@ export const DATE_TEXT = 'date';
 export const TIME_TEXT = 'time';
 export const DATE_TIME_TEXT = 'datetime';
 export const POLL_RESULT_TEXT = 'Poll Results';
+
+export const NO_RESPONSES = 'No Response';
