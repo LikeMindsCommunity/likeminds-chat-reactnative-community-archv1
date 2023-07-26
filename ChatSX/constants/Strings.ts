@@ -65,3 +65,8 @@ export const DATE_TIME_TEXT = 'datetime';
 export const POLL_RESULT_TEXT = 'Poll Results';
 
 export const NO_RESPONSES = 'No Response';
+export const OKAY = 'Okay';
+
+export const ANONYMOUS_POLL_TITLE = 'Anonymous poll';
+export const ANONYMOUS_POLL_SUB_TITLE =
+  'This being an anonymous poll, the names of the voters can not be disclosed';

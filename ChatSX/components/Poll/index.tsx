@@ -8,11 +8,19 @@ import {
   TouchableOpacity,
   Platform,
   Switch,
+  ScrollView,
+  Alert,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {DATE_TEXT, DATE_TIME_TEXT, TIME_TEXT} from '../../constants/Strings';
+import {
+  ANONYMOUS_POLL_SUB_TITLE,
+  ANONYMOUS_POLL_TITLE,
+  DATE_TEXT,
+  DATE_TIME_TEXT,
+  TIME_TEXT,
+} from '../../constants/Strings';
 import {POLL_RESULT} from '../../constants/Screens';
 import {myClient} from '../../..';
 import uuid from 'react-native-uuid';
@@ -21,6 +29,7 @@ import {useAppDispatch, useAppSelector} from '../../../store';
 import ActionAlertModal from '../../customModals/ActionListModel';
 import moment from 'moment';
 import {firebaseConversation} from '../../store/actions/chatroom';
+import AnonymousPollModal from '../../customModals/AnonymousPoll';
 
 const CreatePollModal = ({
   pollModalVisible,
@@ -104,10 +113,12 @@ const CreatePollScreen = ({navigation, route}: any) => {
     });
   };
 
+  // to set header of the component
   useEffect(() => {
     setInitialHeader();
   }, []);
 
+  // to set initial poll options
   useEffect(() => {
     let id_1 = uuid.v4();
     let id_2 = uuid.v4();
@@ -124,8 +135,7 @@ const CreatePollScreen = ({navigation, route}: any) => {
     setOptionsArray(initialOptionArray);
   }, []);
 
-  // console.log('optionsArray ==', optionsArray);
-
+  // this function formats the date in "DD/MM/YYYY hh:mm" format
   const formatDate = (date: any, time: any) => {
     console.log('date -- date =', date, time);
 
@@ -134,12 +144,14 @@ const CreatePollScreen = ({navigation, route}: any) => {
     return formattedTime;
   };
 
+  // this function handles the input poll options
   function handleInputOptionsChangeFunction(index: any, value: any) {
     const newOptions: any = [...optionsArray];
     newOptions[index].text = value;
     setOptionsArray(newOptions);
   }
 
+  // this fucntion add the new option in poll
   function addNewOption() {
     let newOptionsArr = [...optionsArray];
     let newOption = {
@@ -150,13 +162,14 @@ const CreatePollScreen = ({navigation, route}: any) => {
     setOptionsArray(newOptionsArr);
   }
 
+  // this function removes option in poll
   function removeAnOption(index: any) {
-    // console.log('index ==', index);
     const newOptionsArr = [...optionsArray];
     newOptionsArr.splice(index, 1);
     setOptionsArray(newOptionsArr);
   }
 
+  // this function changes mode and set date and time
   const onChange = (event: any, selectedValue: any) => {
     const isIOS = Platform.OS === 'ios';
     const newDate = new Date();
@@ -184,73 +197,70 @@ const CreatePollScreen = ({navigation, route}: any) => {
     }
   };
 
+  // this function changes the mode
   const showMode = (currentMode: any) => {
     setShow(true);
     setMode(currentMode);
   };
 
+  // this function set mode "date"
   const showDatePicker = () => {
     showMode(DATE_TEXT);
   };
 
-  const showTimePicker = () => {
-    showMode(TIME_TEXT);
-  };
-
-  const showDateTimePicker = () => {
-    showMode(DATE_TIME_TEXT);
-  };
-
+  // this function handles question input in poll
   const handleQuestion = (val: string) => {
     setQuestion(val);
   };
 
+  // this function toggles the advance button to show and hide advance options
   const handleShowAdvanceOption = (val: boolean) => {
     setShowAdvancedOption(!showAdvancedOption);
   };
 
+  // this function handles "allow voters to add more options" toggle button
   const handleAddOptions = (val: boolean) => {
     setAddOptionsEnabled(val);
   };
 
+  // this function handles "Anonymous poll" toggle button
   const handleAnonymousPoll = (val: boolean) => {
     setAnonymousPollEnabled(val);
   };
 
+  // this function handles "Anonymous poll" toggle button
   const handleLiveResults = (val: boolean) => {
     setLiveResultsEnabled(val);
   };
 
+  // this function handles "User can vote for" modal dropdown selection
   const handleUserVoteFor = (val: number) => {
     setUserVoteFor(val);
     hideActionModal();
   };
 
+  // this function handles "Number of votes allowed per user" modal dropdown selection
   const handleVoteAllowedPerUser = (val: number) => {
     setVoteAllowedPerUser(val + 1);
     hideSelectOptionModal();
   };
 
+  // this function handles "Cancel" button flow
   const handleOnCancel = () => {
     navigation.goBack();
   };
 
+  // this function hides "User can vote for" modal
   const hideActionModal = () => {
     setIsActionAlertModalVisible(false);
   };
 
+  // this function hides "Number of votes allowed per user" modal
   const hideSelectOptionModal = () => {
     setIsOptionAlertModalVisible(false);
   };
 
-  // const handleOnSelect = (val: any) => {
-  //   setIsActionAlertModalVisible(true);
-  // };
-
-  // const handleOnSelectOption = (val: any) => {
-  //   setIsOptionAlertModalVisible(true);
-  // };
-
+  // this function sets "User can vote for" modal interated value to the state
   const handleOpenActionModal = () => {
     let valueArr: any = userCanVoteForArr;
 
@@ -258,6 +268,7 @@ const CreatePollScreen = ({navigation, route}: any) => {
     setIsActionAlertModalVisible(true);
   };
 
+  // this function sets "Number of votes allowed per user" modal interated value to the state
   const handleOpenOptionModal = () => {
     let quantinyArr: any = [];
     for (let i = 0; i < optionsArray.length; i++) {
@@ -270,6 +281,7 @@ const CreatePollScreen = ({navigation, route}: any) => {
     setIsOptionAlertModalVisible(true);
   };
 
+  // this function fetches postPollConversation API
   async function postPoll() {
     let expiryTime = !!date ? formatDate(date, time) : null;
     console.log('expiry ==', expiryTime);
@@ -333,9 +345,8 @@ const CreatePollScreen = ({navigation, route}: any) => {
         temporaryId: Date.now().toString(),
         state: 10,
         text: question,
-        // repliedConversationId: number,
         polls: polls,
-        pollType: 0,
+        pollType: liveResultsEnabled ? 1 : 0,
         multipleSelectState: showAdvancedOption ? userVoteFor : 1,
         multipleSelectNo: showAdvancedOption ? voteAllowedPerUser : 1,
         isAnonymous: showAdvancedOption ? anonymousPollEnabled : false,
@@ -351,23 +362,7 @@ const CreatePollScreen = ({navigation, route}: any) => {
     }
   }
 
-  const handleSubmit = async () => {
-    const payload: any = {
-      chatroomId: chatroomID,
-      temporaryId: Date.now(),
-      state: 10,
-      // repliedConversationId: number,
-      polls: [{text: '123'}],
-      pollType: 0,
-      multipleSelectState: userVoteFor,
-      multipleSelectNo: voteAllowedPerUser,
-      isAnonymous: anonymousPollEnabled,
-      allowAddOption: addOptionsEnabled,
-      expiryTime: formatDate(date, time),
-    };
-    const res = await myClient.postPollConversation(payload);
-  };
-
+  // readonly props consumed by UI component
   const props: any = {
     show: show,
     date: date,
@@ -459,9 +454,8 @@ const CreatePollUI = ({
   handleOpenActionModal,
   handleOpenOptionModal,
 }: any) => {
-  console.log('formattime ==', formatedDateTime);
   return (
-    <View>
+    <ScrollView bounces={false}>
       {/* Poll question */}
       <View style={styles.pollQuestion}>
         <View>
@@ -731,6 +725,7 @@ const CreatePollUI = ({
         <Text style={[styles.font, styles.whiteColor]}>POST</Text>
       </TouchableOpacity>
 
+      {/* User can vote for option Modal */}
       <ActionAlertModal
         hideActionModal={hideActionModal}
         actionAlertModalVisible={isActionAlertModalVisible}
@@ -738,13 +733,14 @@ const CreatePollUI = ({
         onSelect={handleOnSelect}
       />
 
+      {/* option count Modal */}
       <ActionAlertModal
         hideActionModal={hideSelectOptionModal}
         actionAlertModalVisible={isSelectOptionModal}
         optionsList={userVoteForOptionsArrValue}
         onSelect={handleOnSelectOption}
       />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -760,6 +756,8 @@ const PollConversationView = ({navigation, item}: any) => {
   const [hasPollEnded, setHasPollEnded] = useState(false);
   const [shouldShowVotes, setShouldShowVotes] = useState(false);
   const [pollVoteCount, setPollVoteCount] = useState(0);
+  const [isAnonymousPollModalVisible, setIsAnonymousPollModalVisible] =
+    useState(false);
 
   const {user} = useAppSelector(item => item.homefeed);
 
@@ -767,30 +765,47 @@ const PollConversationView = ({navigation, item}: any) => {
 
   let pollsArr = item?.polls;
 
+  // this function navigates to poll result screen if we click on votes or show alert in case of anonymous poll
   const onNavigate = () => {
-    navigation.navigate(POLL_RESULT, {
-      tabsValueArr: pollsArr,
-      conversationID: item?.id,
-    });
+    if (item?.is_anonymous) {
+      setIsAnonymousPollModalVisible(true);
+    } else {
+      navigation.navigate(POLL_RESULT, {
+        tabsValueArr: pollsArr,
+        conversationID: item?.id,
+      });
+    }
   };
 
-  useEffect(() => {
+  // this functions have submit poll button logics
+  const submitPollLogics = () => {
     if (item?.multiple_select_no === undefined) {
+      // defensive check
       if (selectedPolls.length > 0) {
         setShouldShowSubmitPollButton(true);
       } else {
         setShouldShowSubmitPollButton(false);
       }
     } else {
+      const MAX_POLL_OPTIONS = item?.multiple_select_no;
+
       switch (item?.multiple_select_state) {
+        // defensive check
         case undefined: {
-          if (selectedPolls.length === item.multiple_select_no) {
-            setShouldShowSubmitPollButton(true);
-          } else {
-            setShouldShowSubmitPollButton(false);
-          }
+          setShouldShowSubmitPollButton(false);
           break;
         }
+
+        case 0: {
+          // Exactly
+          if (selectedPolls.length === MAX_POLL_OPTIONS) {
+            setShouldShowSubmitPollButton(true);
+            console.log('show poll submit button');
+          } else if (selectedPolls.length > MAX_POLL_OPTIONS) {
+            console.log('Error here');
+          }
+        }
+
         case 1: {
           if (
             selectedPolls.length <= item.multiple_select_no &&
@@ -802,6 +817,7 @@ const PollConversationView = ({navigation, item}: any) => {
           }
           break;
         }
+
         case 2: {
           if (selectedPolls.length >= item.multiple_select_no) {
             setShouldShowSubmitPollButton(true);
@@ -810,11 +826,17 @@ const PollConversationView = ({navigation, item}: any) => {
           }
           break;
         }
+
         default: {
           setShouldShowSubmitPollButton(false);
         }
       }
     }
+  };
+
+  // this useEffects monitors the interaction in poll options, according to which we have to show submit button
+  useEffect(() => {
+    submitPollLogics();
   }, [selectedPolls]);
 
   // check if user already answered on th poll or not
@@ -838,8 +860,6 @@ const PollConversationView = ({navigation, item}: any) => {
   useEffect(() => {
     const difference = item?.expiry_time - Date.now();
 
-    console.log('dii=ff ==', difference, Date.now());
-
     if (difference > 0) {
       setHasPollEnded(false);
     } else {
@@ -854,8 +874,14 @@ const PollConversationView = ({navigation, item}: any) => {
         clearTimeout(timer);
       };
     }
-  });
+  }, []);
 
+  // this function triggers when have to hide anonymous poll modal
+  const hideAnonymousPollModal = () => {
+    setIsAnonymousPollModalVisible(false);
+  };
+
+  // API to reload the existing poll conversation
   async function reloadConversation() {
     let payload = {
       chatroomId: item?.chatroom_id,
@@ -864,6 +890,7 @@ const PollConversationView = ({navigation, item}: any) => {
     const res = await dispatch(firebaseConversation(payload, false) as any);
   }
 
+  // this function call an API which adds a poll option in existing poll
   async function addPollOption() {
     try {
       if (addOptionInputField.length === 0) {
@@ -887,20 +914,79 @@ const PollConversationView = ({navigation, item}: any) => {
     }
   }
 
-  function setSelectedPollOptions(pollIndex: any) {
+  // this function used we interact with poll options
+  async function setSelectedPollOptions(pollIndex: any) {
+    if (Date.now() > item?.expiry_time) {
+      Alert.alert('expired');
+      return;
+    }
     const newSelectedPolls = [...selectedPolls];
     const isPollIndexIncluded = newSelectedPolls.includes(pollIndex);
+
     if (isPollIndexIncluded) {
+      // if poll item is already selected
       const selectedIndex = newSelectedPolls.findIndex(
         index => index === pollIndex,
       );
       newSelectedPolls.splice(selectedIndex, 1);
     } else {
+      console.log('000 ==', item?.multiple_select_state);
+
+      // if only one option is allowed
+      if (item?.multiple_select_no === 1) {
+        // can change selected ouptput in deferred poll
+        if (item?.poll_type === 1) {
+          const pollSubmissionCall = await myClient.submitPoll({
+            conversationId: item?.id,
+            polls: [item?.polls[pollIndex]],
+          });
+          await reloadConversation();
+        } else {
+          // for instant poll selection only for once
+
+          const isSelected = pollsArr?.some((poll: any) => {
+            return poll?.is_selected;
+          });
+
+          // if not selected
+          if (!isSelected) {
+            const pollSubmissionCall = await myClient.submitPoll({
+              conversationId: item?.id,
+              polls: [item?.polls[pollIndex]],
+            });
+            await reloadConversation();
+          } else {
+            alert('Already Voted');
+          }
+        }
+        return;
+      }
+
+      // multiple options are allowed
+      switch (item?.multiple_select_state) {
+        case 0: {
+          console.log('111');
+          if (selectedPolls.length === item?.multiple_select_no) {
+            console.log('222');
+            return;
+          }
+          break;
+        }
+        case 1: {
+          console.log('111ss', selectedPolls.length, item?.multiple_select_no);
+          if (selectedPolls.length == item?.multiple_select_no) {
+            console.log('222sss');
+            return;
+          }
+          break;
+        }
+      }
       newSelectedPolls.push(pollIndex);
     }
     setSelectedPolls(newSelectedPolls);
   }
 
+  // this function call submit poll button API
   async function submitPoll() {
     try {
       const polls = selectedPolls?.map((itemIndex: any) => {
@@ -917,6 +1003,7 @@ const PollConversationView = ({navigation, item}: any) => {
     }
   }
 
+  // readonly props consumed by UI component
   let props: any = {
     text: item?.answer,
     votes: pollVoteCount,
@@ -937,6 +1024,7 @@ const PollConversationView = ({navigation, item}: any) => {
     isEdited: item?.is_edited,
     createdAt: item?.created_at,
     pollAnswerText: item?.poll_answer_text,
+    isPollEnded: Date.now() > item?.expiry_time ? false : true,
   };
 
   return (
@@ -958,6 +1046,12 @@ const PollConversationView = ({navigation, item}: any) => {
         setAddOptionInputField={setAddOptionInputField}
         handelAddOptionSubmit={addPollOption}
       />
+      <AnonymousPollModal
+        isAnonymousPollModalVisible={isAnonymousPollModalVisible}
+        hideAnonymousPollModal={hideAnonymousPollModal}
+        title={ANONYMOUS_POLL_TITLE}
+        subTitle={ANONYMOUS_POLL_SUB_TITLE}
+      />
     </View>
   );
 };
@@ -965,17 +1059,13 @@ const PollConversationView = ({navigation, item}: any) => {
 const PollConversationUI = ({
   text,
   hue,
-  votes,
   onNavigate,
   optionArr,
   submitTypeText,
   pollTypeText,
-  addOptionInputField,
-  setAddOptionInputField,
   selectedPolls,
   shouldShowSubmitPollButton,
   setSelectedPollOptions,
-  addPollOption,
   submitPoll,
   showSelected,
   setShowSelected,
@@ -990,10 +1080,8 @@ const PollConversationUI = ({
   isEdited,
   createdAt,
   pollAnswerText,
+  isPollEnded,
 }: any) => {
-  // console.log('PollConversationUI', optionArr);
-  console.log('selectedPoll', selectedPolls, expiryTime);
-  // let isSle;
   return (
     <View>
       {!!(member?.id === user?.id) ? null : (
@@ -1143,7 +1231,7 @@ const PollConversationUI = ({
       </View>
 
       {/* Add more options button */}
-      {allowAddOption ? (
+      {allowAddOption && isPollEnded ? (
         <View style={[styles.extraMarginSpace]}>
           <Pressable
             onPress={() => {
@@ -1162,6 +1250,7 @@ const PollConversationUI = ({
         </View>
       ) : null}
 
+      {/* Poll answer text */}
       {toShowResults === true ? (
         <Pressable
           onPress={() => {
@@ -1173,13 +1262,13 @@ const PollConversationUI = ({
               styles.extraMarginSpace,
               hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
             ]}>
-
             {pollAnswerText}
           </Text>
         </Pressable>
       ) : null}
 
-      {!shouldShowVotes ? (
+      {/* Submit vote button */}
+      {!shouldShowVotes && isPollEnded ? (
         <View style={styles.marginSpace}>
           <TouchableOpacity
             onPress={() => {
@@ -1195,8 +1284,6 @@ const PollConversationUI = ({
             ]}>
             <Text
               style={[
-                // styles.mediumBoldText,
-                // styles.whiteColor,
                 styles.textAlignCenter,
                 styles.smallTextMedium,
                 !shouldShowSubmitPollButton ? styles.greyColor : null,
@@ -1207,6 +1294,7 @@ const PollConversationUI = ({
         </View>
       ) : null}
 
+      {/* Poll timestamp and show edited text if edited */}
       <View style={styles.alignTime}>
         {isEdited ? (
           <Text style={styles.messageDate}>{`Edited • `}</Text>
@@ -1217,6 +1305,9 @@ const PollConversationUI = ({
   );
 };
 
+{
+  /* Add more options in poll modal */
+}
 const AddOptionsModal = ({
   isAddPollOptionModalVisible,
   setIsAddPollOptionModalVisible,
@@ -1253,6 +1344,9 @@ const AddOptionsModal = ({
   );
 };
 
+{
+  /* Add more options in poll modal UI */
+}
 const AddOptionUI = ({
   hue,
   addOptionInputField,

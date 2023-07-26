@@ -14,6 +14,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 8,
     opacity: 1,
+    maxHeight: 250,
   },
   filtersView: {
     paddingHorizontal: 10,
