@@ -6,9 +6,10 @@ import STYLES from '../../constants/Styles';
 import {FlashList} from '@shopify/flash-list';
 import {POLL_RESULT_TEXT} from '../../constants/Strings';
 
-const Tab = createMaterialTopTabNavigator();
+const PollStack = createMaterialTopTabNavigator();
 
-const PollResult = ({navigation}: any) => {
+const PollResult = ({navigation, route}: any) => {
+  const {tabsValueArr = []} = route.params;
   const setInitialHeader = () => {
     navigation.setOptions({
       title: '',
@@ -48,47 +49,37 @@ const PollResult = ({navigation}: any) => {
       style={{
         flex: 1,
       }}>
-      <Tab.Navigator
+      <PollStack.Navigator
         screenOptions={{
           tabBarLabelStyle: styles.font,
           tabBarIndicatorStyle: {backgroundColor: STYLES.$COLORS.PRIMARY},
-          tabBarScrollEnabled: true,
+          tabBarScrollEnabled: tabsValueArr.length < 3 ? false : true,
         }}>
-        <Tab.Screen
-          name={'Sketch'}
-          options={{
-            tabBarLabel: ({focused}) => (
-              <Text
-                style={[
-                  styles.font,
-                  {
-                    color: focused
-                      ? STYLES.$COLORS.PRIMARY
-                      : STYLES.$COLORS.MSG,
-                  },
-                ]}>
-                Groups
-              </Text>
-            ),
-          }}
-          component={TabScreenUI}
-        />
-        <Tab.Screen
-          name={'Adobe'}
-          options={{tabBarLabel: 'DMs'}}
-          component={TabScreenUI}
-        />
-        <Tab.Screen
-          name={'Figma'}
-          options={{tabBarLabel: 'DMs'}}
-          component={TabScreenUI}
-        />
-        <Tab.Screen
-          name={'smdh'}
-          options={{tabBarLabel: 'DMs'}}
-          component={TabScreenUI}
-        />
-      </Tab.Navigator>
+        {tabsValueArr?.map((val: any, index: any) => {
+          return (
+            <PollStack.Screen
+              key={val?.id}
+              name={val?.text}
+              options={{
+                tabBarLabel: ({focused}) => (
+                  <Text
+                    style={[
+                      styles.font,
+                      {
+                        color: focused
+                          ? STYLES.$COLORS.PRIMARY
+                          : STYLES.$COLORS.MSG,
+                      },
+                    ]}>
+                    {val?.text}
+                  </Text>
+                ),
+              }}
+              component={TabScreenUI}
+            />
+          );
+        })}
+      </PollStack.Navigator>
     </View>
   );
 };

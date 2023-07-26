@@ -8,18 +8,19 @@ export const styles = StyleSheet.create({
   },
   message: {
     padding: 10,
-    // margin: 10,
     maxWidth: '80%',
-    // width:'80%',
     alignSelf: 'flex-end',
     borderRadius: 15,
     backgroundColor: '#fff',
     minWidth: 100,
-    // backgroundColor: 'green',
-    // elevation: 20,
-    // display: 'flex',
-    // flexWrap: 'wrap',
-    // flexDirection: 'column',
+  },
+
+  pollMessage: {
+    padding: 10,
+    width: '80%',
+    alignSelf: 'flex-end',
+    borderRadius: 15,
+    backgroundColor: '#fff',
   },
   statusMessage: {
     padding: 10,

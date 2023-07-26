@@ -1,8 +1,22 @@
 import Layout from '../../constants/Layout';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import STYLES from '../../constants/Styles';
 
 export const styles = StyleSheet.create({
+  headingContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    marginTop: Platform.OS === 'ios' ? -5 : 0,
+  },
+  selectedHeadingContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 25,
+  },
+  backBtn: {height: 40, width: 40, borderRadius: 10, resizeMode: 'contain'},
   lightGreyBackground: {
     color: '#c5c5c5',
   },
@@ -28,8 +42,14 @@ export const styles = StyleSheet.create({
   padding20: {
     padding: 20,
   },
+  paddingHorizontal15: {
+    paddingHorizontal: 15,
+  },
   marginSpace: {
     marginTop: 10,
+  },
+  mediumMarginSpace: {
+    marginTop: 15,
   },
   extraMarginSpace: {
     marginTop: 20,
@@ -42,7 +62,7 @@ export const styles = StyleSheet.create({
   },
   centeredView: {
     flexGrow: 1,
-    backgroundColor: '#7f7f7f',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalViewParent: {
     position: 'absolute',
@@ -88,6 +108,11 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
   },
+  mediumText: {
+    fontSize: 13,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.PRIMARY,
+  },
   boldText: {
     fontSize: 16,
     fontFamily: STYLES.$FONT_TYPES.BOLD,
@@ -103,6 +128,11 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
   },
+  smallTextMedium: {
+    fontSize: 12,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    color: STYLES.$COLORS.PRIMARY,
+  },
   newPollText: {
     color: 'black',
   },
@@ -110,7 +140,7 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
 
-    flexGrow: 1,
+    // flexGrow: 1,
     alignItems: 'center',
   },
   justifySpace: {
@@ -123,7 +153,7 @@ export const styles = StyleSheet.create({
     width: Layout.window.width / 3,
   },
   header: {
-    paddingHorizontal: 5,
+    marginLeft: -10,
     paddingVertical: 15,
   },
   pollQuestion: {
@@ -134,7 +164,8 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
   answerOptions: {
-    padding: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 0,
     backgroundColor: STYLES.$COLORS.TERTIARY,
     marginTop: 15,
   },
@@ -160,6 +191,14 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  pollEndedTime: {
+    borderRadius: 50,
+    backgroundColor: STYLES.$COLORS.PRIMARY,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
   pollIcon: {
     height: 15,
     width: 15,
@@ -180,11 +219,17 @@ export const styles = StyleSheet.create({
     borderColor: STYLES.$COLORS.SECONDARY,
     borderWidth: 1,
   },
+  greyPollButton: {
+    borderRadius: 8,
+    borderColor: '#c5c5c5',
+    borderWidth: 1,
+  },
   pollButtonBackground: {
     margin: 2,
     padding: 13,
     borderRadius: 5,
   },
+  pollButtonPadding: {paddingVertical: 20, paddingHorizontal: 0},
   submitButton: {
     borderRadius: 50,
     width: 150,
@@ -200,6 +245,15 @@ export const styles = StyleSheet.create({
     alignSelf: 'center',
     padding: 12,
   },
+  submitVoteButton: {
+    borderRadius: 50,
+    width: 150,
+    backgroundColor: STYLES.$COLORS.TERTIARY,
+    // alignSelf: 'center',
+    padding: 12,
+    borderColor: STYLES.$COLORS.PRIMARY,
+    borderWidth: 1,
+  },
   textInput: {
     padding: 12,
     borderRadius: 8,
@@ -207,5 +261,33 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     fontSize: 14,
+  },
+  borderBottom: {
+    borderBottomColor: 'grey',
+    borderBottomWidth: 1,
+  },
+  greyBorder: {borderColor: '#c5c5c5'},
+  messageInfo: {
+    color: 'green',
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.BOLD,
+    marginBottom: STYLES.$MARGINS.XS,
+  },
+  messageCustomTitle: {
+    color: STYLES.$COLORS.MSG,
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+  },
+  messageDate: {
+    fontSize: 10,
+    color: '#aaa',
+    // marginTop: 5,
+    textAlign: 'right',
+  },
+  alignTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 3,
   },
 });

@@ -193,6 +193,17 @@ const Messages = ({
             }}
             handleFileUpload={handleFileUpload}
           />
+        ) : item?.state === 10 ? (
+          <View
+            style={[
+              styles.pollMessage,
+              isTypeSent ? styles.sentMessage : styles.receivedMessage,
+              isIncluded
+                ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                : null,
+            ]}>
+            <PollConversationView navigation={navigation} item={item} />
+          </View>
         ) : (
           <View>
             {isItemIncludedInStateArr ? (

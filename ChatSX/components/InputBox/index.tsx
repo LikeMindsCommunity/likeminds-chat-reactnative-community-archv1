@@ -46,7 +46,7 @@ import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../../..';
 import {launchImageLibrary} from 'react-native-image-picker';
 import DocumentPicker from 'react-native-document-picker';
-import {FILE_UPLOAD} from '../../constants/Screens';
+import {CREATE_POLL_SCREEN, FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {
@@ -84,7 +84,7 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
-import CreatePollModal from '../Poll';
+import CreatePollModal, {CreatePollScreen} from '../Poll';
 
 interface InputBox {
   replyChatID?: any;
@@ -1284,7 +1284,10 @@ const InputBox = ({
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
-                      setPollModalVisible(true);
+                      navigation.navigate(CREATE_POLL_SCREEN, {
+                        chatroomID: chatroomID,
+                      });
+                      // setPollModalVisible(true);
                     }}
                     style={styles.pollStyle}>
                     <Image
@@ -1306,21 +1309,6 @@ const InputBox = ({
         DMSentAlertModalVisible={DMSentAlertModalVisible}
         onSend={onSend}
       />
-
-      <CreatePollModal
-        setPollModalVisible={setPollModalVisible}
-        pollModalVisible={pollModalVisible}
-      />
-
-      {/* {showEmoji && (
-        <View style={styles.emojiPicker}>
-          <Emoji name="smile" style={styles.emoji} />
-          <Emoji name="satisfied" style={styles.emoji} />
-          <Emoji name="joy" style={styles.emoji} />
-          <Emoji name="blush" style={styles.emoji} />
-          <Emoji name="heart_eyes" style={styles.emoji} />
-        </View>
-      )} */}
     </View>
   );
 };
