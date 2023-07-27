@@ -68,7 +68,6 @@ import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {
   REGEX_USER_TAGGING,
   decode,
-  deleteRouteIfAny,
   detectMentions,
   extractPathfromRouteQuery,
   fetchResourceFromURI,
@@ -795,9 +794,8 @@ const InputBox = ({
         setFormattedConversation(e);
       }
     } else {
-      let modifiedConversation = deleteRouteIfAny(e, message);
-      setMessage(modifiedConversation);
-      setFormattedConversation(modifiedConversation);
+      setMessage(e);
+      setFormattedConversation(e);
 
       // chatroomType === 10 (if DM don't detect and show user tags)
       const newMentions = chatroomType === 10 ? [] : detectMentions(e);

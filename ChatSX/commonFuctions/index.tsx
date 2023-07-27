@@ -10,7 +10,7 @@ import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {diffChars, diffLines, diffWords} from 'diff';
 
-const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/\S+>>)/gu;
+const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/[^>]+>>)/gu;
 export const REGEX_USER_TAGGING =
   /<<(?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>/g;
 
@@ -116,6 +116,7 @@ export function getNameInitials(name: string) {
 // test string = '<<Sanjay kumar 🤖|route://member/1260>> <<Ishaan Jain|route://member/1003>> Hey google.com';
 // This decode function helps us to decode tagged messages like the above test string in to readable format.
 // This function has two responses: one for Homefeed screen and other is for chat screen(Pressable ones are for chat screen).
+// The REGEX_USER_SPLITTING is used to split the text into different parts based on the regex specified and then using a for loop tags are shown differently along with name and route
 export const decode = (
   text: string | undefined,
   enableClick: boolean,
@@ -404,12 +405,22 @@ export function detectMentions(input: string) {
     const endIndex = mentionRegex.lastIndex;
     const nextChar = input.charAt(endIndex);
 
-    if (nextChar !== ' ' && nextChar !== '@') {
+    if (nextChar !== '@') {
       matches.push(match[1]);
     }
   }
 
-  if (input.endsWith(' @') || input === '@' || input.endsWith('\n@')) {
+  const myArray = input.split(" ");
+  const doesExists = myArray.includes('@');
+
+  {/* It basically checks that for the below four conditions:
+   1. if '@' is at end preceded by a whitespace
+   2. if input only contains '@'
+   3. if '@' occurs at new line
+   4. doesExists checks whether '@' has been typed between two strings
+   If any of the above condition is true, it pushes it in the matches list which indicates that member list has to be shown 
+  */}
+  if (input.endsWith(' @') || input === '@' || input.endsWith('\n@') || (doesExists && !input.endsWith(' '))) {
     matches.push('');
   }
 
@@ -426,7 +437,7 @@ export function replaceLastMention(
   let mentionRegex: RegExp;
 
   if (taggerUserName === '') {
-    mentionRegex = /(?<=^|\s)@($)/g;
+    mentionRegex = /(?<=^|\s)@(?=\s|$)/g;
   } else {
     mentionRegex = new RegExp(
       `@${taggerUserName}\\b(?!.*@${taggerUserName}\\b)`,
@@ -437,21 +448,6 @@ export function replaceLastMention(
   const replacedString = input.replace(mentionRegex, replacement);
   return replacedString;
 }
-
-// this function delete the tag from textInput if we are delete even a single word of tag.
-export const deleteRouteIfAny = (string: string, inputValue: string) => {
-  if (
-    inputValue.endsWith('>>') &&
-    string.indexOf('>') === string.lastIndexOf('>')
-  ) {
-    // Replace the entire URL with an empty string
-    const replacedText = string.replace(/<<.*?\|route:\/\/.*?>>/, '');
-
-    return replacedText;
-  } else {
-    return string;
-  }
-};
 
 export const formatValue = (value: any) => {
   // Check if the value matches the required pattern

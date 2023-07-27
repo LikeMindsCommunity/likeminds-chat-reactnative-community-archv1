@@ -35,8 +35,9 @@ const TaggingView: FC<TaggingViewProps> = ({
   const textInput = useRef<TextInput | null>(null);
 
   const [selection, setSelection] = useState({start: 0, end: 0});
+  const [inputLength, setInputLength] = useState(0);
 
-  const {plainText, parts} = useMemo(
+  let {plainText, parts} = useMemo(
     () => parseValue(defaultValue, partTypes),
     [defaultValue, partTypes],
   );
@@ -54,9 +55,33 @@ const TaggingView: FC<TaggingViewProps> = ({
    *
    * @param changedText
    */
+  {/*
+   1. Firstly current length is compared to previous length to check for backspace event
+   2. Iterating on the parts array and checking if the current cursor position is at end position of any object of the parts array and if it is, checking whether it is tagged user or a simple text
+   3. If it is tagged user, making isFirst true which is used to handle cases where tagged user is at the beginning of the input followed by removing of that tagged member object from the parts array 
+   4. Updating the current length with previous one
+   5. Calling the callback of onChange
+  */}
   const onChangeInput = (changedText: string) => {
+    let isFirst = false;
+    let changedLen = changedText.length;
+    
+    if (changedLen < inputLength) {
+      for (let i = 0; i < parts.length; i++) {
+        const cursorPosition = selection?.end ?? 0;
+        const endPosition = parts[i].position.end;
+        if (cursorPosition==endPosition && parts[i].data?.original?.match(new RegExp(/@\[(.*?)\]\((.*?)\)/))) {
+            if(i==0) {isFirst = true;}  
+            parts = [  ...parts.slice(0, i),
+              ...parts.slice(i + 1)]
+            break;
+        }
+      }
+    }
+
+    setInputLength(changedLen);
     onChange(
-      generateValueFromPartsAndChangedText(parts, plainText, changedText),
+      generateValueFromPartsAndChangedText(parts, plainText, changedText,isFirst),
     );
   };
 

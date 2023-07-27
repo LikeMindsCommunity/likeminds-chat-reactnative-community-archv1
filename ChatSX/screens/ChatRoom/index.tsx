@@ -42,7 +42,11 @@ import {
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
-import {getDMFeedData, getHomeFeedData} from '../../store/actions/homefeed';
+import {
+  getDMFeedData,
+  getHomeFeedData,
+  initAPI,
+} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
@@ -111,6 +115,7 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Data {
   id: string;
@@ -162,7 +167,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
-  const {chatroomID, isInvited, previousChatroomID} = route.params;
+  const {
+    chatroomID,
+    isInvited,
+    previousChatroomID,
+    navigationFromNotification,
+  } = route.params;
   const isFocused = useIsFocused();
 
   const dispatch = useAppDispatch();
@@ -613,6 +623,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return response;
   }
 
+  // this function fetch initiate API
+  async function fetchInitAPI() {
+    //this line of code is for the sample app only, pass your userUniqueID instead of this.
+    const UUID = await AsyncStorage.getItem('userUniqueID');
+
+    let payload = {
+      userUniqueId: UUID, // user unique ID
+      userName: '', // user name
+      isGuest: false,
+    };
+    let res = await dispatch(initAPI(payload) as any);
+    return res;
+  }
+
   // this useLayoutEffect calls API's before printing UI Layout
   useLayoutEffect(() => {
     dispatch({
@@ -632,9 +656,19 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   }, []);
 
+  //this useEffect fetch chatroom details only after initiate API got fetched if `navigation from Notification` else fetch chatroom details
   useEffect(() => {
-    fetchChatroomDetails();
-    setInitialHeader();
+    const invokeFunction = async () => {
+      if (navigationFromNotification) {
+        await fetchInitAPI();
+        fetchChatroomDetails();
+        setInitialHeader();
+      } else {
+        fetchChatroomDetails();
+        setInitialHeader();
+      }
+    };
+    invokeFunction();
   }, [navigation]);
 
   //Logic for navigation backAction
