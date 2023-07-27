@@ -26,6 +26,9 @@ export const styles = StyleSheet.create({
   greyColor: {
     color: 'grey',
   },
+  justifyCenter: {
+    justifyContent: 'center',
+  },
   primaryColor: {
     // color: STYLES.$COLORS.PRIMARY,
     color: 'hsl(222, 53%, 15%)',
@@ -247,12 +250,13 @@ export const styles = StyleSheet.create({
   },
   submitVoteButton: {
     borderRadius: 50,
-    width: 150,
+    width: 140,
     backgroundColor: STYLES.$COLORS.TERTIARY,
-    // alignSelf: 'center',
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderColor: STYLES.$COLORS.PRIMARY,
     borderWidth: 1,
+    gap: 5,
   },
   textInput: {
     padding: 12,
@@ -263,7 +267,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   },
   borderBottom: {
-    borderBottomColor: 'grey',
+    borderBottomColor: '#c5c5c5',
     borderBottomWidth: 1,
   },
   greyBorder: {borderColor: '#c5c5c5'},
@@ -289,5 +293,44 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     marginTop: 3,
+  },
+  downArrow: {
+    height: 20,
+    width: 20,
+    resizeMode: 'contain',
+    tintColor: '#c5c5c5',
+    marginTop: Platform.OS === 'ios' ? -3 : 0,
+  },
+  selectedItem: {
+    height: '100%',
+    width: '100%',
+    backgroundColor: STYLES.$COLORS.SELECTED_BLUE,
+    position: 'absolute',
+    opacity: 0,
+    zIndex: 1,
+  },
+  selected: {
+    backgroundColor: STYLES.$COLORS.PRIMARY,
+    height: 25,
+    width: 25,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 15,
+    position: 'absolute',
+    right: 10,
+    top: '25%',
+    zIndex: 1,
+  },
+  smallIcon: {
+    width: 15,
+    height: 15,
+    resizeMode: 'contain',
+  },
+  editIcon: {
+    height: 25,
+    width: 25,
+    resizeMode: 'contain',
+    tintColor: STYLES.$COLORS.PRIMARY,
   },
 });

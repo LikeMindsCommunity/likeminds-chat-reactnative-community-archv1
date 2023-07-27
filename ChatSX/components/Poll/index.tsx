@@ -19,6 +19,9 @@ import {
   ANONYMOUS_POLL_TITLE,
   DATE_TEXT,
   DATE_TIME_TEXT,
+  POLL_MULTIPLE_STATE_EXACTLY,
+  POLL_MULTIPLE_STATE_LEAST,
+  POLL_MULTIPLE_STATE_MAX,
   TIME_TEXT,
 } from '../../constants/Strings';
 import {POLL_RESULT} from '../../constants/Screens';
@@ -268,6 +271,13 @@ const CreatePollScreen = ({navigation, route}: any) => {
     setIsActionAlertModalVisible(true);
   };
 
+  const handleShowDateTimePicker = () => {
+    setShow(false);
+    setMode('');
+    setDate('');
+    setTime(new Date());
+  };
+
   // this function sets "Number of votes allowed per user" modal interated value to the state
   const handleOpenOptionModal = () => {
     let quantinyArr: any = [];
@@ -290,9 +300,7 @@ const CreatePollScreen = ({navigation, route}: any) => {
     //   body: {isToast: true, msg: 'Question Field cannot be empty'},
     // });
     try {
-      console.log('question ==', question);
       if (question?.trim() === '') {
-        console.log('Question Field cannot be empty');
         dispatch({
           type: SHOW_TOAST,
           body: {isToast: true, msg: 'Question Field cannot be empty'},
@@ -300,19 +308,16 @@ const CreatePollScreen = ({navigation, route}: any) => {
         return;
       }
       if (!expiryTime) {
-        console.log('Please select expiry time');
         dispatch({
           type: SHOW_TOAST,
           body: {isToast: true, msg: 'Please select expiry time'},
         });
         return;
       }
-      console.log('2');
       const tempPollOptionsMap: any = {};
       let shouldBreak = false;
       const polls = optionsArray.map((item: any) => {
         if (tempPollOptionsMap[item?.text] !== undefined) {
-          console.log("Poll options can't be the same");
           dispatch({
             type: SHOW_TOAST,
             body: {isToast: true, msg: "Poll options can't be the same"},
@@ -320,7 +325,6 @@ const CreatePollScreen = ({navigation, route}: any) => {
           shouldBreak = true;
         } else {
           if (item?.text === '') {
-            console.log('Empty options are not allowed');
             dispatch({
               type: SHOW_TOAST,
               body: {isToast: true, msg: 'Empty options are not allowed'},
@@ -333,13 +337,10 @@ const CreatePollScreen = ({navigation, route}: any) => {
           };
         }
       });
-      console.log('3');
       if (shouldBreak) {
-        console.log('shouldBreak ==', shouldBreak);
         return;
       }
 
-      console.log('chatroom ID ==', Date.parse(time.toString()));
       const payload: any = {
         chatroomId: chatroomID,
         temporaryId: Date.now().toString(),
@@ -354,11 +355,9 @@ const CreatePollScreen = ({navigation, route}: any) => {
         expiryTime: Date.parse(time.toString()),
       };
       const res = await myClient.postPollConversation(payload);
-
-      console.log(res);
       handleOnCancel();
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   }
 
@@ -406,6 +405,7 @@ const CreatePollScreen = ({navigation, route}: any) => {
       handleOnSelectOption={handleVoteAllowedPerUser}
       handleOpenActionModal={handleOpenActionModal}
       handleOpenOptionModal={handleOpenOptionModal}
+      handleShowDateTimePicker={handleShowDateTimePicker}
       {...props}
     />
   );
@@ -453,67 +453,148 @@ const CreatePollUI = ({
   handleOnSelectOption,
   handleOpenActionModal,
   handleOpenOptionModal,
+  handleShowDateTimePicker,
 }: any) => {
   return (
-    <ScrollView bounces={false}>
-      {/* Poll question */}
-      <View style={styles.pollQuestion}>
-        <View>
-          <Text
-            style={[
-              styles.font,
-              hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
-            ]}>
-            Poll question
-          </Text>
-        </View>
-        <View style={styles.question}>
-          <TextInput
-            value={question}
-            onChangeText={handleQuestion}
-            placeholder={'Which is the best design tool that you have used?'}
-            style={[styles.font, styles.blackColor]}
-            placeholderTextColor="#aaa"
-            multiline
-          />
-        </View>
-      </View>
-
-      {/* Answers options */}
-      <View style={styles.answerOptions}>
-        <View style={styles.paddingHorizontal15}>
-          <Text
-            style={[
-              styles.font,
-              hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
-            ]}>
-            Answer options
-          </Text>
+    <View>
+      <ScrollView contentContainerStyle={{paddingBottom: 50}} bounces={false}>
+        {/* Poll question */}
+        <View style={styles.pollQuestion}>
+          <View>
+            <Text
+              style={[
+                styles.font,
+                hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+              ]}>
+              Poll question
+            </Text>
+          </View>
+          <View style={styles.question}>
+            <TextInput
+              value={question}
+              onChangeText={handleQuestion}
+              placeholder={'Ask a question'}
+              style={[styles.font, styles.blackColor]}
+              placeholderTextColor="#c5c5c5"
+              multiline
+            />
+          </View>
         </View>
 
-        {optionsArray.map((option: any, index: any) => {
-          return (
-            <View key={index} style={styles.question}>
+        {/* Answers options */}
+        <View style={styles.answerOptions}>
+          <View style={styles.paddingHorizontal15}>
+            <Text
+              style={[
+                styles.font,
+                hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+              ]}>
+              Answer options
+            </Text>
+          </View>
+
+          {optionsArray.map((option: any, index: any) => {
+            return (
+              <View key={index} style={styles.question}>
+                <View
+                  style={[
+                    styles.alignRow,
+                    styles.justifySpace,
+                    styles.borderBottom,
+                    styles.paddingHorizontal15,
+                  ]}>
+                  <TextInput
+                    value={option?.text}
+                    placeholder={'Option'}
+                    style={[
+                      styles.font,
+                      styles.option,
+                      styles.blackColor,
+                      {flex: 1},
+                    ]}
+                    placeholderTextColor="#c5c5c5"
+                    onChangeText={(e: any) => {
+                      handleInputOptionsChangeFunction(index, e);
+                    }}
+                  />
+                  {index > 1 ? (
+                    <TouchableOpacity
+                      onPress={() => {
+                        removeAnOption(index);
+                      }}>
+                      <Image
+                        style={[
+                          styles.pollIcon,
+                          {tintColor: styles.blackColor.color},
+                        ]}
+                        source={require('../../assets/images/cross_icon3x.png')}
+                      />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              </View>
+            );
+          })}
+
+          <TouchableOpacity
+            onPress={addNewOption}
+            style={[
+              styles.alignRow,
+              styles.marginSpace,
+              styles.paddingHorizontal15,
+            ]}>
+            <Image
+              style={[
+                styles.optionIcon,
+                hue ? {tintColor: `hsl(${hue}, 53%, 15%)`} : null,
+              ]}
+              source={require('../../assets/images/add_options3x.png')}
+            />
+            <Text
+              style={[
+                styles.text,
+                styles.addOptionText,
+                hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+              ]}>
+              Add an option...
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Poll expire Time and Date selection */}
+        <View style={[styles.answerOptions, styles.paddingHorizontal15]}>
+          <View>
+            <Text
+              style={[
+                styles.font,
+                hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+              ]}>
+              Poll expires on
+            </Text>
+          </View>
+          <View style={styles.question}>
+            <TouchableOpacity
+              onPress={() => {
+                showDatePicker();
+              }}>
               <View
                 style={[
                   styles.alignRow,
                   styles.justifySpace,
-                  styles.borderBottom,
-                  styles.paddingHorizontal15,
+                  {marginBottom: 10},
                 ]}>
-                <TextInput
-                  value={option?.text}
-                  placeholder={'Option'}
-                  style={[styles.font, styles.option, styles.blackColor]}
-                  placeholderTextColor="#aaa"
-                  onChangeText={(e: any) => {
-                    handleInputOptionsChangeFunction(index, e);
-                  }}
-                />
-                {index > 1 ? (
+                <Text
+                  style={[
+                    styles.font,
+                    formatedDateTime ? styles.blackColor : styles.placeHolder,
+                  ]}>
+                  {formatedDateTime ? formatedDateTime : 'DD-MM-YYYY hh:mm'}
+                </Text>
+                {formatedDateTime ? (
                   <TouchableOpacity
                     onPress={() => {
-                      removeAnOption(index);
+                      handleShowDateTimePicker();
+                      // removeAnOption(index);
                     }}>
                     <Image
                       style={[
@@ -525,230 +606,236 @@ const CreatePollUI = ({
                   </TouchableOpacity>
                 ) : null}
               </View>
-            </View>
-          );
-        })}
+              {/* Date Time Picker */}
+              {show && (
+                <DateTimePicker
+                  testID="dateTimePicker"
+                  timeZoneOffsetInMinutes={timeZoneOffsetInMinutes}
+                  value={date ? date : new Date()}
+                  mode={Platform.OS === 'ios' ? 'datetime' : mode}
+                  is24Hour={true}
+                  display="default"
+                  onChange={onChange}
+                  minimumDate={mode === 'date' ? new Date() : undefined}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
 
+        {/* Advance options toggle button */}
         <TouchableOpacity
-          onPress={addNewOption}
           style={[
+            styles.extraMarginSpace,
             styles.alignRow,
-            styles.marginSpace,
-            styles.paddingHorizontal15,
-          ]}>
-          <Image
-            style={[
-              styles.optionIcon,
-              hue ? {tintColor: `hsl(${hue}, 53%, 15%)`} : null,
-            ]}
-            source={require('../../assets/images/add_options3x.png')}
-          />
-          <Text
-            style={[
-              styles.text,
-              styles.addOptionText,
-              hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
-            ]}>
-            Add an option...
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Poll expire Time and Date selection */}
-      <View style={[styles.answerOptions, styles.paddingHorizontal15]}>
-        <View>
+            styles.justifyCenter,
+            styles.gap,
+          ]}
+          onPress={() => {
+            handleShowAdvanceOption();
+          }}>
           <Text
             style={[
               styles.font,
-              hue ? {color: `hsl(${hue}, 53%, 15%)`} : null,
+              styles.lightGreyBackground,
+              styles.textAlignCenter,
             ]}>
-            Poll expires on
+            ADVANCED
           </Text>
-        </View>
-        <View style={styles.question}>
-          <TouchableOpacity
-            onPress={() => {
-              showDatePicker();
-            }}>
-            <Text
-              style={[
-                styles.font,
-                formatedDateTime ? styles.blackColor : styles.placeHolder,
-              ]}>
-              {formatedDateTime ? formatedDateTime : 'DD-MM-YYYY hh:mm'}
-            </Text>
-            {/* Date Time Picker */}
-            {show && (
-              <DateTimePicker
-                testID="dateTimePicker"
-                timeZoneOffsetInMinutes={timeZoneOffsetInMinutes}
-                value={date ? date : new Date()}
-                mode={Platform.OS === 'ios' ? 'datetime' : mode}
-                is24Hour={true}
-                display="default"
-                onChange={onChange}
-                minimumDate={mode === 'date' ? new Date() : undefined}
+          <Image
+            style={styles.downArrow}
+            source={
+              !showAdvancedOption
+                ? require('../../assets/images/expand_arrow3x.png')
+                : require('../../assets/images/minimize_arrow3x.png')
+            }
+          />
+        </TouchableOpacity>
+
+        {/* Advance options*/}
+        {showAdvancedOption ? (
+          <View style={[styles.answerOptions, styles.paddingHorizontal15]}>
+            <View style={[styles.alignRow, styles.justifySpace]}>
+              <Text style={[styles.font, styles.blackColor]}>
+                Allow voters to add the option
+              </Text>
+              <Switch
+                trackColor={{
+                  false: styles.lightGreyBackground.color,
+                  true: hue
+                    ? `hsl(${hue}, 53%, 15%)`
+                    : styles.primaryColor.color,
+                }}
+                thumbColor={
+                  addOptionsEnabled
+                    ? hue
+                      ? `hsl(${hue}, 40%, 40%)`
+                      : styles.lightPrimaryColor.color
+                    : styles.lightGreyThumb.color
+                }
+                ios_backgroundColor={styles.lightGreyBackground.color}
+                onValueChange={handleAddOptions}
+                value={addOptionsEnabled}
               />
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
+            </View>
+            <View
+              style={[
+                styles.alignRow,
+                styles.justifySpace,
+                styles.marginSpace,
+              ]}>
+              <Text style={[styles.font, styles.blackColor]}>
+                Anonymous Poll
+              </Text>
+              <Switch
+                trackColor={{
+                  false: styles.lightGreyBackground.color,
+                  true: hue
+                    ? `hsl(${hue}, 53%, 15%)`
+                    : styles.primaryColor.color,
+                }}
+                thumbColor={
+                  anonymousPollEnabled
+                    ? hue
+                      ? `hsl(${hue}, 40%, 40%)`
+                      : styles.lightPrimaryColor.color
+                    : styles.lightGreyThumb.color
+                }
+                ios_backgroundColor={styles.lightGreyBackground.color}
+                onValueChange={handleAnonymousPoll}
+                value={anonymousPollEnabled}
+              />
+            </View>
+            <View
+              style={[
+                styles.alignRow,
+                styles.justifySpace,
+                styles.marginSpace,
+              ]}>
+              <Text style={[styles.font, styles.blackColor]}>
+                Don't show live results
+              </Text>
+              <Switch
+                trackColor={{
+                  false: styles.lightGreyBackground.color,
+                  true: hue
+                    ? `hsl(${hue}, 53%, 15%)`
+                    : styles.primaryColor.color,
+                }}
+                thumbColor={
+                  liveResultsEnabled
+                    ? hue
+                      ? `hsl(${hue}, 40%, 40%)`
+                      : styles.lightPrimaryColor.color
+                    : styles.lightGreyThumb.color
+                }
+                ios_backgroundColor={styles.lightGreyBackground.color}
+                onValueChange={handleLiveResults}
+                value={liveResultsEnabled}
+              />
+            </View>
+            <View
+              style={[
+                styles.alignRow,
+                styles.justifySpace,
+                styles.marginSpace,
+              ]}>
+              <Text style={[styles.smallText, styles.greyColor]}>
+                User can vote for
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.alignRow,
+                styles.justifySpace,
+                styles.marginSpace,
+              ]}>
+              <TouchableOpacity
+                onPress={() => {
+                  handleOpenActionModal();
+                }}
+                style={[
+                  {flexGrow: 1},
+                  styles.alignRow,
+                  styles.justifySpace,
+                  {marginRight: 30},
+                ]}>
+                <Text style={[styles.text, styles.blackColor]}>
+                  {userCanVoteForArr[userVoteFor]}
+                </Text>
+                <Image
+                  style={styles.pollIcon}
+                  source={require('../../assets/images/sort_down3x.png')}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  handleOpenOptionModal();
+                }}
+                style={[styles.alignRow, styles.justifySpace, {flexGrow: 1}]}>
+                <Text style={[styles.text, styles.blackColor]}>
+                  {!voteAllowedPerUser
+                    ? 'Select option'
+                    : `${
+                        voteAllowedPerUser > 1
+                          ? `${voteAllowedPerUser} options`
+                          : `${voteAllowedPerUser} option`
+                      }`}
+                </Text>
+                <Image
+                  style={styles.pollIcon}
+                  source={require('../../assets/images/sort_down3x.png')}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
 
-      {/* Advance options toggle button */}
-      <TouchableOpacity
-        style={styles.extraMarginSpace}
-        onPress={() => {
-          handleShowAdvanceOption();
-        }}>
-        <Text
+        {/* Post button */}
+        <TouchableOpacity
+          onPress={() => {
+            postPoll();
+          }}
           style={[
-            styles.font,
-            styles.lightGreyBackground,
-            styles.textAlignCenter,
+            styles.extraMarginSpace,
+            styles.postButton,
+            hue ? {backgroundColor: `hsl(${hue}, 53%, 15%)`} : null,
           ]}>
-          ADVANCED
-        </Text>
-      </TouchableOpacity>
+          <Text style={[styles.font, styles.whiteColor]}>POST</Text>
+        </TouchableOpacity>
 
-      {/* Advance options*/}
-      {showAdvancedOption ? (
-        <View style={[styles.answerOptions, styles.paddingHorizontal15]}>
-          <View style={[styles.alignRow, styles.justifySpace]}>
-            <Text style={[styles.font, styles.blackColor]}>
-              Allow voters to add the option
-            </Text>
-            <Switch
-              trackColor={{
-                false: styles.lightGreyBackground.color,
-                true: hue ? `hsl(${hue}, 53%, 15%)` : styles.primaryColor.color,
-              }}
-              thumbColor={
-                addOptionsEnabled
-                  ? hue
-                    ? `hsl(${hue}, 40%, 40%)`
-                    : styles.lightPrimaryColor.color
-                  : styles.lightGreyThumb.color
-              }
-              ios_backgroundColor={styles.lightGreyBackground.color}
-              onValueChange={handleAddOptions}
-              value={addOptionsEnabled}
-            />
-          </View>
-          <View
-            style={[styles.alignRow, styles.justifySpace, styles.marginSpace]}>
-            <Text style={[styles.font, styles.blackColor]}>Anonymous Poll</Text>
-            <Switch
-              trackColor={{
-                false: styles.lightGreyBackground.color,
-                true: hue ? `hsl(${hue}, 53%, 15%)` : styles.primaryColor.color,
-              }}
-              thumbColor={
-                anonymousPollEnabled
-                  ? hue
-                    ? `hsl(${hue}, 40%, 40%)`
-                    : styles.lightPrimaryColor.color
-                  : styles.lightGreyThumb.color
-              }
-              ios_backgroundColor={styles.lightGreyBackground.color}
-              onValueChange={handleAnonymousPoll}
-              value={anonymousPollEnabled}
-            />
-          </View>
-          <View
-            style={[styles.alignRow, styles.justifySpace, styles.marginSpace]}>
-            <Text style={[styles.font, styles.blackColor]}>
-              Don't show live results
-            </Text>
-            <Switch
-              trackColor={{
-                false: styles.lightGreyBackground.color,
-                true: hue ? `hsl(${hue}, 53%, 15%)` : styles.primaryColor.color,
-              }}
-              thumbColor={
-                liveResultsEnabled
-                  ? hue
-                    ? `hsl(${hue}, 40%, 40%)`
-                    : styles.lightPrimaryColor.color
-                  : styles.lightGreyThumb.color
-              }
-              ios_backgroundColor={styles.lightGreyBackground.color}
-              onValueChange={handleLiveResults}
-              value={liveResultsEnabled}
-            />
-          </View>
-          <View
-            style={[styles.alignRow, styles.justifySpace, styles.marginSpace]}>
-            <Text style={[styles.smallText, styles.greyColor]}>
-              User can vote for
-            </Text>
-          </View>
-          <View
-            style={[styles.alignRow, styles.justifySpace, styles.marginSpace]}>
-            <TouchableOpacity
-              onPress={() => {
-                handleOpenActionModal();
-              }}
-              style={{flexGrow: 1}}>
-              <Text style={[styles.text, styles.blackColor]}>
-                {userCanVoteForArr[userVoteFor]}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                handleOpenOptionModal();
-              }}
-              style={{flexGrow: 1}}>
-              <Text style={[styles.text, styles.blackColor]}>
-                {!voteAllowedPerUser
-                  ? 'Select option'
-                  : `${
-                      voteAllowedPerUser > 1
-                        ? `${voteAllowedPerUser} options`
-                        : `${voteAllowedPerUser} option`
-                    }`}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : null}
+        {/* User can vote for option Modal */}
+        <ActionAlertModal
+          hideActionModal={hideActionModal}
+          actionAlertModalVisible={isActionAlertModalVisible}
+          optionsList={userVoteForOptionsArrValue}
+          onSelect={handleOnSelect}
+        />
 
-      {/* Post button */}
-      <TouchableOpacity
-        onPress={() => {
-          postPoll();
-        }}
-        style={[
-          styles.extraMarginSpace,
-          styles.postButton,
-          hue ? {backgroundColor: `hsl(${hue}, 53%, 15%)`} : null,
-        ]}>
-        <Text style={[styles.font, styles.whiteColor]}>POST</Text>
-      </TouchableOpacity>
-
-      {/* User can vote for option Modal */}
-      <ActionAlertModal
-        hideActionModal={hideActionModal}
-        actionAlertModalVisible={isActionAlertModalVisible}
-        optionsList={userVoteForOptionsArrValue}
-        onSelect={handleOnSelect}
-      />
-
-      {/* option count Modal */}
-      <ActionAlertModal
-        hideActionModal={hideSelectOptionModal}
-        actionAlertModalVisible={isSelectOptionModal}
-        optionsList={userVoteForOptionsArrValue}
-        onSelect={handleOnSelectOption}
-      />
-    </ScrollView>
+        {/* option count Modal */}
+        <ActionAlertModal
+          hideActionModal={hideSelectOptionModal}
+          actionAlertModalVisible={isSelectOptionModal}
+          optionsList={userVoteForOptionsArrValue}
+          onSelect={handleOnSelectOption}
+        />
+      </ScrollView>
+    </View>
   );
 };
 
-const PollConversationView = ({navigation, item}: any) => {
+const PollConversationView = ({
+  navigation,
+  item,
+  isIncluded,
+  openKeyboard,
+  longPressOpenKeyboard,
+}: any) => {
   const [selectedPolls, setSelectedPolls] = useState<any>([]);
   const [showSelected, setShowSelected] = useState(false);
   const [shouldShowSubmitPollButton, setShouldShowSubmitPollButton] =
     useState(false);
+  const [allowAddOption, setAllowAddOption] = useState(false);
   const [showResultsButton, setShowResultsButton] = useState(false);
   const [isAddPollOptionModalVisible, setIsAddPollOptionModalVisible] =
     useState(false);
@@ -758,12 +845,13 @@ const PollConversationView = ({navigation, item}: any) => {
   const [pollVoteCount, setPollVoteCount] = useState(0);
   const [isAnonymousPollModalVisible, setIsAnonymousPollModalVisible] =
     useState(false);
+  const [pollsArr, setPollsArr] = useState(item?.polls);
 
   const {user} = useAppSelector(item => item.homefeed);
 
   const dispatch = useAppDispatch();
 
-  let pollsArr = item?.polls;
+  // let pollsArr = item?.polls;
 
   // this function navigates to poll result screen if we click on votes or show alert in case of anonymous poll
   const onNavigate = () => {
@@ -792,18 +880,26 @@ const PollConversationView = ({navigation, item}: any) => {
       switch (item?.multiple_select_state) {
         // defensive check
         case undefined: {
-          setShouldShowSubmitPollButton(false);
+          if (selectedPolls.length === MAX_POLL_OPTIONS) {
+            // show submit poll button
+            setShouldShowSubmitPollButton(true);
+          } else if (selectedPolls.length > MAX_POLL_OPTIONS) {
+             // show toast
+            console.log('Error here');
+          }
           break;
         }
 
         case 0: {
           // Exactly
           if (selectedPolls.length === MAX_POLL_OPTIONS) {
+             // show submit poll button
             setShouldShowSubmitPollButton(true);
-            console.log('show poll submit button');
           } else if (selectedPolls.length > MAX_POLL_OPTIONS) {
+             // show toast
             console.log('Error here');
           }
+          break;
         }
 
         case 1: {
@@ -811,8 +907,10 @@ const PollConversationView = ({navigation, item}: any) => {
             selectedPolls.length <= item.multiple_select_no &&
             selectedPolls.length > 0
           ) {
+             // show submit poll button
             setShouldShowSubmitPollButton(true);
           } else {
+             // hide submit poll button
             setShouldShowSubmitPollButton(false);
           }
           break;
@@ -820,14 +918,17 @@ const PollConversationView = ({navigation, item}: any) => {
 
         case 2: {
           if (selectedPolls.length >= item.multiple_select_no) {
+             // show submit poll button
             setShouldShowSubmitPollButton(true);
           } else {
+             // hide submit poll button
             setShouldShowSubmitPollButton(false);
           }
           break;
         }
 
         default: {
+           // hide submit poll button
           setShouldShowSubmitPollButton(false);
         }
       }
@@ -848,8 +949,15 @@ const PollConversationView = ({navigation, item}: any) => {
       }
     });
     if (count > 0) {
+      setAllowAddOption(false);
       setShouldShowVotes(true);
+
+      // deffered poll show edit button state updation logic
+      if (item?.poll_type === 1) {
+        setShowResultsButton(true);
+      }
     } else {
+      setAllowAddOption(item?.allow_add_option);
       setShouldShowVotes(false);
     }
 
@@ -880,6 +988,25 @@ const PollConversationView = ({navigation, item}: any) => {
   const hideAnonymousPollModal = () => {
     setIsAnonymousPollModalVisible(false);
   };
+  // this function resets showResult state
+  const resetShowResult = () => {
+    let arr = pollsArr.map((item: any) => {
+      return {
+        ...item,
+        is_selected: false,
+        percentage: 0,
+        no_votes: 0,
+      };
+    });
+    setPollsArr([...arr]);
+    setShowResultsButton(false);
+    setShouldShowVotes(false);
+    setSelectedPolls([]);
+  };
+
+  useEffect(() => {
+    setPollsArr(item?.polls);
+  }, [item?.polls]);
 
   // API to reload the existing poll conversation
   async function reloadConversation() {
@@ -909,8 +1036,7 @@ const PollConversationView = ({navigation, item}: any) => {
 
       await reloadConversation();
     } catch (error) {
-      console.log('error at addPollOption');
-      console.log(error);
+      console.log('error at addPollOption', error);
     }
   }
 
@@ -925,12 +1051,29 @@ const PollConversationView = ({navigation, item}: any) => {
 
     if (isPollIndexIncluded) {
       // if poll item is already selected
+      const isSelected = item?.polls?.some((poll: any) => {
+        return poll?.is_selected;
+      });
+      // if (isSelected) {
+      //   alert('Already voted');
+      //   return;
+      // }
       const selectedIndex = newSelectedPolls.findIndex(
         index => index === pollIndex,
       );
       newSelectedPolls.splice(selectedIndex, 1);
     } else {
-      console.log('000 ==', item?.multiple_select_state);
+      const isSelected = pollsArr?.some((poll: any) => {
+        return poll?.is_selected;
+      });
+
+      if (isSelected && item?.poll_type === 0) {
+        alert('Already voted');
+        return;
+      } else if (item?.poll_type === 1 && shouldShowVotes) {
+        alert('Already voted ==');
+        return;
+      }
 
       // if only one option is allowed
       if (item?.multiple_select_no === 1) {
@@ -943,10 +1086,7 @@ const PollConversationView = ({navigation, item}: any) => {
           await reloadConversation();
         } else {
           // for instant poll selection only for once
-
-          const isSelected = pollsArr?.some((poll: any) => {
-            return poll?.is_selected;
-          });
+          console.log('isSelected ===', isSelected);
 
           // if not selected
           if (!isSelected) {
@@ -965,17 +1105,13 @@ const PollConversationView = ({navigation, item}: any) => {
       // multiple options are allowed
       switch (item?.multiple_select_state) {
         case 0: {
-          console.log('111');
           if (selectedPolls.length === item?.multiple_select_no) {
-            console.log('222');
             return;
           }
           break;
         }
         case 1: {
-          console.log('111ss', selectedPolls.length, item?.multiple_select_no);
           if (selectedPolls.length == item?.multiple_select_no) {
-            console.log('222sss');
             return;
           }
           break;
@@ -997,24 +1133,45 @@ const PollConversationView = ({navigation, item}: any) => {
         polls: polls,
       });
       await reloadConversation();
+      setShouldShowVotes(true);
     } catch (error) {
-      console.log('error at poll submission');
-      console.log(error);
+      console.log('error at poll submission', error);
     }
   }
+
+  const stringManipulation = () => {
+    const multipleSelectNo = item?.multiple_select_no;
+    switch (item?.multiple_select_state) {
+      case POLL_MULTIPLE_STATE_EXACTLY: {
+        return `*Select exactly ${multipleSelectNo} options.`;
+      }
+
+      case POLL_MULTIPLE_STATE_MAX: {
+        return `*Select at most ${multipleSelectNo} options.`;
+      }
+
+      case POLL_MULTIPLE_STATE_LEAST: {
+        return `*Select at least ${multipleSelectNo} options.`;
+      }
+
+      default: {
+        return '';
+      }
+    }
+  };
 
   // readonly props consumed by UI component
   let props: any = {
     text: item?.answer,
     votes: pollVoteCount,
-    optionArr: item?.polls,
+    optionArr: pollsArr,
     pollTypeText: item?.poll_type_text,
     submitTypeText: item?.submit_type_text,
     addOptionInputField: addOptionInputField,
     shouldShowSubmitPollButton: shouldShowSubmitPollButton,
     selectedPolls: selectedPolls,
     showSelected: showSelected,
-    allowAddOption: item?.allow_add_option,
+    allowAddOption: allowAddOption,
     shouldShowVotes: shouldShowVotes,
     hasPollEnded: hasPollEnded,
     expiryTime: moment(item?.expiry_time).fromNow(),
@@ -1025,6 +1182,11 @@ const PollConversationView = ({navigation, item}: any) => {
     createdAt: item?.created_at,
     pollAnswerText: item?.poll_answer_text,
     isPollEnded: Date.now() > item?.expiry_time ? false : true,
+    isIncluded: isIncluded,
+    multipleSelectNo: item?.multiple_select_no,
+    multipleSelectState: item?.multiple_select_state,
+    showResultsButton: showResultsButton,
+    pollType: item?.poll_type,
   };
 
   return (
@@ -1037,6 +1199,10 @@ const PollConversationView = ({navigation, item}: any) => {
         setShowSelected={setShowSelected}
         setIsAddPollOptionModalVisible={setIsAddPollOptionModalVisible}
         setAddOptionInputField={setAddOptionInputField}
+        openKeyboard={openKeyboard}
+        longPressOpenKeyboard={longPressOpenKeyboard}
+        stringManipulation={stringManipulation}
+        resetShowResult={resetShowResult}
         {...props}
       />
       <AddOptionsModal
@@ -1081,9 +1247,31 @@ const PollConversationUI = ({
   createdAt,
   pollAnswerText,
   isPollEnded,
+  isIncluded,
+  openKeyboard,
+  longPressOpenKeyboard,
+  multipleSelectNo,
+  multipleSelectState,
+  stringManipulation,
+  showResultsButton,
+  resetShowResult,
+  pollType,
 }: any) => {
   return (
     <View>
+      {isIncluded ? (
+        <TouchableOpacity
+          onLongPress={() => {
+            longPressOpenKeyboard();
+            // alert('sdjn');
+          }}
+          onPress={() => {
+            openKeyboard();
+            // alert('ryayy');
+          }}
+          style={styles.selectedItem}
+        />
+      ) : null}
       {!!(member?.id === user?.id) ? null : (
         <Text style={styles.messageInfo} numberOfLines={1}>
           {member?.name}
@@ -1134,23 +1322,24 @@ const PollConversationUI = ({
           {text}
         </Text>
 
-        {/* <Text
-          style={[
-            styles.smallText,
-            styles.greyColor,
-          ]}>{`Select `}</Text> */}
+        {multipleSelectNo > 1 ? (
+          <Text style={[styles.smallText, styles.greyColor, {marginTop: 5}]}>
+            {stringManipulation()}
+          </Text>
+        ) : null}
       </View>
 
       {/* Poll Options*/}
       <View style={[styles.extraMarginSpace, styles.gap10]}>
         {optionArr?.map((element: any, index: any) => {
-          console.log('element ==', element);
           let isSelected = selectedPolls.includes(index);
           let voteCount = element?.no_votes;
-          console.log('isSelected', isSelected);
           return (
             <View key={element?.id} style={styles.gap}>
               <Pressable
+                onLongPress={() => {
+                  longPressOpenKeyboard();
+                }}
                 onPress={() => {
                   setShowSelected(!showSelected);
                   setSelectedPollOptions(index);
@@ -1188,6 +1377,15 @@ const PollConversationUI = ({
                     ]}>
                     {element?.text}
                   </Text>
+
+                  {isSelected ? (
+                    <View style={styles.selected}>
+                      <Image
+                        source={require('../../assets/images/white_tick3x.png')}
+                        style={styles.smallIcon}
+                      />
+                    </View>
+                  ) : null}
                   <View
                     style={[
                       voteCount > 0
@@ -1234,6 +1432,9 @@ const PollConversationUI = ({
       {allowAddOption && isPollEnded ? (
         <View style={[styles.extraMarginSpace]}>
           <Pressable
+            onLongPress={() => {
+              longPressOpenKeyboard();
+            }}
             onPress={() => {
               setIsAddPollOptionModalVisible(true);
             }}
@@ -1268,9 +1469,12 @@ const PollConversationUI = ({
       ) : null}
 
       {/* Submit vote button */}
-      {!shouldShowVotes && isPollEnded ? (
+      {isPollEnded && multipleSelectNo > 1 && !shouldShowVotes ? (
         <View style={styles.marginSpace}>
           <TouchableOpacity
+            onLongPress={() => {
+              longPressOpenKeyboard();
+            }}
             onPress={() => {
               if (shouldShowSubmitPollButton) {
                 submitPoll();
@@ -1278,10 +1482,20 @@ const PollConversationUI = ({
             }}
             style={[
               styles.submitVoteButton,
+              styles.alignRow,
               !shouldShowSubmitPollButton ? styles.greyBorder : null,
               {backgroundColor: styles.whiteColor.color},
               hue ? {backgroundColor: `hsl(${hue}, 47%, 31%)`} : null,
             ]}>
+            <Image
+              style={[
+                styles.editIcon,
+                !shouldShowSubmitPollButton
+                  ? {tintColor: styles.greyColor.color}
+                  : null,
+              ]}
+              source={require('../../assets/images/submit_click3x.png')}
+            />
             <Text
               style={[
                 styles.textAlignCenter,
@@ -1292,6 +1506,35 @@ const PollConversationUI = ({
             </Text>
           </TouchableOpacity>
         </View>
+      ) : null}
+
+      {/* Edit Poll button */}
+      {isPollEnded &&
+      multipleSelectNo > 1 &&
+      shouldShowVotes &&
+      pollType === 1 ? (
+        <TouchableOpacity
+          onLongPress={() => {
+            longPressOpenKeyboard();
+          }}
+          onPress={() => {
+            resetShowResult();
+          }}
+          style={[
+            styles.submitVoteButton,
+            styles.alignRow,
+            styles.justifyCenter,
+            {backgroundColor: styles.whiteColor.color, marginTop: 10},
+            hue ? {backgroundColor: `hsl(${hue}, 47%, 31%)`} : null,
+          ]}>
+          <Image
+            style={[styles.editIcon]}
+            source={require('../../assets/images/edit_icon3x.png')}
+          />
+          <Text style={[styles.textAlignCenter, styles.smallTextMedium]}>
+            EDIT POLL
+          </Text>
+        </TouchableOpacity>
       ) : null}
 
       {/* Poll timestamp and show edited text if edited */}
@@ -1373,7 +1616,7 @@ const AddOptionUI = ({
           </Text>
           <Text
             style={[styles.smallText, styles.greyColor, styles.marginSpace]}>
-            Enter an option that you thinkis missing in this poll. This can not
+            Enter an option that you think is missing in this poll. This can not
             be undone.
           </Text>
         </View>
@@ -1382,7 +1625,7 @@ const AddOptionUI = ({
             value={addOptionInputField}
             onChangeText={setAddOptionInputField}
             placeholder={'Type new option'}
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#c5c5c5"
             style={styles.textInput}
           />
         </View>

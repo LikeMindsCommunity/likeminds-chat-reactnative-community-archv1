@@ -202,7 +202,17 @@ const Messages = ({
                 ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                 : null,
             ]}>
-            <PollConversationView navigation={navigation} item={item} />
+            <PollConversationView
+              navigation={navigation}
+              item={item}
+              isIncluded={isIncluded}
+              openKeyboard={() => {
+                openKeyboard();
+              }}
+              longPressOpenKeyboard={() => {
+                longPressOpenKeyboard();
+              }}
+            />
           </View>
         ) : (
           <View>

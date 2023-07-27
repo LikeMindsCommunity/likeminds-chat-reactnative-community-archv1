@@ -70,3 +70,7 @@ export const OKAY = 'Okay';
 export const ANONYMOUS_POLL_TITLE = 'Anonymous poll';
 export const ANONYMOUS_POLL_SUB_TITLE =
   'This being an anonymous poll, the names of the voters can not be disclosed';
+
+export const POLL_MULTIPLE_STATE_EXACTLY = 0;
+export const POLL_MULTIPLE_STATE_MAX = 1;
+export const POLL_MULTIPLE_STATE_LEAST = 2;
