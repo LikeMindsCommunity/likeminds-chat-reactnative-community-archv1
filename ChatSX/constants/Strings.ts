@@ -74,3 +74,25 @@ export const ANONYMOUS_POLL_SUB_TITLE =
 export const POLL_MULTIPLE_STATE_EXACTLY = 0;
 export const POLL_MULTIPLE_STATE_MAX = 1;
 export const POLL_MULTIPLE_STATE_LEAST = 2;
+
+export const QUESTION_WARNING = 'Question Field cannot be empty';
+export const EXPIRY_TIME_WARNING = 'Please select expiry time';
+export const POLLS_OPTIONS_WARNING = "Poll options can't be the same";
+export const EMPTY_OPTIONS_WARNING = 'Empty options are not allowed';
+export const PLACEHOLDER_VALUE = 'Ask a question';
+export const OPTION_TEXT = 'Option';
+export const DATE_PLACEHOLDER = 'DD-MM-YYYY hh:mm';
+export const ANONYMOUS_POLL_TEXT = 'Anonymous Poll';
+export const LIVE_RESULT_TEXT = "Don't show live results";
+export const USER_CAN_VOTE_FOR = 'User can vote for';
+export const SELECT_OPTION = 'Select option';
+export const POST_TITLE = 'POST';
+export const ADD_OPTION_TEXT = '+ Add an option';
+export const SUBMIT_VOTE_TITLE = 'SUBMIT VOTE';
+export const EDIT_POLL_TEXT = 'EDIT POLL';
+export const ADD_NEW_POLL_OPTION = 'Add new poll option';
+export const NEW_POLL_OPTION_TEXT =
+  'Enter an option that you think is missing in this poll. This can not be undone.';
+export const SUBMIT_TEXT = 'SUBMIT';
+export const POLL_ENDED_WARNING = 'Poll ended. Vote cannot be submitted now';
+export const POLL_SUBMITTED_SUCCESSFULLY = 'Your vote is submitted succesfully';

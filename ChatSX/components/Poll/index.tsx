@@ -15,14 +15,34 @@ import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {
+  ADD_NEW_POLL_OPTION,
+  ADD_OPTION_TEXT,
   ANONYMOUS_POLL_SUB_TITLE,
+  ANONYMOUS_POLL_TEXT,
   ANONYMOUS_POLL_TITLE,
+  DATE_PLACEHOLDER,
   DATE_TEXT,
   DATE_TIME_TEXT,
+  EDIT_POLL_TEXT,
+  EMPTY_OPTIONS_WARNING,
+  EXPIRY_TIME_WARNING,
+  LIVE_RESULT_TEXT,
+  NEW_POLL_OPTION_TEXT,
+  OPTION_TEXT,
+  PLACEHOLDER_VALUE,
+  POLLS_OPTIONS_WARNING,
+  POLL_ENDED_WARNING,
   POLL_MULTIPLE_STATE_EXACTLY,
   POLL_MULTIPLE_STATE_LEAST,
   POLL_MULTIPLE_STATE_MAX,
+  POLL_SUBMITTED_SUCCESSFULLY,
+  POST_TITLE,
+  QUESTION_WARNING,
+  SELECT_OPTION,
+  SUBMIT_TEXT,
+  SUBMIT_VOTE_TITLE,
   TIME_TEXT,
+  USER_CAN_VOTE_FOR,
 } from '../../constants/Strings';
 import {POLL_RESULT} from '../../constants/Screens';
 import {myClient} from '../../..';
@@ -140,10 +160,7 @@ const CreatePollScreen = ({navigation, route}: any) => {
 
   // this function formats the date in "DD/MM/YYYY hh:mm" format
   const formatDate = (date: any, time: any) => {
-    console.log('date -- date =', date, time);
-
     let formattedTime = moment(date).format('DD/MM/YYYY hh:mm');
-
     return formattedTime;
   };
 
@@ -294,23 +311,18 @@ const CreatePollScreen = ({navigation, route}: any) => {
   // this function fetches postPollConversation API
   async function postPoll() {
     let expiryTime = !!date ? formatDate(date, time) : null;
-    console.log('expiry ==', expiryTime);
-    // dispatch({
-    //   type: SHOW_TOAST,
-    //   body: {isToast: true, msg: 'Question Field cannot be empty'},
-    // });
     try {
       if (question?.trim() === '') {
         dispatch({
           type: SHOW_TOAST,
-          body: {isToast: true, msg: 'Question Field cannot be empty'},
+          body: {isToast: true, msg: QUESTION_WARNING},
         });
         return;
       }
       if (!expiryTime) {
         dispatch({
           type: SHOW_TOAST,
-          body: {isToast: true, msg: 'Please select expiry time'},
+          body: {isToast: true, msg: EXPIRY_TIME_WARNING},
         });
         return;
       }
@@ -320,14 +332,14 @@ const CreatePollScreen = ({navigation, route}: any) => {
         if (tempPollOptionsMap[item?.text] !== undefined) {
           dispatch({
             type: SHOW_TOAST,
-            body: {isToast: true, msg: "Poll options can't be the same"},
+            body: {isToast: true, msg: POLLS_OPTIONS_WARNING},
           });
           shouldBreak = true;
         } else {
           if (item?.text === '') {
             dispatch({
               type: SHOW_TOAST,
-              body: {isToast: true, msg: 'Empty options are not allowed'},
+              body: {isToast: true, msg: EMPTY_OPTIONS_WARNING},
             });
             shouldBreak = true;
           }
@@ -357,7 +369,7 @@ const CreatePollScreen = ({navigation, route}: any) => {
       const res = await myClient.postPollConversation(payload);
       handleOnCancel();
     } catch (error) {
-      // console.log(error);
+      // process error
     }
   }
 
@@ -473,7 +485,7 @@ const CreatePollUI = ({
             <TextInput
               value={question}
               onChangeText={handleQuestion}
-              placeholder={'Ask a question'}
+              placeholder={PLACEHOLDER_VALUE}
               style={[styles.font, styles.blackColor]}
               placeholderTextColor="#c5c5c5"
               multiline
@@ -505,7 +517,7 @@ const CreatePollUI = ({
                   ]}>
                   <TextInput
                     value={option?.text}
-                    placeholder={'Option'}
+                    placeholder={OPTION_TEXT}
                     style={[
                       styles.font,
                       styles.option,
@@ -588,7 +600,7 @@ const CreatePollUI = ({
                     styles.font,
                     formatedDateTime ? styles.blackColor : styles.placeHolder,
                   ]}>
-                  {formatedDateTime ? formatedDateTime : 'DD-MM-YYYY hh:mm'}
+                  {formatedDateTime ? formatedDateTime : DATE_PLACEHOLDER}
                 </Text>
                 {formatedDateTime ? (
                   <TouchableOpacity
@@ -685,7 +697,7 @@ const CreatePollUI = ({
                 styles.marginSpace,
               ]}>
               <Text style={[styles.font, styles.blackColor]}>
-                Anonymous Poll
+                {ANONYMOUS_POLL_TEXT}
               </Text>
               <Switch
                 trackColor={{
@@ -713,7 +725,7 @@ const CreatePollUI = ({
                 styles.marginSpace,
               ]}>
               <Text style={[styles.font, styles.blackColor]}>
-                Don't show live results
+                {LIVE_RESULT_TEXT}
               </Text>
               <Switch
                 trackColor={{
@@ -741,7 +753,7 @@ const CreatePollUI = ({
                 styles.marginSpace,
               ]}>
               <Text style={[styles.smallText, styles.greyColor]}>
-                User can vote for
+                {USER_CAN_VOTE_FOR}
               </Text>
             </View>
             <View
@@ -775,7 +787,7 @@ const CreatePollUI = ({
                 style={[styles.alignRow, styles.justifySpace, {flexGrow: 1}]}>
                 <Text style={[styles.text, styles.blackColor]}>
                   {!voteAllowedPerUser
-                    ? 'Select option'
+                    ? SELECT_OPTION
                     : `${
                         voteAllowedPerUser > 1
                           ? `${voteAllowedPerUser} options`
@@ -801,7 +813,7 @@ const CreatePollUI = ({
             styles.postButton,
             hue ? {backgroundColor: `hsl(${hue}, 53%, 15%)`} : null,
           ]}>
-          <Text style={[styles.font, styles.whiteColor]}>POST</Text>
+          <Text style={[styles.font, styles.whiteColor]}>{POST_TITLE}</Text>
         </TouchableOpacity>
 
         {/* User can vote for option Modal */}
@@ -851,8 +863,6 @@ const PollConversationView = ({
 
   const dispatch = useAppDispatch();
 
-  // let pollsArr = item?.polls;
-
   // this function navigates to poll result screen if we click on votes or show alert in case of anonymous poll
   const onNavigate = () => {
     if (item?.is_anonymous) {
@@ -884,8 +894,14 @@ const PollConversationView = ({
             // show submit poll button
             setShouldShowSubmitPollButton(true);
           } else if (selectedPolls.length > MAX_POLL_OPTIONS) {
-             // show toast
-            console.log('Error here');
+            // show toast
+            dispatch({
+              type: SHOW_TOAST,
+              body: {
+                isToast: true,
+                msg: `'You can select max ${item?.multiple_select_no} options. Unselect an option or submit your vote now'`,
+              },
+            });
           }
           break;
         }
@@ -893,11 +909,17 @@ const PollConversationView = ({
         case 0: {
           // Exactly
           if (selectedPolls.length === MAX_POLL_OPTIONS) {
-             // show submit poll button
+            // show submit poll button
             setShouldShowSubmitPollButton(true);
           } else if (selectedPolls.length > MAX_POLL_OPTIONS) {
-             // show toast
-            console.log('Error here');
+            // show toast
+            dispatch({
+              type: SHOW_TOAST,
+              body: {
+                isToast: true,
+                msg: `'You can select max ${item?.multiple_select_no} options. Unselect an option or submit your vote now'`,
+              },
+            });
           }
           break;
         }
@@ -907,10 +929,10 @@ const PollConversationView = ({
             selectedPolls.length <= item.multiple_select_no &&
             selectedPolls.length > 0
           ) {
-             // show submit poll button
+            // show submit poll button
             setShouldShowSubmitPollButton(true);
           } else {
-             // hide submit poll button
+            // hide submit poll button
             setShouldShowSubmitPollButton(false);
           }
           break;
@@ -918,17 +940,17 @@ const PollConversationView = ({
 
         case 2: {
           if (selectedPolls.length >= item.multiple_select_no) {
-             // show submit poll button
+            // show submit poll button
             setShouldShowSubmitPollButton(true);
           } else {
-             // hide submit poll button
+            // hide submit poll button
             setShouldShowSubmitPollButton(false);
           }
           break;
         }
 
         default: {
-           // hide submit poll button
+          // hide submit poll button
           setShouldShowSubmitPollButton(false);
         }
       }
@@ -1036,14 +1058,17 @@ const PollConversationView = ({
 
       await reloadConversation();
     } catch (error) {
-      console.log('error at addPollOption', error);
+      // process error
     }
   }
 
   // this function used we interact with poll options
   async function setSelectedPollOptions(pollIndex: any) {
     if (Date.now() > item?.expiry_time) {
-      Alert.alert('expired');
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: POLL_ENDED_WARNING},
+      });
       return;
     }
     const newSelectedPolls = [...selectedPolls];
@@ -1067,11 +1092,10 @@ const PollConversationView = ({
         return poll?.is_selected;
       });
 
+      // Already submitted poll condition
       if (isSelected && item?.poll_type === 0) {
-        alert('Already voted');
         return;
       } else if (item?.poll_type === 1 && shouldShowVotes) {
-        alert('Already voted ==');
         return;
       }
 
@@ -1084,9 +1108,12 @@ const PollConversationView = ({
             polls: [item?.polls[pollIndex]],
           });
           await reloadConversation();
+          dispatch({
+            type: SHOW_TOAST,
+            body: {isToast: true, msg: POLL_SUBMITTED_SUCCESSFULLY},
+          });
         } else {
           // for instant poll selection only for once
-          console.log('isSelected ===', isSelected);
 
           // if not selected
           if (!isSelected) {
@@ -1095,8 +1122,10 @@ const PollConversationView = ({
               polls: [item?.polls[pollIndex]],
             });
             await reloadConversation();
-          } else {
-            alert('Already Voted');
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: POLL_SUBMITTED_SUCCESSFULLY},
+            });
           }
         }
         return;
@@ -1134,8 +1163,12 @@ const PollConversationView = ({
       });
       await reloadConversation();
       setShouldShowVotes(true);
+      dispatch({
+        type: SHOW_TOAST,
+        body: {isToast: true, msg: POLL_SUBMITTED_SUCCESSFULLY},
+      });
     } catch (error) {
-      console.log('error at poll submission', error);
+      // process error
     }
   }
 
@@ -1263,11 +1296,9 @@ const PollConversationUI = ({
         <TouchableOpacity
           onLongPress={() => {
             longPressOpenKeyboard();
-            // alert('sdjn');
           }}
           onPress={() => {
             openKeyboard();
-            // alert('ryayy');
           }}
           style={styles.selectedItem}
         />
@@ -1445,7 +1476,7 @@ const PollConversationUI = ({
             ]}>
             <Text
               style={[styles.text, styles.blackColor, styles.textAlignCenter]}>
-              + Add an option
+              {ADD_OPTION_TEXT}
             </Text>
           </Pressable>
         </View>
@@ -1502,7 +1533,7 @@ const PollConversationUI = ({
                 styles.smallTextMedium,
                 !shouldShowSubmitPollButton ? styles.greyColor : null,
               ]}>
-              SUBMIT VOTE
+              {SUBMIT_VOTE_TITLE}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1532,7 +1563,7 @@ const PollConversationUI = ({
             source={require('../../assets/images/edit_icon3x.png')}
           />
           <Text style={[styles.textAlignCenter, styles.smallTextMedium]}>
-            EDIT POLL
+            {EDIT_POLL_TEXT}
           </Text>
         </TouchableOpacity>
       ) : null}
@@ -1612,12 +1643,11 @@ const AddOptionUI = ({
         </TouchableOpacity>
         <View>
           <Text style={[styles.boldText, styles.blackColor]}>
-            Add new poll option
+            {ADD_NEW_POLL_OPTION}
           </Text>
           <Text
             style={[styles.smallText, styles.greyColor, styles.marginSpace]}>
-            Enter an option that you think is missing in this poll. This can not
-            be undone.
+            {NEW_POLL_OPTION_TEXT}
           </Text>
         </View>
         <View style={styles.extraMarginSpace}>
@@ -1642,7 +1672,7 @@ const AddOptionUI = ({
                 styles.whiteColor,
                 styles.textAlignCenter,
               ]}>
-              SUBMIT
+              {SUBMIT_TEXT}
             </Text>
           </TouchableOpacity>
         </View>
