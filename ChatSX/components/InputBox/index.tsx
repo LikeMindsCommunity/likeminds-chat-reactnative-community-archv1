@@ -83,7 +83,6 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
-import CreatePollModal, {CreatePollScreen} from '../Poll';
 
 interface InputBox {
   replyChatID?: any;

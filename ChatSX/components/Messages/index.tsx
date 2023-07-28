@@ -12,7 +12,7 @@ import {
   SELECTED_MESSAGES,
   SET_POSITION,
 } from '../../store/types/types';
-import {PollConversationUI, PollConversationView} from '../Poll';
+import {PollConversationView} from '../Poll';
 
 interface Messages {
   item: any;
