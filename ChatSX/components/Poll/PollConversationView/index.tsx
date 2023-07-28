@@ -285,7 +285,7 @@ const PollConversationView = ({
       }
 
       // if only one option is allowed
-      if (item?.multiple_select_no === 1) {
+      if (item?.multiple_select_no === 1 || !item?.multiple_select_no) {
         // can change selected ouptput in deferred poll
         if (item?.poll_type === 1) {
           const pollSubmissionCall = await myClient.submitPoll({
