@@ -14,6 +14,7 @@ const AddOptionsModal = ({
   }: any) => {
     const handleModalClose = () => {
       setIsAddPollOptionModalVisible(false);
+      setAddOptionInputField('');
     };
     return (
       <Modal
@@ -32,6 +33,7 @@ const AddOptionsModal = ({
                   addOptionInputField={addOptionInputField}
                   setAddOptionInputField={setAddOptionInputField}
                   handelAddOptionSubmit={handelAddOptionSubmit}
+                  handleModalClose={handleModalClose}
                 />
               </View>
             </Pressable>
@@ -50,14 +52,13 @@ const AddOptionsModal = ({
     setAddOptionInputField,
     setIsAddPollOptionModalVisible,
     handelAddOptionSubmit,
+    handleModalClose,
   }: any) => {
     return (
       <View>
         <View style={styles.padding20}>
           <TouchableOpacity
-            onPress={() => {
-              setIsAddPollOptionModalVisible(false);
-            }}
+            onPress={handleModalClose}
             style={[{alignSelf: 'flex-end'}]}>
             <Image
               style={[styles.pollIcon, {tintColor: styles.blackColor.color}]}

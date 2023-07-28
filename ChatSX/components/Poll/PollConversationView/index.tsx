@@ -86,7 +86,7 @@ const PollConversationView = ({
               type: SHOW_TOAST,
               body: {
                 isToast: true,
-                msg: `'You can select max ${item?.multiple_select_no} options. Unselect an option or submit your vote now'`,
+                msg: `You can select max ${item?.multiple_select_no} options. Unselect an option or submit your vote now`,
               },
             });
           }
@@ -104,7 +104,7 @@ const PollConversationView = ({
               type: SHOW_TOAST,
               body: {
                 isToast: true,
-                msg: `'You can select max ${item?.multiple_select_no} options. Unselect an option or submit your vote now'`,
+                msg: `You can select max ${item?.multiple_select_no} options. Unselect an option or submit your vote now`,
               },
             });
           }
@@ -234,6 +234,7 @@ const PollConversationView = ({
       }
 
       setIsAddPollOptionModalVisible(false);
+      setAddOptionInputField('');
 
       const pollObject = {
         text: addOptionInputField,
@@ -336,38 +337,53 @@ const PollConversationView = ({
 
   // this function call submit poll button API
   async function submitPoll() {
-    try {
-      const polls = selectedPolls?.map((itemIndex: any) => {
-        return item?.polls[itemIndex];
-      });
-      const pollSubmissionCall = await myClient.submitPoll({
-        conversationId: item?.id,
-        polls: polls,
-      });
-      await reloadConversation();
-      setShouldShowVotes(true);
+    if (shouldShowSubmitPollButton) {
+      try {
+        const polls = selectedPolls?.map((itemIndex: any) => {
+          return item?.polls[itemIndex];
+        });
+        const pollSubmissionCall = await myClient.submitPoll({
+          conversationId: item?.id,
+          polls: polls,
+        });
+        await reloadConversation();
+        setShouldShowVotes(true);
+        setSelectedPolls([]);
+        dispatch({
+          type: SHOW_TOAST,
+          body: {isToast: true, msg: POLL_SUBMITTED_SUCCESSFULLY},
+        });
+      } catch (error) {
+        // process error
+      }
+    } else {
+      let string = stringManipulation(true);
       dispatch({
         type: SHOW_TOAST,
-        body: {isToast: true, msg: POLL_SUBMITTED_SUCCESSFULLY},
+        body: {
+          isToast: true,
+          msg: string,
+        },
       });
-    } catch (error) {
-      // process error
     }
   }
 
-  const stringManipulation = () => {
+  const stringManipulation = (val?: boolean) => {
     const multipleSelectNo = item?.multiple_select_no;
     switch (item?.multiple_select_state) {
       case POLL_MULTIPLE_STATE_EXACTLY: {
-        return `*Select exactly ${multipleSelectNo} options.`;
+        let string = `Select exactly ${multipleSelectNo} options.`;
+        return val ? string : `*` + string;
       }
 
       case POLL_MULTIPLE_STATE_MAX: {
-        return `*Select at most ${multipleSelectNo} options.`;
+        let string = `Select at most ${multipleSelectNo} options.`;
+        return val ? string : `*` + string;
       }
 
       case POLL_MULTIPLE_STATE_LEAST: {
-        return `*Select at least ${multipleSelectNo} options.`;
+        let string = `Select at least ${multipleSelectNo} options.`;
+        return val ? string : `*` + string;
       }
 
       default: {

@@ -22,7 +22,7 @@ import {
 import {Platform} from 'react-native';
 import ActionAlertModal from '../../../customModals/ActionListModel';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { CreatePollProps } from '../../../Models/PollModels';
+import {CreatePollProps} from '../../../Models/PollModels';
 
 const CreatePollUI = ({
   hue,
@@ -67,7 +67,10 @@ const CreatePollUI = ({
 }: CreatePollProps) => {
   return (
     <View>
-      <ScrollView contentContainerStyle={{paddingBottom: 50}} bounces={false}>
+      <ScrollView
+        keyboardShouldPersistTaps={'handled'}
+        contentContainerStyle={{paddingBottom: 50}}
+        bounces={false}>
         {/* Poll question */}
         <View style={styles.pollQuestion}>
           <View>
@@ -137,7 +140,7 @@ const CreatePollUI = ({
                           styles.pollIcon,
                           {tintColor: styles.blackColor.color},
                         ]}
-                        source={require('../../assets/images/cross_icon3x.png')}
+                        source={require('../../../assets/images/cross_icon3x.png')}
                       />
                     </TouchableOpacity>
                   ) : null}
@@ -158,7 +161,7 @@ const CreatePollUI = ({
                 styles.optionIcon,
                 hue ? {tintColor: `hsl(${hue}, 53%, 15%)`} : null,
               ]}
-              source={require('../../assets/images/add_options3x.png')}
+              source={require('../../../assets/images/add_options3x.png')}
             />
             <Text
               style={[
@@ -210,7 +213,7 @@ const CreatePollUI = ({
                         styles.pollIcon,
                         {tintColor: styles.blackColor.color},
                       ]}
-                      source={require('../../assets/images/cross_icon3x.png')}
+                      source={require('../../../assets/images/cross_icon3x.png')}
                     />
                   </TouchableOpacity>
                 ) : null}
@@ -255,8 +258,8 @@ const CreatePollUI = ({
             style={styles.downArrow}
             source={
               !showAdvancedOption
-                ? require('../../assets/images/expand_arrow3x.png')
-                : require('../../assets/images/minimize_arrow3x.png')
+                ? require('../../../assets/images/expand_arrow3x.png')
+                : require('../../../assets/images/minimize_arrow3x.png')
             }
           />
         </TouchableOpacity>
@@ -374,7 +377,7 @@ const CreatePollUI = ({
                 </Text>
                 <Image
                   style={styles.pollIcon}
-                  source={require('../../assets/images/sort_down3x.png')}
+                  source={require('../../../assets/images/sort_down3x.png')}
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -393,7 +396,7 @@ const CreatePollUI = ({
                 </Text>
                 <Image
                   style={styles.pollIcon}
-                  source={require('../../assets/images/sort_down3x.png')}
+                  source={require('../../../assets/images/sort_down3x.png')}
                 />
               </TouchableOpacity>
             </View>

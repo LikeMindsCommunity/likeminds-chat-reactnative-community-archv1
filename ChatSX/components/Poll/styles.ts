@@ -265,6 +265,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     fontSize: 14,
+    color: STYLES.$COLORS.PRIMARY,
   },
   borderBottom: {
     borderBottomColor: '#c5c5c5',
@@ -332,5 +333,12 @@ export const styles = StyleSheet.create({
     width: 25,
     resizeMode: 'contain',
     tintColor: STYLES.$COLORS.PRIMARY,
+  },
+  optionText: {
+    position: 'absolute',
+    zIndex: 1,
+    alignItems: 'center',
+    left: 5,
+    top: Platform.OS === 'ios' ? '35%' : '30%',
   },
 });

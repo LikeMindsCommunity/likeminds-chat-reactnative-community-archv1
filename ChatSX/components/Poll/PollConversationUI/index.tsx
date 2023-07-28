@@ -85,7 +85,7 @@ const PollConversationUI = ({
               hue ? {backgroundColor: `hsl(${hue}, 53%, 15%)`} : null,
             ]}>
             <Image
-              source={require('../../assets/images/poll_icon3x.png')}
+              source={require('../../../assets/images/poll_icon3x.png')}
               style={styles.pollIcon}
             />
           </View>
@@ -116,6 +116,7 @@ const PollConversationUI = ({
         {optionArr?.map((element: any, index: any) => {
           let isSelected = selectedPolls.includes(index);
           let voteCount = element?.no_votes;
+          let isPollSentByMe = user?.id === element?.member?.id ? true : false;
           return (
             <View key={element?.id} style={styles.gap}>
               <Pressable
@@ -146,24 +147,14 @@ const PollConversationUI = ({
                       : null,
                   ]}>
                   <Text
-                    style={[
-                      styles.text,
-                      styles.blackColor,
-                      {
-                        position: 'absolute',
-                        zIndex: 1,
-                        alignItems: 'center',
-                        left: 5,
-                        top: '35%',
-                      },
-                    ]}>
+                    style={[styles.text, styles.blackColor, styles.optionText]}>
                     {element?.text}
                   </Text>
 
                   {isSelected ? (
                     <View style={styles.selected}>
                       <Image
-                        source={require('../../assets/images/white_tick3x.png')}
+                        source={require('../../../assets/images/white_tick3x.png')}
                         style={styles.smallIcon}
                       />
                     </View>
@@ -194,17 +185,23 @@ const PollConversationUI = ({
                 </View>
               </Pressable>
 
-              <Pressable
-                onPress={() => {
-                  onNavigate();
-                }}>
-                <Text
-                  style={[
-                    styles.smallText,
-                    {marginLeft: 5},
-                    !!(voteCount < 1) ? styles.greyColor : null,
-                  ]}>{`${voteCount} ${voteCount > 1 ? 'votes' : 'vote'}`}</Text>
-              </Pressable>
+              {(isPollSentByMe && pollType === 1) ||
+              pollType === 0 ||
+              isPollEnded ? (
+                <Pressable
+                  onPress={() => {
+                    onNavigate();
+                  }}>
+                  <Text
+                    style={[
+                      styles.smallText,
+                      {marginLeft: 5},
+                      !!(voteCount < 1) ? styles.greyColor : null,
+                    ]}>{`${voteCount} ${
+                    voteCount > 1 ? 'votes' : 'vote'
+                  }`}</Text>
+                </Pressable>
+              ) : null}
             </View>
           );
         })}
@@ -258,9 +255,7 @@ const PollConversationUI = ({
               longPressOpenKeyboard();
             }}
             onPress={() => {
-              if (shouldShowSubmitPollButton) {
-                submitPoll();
-              }
+              submitPoll();
             }}
             style={[
               styles.submitVoteButton,
@@ -276,7 +271,7 @@ const PollConversationUI = ({
                   ? {tintColor: styles.greyColor.color}
                   : null,
               ]}
-              source={require('../../assets/images/submit_click3x.png')}
+              source={require('../../../assets/images/submit_click3x.png')}
             />
             <Text
               style={[
@@ -311,7 +306,7 @@ const PollConversationUI = ({
           ]}>
           <Image
             style={[styles.editIcon]}
-            source={require('../../assets/images/edit_icon3x.png')}
+            source={require('../../../assets/images/edit_icon3x.png')}
           />
           <Text style={[styles.textAlignCenter, styles.smallTextMedium]}>
             {EDIT_POLL_TEXT}
