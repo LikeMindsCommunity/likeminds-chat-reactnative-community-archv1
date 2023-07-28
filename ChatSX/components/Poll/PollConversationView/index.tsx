@@ -51,11 +51,12 @@ const PollConversationView = ({
   const dispatch = useAppDispatch();
 
   // this function navigates to poll result screen if we click on votes or show alert in case of anonymous poll
-  const onNavigate = () => {
+  const onNavigate = (val: string) => {
     if (item?.is_anonymous) {
       setIsAnonymousPollModalVisible(true);
     } else {
       navigation.navigate(POLL_RESULT, {
+        screen: val,
         tabsValueArr: pollsArr,
         conversationID: item?.id,
       });

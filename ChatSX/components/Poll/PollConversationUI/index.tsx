@@ -190,7 +190,7 @@ const PollConversationUI = ({
               isPollEnded ? (
                 <Pressable
                   onPress={() => {
-                    onNavigate();
+                    onNavigate(element?.text);
                   }}>
                   <Text
                     style={[
@@ -234,7 +234,7 @@ const PollConversationUI = ({
       {toShowResults === true ? (
         <Pressable
           onPress={() => {
-            onNavigate();
+            onNavigate('');
           }}>
           <Text
             style={[

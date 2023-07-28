@@ -91,7 +91,7 @@ export interface PollConversationViewState {
 }
 
 export interface PollConversationViewCallbacks {
-  onNavigate: () => void;
+  onNavigate: (val: string) => void;
   setSelectedPollOptions: (pollIndex: any) => void;
   addPollOption: () => void;
   submitPoll: () => void;
