@@ -46,7 +46,7 @@ import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../../..';
 import {launchImageLibrary} from 'react-native-image-picker';
 import DocumentPicker from 'react-native-document-picker';
-import {FILE_UPLOAD} from '../../constants/Screens';
+import {CREATE_POLL_SCREEN, FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {
@@ -58,6 +58,7 @@ import {
   IMAGE_TEXT,
   PDF_TEXT,
   PHOTOS_AND_VIDEOS_TEXT,
+  POLL_TEXT,
   SUCCESS,
   VIDEO_TEXT,
 } from '../../constants/Strings';
@@ -123,6 +124,7 @@ const InputBox = ({
   const [inputHeight, setInputHeight] = useState(25);
   const [showEmoji, setShowEmoji] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [pollModalVisible, setPollModalVisible] = useState(false);
   const [progressText, setProgressText] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [s3UploadResponse, setS3UploadResponse] = useState<any>();
@@ -1275,6 +1277,23 @@ const InputBox = ({
                   </TouchableOpacity>
                   <Text style={styles.iconText}>{DOCUMENTS_TEXT}</Text>
                 </View>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible(false);
+                      navigation.navigate(CREATE_POLL_SCREEN, {
+                        chatroomID: chatroomID,
+                      });
+                      // setPollModalVisible(true);
+                    }}
+                    style={styles.pollStyle}>
+                    <Image
+                      source={require('../../assets/images/poll_icon3x.png')}
+                      style={styles.emoji}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.iconText}>{POLL_TEXT}</Text>
+                </View>
               </View>
             </Pressable>
           </View>
@@ -1287,16 +1306,6 @@ const InputBox = ({
         DMSentAlertModalVisible={DMSentAlertModalVisible}
         onSend={onSend}
       />
-
-      {/* {showEmoji && (
-        <View style={styles.emojiPicker}>
-          <Emoji name="smile" style={styles.emoji} />
-          <Emoji name="satisfied" style={styles.emoji} />
-          <Emoji name="joy" style={styles.emoji} />
-          <Emoji name="blush" style={styles.emoji} />
-          <Emoji name="heart_eyes" style={styles.emoji} />
-        </View>
-      )} */}
     </View>
   );
 };

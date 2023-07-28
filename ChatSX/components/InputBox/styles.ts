@@ -117,6 +117,7 @@ export const styles = StyleSheet.create({
   cameraStyle: {backgroundColor: '#06C3AF', padding: 15, borderRadius: 50},
   imageStyle: {backgroundColor: '#9F5BCA', padding: 15, borderRadius: 50},
   docStyle: {backgroundColor: '#9F5BCA', padding: 15, borderRadius: 50},
+  pollStyle: {backgroundColor: '#4098f7', padding: 15, borderRadius: 50},
   replyBoxParent: {
     backgroundColor: 'white',
     borderBottomRightRadius: 20,

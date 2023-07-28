@@ -12,6 +12,7 @@ import {
   SELECTED_MESSAGES,
   SET_POSITION,
 } from '../../store/types/types';
+import {PollConversationView} from '../Poll';
 
 interface Messages {
   item: any;
@@ -192,6 +193,27 @@ const Messages = ({
             }}
             handleFileUpload={handleFileUpload}
           />
+        ) : item?.state === 10 ? (
+          <View
+            style={[
+              styles.pollMessage,
+              isTypeSent ? styles.sentMessage : styles.receivedMessage,
+              isIncluded
+                ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                : null,
+            ]}>
+            <PollConversationView
+              navigation={navigation}
+              item={item}
+              isIncluded={isIncluded}
+              openKeyboard={() => {
+                openKeyboard();
+              }}
+              longPressOpenKeyboard={() => {
+                longPressOpenKeyboard();
+              }}
+            />
+          </View>
         ) : (
           <View>
             {isItemIncludedInStateArr ? (
@@ -292,6 +314,16 @@ const Messages = ({
                     />
                   </Pressable>
                 ) : null}
+                {/* <View
+                  style={[
+                    styles.message,
+                    isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                    isIncluded
+                      ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                      : null,
+                  ]}>
+                  <PollConversationView />
+                </View> */}
               </View>
             )}
           </View>

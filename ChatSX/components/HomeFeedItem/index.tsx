@@ -277,10 +277,24 @@ const HomeFeedItem: React.FC<Props> = ({
           </Text>
         </View>
       );
+    } else if (val?.state === 10) {
+      return (
+        <View
+          style={[
+            styles.alignCenter,
+          ]}>
+          <Image
+            source={require('../../assets/images/poll_icon3x.png')}
+            style={[styles.icon, {tintColor: STYLES.$COLORS.PRIMARY}]}
+          />
+          <Text style={styles.attachment_msg}>{val?.answer}</Text>
+        </View>
+      );
     } else {
       return;
     }
   };
+
   return (
     <Pressable
       onPress={() => {
@@ -358,6 +372,8 @@ const HomeFeedItem: React.FC<Props> = ({
 
                 <Text numberOfLines={1} style={[styles.parentLastMessage]}>
                   {!!lastConversation?.has_files
+                    ? getFeedIconAttachment(lastConversation)
+                    : lastConversation?.state === 10
                     ? getFeedIconAttachment(lastConversation)
                     : decode(lastMessage, false)}
                 </Text>

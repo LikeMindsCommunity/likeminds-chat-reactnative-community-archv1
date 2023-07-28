@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: '#fff',
-    padding: 30,
+    padding: 25,
     paddingBottom: 20,
     width: '80%',
   },
@@ -22,11 +22,11 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
   },
   message: {
-    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontSize: 15,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
     marginBottom: 20,
-    lineHeight: 25,
+    lineHeight: 20,
     fontWeight: '400',
   },
   buttonContainer: {
