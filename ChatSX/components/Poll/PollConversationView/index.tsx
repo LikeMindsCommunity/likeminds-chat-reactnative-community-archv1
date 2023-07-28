@@ -94,7 +94,7 @@ const PollConversationView = ({
           break;
         }
 
-        case 0: {
+        case POLL_MULTIPLE_STATE_EXACTLY: {
           // Exactly
           if (selectedPolls.length === MAX_POLL_OPTIONS) {
             // show submit poll button
@@ -112,7 +112,7 @@ const PollConversationView = ({
           break;
         }
 
-        case 1: {
+        case POLL_MULTIPLE_STATE_MAX: {
           if (
             selectedPolls.length <= item.multiple_select_no &&
             selectedPolls.length > 0
@@ -126,7 +126,7 @@ const PollConversationView = ({
           break;
         }
 
-        case 2: {
+        case POLL_MULTIPLE_STATE_LEAST: {
           if (selectedPolls.length >= item.multiple_select_no) {
             // show submit poll button
             setShouldShowSubmitPollButton(true);
@@ -318,13 +318,13 @@ const PollConversationView = ({
 
       // multiple options are allowed
       switch (item?.multiple_select_state) {
-        case 0: {
+        case POLL_MULTIPLE_STATE_EXACTLY: {
           if (selectedPolls.length === item?.multiple_select_no) {
             return;
           }
           break;
         }
-        case 1: {
+        case POLL_MULTIPLE_STATE_MAX: {
           if (selectedPolls.length == item?.multiple_select_no) {
             return;
           }

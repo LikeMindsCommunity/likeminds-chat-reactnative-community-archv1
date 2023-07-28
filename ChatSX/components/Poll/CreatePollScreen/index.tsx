@@ -16,6 +16,7 @@ import {SHOW_TOAST} from '../../../store/types/types';
 import {myClient} from '../../../..';
 import CreatePollUI from '../CreatePollUI';
 import {CreatePoll, CreatePollStateProps} from '../../../Models/PollModels';
+import {formatDate} from '../../../commonFuctions';
 
 const CreatePollScreen = ({navigation, route}: CreatePoll) => {
   const [question, setQuestion] = useState<string>('');
@@ -86,12 +87,6 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
     setOptionsArray(initialOptionArray);
   }, []);
 
-  // this function formats the date in "DD/MM/YYYY hh:mm" format
-  const formatDate = (date: any, time: any) => {
-    let formattedTime = moment(date).format('DD/MM/YYYY hh:mm');
-    return formattedTime;
-  };
-
   // this function handles the input poll options
   function handleInputOptionsChangeFunction(index: any, value: any) {
     const newOptions: any = [...optionsArray];
@@ -146,14 +141,14 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
   };
 
   // this function changes the mode
-  const showMode = (currentMode: any) => {
+  const showDateTimePickerMode = (currentMode: any) => {
     setShow(true);
     setMode(currentMode);
   };
 
   // this function set mode "date"
   const showDatePicker = () => {
-    showMode(DATE_TEXT);
+    showDateTimePickerMode(DATE_TEXT);
   };
 
   // this function handles question input in poll
@@ -289,8 +284,8 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
         text: question,
         polls: polls,
         pollType: liveResultsEnabled ? 1 : 0,
-        multipleSelectState: showAdvancedOption ? userVoteFor : 1,
-        multipleSelectNo: showAdvancedOption ? voteAllowedPerUser : 1,
+        multipleSelectState: showAdvancedOption ? userVoteFor : null,
+        multipleSelectNo: showAdvancedOption ? voteAllowedPerUser : null,
         isAnonymous: showAdvancedOption ? anonymousPollEnabled : false,
         allowAddOption: showAdvancedOption ? addOptionsEnabled : false,
         expiryTime: Date.parse(time.toString()),

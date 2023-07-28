@@ -9,6 +9,7 @@ import {
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import {diffChars, diffLines, diffWords} from 'diff';
+import moment from 'moment';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/[^>]+>>)/gu;
 export const REGEX_USER_TAGGING =
@@ -410,17 +411,24 @@ export function detectMentions(input: string) {
     }
   }
 
-  const myArray = input.split(" ");
+  const myArray = input.split(' ');
   const doesExists = myArray.includes('@');
 
-  {/* It basically checks that for the below four conditions:
+  {
+    /* It basically checks that for the below four conditions:
    1. if '@' is at end preceded by a whitespace
    2. if input only contains '@'
    3. if '@' occurs at new line
    4. doesExists checks whether '@' has been typed between two strings
    If any of the above condition is true, it pushes it in the matches list which indicates that member list has to be shown 
-  */}
-  if (input.endsWith(' @') || input === '@' || input.endsWith('\n@') || (doesExists && !input.endsWith(' '))) {
+  */
+  }
+  if (
+    input.endsWith(' @') ||
+    input === '@' ||
+    input.endsWith('\n@') ||
+    (doesExists && !input.endsWith(' '))
+  ) {
     matches.push('');
   }
 
@@ -471,3 +479,9 @@ export function extractPathfromRouteQuery(inputString: string): string | null {
     return null;
   }
 }
+
+// this function formats the date in "DD/MM/YYYY hh:mm" format
+export const formatDate = (date: any, time: any) => {
+  let formattedTime = moment(date).format('DD/MM/YYYY hh:mm');
+  return formattedTime;
+};
