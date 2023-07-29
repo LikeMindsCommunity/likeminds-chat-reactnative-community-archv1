@@ -48,6 +48,9 @@ export const styles = StyleSheet.create({
   paddingHorizontal15: {
     paddingHorizontal: 15,
   },
+  paddingVertical5: {
+    paddingVertical: 5,
+  },
   marginSpace: {
     marginTop: 10,
   },
