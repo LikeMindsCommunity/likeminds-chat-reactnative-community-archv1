@@ -51,6 +51,9 @@ export const styles = StyleSheet.create({
   paddingVertical5: {
     paddingVertical: 5,
   },
+  paddingVertical10: {
+    paddingVertical: 10,
+  },
   marginSpace: {
     marginTop: 10,
   },
@@ -174,6 +177,12 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 0,
     backgroundColor: STYLES.$COLORS.TERTIARY,
     marginTop: 15,
+  },
+  advancedOptions: {
+    paddingHorizontal: 0,
+    backgroundColor: STYLES.$COLORS.TERTIARY,
+    marginTop: 15,
+    paddingBottom: 10,
   },
   option: {
     paddingVertical: 10,

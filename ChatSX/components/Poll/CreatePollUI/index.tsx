@@ -268,12 +268,12 @@ const CreatePollUI = ({
 
         {/* Advance options*/}
         {showAdvancedOption ? (
-          <View style={[styles.answerOptions]}>
+          <View style={[styles.advancedOptions]}>
             <View
               style={[
                 styles.alignRow,
                 styles.justifySpace,
-                styles.paddingVertical5,
+                styles.paddingVertical10,
                 styles.borderBottom,
                 styles.paddingHorizontal15,
               ]}>
@@ -303,8 +303,7 @@ const CreatePollUI = ({
               style={[
                 styles.alignRow,
                 styles.justifySpace,
-                styles.marginSpace,
-                styles.paddingVertical5,
+                styles.paddingVertical10,
                 styles.borderBottom,
                 styles.paddingHorizontal15,
               ]}>
@@ -334,8 +333,7 @@ const CreatePollUI = ({
               style={[
                 styles.alignRow,
                 styles.justifySpace,
-                styles.marginSpace,
-                styles.paddingVertical5,
+                styles.paddingVertical10,
                 styles.borderBottom,
                 styles.paddingHorizontal15,
               ]}>
