@@ -11,3 +11,5 @@ export const VIDEO_PLAYER = 'VideoPlayer';
 export const CAROUSEL_SCREEN = 'CarouselScreen';
 export const GROUP_FEED = 'GroupFeed';
 export const DM_FEED = 'DMFeed';
+export const POLL_RESULT = 'PollResult';
+export const CREATE_POLL_SCREEN = 'CreatePollScreen';

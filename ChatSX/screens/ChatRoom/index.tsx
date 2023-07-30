@@ -959,7 +959,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   const leaveSecretChatroom = async () => {
-    const payload = {
+    const payload: any = {
       chatroomId: chatroomID,
       isSecret: isSecret,
     };
@@ -1910,6 +1910,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
+        keyboardShouldPersistTaps={'handled'}
         inverted
       />
 

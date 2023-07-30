@@ -56,7 +56,7 @@ export const getMemberState = (payload?: any) => async (dispatch: Dispatch) => {
     return await dispatch({
       type: PROFILE_DATA_SUCCESS,
       [CALL_API]: {
-        func: myClient?.getMemberState(payload),
+        func: myClient?.getMemberState(),
         body: payload,
         types: [PROFILE_DATA, PROFILE_DATA_SUCCESS, PROFILE_DATA_FAILED],
         showLoader: true,
