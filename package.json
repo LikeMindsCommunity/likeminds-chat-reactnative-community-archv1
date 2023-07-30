@@ -29,6 +29,7 @@
     "firebase": "9.17.1",
     "react": "18.2.0",
     "react-native": "0.71.1",
+    "react-native-compressor": "^1.6.1",
     "react-native-create-thumbnail": "1.6.4",
     "react-native-device-info": "10.4.0",
     "react-native-document-picker": "8.2.0",
