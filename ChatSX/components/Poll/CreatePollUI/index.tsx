@@ -23,6 +23,7 @@ import {Platform} from 'react-native';
 import ActionAlertModal from '../../../customModals/ActionListModel';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {CreatePollProps} from '../../../Models/PollModels';
+import STYLES from '../../../constants/Styles';
 
 const CreatePollUI = ({
   hue,
@@ -229,6 +230,7 @@ const CreatePollUI = ({
                   display="default"
                   onChange={onChange}
                   minimumDate={mode === 'date' ? new Date() : undefined}
+                  accentColor={STYLES.$COLORS.PRIMARY}
                 />
               )}
             </TouchableOpacity>
@@ -266,8 +268,15 @@ const CreatePollUI = ({
 
         {/* Advance options*/}
         {showAdvancedOption ? (
-          <View style={[styles.answerOptions, styles.paddingHorizontal15]}>
-            <View style={[styles.alignRow, styles.justifySpace]}>
+          <View style={[styles.advancedOptions]}>
+            <View
+              style={[
+                styles.alignRow,
+                styles.justifySpace,
+                styles.paddingVertical10,
+                styles.borderBottom,
+                styles.paddingHorizontal15,
+              ]}>
               <Text style={[styles.font, styles.blackColor]}>
                 Allow voters to add the option
               </Text>
@@ -294,7 +303,9 @@ const CreatePollUI = ({
               style={[
                 styles.alignRow,
                 styles.justifySpace,
-                styles.marginSpace,
+                styles.paddingVertical10,
+                styles.borderBottom,
+                styles.paddingHorizontal15,
               ]}>
               <Text style={[styles.font, styles.blackColor]}>
                 {ANONYMOUS_POLL_TEXT}
@@ -322,7 +333,9 @@ const CreatePollUI = ({
               style={[
                 styles.alignRow,
                 styles.justifySpace,
-                styles.marginSpace,
+                styles.paddingVertical10,
+                styles.borderBottom,
+                styles.paddingHorizontal15,
               ]}>
               <Text style={[styles.font, styles.blackColor]}>
                 {LIVE_RESULT_TEXT}
@@ -346,59 +359,61 @@ const CreatePollUI = ({
                 value={liveResultsEnabled}
               />
             </View>
-            <View
-              style={[
-                styles.alignRow,
-                styles.justifySpace,
-                styles.marginSpace,
-              ]}>
-              <Text style={[styles.smallText, styles.greyColor]}>
-                {USER_CAN_VOTE_FOR}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.alignRow,
-                styles.justifySpace,
-                styles.marginSpace,
-              ]}>
-              <TouchableOpacity
-                onPress={() => {
-                  handleOpenActionModal();
-                }}
+            <View style={[styles.paddingHorizontal15, styles.paddingVertical5]}>
+              <View
                 style={[
-                  {flexGrow: 1},
                   styles.alignRow,
                   styles.justifySpace,
-                  {marginRight: 30},
+                  styles.marginSpace,
                 ]}>
-                <Text style={[styles.text, styles.blackColor]}>
-                  {userCanVoteForArr[userVoteFor]}
+                <Text style={[styles.smallText, styles.greyColor]}>
+                  {USER_CAN_VOTE_FOR}
                 </Text>
-                <Image
-                  style={styles.pollIcon}
-                  source={require('../../../assets/images/sort_down3x.png')}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  handleOpenOptionModal();
-                }}
-                style={[styles.alignRow, styles.justifySpace, {flexGrow: 1}]}>
-                <Text style={[styles.text, styles.blackColor]}>
-                  {!voteAllowedPerUser
-                    ? SELECT_OPTION
-                    : `${
-                        voteAllowedPerUser > 1
-                          ? `${voteAllowedPerUser} options`
-                          : `${voteAllowedPerUser} option`
-                      }`}
-                </Text>
-                <Image
-                  style={styles.pollIcon}
-                  source={require('../../../assets/images/sort_down3x.png')}
-                />
-              </TouchableOpacity>
+              </View>
+              <View
+                style={[
+                  styles.alignRow,
+                  styles.justifySpace,
+                  styles.marginSpace,
+                ]}>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleOpenActionModal();
+                  }}
+                  style={[
+                    {flexGrow: 1},
+                    styles.alignRow,
+                    styles.justifySpace,
+                    {marginRight: 30},
+                  ]}>
+                  <Text style={[styles.text, styles.blackColor]}>
+                    {userCanVoteForArr[userVoteFor]}
+                  </Text>
+                  <Image
+                    style={styles.pollIcon}
+                    source={require('../../../assets/images/sort_down3x.png')}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleOpenOptionModal();
+                  }}
+                  style={[styles.alignRow, styles.justifySpace, {flexGrow: 1}]}>
+                  <Text style={[styles.text, styles.blackColor]}>
+                    {!voteAllowedPerUser
+                      ? SELECT_OPTION
+                      : `${
+                          voteAllowedPerUser > 1
+                            ? `${voteAllowedPerUser} options`
+                            : `${voteAllowedPerUser} option`
+                        }`}
+                  </Text>
+                  <Image
+                    style={styles.pollIcon}
+                    source={require('../../../assets/images/sort_down3x.png')}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         ) : null}
