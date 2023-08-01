@@ -19,6 +19,7 @@ const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
   const [userUniqueID, setUserUniqueID] = useState<any>();
+  const [userName, setUserName] = useState<any>();
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
     async function bootstrap() {
@@ -37,11 +38,13 @@ function App(): JSX.Element {
     async function invokeDataLayer() {
       const userUniqueID = await AsyncStorage.getItem('userUniqueID');
       setUserUniqueID(userUniqueID);
+      const userName = await AsyncStorage.getItem('userName');
+      setUserName(userName);
     }
     invokeDataLayer();
   }, []);
 
-  return userUniqueID ? (
+  return userUniqueID && userName ? (
     <ReduxProvider store={store}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

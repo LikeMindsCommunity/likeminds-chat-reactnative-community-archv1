@@ -12,13 +12,17 @@ import STYLES from '../ChatSX/constants/Styles';
 
 const FetchKeyInputScreen = () => {
   const [userUniqueID, setUserUniqueID] = useState('');
+  const [userName, setUserName] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
 
   const handleButtonPress = () => {
     // Perform some action when the button is pressed
     // You can access the input values from input1 and input2 variables
     AsyncStorage.setItem('userUniqueID', userUniqueID);
-    setIsButtonClicked(true);
+    AsyncStorage.setItem('userName', userName);
+    userName && userUniqueID
+      ? setIsButtonClicked(true)
+      : setIsButtonClicked(false);
   };
 
   return (
@@ -26,8 +30,16 @@ const FetchKeyInputScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="User unique ID"
+        placeholderTextColor={'grey'}
         value={userUniqueID}
         onChangeText={text => setUserUniqueID(text)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="User Name"
+        placeholderTextColor={'grey'}
+        value={userName}
+        onChangeText={text => setUserName(text)}
       />
       <TouchableOpacity
         style={{
@@ -42,7 +54,7 @@ const FetchKeyInputScreen = () => {
             fontSize: STYLES.$FONT_SIZES.XL,
             fontFamily: STYLES.$FONT_TYPES.LIGHT,
           }}>
-          Press me
+          Submit
         </Text>
       </TouchableOpacity>
 
@@ -66,6 +78,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: 'white',
   },
   input: {
     width: '100%',
@@ -74,6 +87,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 20,
     paddingHorizontal: 10,
+    color: 'black',
   },
 });
 
