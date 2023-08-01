@@ -120,9 +120,12 @@ export const styles = StyleSheet.create({
   pollStyle: {backgroundColor: '#4098f7', padding: 15, borderRadius: 50},
   replyBoxParent: {
     backgroundColor: 'white',
-    borderBottomRightRadius: 20,
-    borderBottomLeftRadius: 20,
+    borderBottom: 'none',
+    borderBottomWidth: 0,
+    borderBottomRightRadius: 30,
+    borderBottomLeftRadius: 30,
     borderColor: STYLES.$COLORS.MSG,
+    overflow: 'hidden',
   },
   replyBox: {marginHorizontal: 10, marginTop: 10},
   replyBoxClose: {
