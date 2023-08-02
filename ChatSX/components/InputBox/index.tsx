@@ -664,7 +664,7 @@ const InputBox = ({
               type: SHOW_TOAST,
               body: {
                 isToast: true,
-                msg: 'Message not sent. Please check your internet connection',
+                msg: 'Chatroom messaging is blocked!',
               },
             });
           }
