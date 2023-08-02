@@ -1934,9 +1934,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               )
             : null}
           {!(Object.keys(chatroomDetails).length === 0) ? (
-            !(user.state !== 1 && chatroomDetails?.chatroom?.type === 7) &&
-            chatroomFollowStatus &&
-            memberRights[3]?.is_selected === true ? (
+            user.state !== 1 &&
+            chatroomDetails?.chatroom?.member_can_message === false ? (
+              <View style={styles.disabledInput}>
+                <Text style={styles.disabledInputText}>
+                  Only Community Manager can message here.
+                </Text>
+              </View>
+            ) : !(user.state !== 1 && chatroomDetails?.chatroom?.type === 7) &&
+              chatroomFollowStatus &&
+              memberRights[3]?.is_selected === true ? (
               <InputBox
                 replyChatID={replyChatID}
                 chatroomID={chatroomID}
