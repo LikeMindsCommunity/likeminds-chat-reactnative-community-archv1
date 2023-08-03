@@ -51,6 +51,7 @@ import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {
   AUDIO_TEXT,
+  BLOCKED_DM,
   CAMERA_TEXT,
   CHARACTER_LIMIT_MESSAGE,
   DOCUMENTS_TEXT,
@@ -664,7 +665,7 @@ const InputBox = ({
               type: SHOW_TOAST,
               body: {
                 isToast: true,
-                msg: 'Chatroom messaging is blocked!',
+                msg: BLOCKED_DM,
               },
             });
           }
