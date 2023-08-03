@@ -7,7 +7,9 @@ import {
   Pressable,
   TextInput,
   BackHandler,
+  LogBox,
 } from 'react-native';
+import {Image as CompressedImage} from 'react-native-compressor';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import styles from './styles';
 import Layout from '../../constants/Layout';
@@ -114,6 +116,7 @@ const FileUpload = ({navigation, route}: any) => {
     uploadingFilesMessages,
     isRetry,
   }: UploadResource) => {
+    LogBox.ignoreLogs(['new NativeEventEmitter']);
     const s3 = new S3();
 
     for (let i = 0; i < selectedImages?.length; i++) {
@@ -132,7 +135,11 @@ const FileUpload = ({navigation, route}: any) => {
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      const img = await fetchResourceFromURI(item?.uri);
+      //image compression
+      const compressedImgURI = await CompressedImage.compress(item.uri, {
+        compressionMethod: 'auto',
+      });
+      const compressedImg = await fetchResourceFromURI(compressedImgURI);
 
       //for video thumbnail
       let thumbnailUrlImg = null;
@@ -143,7 +150,7 @@ const FileUpload = ({navigation, route}: any) => {
       const params = {
         Bucket: BUCKET,
         Key: path,
-        Body: img,
+        Body: compressedImg,
         ACL: 'public-read-write',
         ContentType: item?.type, // Replace with the appropriate content type for your file
       };

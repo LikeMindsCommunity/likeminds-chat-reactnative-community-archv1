@@ -20,7 +20,9 @@ import {
   BackHandler,
   ScrollView,
   Platform,
+  LogBox,
 } from 'react-native';
+import {Image as CompressedImage} from 'react-native-compressor';
 import {myClient} from '../../..';
 import {
   SHOW_LIST_REGEX,
@@ -1586,6 +1588,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     uploadingFilesMessages,
     isRetry,
   }: UploadResource) => {
+    LogBox.ignoreLogs(['new NativeEventEmitter']);
     for (let i = 0; i < selectedImages?.length; i++) {
       let item = selectedImages[i];
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
@@ -1602,7 +1605,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      const img = await fetchResourceFromURI(item?.uri);
+      //image compression
+      const compressedImgURI = await CompressedImage.compress(item.uri, {
+        compressionMethod: 'auto',
+      });
+      const compressedImg = await fetchResourceFromURI(compressedImgURI);
 
       //for video thumbnail
       let thumbnailUrlImg = null;
@@ -1613,7 +1620,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       const params = {
         Bucket: BUCKET,
         Key: path,
-        Body: img,
+        Body: compressedImg,
         ACL: 'public-read-write',
         ContentType: item?.type, // Replace with the appropriate content type for your file
       };
