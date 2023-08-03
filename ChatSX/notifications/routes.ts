@@ -1,5 +1,9 @@
 import {CHATROOM, HOMEFEED} from '../constants/Screens';
-import {ROUTE_CHATROOM, ROUTE_CHATROOM_DETAIL} from './constants';
+import {
+  ROUTE_CHATROOM,
+  ROUTE_CHATROOM_DETAIL,
+  ROUTE_POLL_CHATROOM,
+} from './constants';
 
 export function getRoute(route: any) {
   let regexToExtractHost = /route:\/\/(.*?)\?/;
@@ -30,6 +34,16 @@ export function getRoute(route: any) {
           route: CHATROOM,
           params: {
             chatroomID: params[paramsKey[0]],
+            navigationFromNotification: true,
+          },
+        };
+      }
+      case ROUTE_POLL_CHATROOM: {
+        let paramsKey = Object.keys(params);
+        return {
+          route: CHATROOM,
+          params: {
+            chatroomID: params[paramsKey[1]],
             navigationFromNotification: true,
           },
         };
