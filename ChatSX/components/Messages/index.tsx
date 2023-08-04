@@ -88,6 +88,14 @@ const Messages = ({
     }
   }, [item?.reactions]);
 
+  const answerTrimming = (answer: string) => {
+    const startingIndex = answer.indexOf('<');
+    const endingIndex = answer.indexOf('>');
+    return (
+      answer.substring(0, startingIndex - 1) + answer.substring(endingIndex + 2)
+    );
+  };
+
   const reactionLen = reactionArr.length;
 
   // function handles event on longPress action on a message
@@ -257,7 +265,9 @@ const Messages = ({
                 ) : (
                   <View style={[styles.statusMessage]}>
                     <Text style={styles.textCenterAlign}>
-                      {decode(item?.answer, true)}
+                      {item?.state === 1
+                        ? decode(answerTrimming(item?.answer), true)
+                        : decode(item?.answer, true)}
                     </Text>
                   </View>
                 )}
