@@ -88,6 +88,7 @@ const Messages = ({
     }
   }, [item?.reactions]);
 
+  // Trimming of the first user name from API response
   const answerTrimming = (answer: string) => {
     const startingIndex = answer.indexOf('<');
     const endingIndex = answer.indexOf('>');
@@ -265,9 +266,12 @@ const Messages = ({
                 ) : (
                   <View style={[styles.statusMessage]}>
                     <Text style={styles.textCenterAlign}>
-                      {item?.state === 1
-                        ? decode(answerTrimming(item?.answer), true)
-                        : decode(item?.answer, true)}
+                      {
+                        // State 1 refers to initial DM message, so in that case trimming the first user name
+                        item?.state === 1
+                          ? decode(answerTrimming(item?.answer), true)
+                          : decode(item?.answer, true)
+                      }
                     </Text>
                   </View>
                 )}
