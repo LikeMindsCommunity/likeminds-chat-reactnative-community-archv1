@@ -13,6 +13,7 @@ import {
   SET_POSITION,
 } from '../../store/types/types';
 import {PollConversationView} from '../Poll';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Messages {
   item: any;
@@ -88,13 +89,26 @@ const Messages = ({
     }
   }, [item?.reactions]);
 
-  // Trimming of the first user name from API response
+  const getUUID = async () => {
+    const UUID = await AsyncStorage.getItem('userUniqueID');
+    return UUID;
+  };
+
   const answerTrimming = (answer: string) => {
-    const startingIndex = answer.indexOf('<');
-    const endingIndex = answer.indexOf('>');
-    return (
-      answer.substring(0, startingIndex - 1) + answer.substring(endingIndex + 2)
-    );
+    const loggedInMember = getUUID();
+    const chatroomWithUser =
+      chatroomDetails?.chatroom?.chatroom_with_user?.uuid;
+    if (loggedInMember === chatroomWithUser) {
+      const startingIndex = answer.lastIndexOf('<');
+      return answer.substring(0, startingIndex - 2);
+    } else {
+      const startingIndex = answer.indexOf('<');
+      const endingIndex = answer.indexOf('>');
+      return (
+        answer.substring(0, startingIndex - 1) +
+        answer.substring(endingIndex + 2)
+      );
+    }
   };
 
   const reactionLen = reactionArr.length;
