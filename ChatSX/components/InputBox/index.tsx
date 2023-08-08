@@ -40,6 +40,7 @@ import {
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
   UPDATE_LAST_CONVERSATION,
+  EMPTY_BLOCK_DELETION,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -667,6 +668,10 @@ const InputBox = ({
                 isToast: true,
                 msg: BLOCKED_DM,
               },
+            });
+            dispatch({
+              type: EMPTY_BLOCK_DELETION,
+              body: {},
             });
           }
         } else {
