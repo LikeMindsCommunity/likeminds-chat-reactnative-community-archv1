@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
   disabledInput: {
-    marginVertical: 20,
+    marginVertical: Platform.OS === 'android' ? 10 : 20,
     marginHorizontal: 10,
     paddingVertical: 10,
     minHeight: 50,

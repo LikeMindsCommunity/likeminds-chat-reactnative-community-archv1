@@ -40,6 +40,7 @@ import {
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
   UPDATE_LAST_CONVERSATION,
+  EMPTY_BLOCK_DELETION,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -51,6 +52,7 @@ import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {
   AUDIO_TEXT,
+  BLOCKED_DM,
   CAMERA_TEXT,
   CHARACTER_LIMIT_MESSAGE,
   DOCUMENTS_TEXT,
@@ -664,8 +666,12 @@ const InputBox = ({
               type: SHOW_TOAST,
               body: {
                 isToast: true,
-                msg: 'Message not sent. Please check your internet connection',
+                msg: BLOCKED_DM,
               },
+            });
+            dispatch({
+              type: EMPTY_BLOCK_DELETION,
+              body: {},
             });
           }
         } else {
