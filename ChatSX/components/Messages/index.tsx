@@ -89,15 +89,17 @@ const Messages = ({
     }
   }, [item?.reactions]);
 
-  const getUUID = async () => {
-    const UUID = await AsyncStorage.getItem('userUniqueID');
-    return UUID;
+  // Method to get userUniqueId stored in AsyncStorage
+  const getUserUniqueId = async () => {
+    const userUniqueID = await AsyncStorage.getItem('userUniqueID');
+    return userUniqueID;
   };
 
+  // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {
-    const loggedInMember = getUUID();
+    const loggedInMember = getUserUniqueId();
     const chatroomWithUser =
-      chatroomDetails?.chatroom?.chatroom_with_user?.uuid;
+      chatroomDetails?.chatroom?.chatroom_with_user?.user_unique_id;
     if (loggedInMember === chatroomWithUser) {
       const startingIndex = answer.lastIndexOf('<');
       return answer.substring(0, startingIndex - 2);
