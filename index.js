@@ -36,7 +36,7 @@ export const myClient = LMChatClient.setApiKey('')
 function HeadlessCheck({isHeadless}) {
   if (isHeadless) {
     // App has been launched in the background by iOS, ignore
-  return null;
+    return null;
   }
 
   return <App />;
