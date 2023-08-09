@@ -33,6 +33,7 @@ export const REJECT_INVITE_FAILED = 'REJECT_INVITE_FAILED';
 export const SET_PAGE = 'SET_PAGE';
 export const SET_DM_PAGE = 'SET_DM_PAGE';
 export const SHOW_TOAST = 'SHOW_TOAST';
+export const EMPTY_BLOCK_DELETION = 'EMPTY_BLOCK_DELETION';
 
 export const STATUS_BAR_STYLE = 'STATUS_BAR_STYLE';
 

@@ -249,12 +249,19 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             page: 1,
             pageSize: 10,
           }
-        : {
+        : showList == 2
+        ? {
             search: search,
             searchType: 'name',
             page: 1,
             pageSize: 10,
             memberStates: '[1]',
+          }
+        : {
+            search: search,
+            searchType: 'name',
+            page: 1,
+            pageSize: 10,
           };
     const apiRes = await myClient?.searchMembers(initialPayload);
     const res = apiRes?.data;
@@ -300,15 +307,26 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
               page: 1,
               pageSize: 10,
             }
-          : {
+          : showList == 2
+          ? {
               search: search,
               searchType: 'name',
               page: 1,
               pageSize: 10,
               memberStates: '[1]',
+            }
+          : {
+              //for Add Participant screen in case of CM
+              search: search,
+              searchType: 'name',
+              page: 1,
+              pageSize: 10,
             };
-      const res = await myClient?.searchMembers(initialPayload);
-      return res?.data;
+      if (searchedParticipants > 0) {
+        const res = await myClient?.searchMembers(initialPayload);
+        return res?.data;
+      }
+      return;
     } else {
       if (isDM) {
         const res = await myClient?.getAllMembers(
@@ -316,9 +334,13 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             ? {
                 page: newPage,
               }
-            : {
+            : showList == 2
+            ? {
                 page: newPage,
                 memberState: 1,
+              }
+            : {
+                page: newPage,
               },
         );
         return res?.data;
@@ -348,9 +370,8 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
           ...res?.members,
         ]);
       }
-
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   //function checks the pagination logic, if it verifies the condition then call loadData

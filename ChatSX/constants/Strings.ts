@@ -19,7 +19,7 @@ export const REJECT_INVITATION_MESSAGE =
 export const DM_REQUEST_SENT_MESSAGE =
   'The sender has sent you a direct messaging request. Approve or respond with a message to get connected. Rejecting this request will not notify the sender.';
 export const REQUEST_DM_LIMIT = 'Request limit exceeded';
-
+export const BLOCKED_DM = 'Chatroom messaging is blocked!';
 export const NO_DM = 'No direct messages';
 export const NO_DM_TEXT =
   'You have not sent/received any direct messages with any community members.';

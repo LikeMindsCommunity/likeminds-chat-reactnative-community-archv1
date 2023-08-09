@@ -13,6 +13,7 @@ import {
   SET_POSITION,
 } from '../../store/types/types';
 import {PollConversationView} from '../Poll';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Messages {
   item: any;
@@ -87,6 +88,30 @@ const Messages = ({
       }
     }
   }, [item?.reactions]);
+
+  // Method to get userUniqueId stored in AsyncStorage
+  const getUserUniqueId = async () => {
+    const userUniqueID = await AsyncStorage.getItem('userUniqueID');
+    return userUniqueID;
+  };
+
+  // Method to trim the initial DM connection message based on loggedInMember id
+  const answerTrimming = (answer: string) => {
+    const loggedInMember = getUserUniqueId();
+    const chatroomWithUser =
+      chatroomDetails?.chatroom?.chatroom_with_user?.user_unique_id;
+    if (loggedInMember === chatroomWithUser) {
+      const startingIndex = answer.lastIndexOf('<');
+      return answer.substring(0, startingIndex - 2);
+    } else {
+      const startingIndex = answer.indexOf('<');
+      const endingIndex = answer.indexOf('>');
+      return (
+        answer.substring(0, startingIndex - 1) +
+        answer.substring(endingIndex + 2)
+      );
+    }
+  };
 
   const reactionLen = reactionArr.length;
 
@@ -257,7 +282,12 @@ const Messages = ({
                 ) : (
                   <View style={[styles.statusMessage]}>
                     <Text style={styles.textCenterAlign}>
-                      {decode(item?.answer, true)}
+                      {
+                        // State 1 refers to initial DM message, so in that case trimming the first user name
+                        item?.state === 1
+                          ? decode(answerTrimming(item?.answer), true)
+                          : decode(item?.answer, true)
+                      }
                     </Text>
                   </View>
                 )}

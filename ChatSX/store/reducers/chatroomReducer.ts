@@ -25,6 +25,7 @@ import {
   SET_REPLY_MESSAGE,
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
+  EMPTY_BLOCK_DELETION,
 } from '../types/types';
 
 const initialState = {
@@ -46,6 +47,13 @@ const initialState = {
 
 export function chatroomReducer(state = initialState, action: any) {
   switch (action.type) {
+    case EMPTY_BLOCK_DELETION: {
+      let newArr = [...state.conversations].splice(1);
+      return {
+        ...state,
+        conversations: newArr,
+      };
+    }
     case LONG_PRESSED: {
       const isLongPressed = action.body;
       return {
