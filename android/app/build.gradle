@@ -99,7 +99,7 @@ android {
         applicationId "com.likeminds.chat.sx"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 14
+        versionCode 15
         versionName "1.3.0"
         vectorDrawables.useSupportLibrary = true
     }
