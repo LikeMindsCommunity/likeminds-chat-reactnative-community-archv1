@@ -30,7 +30,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 
 export const myClient = LMChatClient.setApiKey('')
   .setPlatformCode('rn')
-  .setVersionCode(parseInt('13'))
+  .setVersionCode(parseInt('14'))
   .build();
 
 function HeadlessCheck({isHeadless}) {
