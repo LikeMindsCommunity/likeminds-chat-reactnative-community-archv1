@@ -90,7 +90,7 @@ const ExploreFeed = ({navigation}: Props) => {
   useEffect(() => {
     if (isPinned) {
       let pinnedChats = exploreChatrooms.filter((item: any) =>
-        !!item?.is_pinned ? item : null,
+        !!item?.isPinned ? item : null,
       );
       setChats(pinnedChats);
     } else {
@@ -138,7 +138,7 @@ const ExploreFeed = ({navigation}: Props) => {
             setIsPinned={val => {
               if (!!val) {
                 let pinnedChats = chats.filter((item: any) =>
-                  !!item?.is_pinned ? item : null,
+                  !!item?.isPinned ? item : null,
                 );
                 setChats(pinnedChats);
                 setIsPinned(val);
@@ -155,15 +155,15 @@ const ExploreFeed = ({navigation}: Props) => {
             // title: item?.chatroom?.title!,
             header: item?.header,
             title: item?.title!,
-            avatar: item?.chatroom_image_url,
-            lastMessage: item?.last_conversation?.answer_text!,
-            lastMessageUser: item?.last_conversation?.member?.name!,
-            isJoined: item?.follow_status,
-            pinned: item?.is_pinned,
-            participants: item?.participants_count,
-            messageCount: item?.total_response_count,
-            external_seen: item?.external_seen,
-            isSecret: item?.is_secret,
+            avatar: item?.chatroomImageUrl,
+            lastMessage: item?.lastConversation?.answerText!,
+            lastMessageUser: item?.lastConversation?.member?.name!,
+            isJoined: item?.followStatus,
+            pinned: item?.isPinned,
+            participants: item?.participantsCount,
+            messageCount: item?.totalResponseCount,
+            externalSeen: item?.externalSeen,
+            isSecret: item?.isSecret,
             chatroomID: item?.id,
             filterState: filterState,
             navigation: navigation,

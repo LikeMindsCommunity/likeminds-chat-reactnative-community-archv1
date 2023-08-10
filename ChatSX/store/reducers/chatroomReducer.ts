@@ -82,7 +82,8 @@ export function chatroomReducer(state = initialState, action: any) {
       const data = action.body;
       const {conversations = []} = data;
       let ID = conversations[0]?.id;
-      let temporaryID = conversations[0]?.temporary_id;
+      let temporaryID = conversations[0]?.temporaryId;
+      console.log('tempIdhai', temporaryID);
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
@@ -107,12 +108,14 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case ON_CONVERSATIONS_CREATE_SUCCESS: {
       const data = action.body;
+      console.log('dataHai', data);
       const {conversation = []} = data;
 
-      if (conversation?.has_files || !!conversation?.reply_conversation) {
+      if (conversation?.hasFiles || !!conversation?.replyConversation) {
         return {...state};
       }
-      let temporaryID = conversation?.temporary_id;
+      let temporaryID = conversation?.temporaryId;
+      console.log('tempHai1', temporaryID);
 
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
@@ -121,7 +124,7 @@ export function chatroomReducer(state = initialState, action: any) {
       let index = conversationsList.findIndex((element: any) => {
         return (
           element?.id?.toString() === temporaryID || // to check locally handled item id with temporaryID
-          element?.temporary_id?.toString() === temporaryID // to replace the messsage if message is already there by verifying message's temporaryID with conversationMeta temporaryID;
+          element?.temporaryId?.toString() === temporaryID // to replace the messsage if message is already there by verifying message's temporaryID with conversationMeta temporaryID;
         );
       });
 
@@ -162,7 +165,7 @@ export function chatroomReducer(state = initialState, action: any) {
           ...state.chatroomDetails,
           chatroom: {
             ...state.chatroomDetails.chatroom,
-            chat_request_state: chatRequestState,
+            chatRequestState: chatRequestState,
           },
         },
       };
@@ -219,9 +222,11 @@ export function chatroomReducer(state = initialState, action: any) {
       };
     }
     case CLEAR_SELECTED_FILES_TO_UPLOAD: {
+      console.log('stateHai', state);
       return {...state, selectedFilesToUpload: []};
     }
     case CLEAR_SELECTED_FILE_TO_VIEW: {
+      console.log('stateHai1', state);
       return {...state, selectedFileToView: {}};
     }
     case SET_IS_REPLY: {

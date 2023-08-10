@@ -36,8 +36,9 @@ import {myClient} from '../../..';
 import {Dispatch} from '@reduxjs/toolkit';
 
 export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
+  console.log('initiated');
   try {
-    return await dispatch({
+    const temp = await dispatch({
       type: INIT_API_SUCCESS,
       [CALL_API]: {
         func: myClient?.initiateUser(payload),
@@ -46,6 +47,8 @@ export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
         showLoader: true,
       },
     });
+    console.log('finale', temp);
+    return temp;
   } catch (error) {
     Alert.alert(`${error}`);
   }
@@ -53,6 +56,7 @@ export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
 
 export const getMemberState = (payload?: any) => async (dispatch: Dispatch) => {
   try {
+    console.log('getting member state');
     return await dispatch({
       type: PROFILE_DATA_SUCCESS,
       [CALL_API]: {

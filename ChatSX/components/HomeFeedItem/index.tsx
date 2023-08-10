@@ -279,10 +279,7 @@ const HomeFeedItem: React.FC<Props> = ({
       );
     } else if (val?.state === 10) {
       return (
-        <View
-          style={[
-            styles.alignCenter,
-          ]}>
+        <View style={[styles.alignCenter]}>
           <Image
             source={require('../../assets/images/poll_icon3x.png')}
             style={[styles.icon, {tintColor: STYLES.$COLORS.PRIMARY}]}
@@ -371,7 +368,7 @@ const HomeFeedItem: React.FC<Props> = ({
                 ) : null}
 
                 <Text numberOfLines={1} style={[styles.parentLastMessage]}>
-                  {!!lastConversation?.has_files
+                  {!!lastConversation?.hasFiles
                     ? getFeedIconAttachment(lastConversation)
                     : lastConversation?.state === 10
                     ? getFeedIconAttachment(lastConversation)

@@ -52,7 +52,7 @@ const PollConversationView = ({
 
   // this function navigates to poll result screen if we click on votes or show alert in case of anonymous poll
   const onNavigate = (val: string) => {
-    if (item?.is_anonymous) {
+    if (item?.isAnonymous) {
       setIsAnonymousPollModalVisible(true);
     } else {
       navigation.navigate(POLL_RESULT, {
@@ -65,7 +65,7 @@ const PollConversationView = ({
 
   // this functions have submit poll button logics
   const submitPollLogics = () => {
-    if (item?.multiple_select_no === undefined) {
+    if (item?.multipleSelectNo === undefined) {
       // defensive check
       if (selectedPolls.length > 0) {
         setShouldShowSubmitPollButton(true);
@@ -73,9 +73,9 @@ const PollConversationView = ({
         setShouldShowSubmitPollButton(false);
       }
     } else {
-      const MAX_POLL_OPTIONS = item?.multiple_select_no;
+      const MAX_POLL_OPTIONS = item?.multipleSelectNo;
 
-      switch (item?.multiple_select_state) {
+      switch (item?.multipleSelectState) {
         // defensive check
         case undefined: {
           if (selectedPolls.length === MAX_POLL_OPTIONS) {
@@ -87,7 +87,7 @@ const PollConversationView = ({
               type: SHOW_TOAST,
               body: {
                 isToast: true,
-                msg: `You can select max ${item?.multiple_select_no} options. Unselect an option or submit your vote now`,
+                msg: `You can select max ${item?.multipleSelectNo} options. Unselect an option or submit your vote now`,
               },
             });
           }
@@ -105,7 +105,7 @@ const PollConversationView = ({
               type: SHOW_TOAST,
               body: {
                 isToast: true,
-                msg: `You can select max ${item?.multiple_select_no} options. Unselect an option or submit your vote now`,
+                msg: `You can select max ${item?.multipleSelectNo} options. Unselect an option or submit your vote now`,
               },
             });
           }
@@ -114,7 +114,7 @@ const PollConversationView = ({
 
         case POLL_MULTIPLE_STATE_MAX: {
           if (
-            selectedPolls.length <= item.multiple_select_no &&
+            selectedPolls.length <= item.multipleSelectNo &&
             selectedPolls.length > 0
           ) {
             // show submit poll button
@@ -127,7 +127,7 @@ const PollConversationView = ({
         }
 
         case POLL_MULTIPLE_STATE_LEAST: {
-          if (selectedPolls.length >= item.multiple_select_no) {
+          if (selectedPolls.length >= item.multipleSelectNo) {
             // show submit poll button
             setShouldShowSubmitPollButton(true);
           } else {
@@ -154,7 +154,7 @@ const PollConversationView = ({
   useEffect(() => {
     let count = 0;
     const res = pollsArr?.forEach((poll: any) => {
-      if (poll.is_selected === true) {
+      if (poll.isSelected === true) {
         count = count + 1;
       }
     });
@@ -163,11 +163,11 @@ const PollConversationView = ({
       setShouldShowVotes(true);
 
       // deffered poll show edit button state updation logic
-      if (item?.poll_type === 1) {
+      if (item?.pollType === 1) {
         setShowResultsButton(true);
       }
     } else {
-      setAllowAddOption(item?.allow_add_option);
+      setAllowAddOption(item?.allowAddOption);
       setShouldShowVotes(false);
     }
 
@@ -176,7 +176,7 @@ const PollConversationView = ({
 
   // Poll end timer logic
   useEffect(() => {
-    const difference = item?.expiry_time - Date.now();
+    const difference = item?.expiryTime - Date.now();
 
     if (difference > 0) {
       setHasPollEnded(false);
@@ -203,9 +203,9 @@ const PollConversationView = ({
     let arr = pollsArr.map((item: any) => {
       return {
         ...item,
-        is_selected: false,
+        isSelected: false,
         percentage: 0,
-        no_votes: 0,
+        noVotes: 0,
       };
     });
     setPollsArr([...arr]);
@@ -221,7 +221,7 @@ const PollConversationView = ({
   // API to reload the existing poll conversation
   async function reloadConversation() {
     let payload = {
-      chatroomId: item?.chatroom_id,
+      chatroomId: item?.chatroomId,
       conversationId: item?.id,
     };
     const res = await dispatch(firebaseConversation(payload, false) as any);
@@ -253,7 +253,7 @@ const PollConversationView = ({
 
   // this function used we interact with poll options
   async function setSelectedPollOptions(pollIndex: any) {
-    if (Date.now() > item?.expiry_time) {
+    if (Date.now() > item?.expiryTime) {
       dispatch({
         type: SHOW_TOAST,
         body: {isToast: true, msg: POLL_ENDED_WARNING},
@@ -266,7 +266,7 @@ const PollConversationView = ({
     if (isPollIndexIncluded) {
       // if poll item is already selected
       const isSelected = item?.polls?.some((poll: any) => {
-        return poll?.is_selected;
+        return poll?.isSelected;
       });
       const selectedIndex = newSelectedPolls.findIndex(
         index => index === pollIndex,
@@ -274,20 +274,20 @@ const PollConversationView = ({
       newSelectedPolls.splice(selectedIndex, 1);
     } else {
       const isSelected = pollsArr?.some((poll: any) => {
-        return poll?.is_selected;
+        return poll?.isSelected;
       });
 
       // Already submitted poll condition
-      if (isSelected && item?.poll_type === 0) {
+      if (isSelected && item?.pollType === 0) {
         return;
-      } else if (item?.poll_type === 1 && shouldShowVotes) {
+      } else if (item?.pollType === 1 && shouldShowVotes) {
         return;
       }
 
       // if only one option is allowed
-      if (item?.multiple_select_no === 1 || !item?.multiple_select_no) {
+      if (item?.multipleSelectNo === 1 || !item?.multipleSelectNo) {
         // can change selected ouptput in deferred poll
-        if (item?.poll_type === 1) {
+        if (item?.pollType === 1) {
           const pollSubmissionCall = await myClient.submitPoll({
             conversationId: item?.id,
             polls: [item?.polls[pollIndex]],
@@ -319,13 +319,13 @@ const PollConversationView = ({
       // multiple options are allowed
       switch (item?.multiple_select_state) {
         case POLL_MULTIPLE_STATE_EXACTLY: {
-          if (selectedPolls.length === item?.multiple_select_no) {
+          if (selectedPolls.length === item?.multipleSelectNo) {
             return;
           }
           break;
         }
         case POLL_MULTIPLE_STATE_MAX: {
-          if (selectedPolls.length == item?.multiple_select_no) {
+          if (selectedPolls.length == item?.multipleSelectNo) {
             return;
           }
           break;
@@ -370,8 +370,8 @@ const PollConversationView = ({
   }
 
   const stringManipulation = (val?: boolean) => {
-    const multipleSelectNo = item?.multiple_select_no;
-    switch (item?.multiple_select_state) {
+    const multipleSelectNo = item?.multipleSelectNo;
+    switch (item?.multipleSelectState) {
       case POLL_MULTIPLE_STATE_EXACTLY: {
         let string = `Select exactly ${multipleSelectNo} options.`;
         return val ? string : `*` + string;
@@ -398,8 +398,8 @@ const PollConversationView = ({
     text: item?.answer,
     votes: pollVoteCount,
     optionArr: pollsArr,
-    pollTypeText: item?.poll_type_text,
-    submitTypeText: item?.submit_type_text,
+    pollTypeText: item?.pollTypeText,
+    submitTypeText: item?.submitTypeText,
     addOptionInputField: addOptionInputField,
     shouldShowSubmitPollButton: shouldShowSubmitPollButton,
     selectedPolls: selectedPolls,
@@ -407,19 +407,19 @@ const PollConversationView = ({
     allowAddOption: allowAddOption,
     shouldShowVotes: shouldShowVotes,
     hasPollEnded: hasPollEnded,
-    expiryTime: moment(item?.expiry_time).fromNow(),
-    toShowResults: item?.to_show_results,
+    expiryTime: moment(item?.expiryTime).fromNow(),
+    toShowResults: item?.toShowResults,
     member: item?.member,
     user: user,
-    isEdited: item?.is_edited,
-    createdAt: item?.created_at,
-    pollAnswerText: item?.poll_answer_text,
-    isPollEnded: Date.now() > item?.expiry_time ? false : true,
+    isEdited: item?.isEdited,
+    createdAt: item?.createdAt,
+    pollAnswerText: item?.pollAnswerText,
+    isPollEnded: Date.now() > item?.expiryTime ? false : true,
     isIncluded: isIncluded,
-    multipleSelectNo: item?.multiple_select_no,
-    multipleSelectState: item?.multiple_select_state,
+    multipleSelectNo: item?.multipleSelectNo,
+    multipleSelectState: item?.multipleSelectState,
     showResultsButton: showResultsButton,
-    pollType: item?.poll_type,
+    pollType: item?.pollType,
   };
 
   return (

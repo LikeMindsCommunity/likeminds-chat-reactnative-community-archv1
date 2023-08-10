@@ -143,6 +143,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let refInput = useRef<any>();
 
   const db = myClient?.fbInstance();
+  // console.log('dbHu', db);
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -193,10 +194,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   let chatroomType = chatroomDetails?.chatroom?.type;
-  let chatroomFollowStatus = chatroomDetails?.chatroom?.follow_status;
-  let memberCanMessage = chatroomDetails?.chatroom?.member_can_message;
-  let chatroomWithUser = chatroomDetails?.chatroom?.chatroom_with_user;
-  let chatRequestState = chatroomDetails?.chatroom?.chat_request_state;
+  let chatroomFollowStatus = chatroomDetails?.chatroom?.followStatus;
+  let memberCanMessage = chatroomDetails?.chatroom?.memberCanMessage;
+  let chatroomWithUser = chatroomDetails?.chatroom?.chatroomWithUser;
+  let chatRequestState = chatroomDetails?.chatroom?.chatRequestState;
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -241,17 +242,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let chatroomProfile =
     chatroomType === 10
       ? user?.id !== chatroomWithUser?.id
-        ? chatroomWithUser?.image_url
-        : chatroomDetails?.chatroom?.member?.image_url!
+        ? chatroomWithUser?.imageUrl
+        : chatroomDetails?.chatroom?.member?.imageUrl!
       : null;
 
   let routes = navigation.getState()?.routes;
   let previousRoute = routes[routes.length - 2];
 
-  let isSecret = chatroomDetails?.chatroom?.is_secret;
+  let isSecret = chatroomDetails?.chatroom?.isSecret;
 
   let notIncludedActionsID = [3];
-  let filteredChatroomActions = chatroomDetails?.chatroom_actions?.filter(
+  let filteredChatroomActions = chatroomDetails?.chatroomActions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
 
@@ -319,7 +320,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       fontSize: STYLES.$FONT_SIZES.SMALL,
                       fontFamily: STYLES.$FONT_TYPES.LIGHT,
                     }}>
-                    {`${chatroomDetails?.chatroom?.participants_count} participants`}
+                    {`${chatroomDetails?.chatroom?.participantsCount} participants`}
                   </Text>
                 ) : null}
               </View>
@@ -384,7 +385,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let isCopy = false;
         let showCopyIcon = true;
         let isDelete = false;
-        let isFirstMessageDeleted = selectedMessages[0]?.deleted_by;
+        let isFirstMessageDeleted = selectedMessages[0]?.deletedBy;
         let isSelectedMessageEditable = false;
         let selectedMessagesLength = selectedMessages.length;
 
@@ -404,11 +405,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
         //Logic to set isCopy, showCopyIcon, isDelete true/false, based on that we will show respective icons.
         for (let i = 0; i < selectedMessagesLength; i++) {
-          if (selectedMessages[i].attachment_count > 0) {
+          if (selectedMessages[i].attachmentCount > 0) {
             showCopyIcon = false;
           }
 
-          if (!!!selectedMessages[i]?.deleted_by && showCopyIcon) {
+          if (!!!selectedMessages[i]?.deletedBy && showCopyIcon) {
             isCopy = true;
           } else if (!showCopyIcon) {
             isCopy = false;
@@ -416,7 +417,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
           if (
             selectedMessages[i]?.member?.id === user?.id &&
-            !!!selectedMessages[i]?.deleted_by
+            !!!selectedMessages[i]?.deletedBy
           ) {
             userCanDeleteParticularMessageArr = [
               ...userCanDeleteParticularMessageArr,
@@ -629,13 +630,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchInitAPI() {
     //this line of code is for the sample app only, pass your userUniqueID instead of this.
     const UUID = await AsyncStorage.getItem('userUniqueID');
-
+    console.log('aaya1');
     let payload = {
       userUniqueId: UUID, // user unique ID
       userName: '', // user name
       isGuest: false,
     };
+    console.log('aaya2');
     let res = await dispatch(initAPI(payload) as any);
+    // console.log('respAaya', res);
     return res;
   }
 
@@ -745,7 +748,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         });
         let response = apiRes?.data;
         if (!!response?.cta) {
-          setShowDM(response?.show_dm);
+          setShowDM(response?.showDm);
         }
       } else if (chatroomType == 0 || chatroomType == 7) {
         if (!!community?.id) {
@@ -766,7 +769,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
                 setShowList(showListValue);
               }
-              setShowDM(response?.show_dm);
+              setShowDM(response?.showDm);
             }
           }
         }
@@ -806,11 +809,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return onValue(query, async (snapshot: DataSnapshot) => {
       if (snapshot.exists()) {
         let firebaseData = snapshot.val();
-        let conversationID = firebaseData?.collabcard?.answer_id;
+        let conversationID = firebaseData?.collabcard?.answerId;
 
         let payload = {
           chatroomId: chatroomID,
-          conversationId: firebaseData?.collabcard?.answer_id,
+          conversationId: firebaseData?.collabcard?.answerId,
         };
         if (conversationID) {
           const res = await dispatch(
@@ -836,7 +839,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       if (
         showDM &&
         selectedMessagesMember?.id !== user?.id &&
-        !selectedMessages[0]?.deleted_by
+        !selectedMessages[0]?.deletedBy
       ) {
         if (showList == 2 && selectedMessagesMember?.state === 1) {
           setIsMessagePrivately(true);
@@ -1227,10 +1230,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   member: {
                     id: user?.id,
                     name: user?.name,
-                    image_url: '',
+                    imageUrl: '',
                   },
                   reaction: val,
-                  updated_at: Date.now(),
+                  updatedAt: Date.now(),
                 }
               : element,
           );
@@ -1247,10 +1250,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   member: {
                     id: user?.id,
                     name: user?.name,
-                    image_url: '',
+                    imageUrl: '',
                   },
                   reaction: val,
-                  updated_at: Date.now(),
+                  updatedAt: Date.now(),
                 }
               : element,
           );
@@ -1269,10 +1272,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               member: {
                 id: user?.id,
                 name: user?.name,
-                image_url: '',
+                imageUrl: '',
               },
               reaction: val,
-              updated_at: Date.now(),
+              updatedAt: Date.now(),
             },
           ],
         };
@@ -1287,10 +1290,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             member: {
               id: user?.id,
               name: user?.name,
-              image_url: '',
+              imageUrl: '',
             },
             reaction: val,
-            updated_at: Date.now(),
+            updatedAt: Date.now(),
           },
         ],
       };
@@ -1593,7 +1596,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let item = selectedImages[i];
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
-      let thumbnailURL = item?.thumbnail_url;
+      let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
           ? item.fileName
@@ -1605,11 +1608,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      //image compression
-      const compressedImgURI = await CompressedImage.compress(item.uri, {
-        compressionMethod: 'auto',
-      });
-      const compressedImg = await fetchResourceFromURI(compressedImgURI);
+      let uriFinal: any;
+
+      if (attachmentType === IMAGE_TEXT) {
+        const compressedImgURI = await CompressedImage.compress(item.uri, {
+          compressionMethod: 'auto',
+        });
+        const compressedImg = await fetchResourceFromURI(compressedImgURI);
+        uriFinal = compressedImg;
+      } else {
+        const img = await fetchResourceFromURI(item.uri);
+        uriFinal = img;
+      }
+
+      console.log('uriiHai', uriFinal);
 
       //for video thumbnail
       let thumbnailUrlImg = null;
@@ -1620,7 +1632,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       const params = {
         Bucket: BUCKET,
         Key: path,
-        Body: compressedImg,
+        Body: uriFinal,
         ACL: 'public-read-write',
         ContentType: item?.type, // Replace with the appropriate content type for your file
       };
@@ -1742,10 +1754,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     if (apiRes?.success === false) {
       dispatch({
         type: SHOW_TOAST,
-        body: {isToast: true, msg: `${apiRes?.error_message}`},
+        body: {isToast: true, msg: `${apiRes?.errorMessage}`},
       });
     } else {
-      let clickedChatroomID = res?.chatroom_id;
+      let clickedChatroomID = res?.chatroomId;
       if (!!clickedChatroomID) {
         navigation.pop(1);
         navigation.push(CHATROOM, {
@@ -1753,7 +1765,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           previousChatroomID: chatroomID,
         });
       } else {
-        if (res?.is_request_dm_limit_exceeded === false) {
+        if (res?.isRequestDmLimitExceeded === false) {
           let payload = {
             memberId: memberID,
           };
@@ -1762,7 +1774,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           if (apiResponse?.success === false) {
             dispatch({
               type: SHOW_TOAST,
-              body: {isToast: true, msg: `${apiResponse?.error_message}`},
+              body: {isToast: true, msg: `${apiResponse?.errorMessage}`},
             });
           } else {
             let createdChatroomID = response?.chatroom?.id;
@@ -1774,14 +1786,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             }
           }
         } else {
-          let userDMLimit = res?.user_dm_limit;
+          let userDMLimit = res?.userDmLimit;
           Alert.alert(
             REQUEST_DM_LIMIT,
             `You can only send ${
-              userDMLimit?.number_in_duration
+              userDMLimit?.numberInDuration
             } DM requests per ${
               userDMLimit?.duration
-            }.\n\nTry again in ${formatTime(res?.new_request_dm_timestamp)}`,
+            }.\n\nTry again in ${formatTime(res?.newRequestDmTimestamp)}`,
             [
               {
                 text: CANCEL_BUTTON,
@@ -1943,7 +1955,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           {!(Object.keys(chatroomDetails).length === 0) ? (
             //case to block normal user from messaging in a chatroom where only CMs can message
             user.state !== 1 &&
-            chatroomDetails?.chatroom?.member_can_message === false ? (
+            chatroomDetails?.chatroom?.memberCanMessage === false ? (
               <View style={styles.disabledInput}>
                 <Text style={styles.disabledInputText}>
                   Only Community Manager can message here.
@@ -1952,7 +1964,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             ) : //case to allow CM for messaging in an Announcement Room
             !(user.state !== 1 && chatroomDetails?.chatroom?.type === 7) &&
               chatroomFollowStatus &&
-              memberRights[3]?.is_selected === true ? (
+              memberRights[3]?.isSelected === true ? (
               <InputBox
                 replyChatID={replyChatID}
                 chatroomID={chatroomID}
@@ -1973,7 +1985,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   Only Community Manager can message here.
                 </Text>
               </View>
-            ) : memberRights[3]?.is_selected === false ? (
+            ) : memberRights[3]?.isSelected === false ? (
               <View style={styles.disabledInput}>
                 <Text style={styles.disabledInputText}>
                   The community managers have restricted you from responding
@@ -2050,8 +2062,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 : null (FALSE) )
           */}
           {chatRequestState === 0 &&
-          (!!chatroomDetails?.chatroom?.chat_requested_by
-            ? chatroomDetails?.chatroom?.chat_requested_by[0]?.id !== user?.id
+          (!!chatroomDetails?.chatroom?.chatRequestedBy
+            ? chatroomDetails?.chatroom?.chatRequestedBy[0]?.id !== user?.id
             : null) ? (
             <View style={styles.dmRequestView}>
               <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>
@@ -2101,7 +2113,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               chatroomType={chatroomType}
               navigation={navigation}
               isUploadScreen={false}
-              isPrivateMember={chatroomDetails?.chatroom?.is_private_member}
+              isPrivateMember={chatroomDetails?.chatroom?.isPrivateMember}
               myRef={refInput}
               handleFileUpload={handleFileUpload}
               isEditable={isEditable}

@@ -28,6 +28,8 @@ const ViewParticipants = ({navigation, route}: any) => {
   const {chatroomID, isSecret} = route.params;
   const user = useAppSelector(state => state.homefeed.user);
 
+  console.log('participants1', participants);
+
   const setInitialHeader = () => {
     navigation.setOptions({
       title: '',
@@ -136,7 +138,8 @@ const ViewParticipants = ({navigation, route}: any) => {
       participantName: search,
     } as any);
     const res = apiRes?.data;
-    setTotalChatroomCount(res?.total_participants_count);
+    console.log('respParticiapnts', res);
+    setTotalChatroomCount(res?.totalParticipantsCount);
     setParticipants(res?.participants);
 
     if (!!res && res?.participants.length === 10) {
@@ -148,6 +151,7 @@ const ViewParticipants = ({navigation, route}: any) => {
         participantName: search,
       } as any);
       const response = apiResponse?.data;
+      console.log('resParti1', response);
       setParticipants((participants: any) => [
         ...participants,
         ...response?.participants,
@@ -210,6 +214,7 @@ const ViewParticipants = ({navigation, route}: any) => {
     setIsLoading(true);
     const res = await updateData(newPage);
     if (!!res) {
+      console.log('res3', res);
       setParticipants([...participants, ...res?.participants]);
       setIsLoading(false);
     }
@@ -287,8 +292,8 @@ const ViewParticipants = ({navigation, route}: any) => {
             <View key={item?.id} style={styles.participants}>
               <Image
                 source={
-                  !!item?.image_url
-                    ? {uri: item?.image_url}
+                  !!item?.imageUrl
+                    ? {uri: item?.imageUrl}
                     : require('../../assets/images/default_pic.png')
                 }
                 style={styles.avatar}
@@ -296,11 +301,11 @@ const ViewParticipants = ({navigation, route}: any) => {
               <View style={styles.infoContainer}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
-                  {!!item?.custom_title ? (
+                  {!!item?.customTitle ? (
                     <Text
                       style={
                         styles.messageCustomTitle
-                      }>{` • ${item?.custom_title}`}</Text>
+                      }>{` • ${item?.customTitle}`}</Text>
                   ) : null}
                 </Text>
               </View>

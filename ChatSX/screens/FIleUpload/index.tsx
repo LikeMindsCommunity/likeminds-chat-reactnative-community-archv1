@@ -59,7 +59,7 @@ const FileUpload = ({navigation, route}: any) => {
     selectedFilesToUploadThumbnails = [],
   }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
-
+  console.log('selectedFileToView', selectedFileToView);
   const itemType = selectedFileToView?.type?.split('/')[0];
   const docItemType = selectedFileToView?.type?.split('/')[1];
   let len = selectedFilesToUpload.length;
@@ -123,7 +123,8 @@ const FileUpload = ({navigation, route}: any) => {
       let item = selectedImages[i];
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
-      let thumbnailURL = item?.thumbnail_url;
+      console.log('item', item);
+      let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
           ? item.fileName
@@ -135,11 +136,22 @@ const FileUpload = ({navigation, route}: any) => {
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      //image compression
-      const compressedImgURI = await CompressedImage.compress(item.uri, {
-        compressionMethod: 'auto',
-      });
-      const compressedImg = await fetchResourceFromURI(compressedImgURI);
+      let uriFinal: any;
+
+      console.log('attachmentType', attachmentType);
+
+      if (attachmentType === IMAGE_TEXT) {
+        const compressedImgURI = await CompressedImage.compress(item.uri, {
+          compressionMethod: 'auto',
+        });
+        const compressedImg = await fetchResourceFromURI(compressedImgURI);
+        uriFinal = compressedImg;
+      } else {
+        const img = await fetchResourceFromURI(item.uri);
+        uriFinal = img;
+      }
+
+      console.log('uriiHai', uriFinal);
 
       //for video thumbnail
       let thumbnailUrlImg = null;
@@ -150,10 +162,11 @@ const FileUpload = ({navigation, route}: any) => {
       const params = {
         Bucket: BUCKET,
         Key: path,
-        Body: compressedImg,
+        Body: uriFinal,
         ACL: 'public-read-write',
         ContentType: item?.type, // Replace with the appropriate content type for your file
       };
+      console.log('1');
 
       //for video thumbnail
       const thumnnailUrlParams: any = {
@@ -163,15 +176,19 @@ const FileUpload = ({navigation, route}: any) => {
         ACL: 'public-read-write',
         ContentType: 'image/jpeg', // Replace with the appropriate content type for your file
       };
+      console.log('2');
 
       try {
+        console.log('4');
         let getVideoThumbnailData = null;
 
         if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+          console.log('5');
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
         }
         const data = await s3.upload(params).promise();
         let awsResponse = data.Location;
+        console.log('dataFileUpload', data);
         if (awsResponse) {
           let fileType = '';
           if (docAttachmentType === PDF_TEXT) {
@@ -210,9 +227,13 @@ const FileUpload = ({navigation, route}: any) => {
               fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
 
+          console.log('payLoadFileUpload', payload);
+
           const uploadRes = await myClient?.putMultimedia(payload as any);
+          console.log('uploadRes', uploadRes);
         }
       } catch (error) {
+        console.log('3');
         dispatch({
           type: SET_FILE_UPLOADING_MESSAGES,
           body: {
@@ -233,6 +254,7 @@ const FileUpload = ({navigation, route}: any) => {
       });
     }
 
+    console.log('conversationID ==', conversationID);
     dispatch({
       type: CLEAR_FILE_UPLOADING_MESSAGES,
       body: {
@@ -300,7 +322,7 @@ const FileUpload = ({navigation, route}: any) => {
           </View>
         ) : docItemType === PDF_TEXT ? (
           <Image
-            source={{uri: selectedFileToView?.thumbnail_url}}
+            source={{uri: selectedFileToView?.thumbnailUrl}}
             style={styles.mainImage}
           />
         ) : null}

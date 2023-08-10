@@ -11,7 +11,10 @@ async function invokeAPI(func: Function, payload: any, name = '') {
     return;
   }
   const response: any = await func;
+  // console.log('respMiddleware', response);
   return response?.data;
+  // if (response?.data?.data === undefined) return response?.data;
+  // return response?.data?.data;
 }
 
 export const CALL_API = 'Call API';

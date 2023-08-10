@@ -265,6 +265,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
           };
     const apiRes = await myClient?.searchMembers(initialPayload);
     const res = apiRes?.data;
+    console.log('resspp', res);
     setSearchPage(1);
     setSearchedParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
@@ -354,7 +355,9 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   // function shows loader in between calling the API and getting the response
   const loadData = async (newPage: number) => {
     setIsLoading(true);
+    console.log('newPage');
     const res = await updateData(newPage);
+    console.log('respNewPage', res);
     if (res?.members.length === 0) {
       setIsStopPagination(true);
     }
@@ -408,14 +411,14 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
     if (apiRes?.success === false) {
       dispatch({
         type: SHOW_TOAST,
-        body: {isToast: true, msg: `${apiRes?.error_message}`},
+        body: {isToast: true, msg: `${apiRes?.errorMessage}`},
       });
     } else {
-      let clickedChatroomID = res?.chatroom_id;
+      let clickedChatroomID = res?.chatroomId;
       if (!!clickedChatroomID) {
         navigation.navigate(CHATROOM, {chatroomID: clickedChatroomID});
       } else {
-        if (res?.is_request_dm_limit_exceeded === false) {
+        if (res?.isRequestDmLimitExceeded === false) {
           let payload = {
             memberId: memberID,
           };
@@ -424,7 +427,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
           if (apiResponse?.success === false) {
             dispatch({
               type: SHOW_TOAST,
-              body: {isToast: true, msg: `${apiResponse?.error_message}`},
+              body: {isToast: true, msg: `${apiResponse?.errorMessage}`},
             });
           } else {
             let createdChatroomID = response?.chatroom?.id;
@@ -435,14 +438,14 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             }
           }
         } else {
-          let userDMLimit = res?.user_dm_limit;
+          let userDMLimit = res?.userDmLimit;
           Alert.alert(
             REQUEST_DM_LIMIT,
             `You can only send ${
-              userDMLimit?.number_in_duration
+              userDMLimit?.numberInDuration
             } DM requests per ${
               userDMLimit?.duration
-            }.\n\nTry again in ${formatTime(res?.new_request_dm_timestamp)}`,
+            }.\n\nTry again in ${formatTime(res?.newRequestDmTimestamp)}`,
             [
               {
                 text: CANCEL_BUTTON,
@@ -486,8 +489,8 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
               <View>
                 <Image
                   source={
-                    !!item?.image_url
-                      ? {uri: item?.image_url}
+                    !!item?.imageUrl
+                      ? {uri: item?.imageUrl}
                       : require('../../assets/images/default_pic.png')
                   }
                   style={styles.avatar}
@@ -505,11 +508,11 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
               <View style={styles.infoContainer}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
-                  {!!item?.custom_title ? (
+                  {!!item?.customTitle ? (
                     <Text
                       style={
                         styles.messageCustomTitle
-                      }>{` • ${item?.custom_title}`}</Text>
+                      }>{` • ${item?.customTitle}`}</Text>
                   ) : null}
                 </Text>
               </View>

@@ -48,22 +48,29 @@ const GroupFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient?.fbInstance();
+  // console.log('invitedChatroomsFinale', invitedChatrooms);
+  // console.log('myChatroomsFinale', myChatrooms);
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
+  // console.log('finaleChatrooms', chatrooms);
 
   async function fetchData() {
     const invitesRes = await dispatch(
       getInvites({channelType: 1, page: 1, pageSize: 10}, true) as any,
     );
 
-    if (!!invitesRes?.user_invites) {
-      if (invitesRes?.user_invites?.length < 10) {
+    console.log('inviteRes', invitesRes);
+
+    if (!!invitesRes?.userInvites) {
+      console.log('yahaHu1');
+      if (invitesRes?.userInvites?.length < 10) {
         let payload = {
           page: 1,
         };
-        await dispatch(getHomeFeedData(payload) as any);
+        const temp = await dispatch(getHomeFeedData(payload) as any);
+        // console.log('homeFeedDataGet', temp);
       } else {
         await dispatch(
-          updateInvites({channel_type: 1, page: 2, page_size: 10}, true) as any,
+          updateInvites({channelType: 1, page: 2, pageSize: 10}, true) as any,
         );
         setInvitePage(invitePage => {
           return invitePage + 1;
@@ -79,8 +86,10 @@ const GroupFeed = ({navigation}: Props) => {
   useEffect(() => {
     const token = async () => {
       const isPermissionEnabled = await requestUserPermission();
+      // console.log('isPermissionEnabled', isPermissionEnabled);
       if (isPermissionEnabled) {
         let fcmToken = await fetchFCMToken();
+        // console.log('fcmToken', fcmToken);
         if (!!fcmToken) {
           setFCMToken(fcmToken);
         }
@@ -90,6 +99,7 @@ const GroupFeed = ({navigation}: Props) => {
   }, []);
 
   async function updateData(newPage: number) {
+    console.log('updating...');
     let payload = {
       page: newPage,
     };
@@ -101,6 +111,7 @@ const GroupFeed = ({navigation}: Props) => {
     setIsLoading(true);
     setTimeout(async () => {
       const res = await updateData(newPage);
+      // console.log('loadData', res);
       if (!!res) {
         setIsLoading(false);
       }
@@ -113,7 +124,7 @@ const GroupFeed = ({navigation}: Props) => {
         setIsLoading(true);
         await dispatch(
           updateInvites(
-            {channel_type: 1, page: invitePage + 1, page_size: 10},
+            {channelType: 1, page: invitePage + 1, pageSize: 10},
             true,
           ) as any,
         );
@@ -165,20 +176,20 @@ const GroupFeed = ({navigation}: Props) => {
         renderItem={({item}: any) => {
           const homeFeedProps = {
             title: item?.chatroom?.header!,
-            avatar: item?.chatroom?.chatroom_image_url!,
-            lastMessage: item?.last_conversation?.answer!,
-            lastMessageUser: item?.last_conversation?.member?.name!,
-            time: item?.last_conversation_time!,
-            unreadCount: item?.unseen_conversation_count!,
+            avatar: item?.chatroom?.chatroomImageUrl!,
+            lastMessage: item?.lastConversation?.answer!,
+            lastMessageUser: item?.lastConversation?.member?.name!,
+            time: item?.lastConversationTime!,
+            unreadCount: item?.unseenConversationCount!,
             pinned: false,
-            lastConversation: item?.last_conversation!,
-            lastConversationMember: item?.last_conversation?.member?.name!,
+            lastConversation: item?.lastConversation!,
+            lastConversationMember: item?.lastConversation?.member?.name!,
             chatroomID: item?.chatroom?.id!,
-            isSecret: item?.chatroom?.is_secret,
-            deletedBy: item?.last_conversation?.deleted_by,
-            inviteReceiver: item?.invite_receiver,
+            isSecret: item?.chatroom?.isSecret,
+            deletedBy: item?.lastConversation?.deletedBy,
+            inviteReceiver: item?.inviteReceiver,
             chatroomType: item?.chatroom?.type,
-            muteStatus: item?.chatroom?.mute_status,
+            muteStatus: item?.chatroom?.muteStatus,
           };
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}

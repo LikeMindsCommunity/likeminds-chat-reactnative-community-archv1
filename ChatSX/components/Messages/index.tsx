@@ -51,7 +51,7 @@ const Messages = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [reactionArr, setReactionArr] = useState([] as any);
   const isTypeSent = item?.member?.id === user?.id ? true : false;
-  const chatRequestedBy = chatroomDetails?.chatroom?.chat_requested_by;
+  const chatRequestedBy = chatroomDetails?.chatroom?.chatRequestedBy;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
@@ -99,7 +99,7 @@ const Messages = ({
   const answerTrimming = (answer: string) => {
     const loggedInMember = getUserUniqueId();
     const chatroomWithUser =
-      chatroomDetails?.chatroom?.chatroom_with_user?.user_unique_id;
+      chatroomDetails?.chatroom?.chatroomWithUser?.userUniqueId;
     if (loggedInMember === chatroomWithUser) {
       const startingIndex = answer.lastIndexOf('<');
       return answer.substring(0, startingIndex - 2);
@@ -177,7 +177,7 @@ const Messages = ({
   return (
     <View style={styles.messageParent}>
       <View>
-        {!!item?.deleted_by ? (
+        {!!item?.deletedBy ? (
           <View
             style={[
               styles.message,
@@ -188,7 +188,7 @@ const Messages = ({
             ]}>
             <Text style={styles.deletedMsg}>This message has been deleted</Text>
           </View>
-        ) : !!item?.reply_conversation_object ? (
+        ) : !!item?.replyConversationObject ? (
           <ReplyConversations
             isIncluded={isIncluded}
             item={item}
@@ -204,7 +204,7 @@ const Messages = ({
             navigation={navigation}
             handleFileUpload={handleFileUpload}
           />
-        ) : !!!item?.reply_conversation_object && item?.attachment_count > 0 ? (
+        ) : !!!item?.replyConversationObject && item?.attachmentCount > 0 ? (
           <AttachmentConversations
             navigation={navigation}
             isIncluded={isIncluded}
@@ -311,20 +311,20 @@ const Messages = ({
                   {!!(item?.member?.id === user?.id) ? null : (
                     <Text style={styles.messageInfo} numberOfLines={1}>
                       {item?.member?.name}
-                      {!!item?.member?.custom_title ? (
+                      {!!item?.member?.customTitle ? (
                         <Text
                           style={
                             styles.messageCustomTitle
-                          }>{` • ${item?.member?.custom_title}`}</Text>
+                          }>{` • ${item?.member?.customTitle}`}</Text>
                       ) : null}
                     </Text>
                   )}
                   <Text>{decode(item?.answer, true)}</Text>
                   <View style={styles.alignTime}>
-                    {item?.is_edited ? (
+                    {item?.isEdited ? (
                       <Text style={styles.messageDate}>{`Edited • `}</Text>
                     ) : null}
-                    <Text style={styles.messageDate}>{item?.created_at}</Text>
+                    <Text style={styles.messageDate}>{item?.createdAt}</Text>
                   </View>
                 </View>
                 {(reactionArr.length > 0 ||
@@ -390,7 +390,7 @@ const Messages = ({
         ) : null}
       </View>
 
-      {!item?.deleted_by ? (
+      {!item?.deletedBy ? (
         reactionLen > 0 && reactionLen <= 2 ? (
           <View
             style={[
