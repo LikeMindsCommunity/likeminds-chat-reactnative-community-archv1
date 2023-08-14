@@ -121,9 +121,10 @@ const FileUpload = ({navigation, route}: any) => {
 
     for (let i = 0; i < selectedImages?.length; i++) {
       let item = selectedImages[i];
+      console.log('itemHuNaMai', item);
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
-      console.log('item', item);
+      // console.log('item', item);
       let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
@@ -138,7 +139,7 @@ const FileUpload = ({navigation, route}: any) => {
 
       let uriFinal: any;
 
-      console.log('attachmentType', attachmentType);
+      // console.log('attachmentType', attachmentType);
 
       if (attachmentType === IMAGE_TEXT) {
         const compressedImgURI = await CompressedImage.compress(item.uri, {
@@ -151,12 +152,13 @@ const FileUpload = ({navigation, route}: any) => {
         uriFinal = img;
       }
 
-      console.log('uriiHai', uriFinal);
+      // console.log('uriiHai', uriFinal);
 
       //for video thumbnail
-      let thumbnailUrlImg = null;
+      let thumbnailUrlImg: any;
       if (thumbnailURL && attachmentType === VIDEO_TEXT) {
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
+        console.log('hereHuMai', thumbnailUrlImg);
       }
 
       const params = {
@@ -188,7 +190,7 @@ const FileUpload = ({navigation, route}: any) => {
         }
         const data = await s3.upload(params).promise();
         let awsResponse = data.Location;
-        console.log('dataFileUpload', data);
+        // console.log('dataFileUpload', data);
         if (awsResponse) {
           let fileType = '';
           if (docAttachmentType === PDF_TEXT) {
@@ -227,10 +229,10 @@ const FileUpload = ({navigation, route}: any) => {
               fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
 
-          console.log('payLoadFileUpload', payload);
+          // console.log('payLoadFileUpload', payload);
 
           const uploadRes = await myClient?.putMultimedia(payload as any);
-          console.log('uploadRes', uploadRes);
+          // console.log('uploadRes', uploadRes);
         }
       } catch (error) {
         console.log('3');
@@ -264,6 +266,7 @@ const FileUpload = ({navigation, route}: any) => {
   };
 
   const handleFileUpload = async (conversationID: any, isRetry: any) => {
+    console.log('selectedImagesToUpload', selectedFilesToUpload);
     const res = await uploadResource({
       selectedImages: selectedFilesToUpload,
       conversationID: conversationID,
@@ -272,6 +275,7 @@ const FileUpload = ({navigation, route}: any) => {
       uploadingFilesMessages,
       isRetry: isRetry,
     });
+    // console.log('respinseHuNaMaiToh', res);
     return res;
   };
 

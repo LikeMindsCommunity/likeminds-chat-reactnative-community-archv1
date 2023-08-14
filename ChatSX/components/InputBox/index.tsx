@@ -41,6 +41,7 @@ import {
   UPDATE_CONVERSATIONS,
   UPDATE_LAST_CONVERSATION,
   EMPTY_BLOCK_DELETION,
+  UPDATE_MULTIMEDIA_CONVERSATIONS,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -85,6 +86,7 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
+import {getConversations} from '../../store/actions/chatroom';
 
 interface InputBox {
   replyChatID?: any;
@@ -722,6 +724,14 @@ const InputBox = ({
             });
 
             await handleFileUpload(response?.id, false);
+            const getConversationPayload = {
+              chatroomID: chatroomID,
+              paginateBy: conversations.length * 2,
+              topNavigate: false,
+            };
+            await dispatch(
+              getConversations(getConversationPayload, false) as any,
+            );
           }
           dispatch({
             type: STATUS_BAR_STYLE,

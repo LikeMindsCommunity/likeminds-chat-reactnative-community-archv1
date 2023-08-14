@@ -26,6 +26,7 @@ import {
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
   EMPTY_BLOCK_DELETION,
+  UPDATE_MULTIMEDIA_CONVERSATIONS,
 } from '../types/types';
 
 const initialState = {
@@ -144,7 +145,12 @@ export function chatroomReducer(state = initialState, action: any) {
       const {obj} = action.body;
       return {...state, conversations: [obj, ...state.conversations]};
     }
-
+    case UPDATE_MULTIMEDIA_CONVERSATIONS: {
+      const id = action.body;
+      console.log('idHaiHu', id);
+      console.log('conversationsArr', state.conversations);
+      // return null;
+    }
     case CLEAR_CHATROOM_CONVERSATION: {
       const {conversations = []} = action.body;
       return {...state, conversations: conversations};
@@ -204,10 +210,12 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case SELECTED_FILES_TO_UPLOAD: {
       const {images} = action.body;
+      console.log('imageHuSetFiles', images);
       return {...state, selectedFilesToUpload: [...images]};
     }
     case SELECTED_FILES_TO_UPLOAD_THUMBNAILS: {
       const {images} = action.body;
+      console.log('imageHuSetFilesThumbnail', images);
       return {...state, selectedFilesToUploadThumbnails: [...images]};
     }
     case SELECTED_FILE_TO_VIEW: {
@@ -222,11 +230,11 @@ export function chatroomReducer(state = initialState, action: any) {
       };
     }
     case CLEAR_SELECTED_FILES_TO_UPLOAD: {
-      console.log('stateHai', state);
+      // console.log('stateHai', state);
       return {...state, selectedFilesToUpload: []};
     }
     case CLEAR_SELECTED_FILE_TO_VIEW: {
-      console.log('stateHai1', state);
+      // console.log('stateHai1', state);
       return {...state, selectedFileToView: {}};
     }
     case SET_IS_REPLY: {

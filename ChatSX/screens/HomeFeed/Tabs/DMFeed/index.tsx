@@ -218,6 +218,12 @@ const DMFeed = ({navigation}: Props) => {
               lastConversation: item?.lastConversation!,
               chatroomID: chatroom?.id!,
               deletedBy: item?.lastConversation?.deletedBy,
+              conversationDeletor:
+                item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
+              conversationCreator:
+                item?.lastConversation?.member?.sdkClientInfo?.uuid,
+              conversationDeletorName:
+                item?.lastConversation?.deletedByMember?.name,
               isSecret: chatroom?.isSecret,
               chatroomType: chatroom?.type,
               muteStatus: chatroom?.muteStatus,

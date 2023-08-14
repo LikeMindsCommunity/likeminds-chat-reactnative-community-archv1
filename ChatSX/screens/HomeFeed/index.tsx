@@ -115,11 +115,12 @@ const HomeFeed = ({navigation}: Props) => {
   };
 
   async function fetchData() {
-    //this line of code is for the sample app only, pass your userUniqueID instead of this.
+    //this line of code is for the sample app only, pass your uuid instead of this.
     console.log('aaya3');
-    const UUID = await AsyncStorage.getItem('userUniqueID');
+    const uuid = await AsyncStorage.getItem('uuid');
+    console.log('uuidHU', uuid);
     let payload = {
-      userUniqueId: UUID, // user unique ID
+      uuid: uuid, // uuid
       userName: 'ranjanDas', // user name
       isGuest: false,
     };

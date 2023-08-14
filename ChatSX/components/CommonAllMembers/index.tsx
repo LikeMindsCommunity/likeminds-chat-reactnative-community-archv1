@@ -403,9 +403,9 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   };
 
   // this function calls when user click for DM on members screen. Here ChatroomID is gonna be clicked chatroomID
-  const onUserClicked = async (memberID: any) => {
+  const onUserClicked = async (uuid: any) => {
     const apiRes = await myClient?.checkDMLimit({
-      memberId: memberID,
+      uuid: uuid,
     });
     const res = apiRes?.data;
     if (apiRes?.success === false) {
@@ -420,7 +420,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
       } else {
         if (res?.isRequestDmLimitExceeded === false) {
           let payload = {
-            memberId: memberID,
+            uuid: uuid,
           };
           const apiResponse = await myClient?.createDMChatroom(payload);
           const response = apiResponse?.data;
@@ -467,7 +467,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             <TouchableOpacity
               onPress={() => {
                 if (isDM) {
-                  onUserClicked(item?.id);
+                  onUserClicked(item?.sdkClientInfo?.uuid);
                 } else {
                   if (!selectedParticipants.includes(item?.id)) {
                     setSelectedParticipants([

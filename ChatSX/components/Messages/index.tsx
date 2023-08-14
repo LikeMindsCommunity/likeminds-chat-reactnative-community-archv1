@@ -1,5 +1,5 @@
 import {View, Text, Image, TouchableOpacity, Pressable} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useLayoutEffect} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {decode} from '../../commonFuctions';
@@ -25,6 +25,7 @@ interface Messages {
   removeReaction: any;
   handleTapToUndo: any;
   handleFileUpload: any;
+  chatroomType: any;
 }
 
 const Messages = ({
@@ -37,7 +38,14 @@ const Messages = ({
   removeReaction,
   handleTapToUndo,
   handleFileUpload,
+  chatroomType,
 }: Messages) => {
+  console.log('itemsMessages', item);
+  const conversationCreator = item?.member?.sdkClientInfo?.uuid;
+  const conversationCreatorMemberId = item?.member?.id;
+  const conversationDeletor = item?.deletedByMember?.sdkClientInfo?.uuid;
+  const conversationDeletorName = item?.deletedByMember?.name;
+
   const {user} = useAppSelector(state => state.homefeed);
   const {
     selectedMessages,
@@ -50,12 +58,21 @@ const Messages = ({
   const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [reactionArr, setReactionArr] = useState([] as any);
+  const [uuid, setUuid] = useState<any>();
   const isTypeSent = item?.member?.id === user?.id ? true : false;
   const chatRequestedBy = chatroomDetails?.chatroom?.chatRequestedBy;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
   let defaultReactionArrLen = item?.reactions?.length;
+
+  useEffect(() => {
+    async function getUuid() {
+      const uuid = await AsyncStorage.getItem('uuid');
+      setUuid(uuid);
+    }
+    getUuid();
+  }, []);
 
   //this useEffect update setReactionArr in format of { reaction: 👌, memberArr: []}
   useEffect(() => {
@@ -89,27 +106,27 @@ const Messages = ({
     }
   }, [item?.reactions]);
 
-  // Method to get userUniqueId stored in AsyncStorage
-  const getUserUniqueId = async () => {
-    const userUniqueID = await AsyncStorage.getItem('userUniqueID');
-    return userUniqueID;
-  };
-
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {
-    const loggedInMember = getUserUniqueId();
+    const loggedInMember = uuid;
     const chatroomWithUser =
-      chatroomDetails?.chatroom?.chatroomWithUser?.userUniqueId;
-    if (loggedInMember === chatroomWithUser) {
+      chatroomDetails?.chatroom?.member?.sdkClientInfo?.uuid;
+    console.log('uuidHuNa', uuid);
+    console.log('chatroomKiskeSaath', chatroomWithUser);
+    console.log('answerHuMai', answer);
+    if (loggedInMember !== chatroomWithUser) {
       const startingIndex = answer.lastIndexOf('<');
-      return answer.substring(0, startingIndex - 2);
+      const temp = answer.substring(0, startingIndex - 2);
+      console.log('tempHUNaMai1', temp);
+      return temp;
     } else {
       const startingIndex = answer.indexOf('<');
       const endingIndex = answer.indexOf('>');
-      return (
+      const temp =
         answer.substring(0, startingIndex - 1) +
-        answer.substring(endingIndex + 2)
-      );
+        answer.substring(endingIndex + 2);
+      console.log('tempHUNaMai2', temp);
+      return temp;
     }
   };
 
@@ -178,16 +195,74 @@ const Messages = ({
     <View style={styles.messageParent}>
       <View>
         {!!item?.deletedBy ? (
-          <View
-            style={[
-              styles.message,
-              isTypeSent ? styles.sentMessage : styles.receivedMessage,
-              isIncluded
-                ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
-                : null,
-            ]}>
-            <Text style={styles.deletedMsg}>This message has been deleted</Text>
-          </View>
+          chatroomType !== 10 ? (
+            uuid === conversationDeletor ? (
+              <View
+                style={[
+                  styles.message,
+                  isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                  isIncluded
+                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                    : null,
+                ]}>
+                <Text style={styles.deletedMsg}>
+                  This message has been deleted by you
+                </Text>
+              </View>
+            ) : conversationCreator === conversationDeletor ? (
+              <View
+                style={[
+                  styles.message,
+                  isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                  isIncluded
+                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                    : null,
+                ]}>
+                <Text style={styles.deletedMsg}>
+                  This message has been deleted by {conversationDeletorName}
+                </Text>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.message,
+                  isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                  isIncluded
+                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                    : null,
+                ]}>
+                <Text style={styles.deletedMsg}>
+                  This message has been deleted by Community Manager
+                </Text>
+              </View>
+            )
+          ) : uuid === conversationDeletor ? (
+            <View
+              style={[
+                styles.message,
+                isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                isIncluded
+                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                  : null,
+              ]}>
+              <Text style={styles.deletedMsg}>
+                This message has been deleted by you
+              </Text>
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.message,
+                isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                isIncluded
+                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                  : null,
+              ]}>
+              <Text style={styles.deletedMsg}>
+                This message has been deleted by {conversationDeletorName}
+              </Text>
+            </View>
+          )
         ) : !!item?.replyConversationObject ? (
           <ReplyConversations
             isIncluded={isIncluded}
@@ -285,8 +360,22 @@ const Messages = ({
                       {
                         // State 1 refers to initial DM message, so in that case trimming the first user name
                         item?.state === 1
-                          ? decode(answerTrimming(item?.answer), true)
-                          : decode(item?.answer, true)
+                          ? decode(
+                              answerTrimming(item?.answer),
+                              true,
+                              false,
+                              conversationCreator,
+                              uuid,
+                              conversationCreatorMemberId,
+                            )
+                          : decode(
+                              item?.answer,
+                              true,
+                              false,
+                              conversationCreator,
+                              uuid,
+                              conversationCreatorMemberId,
+                            )
                       }
                     </Text>
                   </View>

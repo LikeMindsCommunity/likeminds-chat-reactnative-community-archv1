@@ -51,7 +51,8 @@ const GroupFeed = ({navigation}: Props) => {
   // console.log('invitedChatroomsFinale', invitedChatrooms);
   // console.log('myChatroomsFinale', myChatrooms);
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
-  // console.log('finaleChatrooms', chatrooms);
+
+  // console.log('chatroomsHaiNa', chatrooms);
 
   async function fetchData() {
     const invitesRes = await dispatch(
@@ -187,6 +188,12 @@ const GroupFeed = ({navigation}: Props) => {
             chatroomID: item?.chatroom?.id!,
             isSecret: item?.chatroom?.isSecret,
             deletedBy: item?.lastConversation?.deletedBy,
+            conversationDeletor:
+              item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
+            conversationCreator:
+              item?.lastConversation?.member?.sdkClientInfo?.uuid,
+            conversationDeletorName:
+              item?.lastConversation?.deletedByMember?.name,
             inviteReceiver: item?.inviteReceiver,
             chatroomType: item?.chatroom?.type,
             muteStatus: item?.chatroom?.muteStatus,

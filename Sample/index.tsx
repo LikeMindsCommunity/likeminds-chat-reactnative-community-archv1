@@ -11,13 +11,13 @@ import {
 import STYLES from '../ChatSX/constants/Styles';
 
 const FetchKeyInputScreen = () => {
-  const [userUniqueID, setUserUniqueID] = useState('');
+  const [uuid, setUuid] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
 
   const handleButtonPress = () => {
     // Perform some action when the button is pressed
     // You can access the input values from input1 and input2 variables
-    AsyncStorage.setItem('userUniqueID', userUniqueID);
+    AsyncStorage.setItem('uuid', uuid);
     setIsButtonClicked(true);
   };
 
@@ -26,8 +26,8 @@ const FetchKeyInputScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="User unique ID"
-        value={userUniqueID}
-        onChangeText={text => setUserUniqueID(text)}
+        value={uuid}
+        onChangeText={text => setUuid(text)}
       />
       <TouchableOpacity
         style={{
@@ -46,7 +46,7 @@ const FetchKeyInputScreen = () => {
         </Text>
       </TouchableOpacity>
 
-      {!!userUniqueID && !!isButtonClicked ? (
+      {!!uuid && !!isButtonClicked ? (
         <Text
           style={{
             color: STYLES.$COLORS.PRIMARY,

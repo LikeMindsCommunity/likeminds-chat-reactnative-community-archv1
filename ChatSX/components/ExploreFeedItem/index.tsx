@@ -50,7 +50,7 @@ const ExploreFeedItem: React.FC<Props> = ({
   const leaveChatroom = async (val: boolean) => {
     const payload = {
       collabcardId: chatroomID,
-      memberId: user?.id,
+      uuid: user?.sdkClientInfo?.uuid,
       value: val,
     };
     const res = await myClient

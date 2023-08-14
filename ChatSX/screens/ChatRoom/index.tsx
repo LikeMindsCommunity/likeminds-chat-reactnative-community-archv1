@@ -603,7 +603,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
       const res = await myClient?.chatroomSeen({
         collabcardId: chatroomID,
-        memberId: user?.id,
+        uuid: user?.sdkClientInfo?.uuid,
         collabcardType: chatroomType,
       });
 
@@ -628,11 +628,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function fetch initiate API
   async function fetchInitAPI() {
-    //this line of code is for the sample app only, pass your userUniqueID instead of this.
-    const UUID = await AsyncStorage.getItem('userUniqueID');
+    //this line of code is for the sample app only, pass your uuid instead of this.
+    const uuid = await AsyncStorage.getItem('uuid');
     console.log('aaya1');
     let payload = {
-      userUniqueId: UUID, // user unique ID
+      uuid: uuid, // uuid
       userName: '', // user name
       isGuest: false,
     };
@@ -741,10 +741,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     async function callApi() {
       if (chatroomType == 10) {
+        console.log('chatroomWithUser', chatroomWithUser);
         let apiRes = await myClient?.canDmFeed({
           reqFrom: 'chatroom',
           chatroomId: chatroomID,
-          memberId: chatroomWithUser?.id,
+          uuid: chatroomWithUser?.sdkClientInfo?.uuid,
         });
         let response = apiRes?.data;
         if (!!response?.cta) {
@@ -910,7 +911,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const leaveChatroom = async () => {
     const payload = {
       collabcardId: chatroomID,
-      memberId: user?.id,
+      uuid: user?.sdkClientInfo?.uuid,
       value: false,
     };
     const res = await myClient
@@ -1012,7 +1013,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const joinChatroom = async () => {
     const payload = {
       collabcardId: chatroomID,
-      memberId: user?.id,
+      uuid: user?.sdkClientInfo?.uuid,
       value: true,
     };
     const res = await myClient
@@ -1051,7 +1052,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const joinSecretChatroom = async () => {
     const payload = {
       collabcardId: chatroomID,
-      memberId: user?.id,
+      uuid: user?.sdkClientInfo?.uuid,
       value: true,
     };
     const res = await myClient
@@ -1746,9 +1747,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return res;
   };
 
-  const onReplyPrivatelyClick = async (memberID: any) => {
+  const onReplyPrivatelyClick = async (uuid: any) => {
     const apiRes = await myClient?.checkDMLimit({
-      memberId: memberID,
+      uuid: uuid,
     });
     const res = apiRes?.data;
     if (apiRes?.success === false) {
@@ -1767,7 +1768,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       } else {
         if (res?.isRequestDmLimitExceeded === false) {
           let payload = {
-            memberId: memberID,
+            uuid: uuid,
           };
           const apiResponse = await myClient?.createDMChatroom(payload);
           const response = apiResponse?.data;
@@ -1882,6 +1883,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 }}
                 style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
                 <Messages
+                  chatroomType={chatroomType}
                   onScrollToIndex={(index: any) => {
                     flatlistRef.current?.scrollToIndex({animated: true, index});
                   }}
@@ -2197,9 +2199,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               {isMessagePrivately ? (
                 <TouchableOpacity
                   onPress={() => {
-                    let memberID = selectedMessages[0]?.member?.id;
+                    console.log('selectedMsg[0]', selectedMessages[0]);
+                    let uuid = selectedMessages[0]?.member?.sdkClientInfo?.uuid;
 
-                    onReplyPrivatelyClick(memberID);
+                    onReplyPrivatelyClick(uuid);
                     dispatch({type: SELECTED_MESSAGES, body: []});
                     setReportModalVisible(false);
                     // handleReportModalClose()

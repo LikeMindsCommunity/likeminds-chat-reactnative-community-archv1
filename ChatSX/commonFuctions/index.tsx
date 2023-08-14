@@ -122,6 +122,9 @@ export const decode = (
   text: string | undefined,
   enableClick: boolean,
   isLongPress?: boolean,
+  receiverUuid?: string,
+  senderUuid?: string,
+  receiverMemberId?: string,
 ) => {
   if (!text) {
     return;
@@ -134,7 +137,22 @@ export const decode = (
       if (!!matchResult.match(REGEX_USER_TAGGING)) {
         let match = REGEX_USER_TAGGING.exec(matchResult);
         if (match !== null) {
-          const {name, route} = match?.groups!;
+          let {name, route} = match?.groups!;
+
+          if (receiverUuid && senderUuid && receiverMemberId) {
+            const startingIndex = route.indexOf('/');
+
+            const currentMemberId = route.substring(startingIndex + 1);
+
+            if (currentMemberId == receiverMemberId) {
+              route = `user_profile/${receiverUuid}`;
+              // console.log('routeHuNa1', route);
+            } else {
+              route = `user_profile/${senderUuid}`;
+              // console.log('routeHuNa2', route);
+            }
+          }
+
           arr.push({key: name, route: route});
         }
       } else {
@@ -342,7 +360,7 @@ export const getVideoThumbnail = async ({
           arr = [...arr, {uri: response.path}];
           dummyArrSelectedFiles[i] = {
             ...dummyArrSelectedFiles[i],
-            thumbnail_url: response.path,
+            thumbnailUrl: response.path,
           };
         })
         .catch(err => {});

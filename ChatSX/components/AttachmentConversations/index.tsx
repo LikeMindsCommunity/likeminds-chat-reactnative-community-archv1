@@ -679,12 +679,6 @@ export const ImageConversations = ({
     }
   };
 
-  console.log(
-    'item?.isInProgress === SUCCESS ==>',
-    item?.isInProgress === SUCCESS,
-    item?.id,
-  );
-
   return (
     <View>
       {item?.attachmentCount === 1 ? (

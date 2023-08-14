@@ -18,7 +18,7 @@ import FetchKeyInputScreen from './Sample';
 const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
-  const [userUniqueID, setUserUniqueID] = useState<any>();
+  const [uuid, setUuid] = useState<any>();
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
     async function bootstrap() {
@@ -35,13 +35,13 @@ function App(): JSX.Element {
   // this useEffect is for the sample app only
   useEffect(() => {
     async function invokeDataLayer() {
-      const userUniqueID = await AsyncStorage.getItem('userUniqueID');
-      setUserUniqueID(userUniqueID);
+      const uuid = await AsyncStorage.getItem('uuid');
+      setUuid(uuid);
     }
     invokeDataLayer();
   }, []);
 
-  return userUniqueID ? (
+  return uuid ? (
     <ReduxProvider store={store}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
