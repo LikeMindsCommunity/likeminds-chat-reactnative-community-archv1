@@ -79,7 +79,6 @@ const SwitchComponent = () => {
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      console.log('remoteMsgForeground', remoteMessage);
       let val = await getNotification(remoteMessage);
       return val;
     });

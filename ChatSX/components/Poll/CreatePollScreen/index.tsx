@@ -17,6 +17,7 @@ import {myClient} from '../../../..';
 import CreatePollUI from '../CreatePollUI';
 import {CreatePoll, CreatePollStateProps} from '../../../Models/PollModels';
 import {formatDate} from '../../../commonFuctions';
+import {getConversations} from '../../../store/actions/chatroom';
 
 const CreatePollScreen = ({navigation, route}: CreatePoll) => {
   const [question, setQuestion] = useState<string>('');
@@ -44,6 +45,7 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
 
   const dispatch = useAppDispatch();
   const {chatroomID} = route.params;
+  const {conversationsLength} = route.params;
 
   const setInitialHeader = () => {
     navigation.setOptions({
@@ -291,6 +293,12 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
         expiryTime: Date.parse(time.toString()),
       };
       const res = await myClient.postPollConversation(payload);
+      let payload1 = {
+        chatroomID: chatroomID,
+        paginateBy: conversationsLength,
+        topNavigate: false,
+      };
+      await dispatch(getConversations(payload1, true) as any);
       handleOnCancel();
     } catch (error) {
       // process error

@@ -28,8 +28,6 @@ const ViewParticipants = ({navigation, route}: any) => {
   const {chatroomID, isSecret} = route.params;
   const user = useAppSelector(state => state.homefeed.user);
 
-  console.log('participants1', participants);
-
   const setInitialHeader = () => {
     navigation.setOptions({
       title: '',
@@ -138,7 +136,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       participantName: search,
     } as any);
     const res = apiRes?.data;
-    console.log('respParticiapnts', res);
+
     setTotalChatroomCount(res?.totalParticipantsCount);
     setParticipants(res?.participants);
 
@@ -151,7 +149,7 @@ const ViewParticipants = ({navigation, route}: any) => {
         participantName: search,
       } as any);
       const response = apiResponse?.data;
-      console.log('resParti1', response);
+
       setParticipants((participants: any) => [
         ...participants,
         ...response?.participants,
@@ -214,7 +212,6 @@ const ViewParticipants = ({navigation, route}: any) => {
     setIsLoading(true);
     const res = await updateData(newPage);
     if (!!res) {
-      console.log('res3', res);
       setParticipants([...participants, ...res?.participants]);
       setIsLoading(false);
     }

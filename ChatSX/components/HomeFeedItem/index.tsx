@@ -77,9 +77,6 @@ const HomeFeedItem: React.FC<Props> = ({
   const dispatch = useAppDispatch();
   const [uuid, setUuid] = useState<any>();
 
-  console.log('creatorHuMai', conversationCreator);
-  console.log('deletorHuMai', conversationDeletor);
-
   useEffect(() => {
     async function getUuid() {
       const uuid = await AsyncStorage.getItem('uuid');

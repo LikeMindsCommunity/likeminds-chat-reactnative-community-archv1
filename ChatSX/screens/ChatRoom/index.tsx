@@ -143,7 +143,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let refInput = useRef<any>();
 
   const db = myClient?.fbInstance();
-  // console.log('dbHu', db);
+
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -630,15 +630,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchInitAPI() {
     //this line of code is for the sample app only, pass your uuid instead of this.
     const uuid = await AsyncStorage.getItem('uuid');
-    console.log('aaya1');
+
     let payload = {
       uuid: uuid, // uuid
       userName: '', // user name
       isGuest: false,
     };
-    console.log('aaya2');
+
     let res = await dispatch(initAPI(payload) as any);
-    // console.log('respAaya', res);
+
     return res;
   }
 
@@ -741,7 +741,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     async function callApi() {
       if (chatroomType == 10) {
-        console.log('chatroomWithUser', chatroomWithUser);
         let apiRes = await myClient?.canDmFeed({
           reqFrom: 'chatroom',
           chatroomId: chatroomID,
@@ -1622,8 +1621,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         uriFinal = img;
       }
 
-      console.log('uriiHai', uriFinal);
-
       //for video thumbnail
       let thumbnailUrlImg = null;
       if (thumbnailURL && attachmentType === VIDEO_TEXT) {
@@ -1883,6 +1880,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 }}
                 style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
                 <Messages
+                  chatroomWithUser={chatroomWithUser}
                   chatroomType={chatroomType}
                   onScrollToIndex={(index: any) => {
                     flatlistRef.current?.scrollToIndex({animated: true, index});
@@ -2199,7 +2197,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               {isMessagePrivately ? (
                 <TouchableOpacity
                   onPress={() => {
-                    console.log('selectedMsg[0]', selectedMessages[0]);
                     let uuid = selectedMessages[0]?.member?.sdkClientInfo?.uuid;
 
                     onReplyPrivatelyClick(uuid);

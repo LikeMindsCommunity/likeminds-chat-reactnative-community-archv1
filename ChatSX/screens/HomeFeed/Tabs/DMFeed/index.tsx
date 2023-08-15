@@ -69,14 +69,14 @@ const DMFeed = ({navigation}: Props) => {
           requestFrom: 'dm_feed_v2',
         });
         let response = apiRes?.data;
-        // console.log('respDMFeed', response);
+
         if (!!response) {
           let routeURL = response?.cta;
           const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-          // console.log('showList', hasShowList);
+
           if (hasShowList) {
             const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-            // console.log('showListValue', showListValue);
+
             setShowList(showListValue);
           }
           setShowDM(response?.showDm);

@@ -48,27 +48,19 @@ const GroupFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient?.fbInstance();
-  // console.log('invitedChatroomsFinale', invitedChatrooms);
-  // console.log('myChatroomsFinale', myChatrooms);
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
-
-  // console.log('chatroomsHaiNa', chatrooms);
 
   async function fetchData() {
     const invitesRes = await dispatch(
       getInvites({channelType: 1, page: 1, pageSize: 10}, true) as any,
     );
 
-    console.log('inviteRes', invitesRes);
-
     if (!!invitesRes?.userInvites) {
-      console.log('yahaHu1');
       if (invitesRes?.userInvites?.length < 10) {
         let payload = {
           page: 1,
         };
         const temp = await dispatch(getHomeFeedData(payload) as any);
-        // console.log('homeFeedDataGet', temp);
       } else {
         await dispatch(
           updateInvites({channelType: 1, page: 2, pageSize: 10}, true) as any,
@@ -87,10 +79,8 @@ const GroupFeed = ({navigation}: Props) => {
   useEffect(() => {
     const token = async () => {
       const isPermissionEnabled = await requestUserPermission();
-      // console.log('isPermissionEnabled', isPermissionEnabled);
       if (isPermissionEnabled) {
         let fcmToken = await fetchFCMToken();
-        // console.log('fcmToken', fcmToken);
         if (!!fcmToken) {
           setFCMToken(fcmToken);
         }
@@ -100,7 +90,6 @@ const GroupFeed = ({navigation}: Props) => {
   }, []);
 
   async function updateData(newPage: number) {
-    console.log('updating...');
     let payload = {
       page: newPage,
     };
@@ -112,7 +101,6 @@ const GroupFeed = ({navigation}: Props) => {
     setIsLoading(true);
     setTimeout(async () => {
       const res = await updateData(newPage);
-      // console.log('loadData', res);
       if (!!res) {
         setIsLoading(false);
       }

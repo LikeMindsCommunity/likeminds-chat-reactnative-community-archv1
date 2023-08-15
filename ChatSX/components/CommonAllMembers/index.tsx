@@ -265,7 +265,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
           };
     const apiRes = await myClient?.searchMembers(initialPayload);
     const res = apiRes?.data;
-    console.log('resspp', res);
+
     setSearchPage(1);
     setSearchedParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
@@ -355,9 +355,9 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   // function shows loader in between calling the API and getting the response
   const loadData = async (newPage: number) => {
     setIsLoading(true);
-    console.log('newPage');
+
     const res = await updateData(newPage);
-    console.log('respNewPage', res);
+
     if (res?.members.length === 0) {
       setIsStopPagination(true);
     }

@@ -317,7 +317,7 @@ const PollConversationView = ({
       }
 
       // multiple options are allowed
-      switch (item?.multiple_select_state) {
+      switch (item?.multipleSelectState) {
         case POLL_MULTIPLE_STATE_EXACTLY: {
           if (selectedPolls.length === item?.multipleSelectNo) {
             return;

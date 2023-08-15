@@ -571,7 +571,6 @@ const InputBox = ({
         useGrouping: false,
       })}`;
       obj.id = ID;
-      // console.log('IDDDNEW', ID);
       obj.chatroomId = chatroomDetails?.chatroom?.id;
       obj.communityId = community?.id;
       obj.date = `${
@@ -722,7 +721,6 @@ const InputBox = ({
                 ID: response?.id,
               },
             });
-
             await handleFileUpload(response?.id, false);
             const getConversationPayload = {
               chatroomID: chatroomID,
@@ -1297,7 +1295,9 @@ const InputBox = ({
                       setModalVisible(false);
                       navigation.navigate(CREATE_POLL_SCREEN, {
                         chatroomID: chatroomID,
+                        conversationsLength: conversations.length * 2,
                       });
+
                       // setPollModalVisible(true);
                     }}
                     style={styles.pollStyle}>

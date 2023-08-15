@@ -59,7 +59,7 @@ const FileUpload = ({navigation, route}: any) => {
     selectedFilesToUploadThumbnails = [],
   }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
-  console.log('selectedFileToView', selectedFileToView);
+
   const itemType = selectedFileToView?.type?.split('/')[0];
   const docItemType = selectedFileToView?.type?.split('/')[1];
   let len = selectedFilesToUpload.length;
@@ -121,10 +121,10 @@ const FileUpload = ({navigation, route}: any) => {
 
     for (let i = 0; i < selectedImages?.length; i++) {
       let item = selectedImages[i];
-      console.log('itemHuNaMai', item);
+
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
-      // console.log('item', item);
+
       let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
@@ -139,8 +139,6 @@ const FileUpload = ({navigation, route}: any) => {
 
       let uriFinal: any;
 
-      // console.log('attachmentType', attachmentType);
-
       if (attachmentType === IMAGE_TEXT) {
         const compressedImgURI = await CompressedImage.compress(item.uri, {
           compressionMethod: 'auto',
@@ -152,13 +150,10 @@ const FileUpload = ({navigation, route}: any) => {
         uriFinal = img;
       }
 
-      // console.log('uriiHai', uriFinal);
-
       //for video thumbnail
       let thumbnailUrlImg: any;
       if (thumbnailURL && attachmentType === VIDEO_TEXT) {
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
-        console.log('hereHuMai', thumbnailUrlImg);
       }
 
       const params = {
@@ -168,7 +163,6 @@ const FileUpload = ({navigation, route}: any) => {
         ACL: 'public-read-write',
         ContentType: item?.type, // Replace with the appropriate content type for your file
       };
-      console.log('1');
 
       //for video thumbnail
       const thumnnailUrlParams: any = {
@@ -178,19 +172,16 @@ const FileUpload = ({navigation, route}: any) => {
         ACL: 'public-read-write',
         ContentType: 'image/jpeg', // Replace with the appropriate content type for your file
       };
-      console.log('2');
 
       try {
-        console.log('4');
         let getVideoThumbnailData = null;
 
         if (thumbnailURL && attachmentType === VIDEO_TEXT) {
-          console.log('5');
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
         }
         const data = await s3.upload(params).promise();
         let awsResponse = data.Location;
-        // console.log('dataFileUpload', data);
+
         if (awsResponse) {
           let fileType = '';
           if (docAttachmentType === PDF_TEXT) {
@@ -229,13 +220,9 @@ const FileUpload = ({navigation, route}: any) => {
               fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
 
-          // console.log('payLoadFileUpload', payload);
-
           const uploadRes = await myClient?.putMultimedia(payload as any);
-          // console.log('uploadRes', uploadRes);
         }
       } catch (error) {
-        console.log('3');
         dispatch({
           type: SET_FILE_UPLOADING_MESSAGES,
           body: {
@@ -256,7 +243,6 @@ const FileUpload = ({navigation, route}: any) => {
       });
     }
 
-    console.log('conversationID ==', conversationID);
     dispatch({
       type: CLEAR_FILE_UPLOADING_MESSAGES,
       body: {
@@ -266,7 +252,6 @@ const FileUpload = ({navigation, route}: any) => {
   };
 
   const handleFileUpload = async (conversationID: any, isRetry: any) => {
-    console.log('selectedImagesToUpload', selectedFilesToUpload);
     const res = await uploadResource({
       selectedImages: selectedFilesToUpload,
       conversationID: conversationID,
@@ -275,7 +260,7 @@ const FileUpload = ({navigation, route}: any) => {
       uploadingFilesMessages,
       isRetry: isRetry,
     });
-    // console.log('respinseHuNaMaiToh', res);
+
     return res;
   };
 

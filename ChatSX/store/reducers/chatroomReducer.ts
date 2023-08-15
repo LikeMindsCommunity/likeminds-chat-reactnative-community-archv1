@@ -84,7 +84,6 @@ export function chatroomReducer(state = initialState, action: any) {
       const {conversations = []} = data;
       let ID = conversations[0]?.id;
       let temporaryID = conversations[0]?.temporaryId;
-      console.log('tempIdhai', temporaryID);
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
@@ -109,14 +108,12 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case ON_CONVERSATIONS_CREATE_SUCCESS: {
       const data = action.body;
-      console.log('dataHai', data);
       const {conversation = []} = data;
 
       if (conversation?.hasFiles || !!conversation?.replyConversation) {
         return {...state};
       }
       let temporaryID = conversation?.temporaryId;
-      console.log('tempHai1', temporaryID);
 
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
@@ -147,8 +144,6 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case UPDATE_MULTIMEDIA_CONVERSATIONS: {
       const id = action.body;
-      console.log('idHaiHu', id);
-      console.log('conversationsArr', state.conversations);
       // return null;
     }
     case CLEAR_CHATROOM_CONVERSATION: {
@@ -210,12 +205,10 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case SELECTED_FILES_TO_UPLOAD: {
       const {images} = action.body;
-      console.log('imageHuSetFiles', images);
       return {...state, selectedFilesToUpload: [...images]};
     }
     case SELECTED_FILES_TO_UPLOAD_THUMBNAILS: {
       const {images} = action.body;
-      console.log('imageHuSetFilesThumbnail', images);
       return {...state, selectedFilesToUploadThumbnails: [...images]};
     }
     case SELECTED_FILE_TO_VIEW: {
@@ -230,11 +223,9 @@ export function chatroomReducer(state = initialState, action: any) {
       };
     }
     case CLEAR_SELECTED_FILES_TO_UPLOAD: {
-      // console.log('stateHai', state);
       return {...state, selectedFilesToUpload: []};
     }
     case CLEAR_SELECTED_FILE_TO_VIEW: {
-      // console.log('stateHai1', state);
       return {...state, selectedFileToView: {}};
     }
     case SET_IS_REPLY: {

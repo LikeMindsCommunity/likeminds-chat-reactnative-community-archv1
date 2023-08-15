@@ -49,14 +49,7 @@ export function fileUploadReducer(state = initialState, action: any) {
     }
     case CLEAR_FILE_UPLOADING_MESSAGES: {
       const {ID} = action.body;
-
-      // console.log(
-      //   'state.uploadingFilesMessages ==',
-      //   state.uploadingFilesMessages,
-      // );
-      console.log('state.uploadingFilesMessages ID -->', ID);
       let obj = removeKey(ID, state.uploadingFilesMessages);
-      console.log('obj == uploadingFilesMessages ==>', obj); //cleared!
       let dummyState = {
         ...state,
         uploadingFilesMessages: {...obj},
@@ -66,7 +59,6 @@ export function fileUploadReducer(state = initialState, action: any) {
       const func = async () => {
         const res = await AsyncStorage.getItem('uploadingFilesMessages');
         let obj = removeKey(ID, JSON.parse(res as any));
-        console.log('objAgain', obj);
         await AsyncStorage.setItem(
           'uploadingFilesMessages',
           JSON.stringify(obj),
@@ -79,8 +71,6 @@ export function fileUploadReducer(state = initialState, action: any) {
 
     case UPDATE_FILE_UPLOADING_OBJECT: {
       const {message = {}, ID} = action.body;
-      console.log('messageAction', message);
-      console.log('idAction', ID);
       let obj = {[ID]: {...message}};
       let dummyState = {
         ...state.uploadingFilesMessages,

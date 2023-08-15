@@ -122,9 +122,9 @@ export const decode = (
   text: string | undefined,
   enableClick: boolean,
   isLongPress?: boolean,
-  receiverUuid?: string,
-  senderUuid?: string,
-  receiverMemberId?: string,
+  memberUuid?: string,
+  chatroomWithUserUuid?: string,
+  chatroomWithUserMemberId?: string,
 ) => {
   if (!text) {
     return;
@@ -139,17 +139,15 @@ export const decode = (
         if (match !== null) {
           let {name, route} = match?.groups!;
 
-          if (receiverUuid && senderUuid && receiverMemberId) {
+          if (memberUuid && chatroomWithUserUuid && chatroomWithUserMemberId) {
             const startingIndex = route.indexOf('/');
 
             const currentMemberId = route.substring(startingIndex + 1);
 
-            if (currentMemberId == receiverMemberId) {
-              route = `user_profile/${receiverUuid}`;
-              // console.log('routeHuNa1', route);
+            if (currentMemberId == chatroomWithUserMemberId) {
+              route = `user_profile/${chatroomWithUserUuid}`;
             } else {
-              route = `user_profile/${senderUuid}`;
-              // console.log('routeHuNa2', route);
+              route = `user_profile/${memberUuid}`;
             }
           }
 

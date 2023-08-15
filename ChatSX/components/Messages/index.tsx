@@ -26,6 +26,7 @@ interface Messages {
   handleTapToUndo: any;
   handleFileUpload: any;
   chatroomType: any;
+  chatroomWithUser: any;
 }
 
 const Messages = ({
@@ -39,12 +40,13 @@ const Messages = ({
   handleTapToUndo,
   handleFileUpload,
   chatroomType,
+  chatroomWithUser,
 }: Messages) => {
-  console.log('itemsMessages', item);
   const conversationCreator = item?.member?.sdkClientInfo?.uuid;
-  const conversationCreatorMemberId = item?.member?.id;
   const conversationDeletor = item?.deletedByMember?.sdkClientInfo?.uuid;
   const conversationDeletorName = item?.deletedByMember?.name;
+  const chatroomWithUserUuid = chatroomWithUser?.sdkClientInfo?.uuid;
+  const chatroomWithUserMemberId = chatroomWithUser?.id;
 
   const {user} = useAppSelector(state => state.homefeed);
   const {
@@ -111,13 +113,11 @@ const Messages = ({
     const loggedInMember = uuid;
     const chatroomWithUser =
       chatroomDetails?.chatroom?.member?.sdkClientInfo?.uuid;
-    console.log('uuidHuNa', uuid);
-    console.log('chatroomKiskeSaath', chatroomWithUser);
-    console.log('answerHuMai', answer);
+
     if (loggedInMember !== chatroomWithUser) {
       const startingIndex = answer.lastIndexOf('<');
       const temp = answer.substring(0, startingIndex - 2);
-      console.log('tempHUNaMai1', temp);
+
       return temp;
     } else {
       const startingIndex = answer.indexOf('<');
@@ -125,7 +125,7 @@ const Messages = ({
       const temp =
         answer.substring(0, startingIndex - 1) +
         answer.substring(endingIndex + 2);
-      console.log('tempHUNaMai2', temp);
+
       return temp;
     }
   };
@@ -364,17 +364,21 @@ const Messages = ({
                               answerTrimming(item?.answer),
                               true,
                               false,
+
                               conversationCreator,
-                              uuid,
-                              conversationCreatorMemberId,
+
+                              chatroomWithUserUuid,
+                              chatroomWithUserMemberId,
                             )
                           : decode(
                               item?.answer,
                               true,
                               false,
+
                               conversationCreator,
-                              uuid,
-                              conversationCreatorMemberId,
+
+                              chatroomWithUserUuid,
+                              chatroomWithUserMemberId,
                             )
                       }
                     </Text>

@@ -116,23 +116,22 @@ const HomeFeed = ({navigation}: Props) => {
 
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
-    console.log('aaya3');
+
     const uuid = await AsyncStorage.getItem('uuid');
-    console.log('uuidHU', uuid);
+
     let payload = {
       uuid: uuid, // uuid
       userName: 'ranjanDas', // user name
       isGuest: false,
     };
-    console.log('aaya4');
+
     let res = await dispatch(initAPI(payload) as any);
-    // console.log('respNaya', res);
+
     if (!!res) {
-      console.log('aaya5');
       await dispatch(getMemberState() as any);
-      // console.log('communityId', res?.community?.id);
-      setCommunityId(res?.community?.id); //make it res?.data?.community?.id
-      setAccessToken(res?.accessToken); //make it res?.data?.accessToken
+
+      setCommunityId(res?.community?.id);
+      setAccessToken(res?.accessToken);
     }
 
     return res;
@@ -158,7 +157,7 @@ const HomeFeed = ({navigation}: Props) => {
   useEffect(() => {
     const func = async () => {
       const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
-      // console.log('tumBhi', res);
+
       if (res) {
         let uploadingFilesMessagesSavedObject = JSON.parse(res);
         let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);

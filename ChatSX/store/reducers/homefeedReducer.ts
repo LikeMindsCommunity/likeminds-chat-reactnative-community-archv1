@@ -51,7 +51,6 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case GET_INVITES_SUCCESS: {
       const {userInvites = []} = action.body;
-      // console.log('userInvi', userInvites);
       return {
         ...state,
         invitedChatrooms: userInvites,
@@ -87,9 +86,6 @@ export function homefeedReducer(state = initialState, action: any) {
     case GET_HOMEFEED_CHAT_SUCCESS: {
       const {myChatrooms, unseenChatroomCount, totalChatroomCount} =
         action.body;
-      // console.log('myChatrooms', myChatrooms);
-      // console.log('unseenChatroomCount', unseenChatroomCount);
-      // console.log('totalChatroomCount', totalChatroomCount);
       return {
         ...state,
         myChatrooms: myChatrooms,
@@ -99,12 +95,10 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case UPDATE_HOMEFEED_CHAT_SUCCESS: {
       const {myChatrooms = []} = action.body;
-      // console.log('myChatroomsUpdateHomeFeed', myChatrooms);
       return {...state, myChatrooms: [...state.myChatrooms, ...myChatrooms]};
     }
     case GET_DMFEED_CHAT_SUCCESS: {
       const {dmChatrooms} = action.body;
-      // console.log('dmChatrooms', dmChatrooms);
       return {
         ...state,
         myDMChatrooms: dmChatrooms,
@@ -112,7 +106,6 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case UPDATE_DMFEED_CHAT_SUCCESS: {
       const {dmChatrooms = []} = action.body;
-      // console.log('dmChatroomsHai', dmChatrooms);
       return {
         ...state,
         myDMChatrooms: [...state.myDMChatrooms, ...dmChatrooms],
@@ -120,8 +113,6 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case UPDATE_LAST_CONVERSATION: {
       const {lastConversationAnswer, chatroomType, chatroomID} = action.body;
-
-      // console.log('lastConversationAnswerHai', lastConversationAnswer);
 
       let isDM = chatroomType === 10 ? true : false;
       let chatroomList = isDM ? state?.myDMChatrooms : state?.myChatrooms;
@@ -147,16 +138,11 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case INIT_API_SUCCESS: {
-      // console.log('actionHai', action.body);
       const {community = {}} = action.body;
-      // console.log('communityNew', community);
       return {...state, community: community};
     }
     case PROFILE_DATA_SUCCESS: {
-      // console.log('actionGetMember', action.body);
       const {member = {}, memberRights = []} = action.body;
-      // console.log('memberNew', member);
-      // console.log('memberRightsNew', memberRights);
       return {...state, user: member, memberRights: memberRights};
     }
     case SHOW_TOAST: {
