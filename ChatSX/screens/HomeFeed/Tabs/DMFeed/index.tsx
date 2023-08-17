@@ -54,7 +54,7 @@ const DMFeed = ({navigation}: Props) => {
     useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
 
-  const db = myClient?.fbInstance();
+  const db = myClient?.firebaseInstance();
   const chatrooms = [...myDMChatrooms];
 
   async function fetchData() {

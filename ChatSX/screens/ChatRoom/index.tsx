@@ -142,8 +142,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
   let refInput = useRef<any>();
 
-  const db = myClient?.fbInstance();
-
+  const db = myClient?.firebaseInstance();
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -532,7 +531,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               <TouchableOpacity
                 onPress={async () => {
                   const res = await myClient
-                    .deleteConversation({
+                    .deleteConversations({
                       conversationIds: selectedMessagesIDArr,
                       reason: 'none',
                     })
@@ -636,9 +635,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       userName: '', // user name
       isGuest: false,
     };
-
     let res = await dispatch(initAPI(payload) as any);
-
     return res;
   }
 
@@ -1611,6 +1608,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let uriFinal: any;
 
       if (attachmentType === IMAGE_TEXT) {
+        //image compression
         const compressedImgURI = await CompressedImage.compress(item.uri, {
           compressionMethod: 'auto',
         });

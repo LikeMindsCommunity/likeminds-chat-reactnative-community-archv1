@@ -49,13 +49,14 @@ export function fileUploadReducer(state = initialState, action: any) {
     }
     case CLEAR_FILE_UPLOADING_MESSAGES: {
       const {ID} = action.body;
+
+      // removeKey removes the sent media from retry media list, ie, obj
       let obj = removeKey(ID, state.uploadingFilesMessages);
       let dummyState = {
         ...state,
         uploadingFilesMessages: {...obj},
       };
 
-      // ??
       const func = async () => {
         const res = await AsyncStorage.getItem('uploadingFilesMessages');
         let obj = removeKey(ID, JSON.parse(res as any));

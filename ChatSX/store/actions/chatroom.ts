@@ -26,7 +26,7 @@ export const getConversations =
       return await dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         [CALL_API]: {
-          func: myClient?.getConversation(payload),
+          func: myClient?.getConversations(payload),
           body: payload,
           types: [
             GET_CONVERSATIONS,
@@ -37,7 +37,7 @@ export const getConversations =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };
 
@@ -47,7 +47,7 @@ export const paginatedConversations =
       return await dispatch({
         type: PAGINATED_CONVERSATIONS_SUCCESS,
         [CALL_API]: {
-          func: myClient?.getConversation(payload),
+          func: myClient?.getConversations(payload),
           body: payload,
           types: [
             PAGINATED_CONVERSATIONS,
@@ -58,7 +58,7 @@ export const paginatedConversations =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };
 
@@ -68,7 +68,7 @@ export const firebaseConversation =
       return await dispatch({
         type: FIREBASE_CONVERSATIONS_SUCCESS,
         [CALL_API]: {
-          func: myClient?.conversationsFetch(payload),
+          func: myClient?.getConversationMeta(payload),
           body: payload,
           types: [
             FIREBASE_CONVERSATIONS,
@@ -79,7 +79,7 @@ export const firebaseConversation =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };
 
@@ -100,7 +100,7 @@ export const onConversationsCreate =
         },
       });
     } catch (error) {
-      Alert.alert(`${error}`)
+      Alert.alert(`${error}`);
     }
   };
 
@@ -116,6 +116,6 @@ export const getChatroom = (payload: any) => async (dispatch: Dispatch) => {
       },
     });
   } catch (error) {
-    Alert.alert(`${error}`)
+    Alert.alert(`${error}`);
   }
 };
