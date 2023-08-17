@@ -1057,12 +1057,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let payload = {chatroomId: chatroomID};
         await dispatch(getChatroom(payload) as any);
 
-        let payload1 = {
+        let getConversationsPayload = {
           chatroomID: chatroomID,
           paginateBy: 100,
           topNavigate: false,
         };
-        await dispatch(getConversations(payload1, true) as any);
+        await dispatch(getConversations(getConversationsPayload, true) as any);
 
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});

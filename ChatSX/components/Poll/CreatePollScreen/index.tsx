@@ -293,12 +293,12 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
         expiryTime: Date.parse(time.toString()),
       };
       const res = await myClient.postPollConversation(payload);
-      let payload1 = {
+      let getConversationsPayload = {
         chatroomID: chatroomID,
         paginateBy: conversationsLength,
         topNavigate: false,
       };
-      await dispatch(getConversations(payload1, true) as any);
+      await dispatch(getConversations(getConversationsPayload, true) as any);
       handleOnCancel();
     } catch (error) {
       // process error
