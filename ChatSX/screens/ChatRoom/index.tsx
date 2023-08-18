@@ -21,6 +21,8 @@ import {
   ScrollView,
   Platform,
   LogBox,
+  ScrollViewProps,
+  DeviceEventEmitter,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
 import {myClient} from '../../..';
@@ -40,6 +42,7 @@ import {
   getChatroom,
   getConversations,
   paginatedConversations,
+  paginatedConversationsEnd,
 } from '../../store/actions/chatroom';
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -118,6 +121,8 @@ import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// import {FlashList} from "./FlashlistAndroid"
+// import {FlashList} from './index';
 
 interface Data {
   id: string;
@@ -140,18 +145,23 @@ interface UploadResource {
 
 const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
+  const scrollPositionRef = useRef<any>(0);
   let refInput = useRef<any>();
 
   const db = myClient?.firebaseInstance();
+
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
+  const [endPage, setEndPage] = useState(1);
+  const [startPage, setStartPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [isToast, setIsToast] = useState(false);
   const [msg, setMsg] = useState('');
   const [apiRes, setApiRes] = useState();
   const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
+  const [shouldLoadMoreChatEnd, setShouldLoadMoreChatEnd] = useState(true);
+  const [shouldLoadMoreChatStart, setShouldLoadMoreChatStart] = useState(true);
   const [isReact, setIsReact] = useState(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [DMApproveAlertModalVisible, setDMApproveAlertModalVisible] =
@@ -166,8 +176,23 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [isEditable, setIsEditable] = useState<any>(false);
   const [isWarningMessageModalState, setIsWarningMessageModalState] =
     useState(false);
+  const onStartReachedTracker = useRef<Record<number, boolean>>({});
+  const onEndReachedTracker = useRef<Record<number, boolean>>({});
+  const [onStartReachedInProgress, setOnStartReachedInProgress] =
+    useState(false);
+  const [onEndReachedInProgress, setOnEndReachedInProgress] = useState(false);
+  const onStartReachedInPromise = useRef<Promise<void> | null>(null);
+  const onEndReachedInPromise = useRef<Promise<void> | null>(null);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
+
+  const [disableScroll, setDisableScroll] = useState(false);
+  const [lastScrollPosition, setLastScrollPosition] = useState<any>(null);
+  const [loadMoreForwardConversations, setLoadMoreForwardConversations] =
+    useState(false);
+  const [loadMoreBackwardConversations, setLoadMoreBackwardConversations] =
+    useState(true);
+  const [visibleIndex, setVisibleIndex] = useState(0);
 
   const {
     chatroomID,
@@ -178,7 +203,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const isFocused = useIsFocused();
 
   const dispatch = useAppDispatch();
-  const {
+  let {
     conversations = [],
     chatroomDetails,
     messageSent,
@@ -197,6 +222,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let memberCanMessage = chatroomDetails?.chatroom?.memberCanMessage;
   let chatroomWithUser = chatroomDetails?.chatroom?.chatroomWithUser;
   let chatRequestState = chatroomDetails?.chatroom?.chatRequestState;
+
+  let conversationsNew = [...conversations];
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -635,7 +662,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       userName: '', // user name
       isGuest: false,
     };
+
     let res = await dispatch(initAPI(payload) as any);
+
     return res;
   }
 
@@ -784,7 +813,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this useEffect scroll to Index of latest message when we send the message.
   useEffect(() => {
+    console.log('useEffect1');
     if (conversations.length > 0) {
+      console.log('useEffect2');
       flatlistRef?.current?.scrollToIndex({
         animated: false,
         index: 0,
@@ -853,14 +884,32 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   //function calls paginatedConversations action which internally calls getConversation to update conversation array with the new data.
   async function paginatedData(newPage: number) {
+    console.log('5');
     let payload = {
       chatroomID: chatroomID,
       conversationID: conversations[conversations.length - 1]?.id,
-      scrollDirection: 0,
+      scrollDirection: 0, //scroll up -> 0 and scroll down -> 1
       paginateBy: 50,
       topNavigate: false,
     };
     let response = await dispatch(paginatedConversations(payload, true) as any);
+    console.log('6');
+    return response;
+  }
+
+  async function endPaginatedData(newPage: number) {
+    let payload = {
+      chatroomID: chatroomID,
+      conversationID: conversations[0]?.id,
+      scrollDirection: 1, //scroll down -> 1
+      paginateBy: 10,
+      topNavigate: false,
+    };
+
+    let response = await dispatch(
+      paginatedConversationsEnd(payload, true) as any,
+    );
+
     return response;
   }
 
@@ -869,7 +918,30 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setIsLoading(true);
     const res = await paginatedData(newPage);
     if (res.conversations.length == 0) {
-      setShouldLoadMoreChat(false);
+      setShouldLoadMoreChatEnd(false);
+    }
+    if (!!res) {
+      setIsLoading(false);
+    }
+  };
+
+  const scrollToVisibleIndex = () => {
+    console.log('op');
+    if (flatlistRef.current) {
+      console.log('op1');
+      console.log('visibleIndex', visibleIndex);
+      // console.log('ind', ind);
+
+      flatlistRef.current.scrollToIndex({animated: true, index: 53});
+    }
+  };
+
+  // function shows loader in between calling the API and getting the response
+  const endLoadData = async (newPage: number) => {
+    setIsLoading(true);
+    const res = await endPaginatedData(newPage);
+    if (res.conversations.length == 0) {
+      setShouldLoadMoreChatStart(false);
     }
     if (!!res) {
       setIsLoading(false);
@@ -877,11 +949,184 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   //function checks the pagination logic, if it verifies the condition then call loadData
+  const handleOnEndReached = () => {
+    if (!isLoading && conversations.length > 0) {
+      // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+      if (conversations.length > 15) {
+        console.log('endPage', endPage);
+        const newPage = endPage + 1;
+        setEndPage(newPage);
+        endLoadData(newPage);
+      }
+    }
+  };
+
+  // const isScrollBarAtBottom = (ele: any) => {
+  //   var sh = ele.scrollHeight;
+  //   var st = ele.flatlistRef;
+  //   var ht = ele.offsetHeight;
+  //   if (ht === 0) {
+  //     return true;
+  //   }
+  //   if (st === Math.floor(sh - ht) || Math.abs(st - Math.floor(sh - ht)) < 24) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // };
+
+  // async function paginatedDataTesting(
+  //   chatroomID: any,
+  //   paginateBy: any,
+  //   scrollDirection: any,
+  // ) {
+  //   let payload = {
+  //     chatroomID,
+  //     conversationID:
+  //       scrollDirection === 0
+  //         ? conversations[0]?.id
+  //         : conversations[conversations.length - 1]?.id,
+  //     scrollDirection, //scroll up -> 0 and scroll down -> 1
+  //     paginateBy,
+  //     topNavigate: false,
+  //     include: false,
+  //   };
+  //   if (
+  //     payload?.conversationID === null ||
+  //     payload?.conversationID === undefined
+  //   ) {
+  //     return;
+  //   }
+  //   const response: any = await myClient.getConversations(payload);
+  //   let newConversationArray: any = [];
+  //   let scrollIntoViewId: any = '';
+
+  //   console.log('resp', response);
+
+  //   if (!response.error) {
+  //     console.log('resHaiYha', response);
+  //     const conversationsNew = response?.data?.conversations;
+  //     const conversationsLength = conversations?.length;
+
+  //     if (conversationsLength === 0) {
+  //       if (scrollDirection === 1) {
+  //         setLoadMoreForwardConversations(false);
+  //       } else {
+  //         setLoadMoreBackwardConversations(false);
+  //       }
+  //     } else {
+  //       if (scrollDirection === 1) {
+  //         // setting the conversation id in the session storage and making the new conversation array
+  //         // sessionStorage.setItem(
+  //         //   LAST_CONVERSATION_ID_FORWARD,
+  //         //   conversations[conversationsLength - 1]?.id
+  //         // );
+  //         newConversationArray = [...conversations, ...conversationsNew];
+
+  //         scrollIntoViewId = conversations[conversationsLength - 1]?.id;
+  //       } else {
+  //         // setting the conversation id in the session storage and making the new conversation array
+  //         // sessionStorage.setItem(
+  //         //   LAST_CONVERSATION_ID_BACKWARD,
+  //         //   conversations[0]?.id
+  //         // );
+  //         newConversationArray = [...conversationsNew, ...conversations];
+  //         scrollIntoViewId = conversations[0]?.id;
+  //       }
+  //       // replacing the old with new conversation array in the context
+  //       conversations = newConversationArray;
+  //       // chatroomContext.setConversationList(newConversationArray);
+  //     }
+  //     return scrollIntoViewId;
+  //   }
+  // }
+
+  // const handleScroll = (event: any) => {
+  //   if (disableScroll) {
+  //     console.log('1');
+  //     return;
+  //   }
+  //   console.log('2');
+  //   const current = event.nativeEvent.contentOffset.y;
+  //   console.log('current', current);
+  //   if (lastScrollPosition) {
+  //     const scrollPosition =
+  //       Math.floor(current - lastScrollPosition) >= 0 ? 1 : 0;
+  //     console.log('scrollPos', scrollPosition);
+  //     let paginatePosition = undefined;
+  //     if (isScrollBarAtBottom(flatlistRef.current)) {
+  //       paginatePosition = 1;
+  //     } else if (current === 0) {
+  //       paginatePosition = 0;
+  //     } else {
+  //       return;
+  //     }
+  //     if (
+  //       scrollPosition === 0 &&
+  //       paginatePosition === 0 &&
+  //       loadMoreBackwardConversations
+  //     ) {
+  //       // setDisableScroll(true);
+  //       console.log(3);
+  //       paginatedDataTesting(chatroomID, 50, scrollPosition).then(e => {
+  //         DeviceEventEmitter.emit(event.updateHeightOnPagination, e);
+  //       });
+  //     } else if (
+  //       scrollPosition === 1 &&
+  //       paginatePosition === 1 &&
+  //       loadMoreForwardConversations
+  //     ) {
+  //       // setDisableScroll(true);
+  //       console.log(4);
+  //       paginatedDataTesting(chatroomID, 50, scrollPosition).then(e => {
+  //         DeviceEventEmitter.emit(event.updateHeightOnPagination, e);
+  //       });
+  //     }
+  //   }
+  //   setLastScrollPosition(current);
+  // };
+
+  const maybeCallOnStartReached = () => {
+    handleOnEndReached();
+  };
+
+  const maybeCallOnEndReached = () => {
+    handleLoadMore();
+  };
+
+  const handleOnScroll: ScrollViewProps['onScroll'] = event => {
+    const offset = event.nativeEvent.contentOffset.y;
+    const visibleLength = event.nativeEvent.layoutMeasurement.height;
+    const contentLength = event.nativeEvent.contentSize.height;
+
+    scrollPositionRef.current = offset;
+
+    const index = Math.floor(offset / visibleLength); // Calculate the visible index
+    setVisibleIndex(index);
+
+    // Check if scroll has reached either start of end of list.
+    const isScrollAtStart = offset < 0.1;
+    const isScrollAtEnd = contentLength - visibleLength - offset < 0.1;
+
+    if (isScrollAtStart && shouldLoadMoreChatStart) {
+      renderFooter();
+      maybeCallOnStartReached();
+      console.log('isScrollAtStart');
+    }
+
+    if (isScrollAtEnd && shouldLoadMoreChatEnd) {
+      renderFooter();
+      maybeCallOnEndReached();
+      console.log('isScrollAtEnd');
+    }
+  };
+
   const handleLoadMore = () => {
     if (!isLoading && conversations.length > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
       if (conversations.length > 15) {
         const newPage = page + 1;
+        console.log('newPage', newPage);
         setPage(newPage);
         loadData(newPage);
       }
@@ -1057,12 +1302,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let payload = {chatroomId: chatroomID};
         await dispatch(getChatroom(payload) as any);
 
-        let getConversationsPayload = {
+        let payload1 = {
           chatroomID: chatroomID,
           paginateBy: 100,
           topNavigate: false,
         };
-        await dispatch(getConversations(getConversationsPayload, true) as any);
+        await dispatch(getConversations(payload1, true) as any);
 
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
@@ -1608,7 +1853,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let uriFinal: any;
 
       if (attachmentType === IMAGE_TEXT) {
-        //image compression
         const compressedImgURI = await CompressedImage.compress(item.uri, {
           compressionMethod: 'auto',
         });
@@ -1620,7 +1864,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       }
 
       //for video thumbnail
-      let thumbnailUrlImg = null;
+      let thumbnailUrlImg;
       if (thumbnailURL && attachmentType === VIDEO_TEXT) {
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
       }
@@ -1643,7 +1887,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       };
 
       try {
-        let getVideoThumbnailData = null;
+        let getVideoThumbnailData;
 
         if (thumbnailURL && attachmentType === VIDEO_TEXT) {
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
@@ -1739,6 +1983,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       uploadingFilesMessages,
       isRetry: isRetry,
     });
+    const getConversationPayload = {
+      chatroomID: chatroomID,
+      paginateBy: conversations.length * 2,
+      topNavigate: false,
+    };
+    await dispatch(getConversations(getConversationPayload, false) as any);
     return res;
   };
 
@@ -1819,7 +2069,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             conversations,
           ],
         }}
-        estimatedItemSize={50}
+        estimatedItemSize={30}
         renderItem={({item: value, index}: any) => {
           let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
           let item = {...value};
@@ -1919,16 +2169,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           );
         }}
-        onEndReached={async () => {
-          if (shouldLoadMoreChat) {
-            handleLoadMore();
-          }
-          return;
-        }}
-        onEndReachedThreshold={0.1}
+        onEndReached={null}
+        onScroll={handleOnScroll}
+        ListHeaderComponent={renderFooter}
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
+        // maintainVisibleContentPosition={{
+        //   minIndexForVisible: -100,
+        // }}
       />
 
       {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}

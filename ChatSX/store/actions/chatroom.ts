@@ -18,6 +18,7 @@ import {
   FIREBASE_CONVERSATIONS,
   FIREBASE_CONVERSATIONS_SUCCESS,
   FIREBASE_CONVERSATIONS_FAILED,
+  PAGINATED_CONVERSATIONS_START_SUCCESS,
 } from '../types/types';
 
 export const getConversations =
@@ -52,6 +53,27 @@ export const paginatedConversations =
           types: [
             PAGINATED_CONVERSATIONS,
             PAGINATED_CONVERSATIONS_SUCCESS,
+            PAGINATED_CONVERSATIONS_FAILED,
+          ],
+          showLoader: false,
+        },
+      });
+    } catch (error) {
+      Alert.alert(`${error}`);
+    }
+  };
+
+export const paginatedConversationsEnd =
+  (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
+    try {
+      return await dispatch({
+        type: PAGINATED_CONVERSATIONS_START_SUCCESS,
+        [CALL_API]: {
+          func: myClient?.getConversations(payload),
+          body: payload,
+          types: [
+            PAGINATED_CONVERSATIONS,
+            PAGINATED_CONVERSATIONS_START_SUCCESS,
             PAGINATED_CONVERSATIONS_FAILED,
           ],
           showLoader: false,
