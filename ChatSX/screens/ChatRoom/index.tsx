@@ -3,7 +3,13 @@ import {
   StackActions,
   useIsFocused,
 } from '@react-navigation/native';
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 
 import {
   View,
@@ -22,7 +28,10 @@ import {
   Platform,
   LogBox,
   ScrollViewProps,
+  Dimensions,
   DeviceEventEmitter,
+  findNodeHandle,
+  UIManager,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
 import {myClient} from '../../..';
@@ -123,6 +132,8 @@ import WarningMessageModal from '../../customModals/WarningMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import {FlashList} from "./FlashlistAndroid"
 // import FlashList from './index';
+import {FlatList} from 'react-native-bidirectional-infinite-scroll';
+// import BidirectionalFlatlist from 'react-native-bidirectional-flatlist';
 
 interface Data {
   id: string;
@@ -145,7 +156,7 @@ interface UploadResource {
 
 const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
-  const scrollPositionRef = useRef<any>(0);
+  const scrollPositionRef = useRef<any>();
   let refInput = useRef<any>();
 
   const db = myClient?.firebaseInstance();
@@ -193,6 +204,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [loadMoreBackwardConversations, setLoadMoreBackwardConversations] =
     useState(true);
   const [visibleIndex, setVisibleIndex] = useState(0);
+  const [isInverted, setIsInverted] = useState(true);
+  const [itemHeights, setItemHeights] = useState({});
+  const [scrollViewHeight, setScrollViewHeight] = useState(
+    Dimensions.get('window').height,
+  );
+  const [lastScrollOffset, setLastScrollOffset] = useState(true);
+  const [isFirst, setIsFirst] = useState(true);
+  let count = 1;
 
   const {
     chatroomID,
@@ -883,8 +902,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }, [selectedMessages, showDM, showList]);
 
   //function calls paginatedConversations action which internally calls getConversation to update conversation array with the new data.
-  async function paginatedData(newPage: number) {
-    console.log('5');
+  async function paginatedData() {
     let payload = {
       chatroomID: chatroomID,
       conversationID: conversations[conversations.length - 1]?.id,
@@ -893,11 +911,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       topNavigate: false,
     };
     let response = await dispatch(paginatedConversations(payload, true) as any);
-    console.log('6');
     return response;
   }
 
-  async function endPaginatedData(newPage: number) {
+  async function endPaginatedData() {
+    let temp = conversations[0]?.id;
     let payload = {
       chatroomID: chatroomID,
       conversationID: conversations[0]?.id,
@@ -914,9 +932,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
 
   // function shows loader in between calling the API and getting the response
-  const loadData = async (newPage: number) => {
+  const loadData = async () => {
     setIsLoading(true);
-    const res = await paginatedData(newPage);
+    const res = await paginatedData();
     if (res.conversations.length == 0) {
       setShouldLoadMoreChatEnd(false);
     }
@@ -925,38 +943,49 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  const scrollToVisibleIndex = () => {
+  const scrollToVisibleIndex = (ind: any) => {
     console.log('op');
     if (flatlistRef.current) {
       console.log('op1');
-      console.log('visibleIndex', visibleIndex);
-      // console.log('ind', ind);
-
-      flatlistRef.current.scrollToIndex({animated: true, index: 53});
+      flatlistRef.current.scrollToIndex({
+        animated: false,
+        index: ind,
+      });
     }
   };
 
   // function shows loader in between calling the API and getting the response
-  const endLoadData = async (newPage: number) => {
+  const endLoadData = async () => {
     setIsLoading(true);
-    const res = await endPaginatedData(newPage);
+    console.log('initialLength', conversations.length);
+    const res = await endPaginatedData();
     if (res.conversations.length == 0) {
       setShouldLoadMoreChatStart(false);
     }
+
     if (!!res) {
+      let temp;
+      const len = res.conversations.length;
+      if (len != 0) {
+        console.log('isFirst', isFirst);
+        temp = isFirst ? len + 1 : Math.ceil(len / 2);
+        console.log('newLength+1', temp);
+        setIsFirst(!isFirst);
+      }
+      scrollToVisibleIndex(temp);
       setIsLoading(false);
     }
   };
 
   //function checks the pagination logic, if it verifies the condition then call loadData
-  const handleOnEndReached = () => {
+  const handleOnEndReached = async () => {
     if (!isLoading && conversations.length > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
       if (conversations.length > 15) {
         console.log('endPage', endPage);
         const newPage = endPage + 1;
         setEndPage(newPage);
-        endLoadData(newPage);
+        endLoadData();
       }
     }
   };
@@ -1086,11 +1115,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   //   setLastScrollPosition(current);
   // };
 
-  const maybeCallOnStartReached = () => {
+  const maybeCallOnStartReached = async () => {
     handleOnEndReached();
   };
 
-  const maybeCallOnEndReached = () => {
+  const maybeCallOnEndReached = async () => {
     handleLoadMore();
   };
 
@@ -1099,18 +1128,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const visibleLength = event.nativeEvent.layoutMeasurement.height;
     const contentLength = event.nativeEvent.contentSize.height;
 
-    scrollPositionRef.current = offset;
-
-    const index = Math.floor(offset / visibleLength); // Calculate the visible index
-    setVisibleIndex(index);
-
     // Check if scroll has reached either start of end of list.
-    const isScrollAtStart = offset < 0.1;
-    const isScrollAtEnd = contentLength - visibleLength - offset < 0.1;
+    const isScrollAtStart = offset < 10;
+    const isScrollAtEnd = contentLength - visibleLength - offset < 10;
 
-    if (isScrollAtStart && shouldLoadMoreChatStart) {
+    // console.log('offset', offset);
+    // console.log('isScrollAtStart', isScrollAtStart);
+
+    if (isScrollAtStart && shouldLoadMoreChatStart && lastScrollOffset) {
       renderFooter();
       maybeCallOnStartReached();
+      setLastScrollOffset(false);
+      setTimeout(() => {
+        setLastScrollOffset(true);
+      }, 1000);
       console.log('isScrollAtStart');
     }
 
@@ -1121,14 +1152,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  const handleLoadMore = () => {
+  const handleLoadMore = async () => {
     if (!isLoading && conversations.length > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
       if (conversations.length > 15) {
         const newPage = page + 1;
         console.log('newPage', newPage);
         setPage(newPage);
-        loadData(newPage);
+        loadData();
       }
     }
   };
@@ -2056,7 +2087,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     <View style={styles.container}>
       <FlashList
         estimatedItemSize={30}
-        progressViewOffset={50}
         ref={flatlistRef}
         data={conversations}
         keyExtractor={(item: any, index) => {
@@ -2170,16 +2200,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           );
         }}
-        onEndReached={null}
+        // onStartReached={maybeCallOnEndReached}
+        // onEndReached={maybeCallOnStartReached}
         onScroll={handleOnScroll}
         ListHeaderComponent={renderFooter}
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
-        maintainVisibleContentPosition={{
-          autoscrollToTopThreshold: 50,
-          minIndexForVisible: 1,
-        }}
+        // maintainVisibleContentPosition={{
+        //   autoscrollToTopThreshold: 50,
+        //   minIndexForVisible: 1,
+        // }}
       />
 
       {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
