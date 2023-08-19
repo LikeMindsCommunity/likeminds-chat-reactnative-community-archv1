@@ -122,7 +122,7 @@ import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import {FlashList} from "./FlashlistAndroid"
-// import {FlashList} from './index';
+// import FlashList from './index';
 
 interface Data {
   id: string;
@@ -2055,6 +2055,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   return (
     <View style={styles.container}>
       <FlashList
+        estimatedItemSize={30}
+        progressViewOffset={50}
         ref={flatlistRef}
         data={conversations}
         keyExtractor={(item: any, index) => {
@@ -2069,7 +2071,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             conversations,
           ],
         }}
-        estimatedItemSize={30}
         renderItem={({item: value, index}: any) => {
           let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
           let item = {...value};
@@ -2175,9 +2176,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
-        // maintainVisibleContentPosition={{
-        //   minIndexForVisible: -100,
-        // }}
+        maintainVisibleContentPosition={{
+          autoscrollToTopThreshold: 50,
+          minIndexForVisible: 1,
+        }}
       />
 
       {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}

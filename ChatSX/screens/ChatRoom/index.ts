@@ -1,1 +1,3 @@
-export {default as FlashList} from './FlashList';
+import FlashList from './FlashList';
+
+export default FlashList;
