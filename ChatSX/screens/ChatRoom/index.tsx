@@ -142,7 +142,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
   let refInput = useRef<any>();
 
-  const db = myClient?.firebaseInstance();
+  // const db = myClient?.firebaseInstance();
+
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -588,6 +589,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   //this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
+    console.log('fetchData ==');
     let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
     let response = await dispatch(
       getConversations(
@@ -631,9 +633,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const uuid = await AsyncStorage.getItem('uuid');
 
     let payload = {
-      uuid: uuid, // uuid
-      userName: '', // user name
-      isGuest: false,
+      userUniqueId: uuid,
+      // userUniqueId: '65632569-c8c9-4d20-b536-e23c86741787',
+      userName: 'Himanshu',
     };
     let res = await dispatch(initAPI(payload) as any);
     return res;
@@ -801,25 +803,25 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }, [isLongPress, selectedMessages]);
 
   //useffect includes firebase realtime listener
-  useEffect(() => {
-    const query = ref(db, `/collabcards/${chatroomID}`);
-    return onValue(query, async (snapshot: DataSnapshot) => {
-      if (snapshot.exists()) {
-        let firebaseData = snapshot.val();
-        let conversationID = firebaseData?.collabcard?.answerId;
+  // useEffect(() => {
+  //   const query = ref(db, `/collabcards/${chatroomID}`);
+  //   return onValue(query, async (snapshot: DataSnapshot) => {
+  //     if (snapshot.exists()) {
+  //       let firebaseData = snapshot.val();
+  //       let conversationID = firebaseData?.collabcard?.answerId;
 
-        let payload = {
-          chatroomId: chatroomID,
-          conversationId: firebaseData?.collabcard?.answerId,
-        };
-        if (conversationID) {
-          const res = await dispatch(
-            firebaseConversation(payload, false) as any,
-          );
-        }
-      }
-    });
-  }, []);
+  //       let payload = {
+  //         chatroomId: chatroomID,
+  //         conversationId: firebaseData?.collabcard?.answerId,
+  //       };
+  //       if (conversationID) {
+  //         const res = await dispatch(
+  //           firebaseConversation(payload, false) as any,
+  //         );
+  //       }
+  //     }
+  //   });
+  // }, []);
 
   // this useffect updates routes, previousRoute variables when we come to chatroom.
   useEffect(() => {
@@ -1929,6 +1931,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
+        // maintainVisibleContentPosition={{
+        //   autoscrollToTopThreshold: undefined,
+        //   minIndexForVisible: 1,
+        // }}
       />
 
       {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}

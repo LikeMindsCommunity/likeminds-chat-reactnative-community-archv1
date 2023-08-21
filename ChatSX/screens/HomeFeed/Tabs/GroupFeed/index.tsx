@@ -47,7 +47,7 @@ const GroupFeed = ({navigation}: Props) => {
     community,
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
-  const db = myClient?.firebaseInstance();
+  // const db = myClient?.firebaseInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
 
   async function fetchData() {
@@ -141,15 +141,15 @@ const GroupFeed = ({navigation}: Props) => {
     ) : null;
   };
 
-  useEffect(() => {
-    const query = ref(db, `/community/${community?.id}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        dispatch(getHomeFeedData({page: 1}, false) as any);
-        dispatch({type: SET_PAGE, body: 1});
-      }
-    });
-  }, []);
+  // useEffect(() => {
+  //   const query = ref(db, `/community/${community?.id}`);
+  //   return onValue(query, snapshot => {
+  //     if (snapshot.exists()) {
+  //       dispatch(getHomeFeedData({page: 1}, false) as any);
+  //       dispatch({type: SET_PAGE, body: 1});
+  //     }
+  //   });
+  // }, []);
 
   return (
     <View style={styles.page}>

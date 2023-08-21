@@ -25,6 +25,13 @@ import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
+import {SyncChatroomRequest} from 'reactnative-chat-data';
+import {
+  getCommunityData,
+  saveChatroomData,
+  saveCommunityData,
+} from '../../Data/Db/dbhelper';
+// import DbHelper from '../../Data/Db/dbhelper';
 
 interface Props {
   navigation: any;
@@ -51,7 +58,6 @@ const HomeFeed = ({navigation}: Props) => {
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
 
-  const db = myClient?.firebaseInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
   const setOptions = () => {
     navigation.setOptions({
@@ -114,24 +120,45 @@ const HomeFeed = ({navigation}: Props) => {
     }
   };
 
+  async function syncChatroomAPI() {
+    const res = await myClient?.syncChatroom(
+      SyncChatroomRequest.builder()
+        .setPage(0)
+        .setPageSize(20)
+        .setChatroomTypes([0, 7])
+        .setMaxTimestamp(Math.floor(Date.now() / 1000))
+        .setMinTimestamp(0)
+        .build(),
+    );
+    console.log('--------> resssss ----->', res);
+    return res;
+  }
+
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
 
     const uuid = await AsyncStorage.getItem('uuid');
 
     let payload = {
-      uuid: uuid, // uuid
-      userName: 'ranjanDas', // user name
-      isGuest: false,
+      // userUniqueId: uuid,
+      userUniqueId: '65632569-c8c9-4d20-b536-e23c86741787',
+      userName: 'Himanshu',
     };
 
     let res = await dispatch(initAPI(payload) as any);
 
     if (!!res) {
+      const DbRes = await syncChatroomAPI();
+      saveCommunityData(DbRes?.community_meta); // Save community data;
+      DbRes?.chatrooms_data.forEach((data: any) => {
+        saveChatroomData(data); // Save each chatroom data
+      });
       await dispatch(getMemberState() as any);
 
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
+
+      console.log('getCommunitydata ==', getCommunityData());
     }
 
     return res;
