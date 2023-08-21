@@ -185,7 +185,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const isFocused = useIsFocused();
 
   const dispatch = useAppDispatch();
-  let {
+  const {
     conversations = [],
     chatroomDetails,
     messageSent,
