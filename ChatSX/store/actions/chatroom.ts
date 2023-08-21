@@ -12,7 +12,7 @@ import {
   ON_CONVERSATIONS_CREATE,
   ON_CONVERSATIONS_CREATE_FAILED,
   ON_CONVERSATIONS_CREATE_SUCCESS,
-  PAGINATED_CONVERSATIONS_SUCCESS,
+  PAGINATED_CONVERSATIONS_END_SUCCESS,
   PAGINATED_CONVERSATIONS,
   PAGINATED_CONVERSATIONS_FAILED,
   FIREBASE_CONVERSATIONS,
@@ -42,17 +42,17 @@ export const getConversations =
     }
   };
 
-export const paginatedConversations =
+export const paginatedConversationsEnd =
   (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
     try {
       return await dispatch({
-        type: PAGINATED_CONVERSATIONS_SUCCESS,
+        type: PAGINATED_CONVERSATIONS_END_SUCCESS,
         [CALL_API]: {
           func: myClient?.getConversations(payload),
           body: payload,
           types: [
             PAGINATED_CONVERSATIONS,
-            PAGINATED_CONVERSATIONS_SUCCESS,
+            PAGINATED_CONVERSATIONS_END_SUCCESS,
             PAGINATED_CONVERSATIONS_FAILED,
           ],
           showLoader: false,
@@ -63,7 +63,7 @@ export const paginatedConversations =
     }
   };
 
-export const paginatedConversationsEnd =
+export const paginatedConversationsStart =
   (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
     try {
       return await dispatch({

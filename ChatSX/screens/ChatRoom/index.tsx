@@ -50,8 +50,8 @@ import {
   firebaseConversation,
   getChatroom,
   getConversations,
-  paginatedConversations,
   paginatedConversationsEnd,
+  paginatedConversationsStart,
 } from '../../store/actions/chatroom';
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -130,10 +130,6 @@ import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import {FlashList} from "./FlashlistAndroid"
-// import FlashList from './index';
-import {FlatList} from 'react-native-bidirectional-infinite-scroll';
-// import BidirectionalFlatlist from 'react-native-bidirectional-flatlist';
 
 interface Data {
   id: string;
@@ -187,31 +183,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [isEditable, setIsEditable] = useState<any>(false);
   const [isWarningMessageModalState, setIsWarningMessageModalState] =
     useState(false);
-  const onStartReachedTracker = useRef<Record<number, boolean>>({});
-  const onEndReachedTracker = useRef<Record<number, boolean>>({});
-  const [onStartReachedInProgress, setOnStartReachedInProgress] =
-    useState(false);
-  const [onEndReachedInProgress, setOnEndReachedInProgress] = useState(false);
-  const onStartReachedInPromise = useRef<Promise<void> | null>(null);
-  const onEndReachedInPromise = useRef<Promise<void> | null>(null);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
-
-  const [disableScroll, setDisableScroll] = useState(false);
-  const [lastScrollPosition, setLastScrollPosition] = useState<any>(null);
-  const [loadMoreForwardConversations, setLoadMoreForwardConversations] =
-    useState(false);
-  const [loadMoreBackwardConversations, setLoadMoreBackwardConversations] =
-    useState(true);
-  const [visibleIndex, setVisibleIndex] = useState(0);
-  const [isInverted, setIsInverted] = useState(true);
-  const [itemHeights, setItemHeights] = useState({});
-  const [scrollViewHeight, setScrollViewHeight] = useState(
-    Dimensions.get('window').height,
-  );
   const [lastScrollOffset, setLastScrollOffset] = useState(true);
   const [isFirst, setIsFirst] = useState(true);
-  let count = 1;
 
   const {
     chatroomID,
@@ -241,8 +216,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let memberCanMessage = chatroomDetails?.chatroom?.memberCanMessage;
   let chatroomWithUser = chatroomDetails?.chatroom?.chatroomWithUser;
   let chatRequestState = chatroomDetails?.chatroom?.chatRequestState;
-
-  let conversationsNew = [...conversations];
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -832,9 +805,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this useEffect scroll to Index of latest message when we send the message.
   useEffect(() => {
-    console.log('useEffect1');
     if (conversations.length > 0) {
-      console.log('useEffect2');
       flatlistRef?.current?.scrollToIndex({
         animated: false,
         index: 0,
@@ -901,21 +872,23 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [selectedMessages, showDM, showList]);
 
-  //function calls paginatedConversations action which internally calls getConversation to update conversation array with the new data.
-  async function paginatedData() {
+  // Function calls paginatedConversationsEnd action which internally calls getConversations to update conversation array with the new data.
+  async function endOfPaginatedData() {
     let payload = {
       chatroomID: chatroomID,
       conversationID: conversations[conversations.length - 1]?.id,
-      scrollDirection: 0, //scroll up -> 0 and scroll down -> 1
-      paginateBy: 50,
+      scrollDirection: 0, //scroll up -> 0
+      paginateBy: 10,
       topNavigate: false,
     };
-    let response = await dispatch(paginatedConversations(payload, true) as any);
+    let response = await dispatch(
+      paginatedConversationsEnd(payload, true) as any,
+    );
     return response;
   }
 
-  async function endPaginatedData() {
-    let temp = conversations[0]?.id;
+  // Function calls paginatedConversationsStart action which internally calls getConversations to update conversation array with the new data.
+  async function startOfPaginatedData() {
     let payload = {
       chatroomID: chatroomID,
       conversationID: conversations[0]?.id,
@@ -923,30 +896,29 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       paginateBy: 10,
       topNavigate: false,
     };
-
     let response = await dispatch(
-      paginatedConversationsEnd(payload, true) as any,
+      paginatedConversationsStart(payload, true) as any,
     );
-
     return response;
   }
 
-  // function shows loader in between calling the API and getting the response
-  const loadData = async () => {
+  // Function shows loader in between calling the API and getting the response
+  const endLoadData = async () => {
     setIsLoading(true);
-    const res = await paginatedData();
+    const res = await endOfPaginatedData();
+
+    // To check if its the end of list (top of list in our case)
     if (res.conversations.length == 0) {
       setShouldLoadMoreChatEnd(false);
     }
+
     if (!!res) {
       setIsLoading(false);
     }
   };
 
-  const scrollToVisibleIndex = (ind: any) => {
-    console.log('op');
+  const scrollToVisibleIndex = (ind: number) => {
     if (flatlistRef.current) {
-      console.log('op1');
       flatlistRef.current.scrollToIndex({
         animated: false,
         index: ind,
@@ -955,211 +927,83 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   // function shows loader in between calling the API and getting the response
-  const endLoadData = async () => {
+  const startLoadData = async () => {
     setIsLoading(true);
-    console.log('initialLength', conversations.length);
-    const res = await endPaginatedData();
+    const res = await startOfPaginatedData();
+
+    // To check if its the start of list (bottom of list in our case)
     if (res.conversations.length == 0) {
       setShouldLoadMoreChatStart(false);
     }
 
     if (!!res) {
-      let temp;
       const len = res.conversations.length;
       if (len != 0) {
-        console.log('isFirst', isFirst);
-        temp = isFirst ? len + 1 : Math.ceil(len / 2);
-        console.log('newLength+1', temp);
+        let temp = isFirst ? len + 2 : Math.ceil(len / 2);
         setIsFirst(!isFirst);
+        scrollToVisibleIndex(temp);
       }
-      scrollToVisibleIndex(temp);
       setIsLoading(false);
     }
   };
 
-  //function checks the pagination logic, if it verifies the condition then call loadData
-  const handleOnEndReached = async () => {
+  // Function checks the pagination logic, if it verifies the condition then call startLoadData
+  const handleOnStartReached = () => {
     if (!isLoading && conversations.length > 0) {
-      // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+      // Checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
       if (conversations.length > 15) {
-        console.log('endPage', endPage);
         const newPage = endPage + 1;
         setEndPage(newPage);
-        endLoadData();
+        startLoadData();
       }
     }
   };
 
-  // const isScrollBarAtBottom = (ele: any) => {
-  //   var sh = ele.scrollHeight;
-  //   var st = ele.flatlistRef;
-  //   var ht = ele.offsetHeight;
-  //   if (ht === 0) {
-  //     return true;
-  //   }
-  //   if (st === Math.floor(sh - ht) || Math.abs(st - Math.floor(sh - ht)) < 24) {
-  //     return true;
-  //   } else {
-  //     return false;
-  //   }
-  // };
+  const onStartReached = () => {
+    handleOnStartReached();
+  };
 
-  // async function paginatedDataTesting(
-  //   chatroomID: any,
-  //   paginateBy: any,
-  //   scrollDirection: any,
-  // ) {
-  //   let payload = {
-  //     chatroomID,
-  //     conversationID:
-  //       scrollDirection === 0
-  //         ? conversations[0]?.id
-  //         : conversations[conversations.length - 1]?.id,
-  //     scrollDirection, //scroll up -> 0 and scroll down -> 1
-  //     paginateBy,
-  //     topNavigate: false,
-  //     include: false,
-  //   };
-  //   if (
-  //     payload?.conversationID === null ||
-  //     payload?.conversationID === undefined
-  //   ) {
-  //     return;
-  //   }
-  //   const response: any = await myClient.getConversations(payload);
-  //   let newConversationArray: any = [];
-  //   let scrollIntoViewId: any = '';
-
-  //   console.log('resp', response);
-
-  //   if (!response.error) {
-  //     console.log('resHaiYha', response);
-  //     const conversationsNew = response?.data?.conversations;
-  //     const conversationsLength = conversations?.length;
-
-  //     if (conversationsLength === 0) {
-  //       if (scrollDirection === 1) {
-  //         setLoadMoreForwardConversations(false);
-  //       } else {
-  //         setLoadMoreBackwardConversations(false);
-  //       }
-  //     } else {
-  //       if (scrollDirection === 1) {
-  //         // setting the conversation id in the session storage and making the new conversation array
-  //         // sessionStorage.setItem(
-  //         //   LAST_CONVERSATION_ID_FORWARD,
-  //         //   conversations[conversationsLength - 1]?.id
-  //         // );
-  //         newConversationArray = [...conversations, ...conversationsNew];
-
-  //         scrollIntoViewId = conversations[conversationsLength - 1]?.id;
-  //       } else {
-  //         // setting the conversation id in the session storage and making the new conversation array
-  //         // sessionStorage.setItem(
-  //         //   LAST_CONVERSATION_ID_BACKWARD,
-  //         //   conversations[0]?.id
-  //         // );
-  //         newConversationArray = [...conversationsNew, ...conversations];
-  //         scrollIntoViewId = conversations[0]?.id;
-  //       }
-  //       // replacing the old with new conversation array in the context
-  //       conversations = newConversationArray;
-  //       // chatroomContext.setConversationList(newConversationArray);
-  //     }
-  //     return scrollIntoViewId;
-  //   }
-  // }
-
-  // const handleScroll = (event: any) => {
-  //   if (disableScroll) {
-  //     console.log('1');
-  //     return;
-  //   }
-  //   console.log('2');
-  //   const current = event.nativeEvent.contentOffset.y;
-  //   console.log('current', current);
-  //   if (lastScrollPosition) {
-  //     const scrollPosition =
-  //       Math.floor(current - lastScrollPosition) >= 0 ? 1 : 0;
-  //     console.log('scrollPos', scrollPosition);
-  //     let paginatePosition = undefined;
-  //     if (isScrollBarAtBottom(flatlistRef.current)) {
-  //       paginatePosition = 1;
-  //     } else if (current === 0) {
-  //       paginatePosition = 0;
-  //     } else {
-  //       return;
-  //     }
-  //     if (
-  //       scrollPosition === 0 &&
-  //       paginatePosition === 0 &&
-  //       loadMoreBackwardConversations
-  //     ) {
-  //       // setDisableScroll(true);
-  //       console.log(3);
-  //       paginatedDataTesting(chatroomID, 50, scrollPosition).then(e => {
-  //         DeviceEventEmitter.emit(event.updateHeightOnPagination, e);
-  //       });
-  //     } else if (
-  //       scrollPosition === 1 &&
-  //       paginatePosition === 1 &&
-  //       loadMoreForwardConversations
-  //     ) {
-  //       // setDisableScroll(true);
-  //       console.log(4);
-  //       paginatedDataTesting(chatroomID, 50, scrollPosition).then(e => {
-  //         DeviceEventEmitter.emit(event.updateHeightOnPagination, e);
-  //       });
-  //     }
-  //   }
-  //   setLastScrollPosition(current);
-  // };
-
-  const maybeCallOnStartReached = async () => {
+  const onEndReached = () => {
     handleOnEndReached();
   };
 
-  const maybeCallOnEndReached = async () => {
-    handleLoadMore();
-  };
-
+  // For Scrolling Up
   const handleOnScroll: ScrollViewProps['onScroll'] = event => {
     const offset = event.nativeEvent.contentOffset.y;
     const visibleLength = event.nativeEvent.layoutMeasurement.height;
     const contentLength = event.nativeEvent.contentSize.height;
+    const onStartReachedThreshold = 10;
+    const onEndReachedThreshold = 10;
 
-    // Check if scroll has reached either start of end of list.
-    const isScrollAtStart = offset < 10;
-    const isScrollAtEnd = contentLength - visibleLength - offset < 10;
-
-    // console.log('offset', offset);
-    // console.log('isScrollAtStart', isScrollAtStart);
+    // Check if scroll has reached start of list.
+    const isScrollAtStart = offset < onStartReachedThreshold;
+    // Check if scroll has reached end of list.
+    const isScrollAtEnd =
+      contentLength - visibleLength - offset < onEndReachedThreshold;
 
     if (isScrollAtStart && shouldLoadMoreChatStart && lastScrollOffset) {
       renderFooter();
-      maybeCallOnStartReached();
+      onStartReached();
       setLastScrollOffset(false);
       setTimeout(() => {
         setLastScrollOffset(true);
       }, 1000);
-      console.log('isScrollAtStart');
     }
 
     if (isScrollAtEnd && shouldLoadMoreChatEnd) {
       renderFooter();
-      maybeCallOnEndReached();
-      console.log('isScrollAtEnd');
+      onEndReached();
     }
   };
 
-  const handleLoadMore = async () => {
+  // Function checks the pagination logic, if it verifies the condition then call endLoadData
+  const handleOnEndReached = () => {
     if (!isLoading && conversations.length > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
       if (conversations.length > 15) {
         const newPage = page + 1;
-        console.log('newPage', newPage);
         setPage(newPage);
-        loadData();
+        endLoadData();
       }
     }
   };
@@ -2200,17 +2044,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           );
         }}
-        // onStartReached={maybeCallOnEndReached}
-        // onEndReached={maybeCallOnStartReached}
         onScroll={handleOnScroll}
         ListHeaderComponent={renderFooter}
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
-        // maintainVisibleContentPosition={{
-        //   autoscrollToTopThreshold: 50,
-        //   minIndexForVisible: 1,
-        // }}
       />
 
       {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
