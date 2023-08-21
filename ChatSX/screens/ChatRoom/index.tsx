@@ -3,13 +3,7 @@ import {
   StackActions,
   useIsFocused,
 } from '@react-navigation/native';
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useCallback,
-} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {
   View,
@@ -28,10 +22,6 @@ import {
   Platform,
   LogBox,
   ScrollViewProps,
-  Dimensions,
-  DeviceEventEmitter,
-  findNodeHandle,
-  UIManager,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
 import {myClient} from '../../..';
@@ -152,13 +142,11 @@ interface UploadResource {
 
 const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
-  const scrollPositionRef = useRef<any>();
   let refInput = useRef<any>();
 
   const db = myClient?.firebaseInstance();
 
   const [replyChatID, setReplyChatID] = useState<number>();
-  const [page, setPage] = useState(1);
   const [endPage, setEndPage] = useState(1);
   const [startPage, setStartPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -952,8 +940,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     if (!isLoading && conversations.length > 0) {
       // Checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
       if (conversations.length > 15) {
-        const newPage = endPage + 1;
-        setEndPage(newPage);
+        const newPage = startPage + 1;
+        setStartPage(newPage);
         startLoadData();
       }
     }
@@ -1001,8 +989,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     if (!isLoading && conversations.length > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
       if (conversations.length > 15) {
-        const newPage = page + 1;
-        setPage(newPage);
+        const newPage = endPage + 1;
+        setEndPage(newPage);
         endLoadData();
       }
     }
@@ -1177,12 +1165,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let payload = {chatroomId: chatroomID};
         await dispatch(getChatroom(payload) as any);
 
-        let payload1 = {
+        let getConversationsPayload = {
           chatroomID: chatroomID,
           paginateBy: 100,
           topNavigate: false,
         };
-        await dispatch(getConversations(payload1, true) as any);
+        await dispatch(getConversations(getConversationsPayload, true) as any);
 
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
