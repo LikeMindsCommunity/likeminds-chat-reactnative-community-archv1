@@ -148,17 +148,19 @@ const HomeFeed = ({navigation}: Props) => {
     let res = await dispatch(initAPI(payload) as any);
 
     if (!!res) {
-      const DbRes = await syncChatroomAPI();
-      saveCommunityData(DbRes?.community_meta); // Save community data;
-      DbRes?.chatrooms_data.forEach((data: any) => {
-        saveChatroomData(data); // Save each chatroom data
+      const val = await syncChatroomAPI();
+      const DbRes = val?.data;
+      // console.log('DbRes ==', DbRes);
+      saveCommunityData(DbRes?.communityMeta['50487']); // Save community data;
+      DbRes?.chatroomsData.forEach((data: any) => {
+        saveChatroomData(data, DbRes?.userMeta['298577']); // Save each chatroom data
       });
       await dispatch(getMemberState() as any);
 
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
-
-      console.log('getCommunitydata ==', getCommunityData());
+      const resp = await getCommunityData();
+      console.log('getCommunitydata ==', resp);
     }
 
     return res;

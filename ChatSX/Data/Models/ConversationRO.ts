@@ -19,27 +19,27 @@ import {
   OPTIONAL_STRING,
   OPTONAL_CONVERSATION_RO,
   STRING,
-} from "../constants";
-import { AttachmentRO } from "./AttachmentRO";
-import { ChatroomRO } from "./ChatroomRO";
-import { CommunityRO } from "./CommunityRO";
-import { LinkRO } from "./LinkRO";
-import { MemberRO } from "./MemberRO";
-import { PollRO } from "./PollRO";
-import { ReactionRO } from "./ReactionRO";
-import Realm from "realm";
+} from '../constants';
+import {AttachmentRO} from './AttachmentRO';
+import {ChatroomRO} from './ChatroomRO';
+import {CommunityRO} from './CommunityRO';
+import {LinkRO} from './LinkRO';
+import {MemberRO} from './MemberRO';
+import {PollRO} from './PollRO';
+import {ReactionRO} from './ReactionRO';
+import Realm from 'realm';
 
 export class ConversationRO extends Realm.Object<ConversationRO> {
   id!: string;
   chatroomId!: string;
   communityId!: string;
-  member?: MemberRO | null;
+  // member?: MemberRO | null;
   answer!: string;
   state!: number;
   createdEpoch!: number;
   createdAt?: string | null;
-  attachments!: Realm.List<AttachmentRO>;
-  link?: LinkRO | null;
+  // attachments!: Realm.List<AttachmentRO>;
+  // link?: LinkRO | null;
   date?: string | null;
   isEdited?: boolean | null;
   lastSeen!: boolean;
@@ -51,7 +51,7 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
   uploadWorkerUUID?: string | null;
   localSavedEpoch!: number;
   temporaryId?: string | null;
-  reactions!: Realm.List<ReactionRO>;
+  // reactions!: Realm.List<ReactionRO>;
   isAnonymous?: boolean | null;
   allowAddOption?: boolean | null;
   pollType?: number | null;
@@ -60,12 +60,12 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
   expiryTime?: number | null;
   multipleSelectNum?: number | null;
   multipleSelectState?: number | null;
-  polls!: Realm.List<PollRO>;
+  // polls!: Realm.List<PollRO>;
   pollAnswerText?: string | null;
   toShowResults?: boolean | null;
   replyChatRoomId?: string | null;
   lastUpdatedAt!: number;
-  deletedByMember?: MemberRO | null;
+  // deletedByMember?: MemberRO | null;
   community?: Realm.Results<CommunityRO> | null;
   chatroom?: Realm.Results<ChatroomRO> | null;
 
@@ -75,13 +75,13 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
       id: STRING,
       chatroomId: STRING,
       communityId: STRING,
-      member: OPTIONAL_MEMBER_RO,
+      // member: OPTIONAL_MEMBER_RO,
       answer: STRING,
       state: INT,
       createdEpoch: INT,
       createdAt: OPTIONAL_STRING,
-      attachments: LIST_ATTACHMENT_RO,
-      link: OPTIONAL_LINK_RO,
+      // attachments: LIST_ATTACHMENT_RO,
+      // link: OPTIONAL_LINK_RO,
       date: OPTIONAL_STRING,
       isEdited: OPTIONAL_BOOLEAN,
       lastSeen: BOOLEAN,
@@ -93,7 +93,7 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
       uploadWorkerUUID: OPTIONAL_STRING,
       localSavedEpoch: INT,
       temporaryId: OPTIONAL_STRING,
-      reactions: LIST_REACTION_RO,
+      // reactions: LIST_REACTION_RO,
       isAnonymous: OPTIONAL_BOOLEAN,
       allowAddOption: OPTIONAL_BOOLEAN,
       pollType: OPTIONAL_INT,
@@ -102,12 +102,12 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
       expiryTime: OPTIONAL_INT,
       multipleSelectNum: OPTIONAL_INT,
       multipleSelectState: OPTIONAL_INT,
-      polls: LIST_POLL_RO,
+      // polls: LIST_POLL_RO,
       pollAnswerText: OPTIONAL_STRING,
       toShowResults: OPTIONAL_BOOLEAN,
       replyChatRoomId: OPTIONAL_STRING,
       lastUpdatedAt: INT,
-      deletedByMember: OPTIONAL_MEMBER_RO,
+      // deletedByMember: OPTIONAL_MEMBER_RO,
       community: {
         type: LINKING_OBJECTS,
         objectType: COMMUNITY_RO,

@@ -1,0 +1,48 @@
+import { Attachment } from "./Attachment";
+import { LinkOGTags } from "./LinkOGTags";
+import { Member } from "./Member";
+import { Poll } from "./Poll";
+import { Reaction } from "./Reaction";
+
+export interface Conversation {
+  id?: string;
+  chatroomId?: string;
+  communityId?: string;
+  member?: Member;
+  answer: string;
+  createdAt?: string;
+  state: number;
+  attachments?: Attachment[];
+  lastSeen?: boolean;
+  ogTags?: LinkOGTags;
+  date?: string;
+  isEdited?: boolean;
+  memberId?: string;
+  replyConversationId?: string;
+  replyConversation?: Conversation;
+  deletedBy?: string;
+  createdEpoch?: number;
+  attachmentCount?: number;
+  attachmentUploaded?: boolean;
+  uploadWorkerUUID?: string;
+  temporaryId?: string;
+  localCreatedEpoch?: number;
+  reactions?: Reaction[];
+  isAnonymous?: boolean;
+  allowAddOption?: boolean;
+  pollType?: number;
+  pollTypeText?: string;
+  submitTypeText?: string;
+  expiryTime?: number;
+  multipleSelectNum?: number;
+  multipleSelectState?: number;
+  polls?: Poll[];
+  toShowResults?: boolean;
+  pollAnswerText?: string;
+  replyChatroomId?: string;
+  deviceId?: string;
+  hasFiles?: boolean;
+  hasReactions?: boolean;
+  lastUpdated?: number;
+  deletedByMember?: Member;
+}

@@ -2,32 +2,33 @@ import {
   BOOLEAN,
   COMMUNITY_RO,
   ID,
+  INT,
   LIST_CHATROOM_RO,
   LIST_CONVERSATION_RO,
   OPTIONAL_INT,
   OPTIONAL_LIST_STRING,
   OPTIONAL_STRING,
   STRING,
-} from "../constants";
-import { ChatroomRO } from "./ChatroomRO";
-import { ConversationRO } from "./ConversationRO";
-import Realm from "realm";
+} from '../constants';
+import {ChatroomRO} from './ChatroomRO';
+import {ConversationRO} from './ConversationRO';
+import Realm from 'realm';
 
 export class CommunityRO extends Realm.Object<CommunityRO> {
-  id!: string;
+  id!: number;
   name!: string;
   imageUrl?: string | null;
   membersCount?: number | null;
   updatedAt?: number | null;
   relationshipNeeded!: boolean;
   // downloadableContentTypes?: Realm.List<string> | null;
-  conversations!: ConversationRO[];
-  chatrooms!: ChatroomRO[];
+  conversations!: Realm.List<ConversationRO>;
+  chatrooms!: Realm.List<ChatroomRO>;
 
   static schema: Realm.ObjectSchema = {
     name: COMMUNITY_RO,
     properties: {
-      id: STRING,
+      id: INT,
       name: STRING,
       imageUrl: OPTIONAL_STRING,
       membersCount: OPTIONAL_INT,
