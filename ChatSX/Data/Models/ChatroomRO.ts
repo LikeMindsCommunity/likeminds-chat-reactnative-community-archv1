@@ -17,13 +17,13 @@ import {
   OPTONAL_CONVERSATION_RO,
   OPTONAL_LAST_CONVERSATION_RO,
   STRING,
-} from "../constants";
-import { CommunityRO } from "./CommunityRO";
-import { ConversationRO } from "./ConversationRO";
-import { LastConversationRO } from "./LastConversationRO";
-import { MemberRO } from "./MemberRO";
-import { ReactionRO } from "./ReactionRO";
-import Realm from "realm";
+} from '../constants';
+import {CommunityRO} from './CommunityRO';
+import {ConversationRO} from './ConversationRO';
+import {LastConversationRO} from './LastConversationRO';
+import {MemberRO} from './MemberRO';
+import {ReactionRO} from './ReactionRO';
+import Realm from 'realm';
 
 export class ChatroomRO extends Realm.Object<ChatroomRO> {
   id!: string;
@@ -70,7 +70,7 @@ export class ChatroomRO extends Realm.Object<ChatroomRO> {
   isConversationStored!: boolean;
   isDraft?: boolean | null;
   lastConversationId?: string | null;
-  communities?: Realm.Results<CommunityRO> | null;
+  // communities?: Realm.Results<CommunityRO> | null;
 
   static schema: Realm.ObjectSchema = {
     name: CHATROOM_RO,
@@ -119,11 +119,11 @@ export class ChatroomRO extends Realm.Object<ChatroomRO> {
       isConversationStored: BOOLEAN,
       isDraft: OPTIONAL_BOOLEAN,
       lastConversationId: OPTIONAL_STRING,
-      communities: {
-        type: LINKING_OBJECTS,
-        objectType: COMMUNITY_RO,
-        property: CHATROOMS,
-      },
+      // communities: {
+      //   type: LINKING_OBJECTS,
+      //   objectType: COMMUNITY_RO,
+      //   property: CHATROOMS,
+      // },
     },
     primaryKey: ID,
   };

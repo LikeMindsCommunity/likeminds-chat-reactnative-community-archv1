@@ -66,8 +66,8 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
   replyChatRoomId?: string | null;
   lastUpdatedAt!: number;
   // deletedByMember?: MemberRO | null;
-  community?: Realm.Results<CommunityRO> | null;
-  chatroom?: Realm.Results<ChatroomRO> | null;
+  // community?: Realm.Results<CommunityRO> | null;
+  // chatroom?: Realm.Results<ChatroomRO> | null;
 
   static schema: Realm.ObjectSchema = {
     name: CONVERSATION_RO,
@@ -108,16 +108,16 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
       replyChatRoomId: OPTIONAL_STRING,
       lastUpdatedAt: INT,
       // deletedByMember: OPTIONAL_MEMBER_RO,
-      community: {
-        type: LINKING_OBJECTS,
-        objectType: COMMUNITY_RO,
-        property: CONVERSATIONS,
-      },
-      chatroom: {
-        type: LINKING_OBJECTS,
-        objectType: CHATROOM_RO,
-        property: CONVERSATIONS,
-      },
+      // community: {
+      //   type: LINKING_OBJECTS,
+      //   objectType: COMMUNITY_RO,
+      //   property: CONVERSATIONS,
+      // },
+      // chatroom: {
+      //   type: LINKING_OBJECTS,
+      //   objectType: CHATROOM_RO,
+      //   property: CONVERSATIONS,
+      // },
     },
     primaryKey: ID,
   };

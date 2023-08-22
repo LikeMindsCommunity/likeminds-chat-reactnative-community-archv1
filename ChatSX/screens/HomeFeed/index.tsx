@@ -140,8 +140,8 @@ const HomeFeed = ({navigation}: Props) => {
     const uuid = await AsyncStorage.getItem('uuid');
 
     let payload = {
-      // userUniqueId: uuid,
-      userUniqueId: '65632569-c8c9-4d20-b536-e23c86741787',
+      userUniqueId: uuid,
+      // userUniqueId: '65632569-c8c9-4d20-b536-e23c86741787',
       userName: 'Himanshu',
     };
 
@@ -150,10 +150,10 @@ const HomeFeed = ({navigation}: Props) => {
     if (!!res) {
       const val = await syncChatroomAPI();
       const DbRes = val?.data;
-      // console.log('DbRes ==', DbRes);
-      saveCommunityData(DbRes?.communityMeta['50487']); // Save community data;
+      console.log('DbRes ==', DbRes?.communityMeta['50504']);
+      saveCommunityData(DbRes?.communityMeta['50504']); // Save community data;
       DbRes?.chatroomsData.forEach((data: any) => {
-        saveChatroomData(data, DbRes?.userMeta['298577']); // Save each chatroom data
+        saveChatroomData(data, DbRes?.userMeta['427196']); // Save each chatroom data
       });
       await dispatch(getMemberState() as any);
 

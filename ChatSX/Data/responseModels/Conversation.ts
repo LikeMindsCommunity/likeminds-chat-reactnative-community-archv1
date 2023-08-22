@@ -1,20 +1,20 @@
-import { Attachment } from "./Attachment";
-import { LinkOGTags } from "./LinkOGTags";
-import { Member } from "./Member";
-import { Poll } from "./Poll";
-import { Reaction } from "./Reaction";
+import {Attachment} from './Attachment';
+import {LinkOGTags} from './LinkOGTags';
+import {Member} from './Member';
+import {Poll} from './Poll';
+import {Reaction} from './Reaction';
 
 export interface Conversation {
   id?: string;
   chatroomId?: string;
   communityId?: string;
-  member?: Member;
+  member: Member;
   answer: string;
   createdAt?: string;
   state: number;
-  attachments?: Attachment[];
+  attachments: Attachment[];
   lastSeen?: boolean;
-  ogTags?: LinkOGTags;
+  ogTags: LinkOGTags;
   date?: string;
   isEdited?: boolean;
   memberId?: string;

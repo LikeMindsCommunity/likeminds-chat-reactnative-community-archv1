@@ -1,10 +1,10 @@
-import { Member } from "./Member";
-import { Reaction } from "./Reaction";
-import { Conversation } from "./Conversation";
-import { Cohort } from "./Cohort";
+import {Member} from './Member';
+import {Reaction} from './Reaction';
+import {Conversation} from './Conversation';
+import {Cohort} from './Cohort';
 
 export interface Chatroom {
-  member?: Member;
+  member: Member;
   id: string;
   title: string;
   createdAt?: number;

@@ -1,6 +1,6 @@
-import { MemberAction } from "./MemberAction";
-import { Question } from "./Questions";
-import { SDKClientInfo } from "./SDKClientInfo";
+import {MemberAction} from './MemberAction';
+import {Question} from './Questions';
+import {SDKClientInfo} from './SDKClientInfo';
 
 export interface Member {
   id: string;
@@ -23,6 +23,6 @@ export interface Member {
   attendingStatus?: boolean;
   hasProfileImage?: boolean;
   updatedAt?: number;
-  sdkClientInfo?: SDKClientInfo;
+  // sdkClientInfo: SDKClientInfo;
   uuid: string;
 }
