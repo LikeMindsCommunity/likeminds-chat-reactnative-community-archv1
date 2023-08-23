@@ -14,6 +14,7 @@ import {LinkOGTags} from '../responseModels/LinkOGTags';
 import {Member} from '../responseModels/Member';
 import {SDKClientInfo} from '../responseModels/SDKClientInfo';
 import Realm from 'realm';
+import Db from './db';
 
 export const convertCommunity = (community: any): any => {
   if (community == null) return null;
@@ -32,24 +33,107 @@ export const convertCommunity = (community: any): any => {
 function convertToSDKClientInfoRO(
   sdkClientInfo: SDKClientInfo,
 ): SDKClientInfoRO {
-  const realm = new Realm(); // Initialize Realm
+  const realm = new Realm(Db.getInstance());
 
-  // Begin a write transaction
-  realm.write(() => {
-    const sdkClientInfoRO: SDKClientInfoRO = realm.create(
-      SDKClientInfoRO.schema.name,
-      {
-        community: sdkClientInfo.communityId,
-        user: sdkClientInfo.user,
-        userUniqueId: sdkClientInfo.userUniqueId,
-        uuid: sdkClientInfo.uuid,
-      },
-    );
+  const sdkClientInfoRO = realm.create<SDKClientInfoRO>(
+    SDKClientInfoRO.schema.name,
+    {
+      community: sdkClientInfo.communityId,
+      user: `${sdkClientInfo.user}`,
+      userUniqueId: sdkClientInfo.userUniqueId,
+      uuid: sdkClientInfo.uuid,
+    },
+  );
+
+  return sdkClientInfoRO;
+}
+
+const convertToMemberRO = (member: Member): MemberRO => {
+  const realm = new Realm(Db.getInstance());
+  const convertedSdkClientInfo = convertToSDKClientInfoRO(member.sdkClientInfo);
+
+  const memberRO = realm.create<MemberRO>(MemberRO.schema.name, {
+    uid: `${member.id}`,
+    id: `${member.id}`,
+    name: member.name,
+    imageUrl: member.imageUrl || '',
+    state: member.state || 0,
+    customIntroText: member.customIntroText || null,
+    customClickText: member.customClickText || null,
+    customTitle: member.customTitle || null,
+    communityId: member.communityId || null,
+    isOwner: member.isOwner,
+    isGuest: member.isGuest,
+    userUniqueId: member.userUniqueId,
+    uuid: member.uuid,
+    sdkClientInfoRO: convertedSdkClientInfo,
   });
 
-  // Return the created SDKClientInfoRO
-  return realm.objects<SDKClientInfoRO>(SDKClientInfoRO.schema.name)[0];
-}
+  return memberRO;
+};
+
+export const convertToChatroomRO = (
+  chatroom: Chatroom,
+  member: Member,
+): ChatroomRO => {
+  const realm = new Realm(Db.getInstance());
+  console.log('convertToMemberRO -- member ==>', member);
+  const convertedMember = convertToMemberRO(member);
+  console.log('convertedMember', convertedMember);
+
+  const chatroomRO = realm.create<ChatroomRO>(ChatroomRO.schema.name, {
+    id: `${chatroom.id}`,
+    communityId: `${chatroom.communityId}` || '',
+    title: chatroom.title,
+    state: chatroom.state,
+    member: convertedMember,
+    createdAt: chatroom.createdAt || null,
+    type: chatroom.type || null,
+    chatroomImageUrl: chatroom.chatroomImageUrl || null,
+    header: chatroom.header || null,
+    cardCreationTime: chatroom.cardCreationTime || null,
+    totalResponseCount: parseInt(chatroom.totalResponseCount || '0'),
+    totalAllResponseCount: parseInt('0'), // TODO
+    muteStatus: chatroom.muteStatus || null,
+    followStatus: chatroom.followStatus || null,
+    hasBeenNamed: chatroom.hasBeenNamed || null,
+    date: chatroom.date || null,
+    isTagged: chatroom.isTagged || null,
+    isPending: chatroom.isPending || null,
+    deletedBy: chatroom.deletedBy || null,
+    updatedAt: chatroom.updatedAt || null,
+    // lastConversation: lastConversationRO,
+    lastSeenConversationId: chatroom.lastSeenConversationId || null,
+    // lastSeenConversation: chatroom.lastSeenConversation || null,
+    dateEpoch: chatroom.dateEpoch || null,
+    unseenCount: chatroom.unseenCount || 0,
+    relationshipNeeded: false, // Assign as needed
+    // draftConversation: chatroom.draftConversation || null,
+    isSecret: chatroom.isSecret || null,
+    // secretChatRoomParticipants: new Realm.List<number>(
+    //   ...(chatroom.secretChatroomParticipants || []),
+    // ),
+    secretChatRoomLeft: chatroom.secretChatroomLeft || null,
+    // conversations: new Realm.List<ConversationRO>(
+    //   ...(chatroom.conversations || []),
+    // ),
+    topicId: `${chatroom.topicId}` || null,
+    // topic: topicRO,
+    autoFollowDone: chatroom.autoFollowDone || null,
+    memberCanMessage: chatroom.memberCanMessage || null,
+    isEdited: chatroom.isEdited || null,
+    // reactions: new Realm.List<ReactionRO>(...reactions),
+    unreadConversationsCount: chatroom.unreadConversationCount || null,
+    accessWithoutSubscription: chatroom.accessWithoutSubscription || false,
+    externalSeen: chatroom.externalSeen || null,
+    isConversationStored: false, // Assign as needed
+    // isDraft: chatroom.isDraft || null,
+    lastConversationId: `${chatroom.lastConversationId}` || null,
+    // ... Continue with other properties ...
+  });
+
+  return chatroomRO;
+};
 
 // const convertToMemberRO = (member: Member): MemberRO => {
 //   console.log('member -->', member);
@@ -100,187 +184,96 @@ function convertToSDKClientInfoRO(
 // return realm.objects<MemberRO>(MemberRO.schema.name)[0];
 // };
 
-function convertToAttachmentRO(attachment: Attachment): AttachmentRO {
-  const realm = new Realm(); // Initialize Realm
+// function convertToLinkRO(link: LinkOGTags): LinkRO {
+//   const realm = new Realm(); // Initialize Realm
 
-  // Begin a write transaction
-  realm.write(() => {
-    const metaRO: AttachmentMetaRO | null = attachment.meta
-      ? realm.create(AttachmentMetaRO.schema.name, attachment.meta)
-      : null;
+//   // Begin a write transaction
+//   realm.write(() => {
+//     const linkRO: LinkRO = realm.create(LinkRO.schema.name, {
+//       url: link.url || '',
+//       chatroomId: '', // You need to provide chatroomId and communityId values
+//       communityId: '', // based on your use case
+//       title: link.title || null,
+//       image: link.image || null,
+//       description: link.description || null,
+//     });
+//   });
 
-    const attachmentRO: AttachmentRO = realm.create(AttachmentRO.schema.name, {
-      id: attachment.id,
-      url: attachment.url,
-      // chatroomId: attachment.chatroomId, // TODO
-      // communityId: attachment.communityId, // TODO
-      name: attachment.name || null,
-      type: attachment.type,
-      index: attachment.index || null,
-      width: attachment.width || null,
-      height: attachment.height || null,
-      awsFolderPath: attachment.awsFolderPath,
-      localFilePath: attachment.localFilePath,
-      thumbnailUrl: attachment.thumbnailUrl,
-      thumbnailAWSFolderPath: attachment.thumbnailAWSFolderPath,
-      thumbnailLocalFilePath: attachment.thumbnailLocalFilePath,
-      metaRO: metaRO,
-      createdAt: attachment.createdAt,
-      updatedAt: attachment.updatedAt,
-    });
-  });
+//   // Return the created LinkRO
+//   return realm.objects<LinkRO>(LinkRO.schema.name)[0];
+// }
 
-  // Return the created AttachmentRO
-  return realm.objects<AttachmentRO>(AttachmentRO.schema.name)[0];
-}
+// function convertToLastConversationRO(
+//   lastConversation: Conversation,
+// ): LastConversationRO {
+//   const realm = new Realm(); // Initialize Realm
+//   const convertedMember = convertToMemberRO(lastConversation.member);
+//   // const convertedAttachment= convertToAttachmentRO(lastConversation.attachments)
+//   const convertedLink = convertToLinkRO(lastConversation.ogTags);
 
-function convertToLinkRO(link: LinkOGTags): LinkRO {
-  const realm = new Realm(); // Initialize Realm
+//   // Begin a write transaction
+//   realm.write(() => {
+//     const lastConversationRO: LastConversationRO = realm.create(
+//       LastConversationRO.schema.name,
+//       {
+//         id: lastConversation.id || '',
+//         member: convertedMember,
+//         createdAt: lastConversation.createdAt || null,
+//         answer: lastConversation.answer,
+//         state: lastConversation.state,
+//         // attachments: new Realm.List<AttachmentRO>(...attachments),  //TODO
+//         date: lastConversation.date || null,
+//         deletedBy: lastConversation.deletedBy || null,
+//         attachmentCount: lastConversation.attachmentCount || null,
+//         attachmentsUploaded: lastConversation.attachmentUploaded || null,
+//         uploadWorkerUUID: lastConversation.uploadWorkerUUID || null,
+//         createdEpoch: lastConversation.createdEpoch || 0,
+//         chatroomId: lastConversation.chatroomId || '',
+//         communityId: lastConversation.communityId || '',
+//         link: convertedLink,
+//         // deletedByMember: deletedByMemberRO, //TODO
+//         // ... Continue with other properties ...
+//       },
+//     );
+//   });
 
-  // Begin a write transaction
-  realm.write(() => {
-    const linkRO: LinkRO = realm.create(LinkRO.schema.name, {
-      url: link.url || '',
-      chatroomId: '', // You need to provide chatroomId and communityId values
-      communityId: '', // based on your use case
-      title: link.title || null,
-      image: link.image || null,
-      description: link.description || null,
-    });
-  });
+//   // Return the created LastConversationRO
+//   return realm.objects<LastConversationRO>(LastConversationRO.schema.name)[0];
+// }
 
-  // Return the created LinkRO
-  return realm.objects<LinkRO>(LinkRO.schema.name)[0];
-}
+// function convertToAttachmentRO(attachment: Attachment): AttachmentRO {
+//   const realm = new Realm(); // Initialize Realm
 
-const convertToMemberRO = (member: Member): MemberRO => {
-  const realm = new Realm({
-    schema: [MemberRO.schema],
-  });
-  const memberRO = realm.create<MemberRO>(MemberRO.schema.name, {
-    uid: member.id,
-    id: member.id,
-    name: member.name,
-    imageUrl: member.imageUrl || '',
-    state: member.state || 0,
-    customIntroText: member.customIntroText || null,
-    customClickText: member.customClickText || null,
-    customTitle: member.customTitle || null,
-    communityId: member.communityId || null,
-    isOwner: member.isOwner,
-    isGuest: member.isGuest,
-    userUniqueId: member.userUniqueId,
-    uuid: member.uuid,
-    // sdkClientInfoRO: null, // You need to populate this property based on your use case
-  });
+//   // Begin a write transaction
+//   realm.write(() => {
+//     const metaRO: AttachmentMetaRO | null = attachment.meta
+//       ? realm.create(AttachmentMetaRO.schema.name, attachment.meta)
+//       : null;
 
-  return memberRO;
-};
+//     const attachmentRO: AttachmentRO = realm.create(AttachmentRO.schema.name, {
+//       id: attachment.id,
+//       url: attachment.url,
+//       // chatroomId: attachment.chatroomId, // TODO
+//       // communityId: attachment.communityId, // TODO
+//       name: attachment.name || null,
+//       type: attachment.type,
+//       index: attachment.index || null,
+//       width: attachment.width || null,
+//       height: attachment.height || null,
+//       awsFolderPath: attachment.awsFolderPath,
+//       localFilePath: attachment.localFilePath,
+//       thumbnailUrl: attachment.thumbnailUrl,
+//       thumbnailAWSFolderPath: attachment.thumbnailAWSFolderPath,
+//       thumbnailLocalFilePath: attachment.thumbnailLocalFilePath,
+//       metaRO: metaRO,
+//       createdAt: attachment.createdAt,
+//       updatedAt: attachment.updatedAt,
+//     });
+//   });
 
-function convertToLastConversationRO(
-  lastConversation: Conversation,
-): LastConversationRO {
-  const realm = new Realm(); // Initialize Realm
-  const convertedMember = convertToMemberRO(lastConversation.member);
-  // const convertedAttachment= convertToAttachmentRO(lastConversation.attachments)
-  const convertedLink = convertToLinkRO(lastConversation.ogTags);
-
-  // Begin a write transaction
-  realm.write(() => {
-    const lastConversationRO: LastConversationRO = realm.create(
-      LastConversationRO.schema.name,
-      {
-        id: lastConversation.id || '',
-        member: convertedMember,
-        createdAt: lastConversation.createdAt || null,
-        answer: lastConversation.answer,
-        state: lastConversation.state,
-        // attachments: new Realm.List<AttachmentRO>(...attachments),  //TODO
-        date: lastConversation.date || null,
-        deletedBy: lastConversation.deletedBy || null,
-        attachmentCount: lastConversation.attachmentCount || null,
-        attachmentsUploaded: lastConversation.attachmentUploaded || null,
-        uploadWorkerUUID: lastConversation.uploadWorkerUUID || null,
-        createdEpoch: lastConversation.createdEpoch || 0,
-        chatroomId: lastConversation.chatroomId || '',
-        communityId: lastConversation.communityId || '',
-        link: convertedLink,
-        // deletedByMember: deletedByMemberRO, //TODO
-        // ... Continue with other properties ...
-      },
-    );
-  });
-
-  // Return the created LastConversationRO
-  return realm.objects<LastConversationRO>(LastConversationRO.schema.name)[0];
-}
-
-export const convertToChatroomRO = (
-  chatroom: Chatroom,
-  member: Member,
-): ChatroomRO => {
-  const realm = new Realm(); // Initialize Realm
-  console.log('convertToMemberRO -- member ==>', member);
-  const convertedMember = convertToMemberRO(member);
-  // const convertedLastConversation = convertToLastConversationRO(chatroom)
-
-  // Begin a write transaction
-  realm.write(() => {
-    const chatroomRO: ChatroomRO = realm.create(ChatroomRO.schema.name, {
-      id: chatroom.id,
-      communityId: chatroom.communityId || '',
-      title: chatroom.title,
-      state: chatroom.state,
-      member: convertedMember,
-      createdAt: chatroom.createdAt || null,
-      type: chatroom.type || null,
-      chatroomImageUrl: chatroom.chatroomImageUrl || null,
-      header: chatroom.header || null,
-      cardCreationTime: chatroom.cardCreationTime || null,
-      totalResponseCount: parseInt(chatroom.totalResponseCount || '0'),
-      totalAllResponseCount: parseInt('0'), // TODO
-      muteStatus: chatroom.muteStatus || null,
-      followStatus: chatroom.followStatus || null,
-      hasBeenNamed: chatroom.hasBeenNamed || null,
-      date: chatroom.date || null,
-      isTagged: chatroom.isTagged || null,
-      isPending: chatroom.isPending || null,
-      deletedBy: chatroom.deletedBy || null,
-      updatedAt: chatroom.updatedAt || null,
-      // lastConversation: lastConversationRO,
-      lastSeenConversationId: chatroom.lastSeenConversationId || null,
-      // lastSeenConversation: chatroom.lastSeenConversation || null,
-      dateEpoch: chatroom.dateEpoch || null,
-      unseenCount: chatroom.unseenCount || 0,
-      relationshipNeeded: false, // Assign as needed
-      // draftConversation: chatroom.draftConversation || null,
-      isSecret: chatroom.isSecret || null,
-      // secretChatRoomParticipants: new Realm.List<number>(
-      //   ...(chatroom.secretChatroomParticipants || []),
-      // ),
-      secretChatRoomLeft: chatroom.secretChatroomLeft || null,
-      // conversations: new Realm.List<ConversationRO>(
-      //   ...(chatroom.conversations || []),
-      // ),
-      topicId: chatroom.topicId || null,
-      // topic: topicRO,
-      autoFollowDone: chatroom.autoFollowDone || null,
-      memberCanMessage: chatroom.memberCanMessage || null,
-      isEdited: chatroom.isEdited || null,
-      // reactions: new Realm.List<ReactionRO>(...reactions),
-      unreadConversationsCount: chatroom.unreadConversationCount || null,
-      accessWithoutSubscription: chatroom.accessWithoutSubscription || false,
-      externalSeen: chatroom.externalSeen || null,
-      isConversationStored: false, // Assign as needed
-      // isDraft: chatroom.isDraft || null,
-      lastConversationId: chatroom.lastConversationId || null,
-      // ... Continue with other properties ...
-    });
-  });
-
-  // Return the created ChatroomRO
-  return realm.objects<ChatroomRO>(ChatroomRO.schema.name)[0];
-};
+//   // Return the created AttachmentRO
+//   return realm.objects<AttachmentRO>(AttachmentRO.schema.name)[0];
+// }
 
 // export const convertChatroom = (chatroom: any, member?: any): any => {
 //   console.log('memberHUMai', member);

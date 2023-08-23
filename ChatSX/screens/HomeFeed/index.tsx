@@ -27,6 +27,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {
+  getChatroomData,
   getCommunityData,
   saveChatroomData,
   saveCommunityData,
@@ -161,6 +162,8 @@ const HomeFeed = ({navigation}: Props) => {
       setAccessToken(res?.accessToken);
       const resp = await getCommunityData();
       console.log('getCommunitydata ==', resp);
+      const resp1 = await getChatroomData();
+      console.log('chatroomData', resp1);
     }
 
     return res;

@@ -11,24 +11,26 @@ import Db from './db';
 import Realm from 'realm';
 
 export function saveCommunityData(communityData: any) {
-  let community = convertCommunity(communityData);
-  console.log('community inside save community ====>>', community);
+  // let community = convertCommunity(communityData);
+  // console.log('community inside save community ====>>', community);
   return Realm.open(Db.getInstance()).then(realm => {
     realm.write(() => {
+      let community = convertCommunity(communityData);
       realm.create(CommunityRO.schema.name, community, Realm.UpdateMode.All);
     });
-    realm.close(); // Close the Realm instance after the write operation
+    // realm.close(); // Close the Realm instance after the write operation
   });
 }
 
 export function saveChatroomData(chatroomData: any, member: any) {
-  const chatroom = convertToChatroomRO(chatroomData, member);
-  console.log('chatroom inside save Chatroom ====>>', chatroom);
+  // const chatroom = convertToChatroomRO(chatroomData, member);
+  // console.log('chatroom inside save Chatroom ====>>', chatroom);
   return Realm.open(Db.getInstance()).then(realm => {
     realm.write(() => {
+      const chatroom = convertToChatroomRO(chatroomData, member);
       realm.create(ChatroomRO.schema.name, chatroom, Realm.UpdateMode.All);
     });
-    realm.close(); // Close the Realm instance after the write operation
+    // realm.close(); // Close the Realm instance after the write operation
   });
 }
 
@@ -41,8 +43,22 @@ export function saveConversationData(conversationData: any) {
         Realm.UpdateMode.All,
       );
     });
-    realm.close(); // Close the Realm instance after the write operation
+    // realm.close(); // Close the Realm instance after the write operation
   });
+}
+
+export async function getChatroomData() {
+  const realm = await Realm.open(Db.getInstance());
+  const chatrooms = realm.objects(ChatroomRO.schema.name);
+
+  const chatroomObject = chatrooms.map(chatroom => {
+    const stringifiedChatroom = JSON.stringify(chatroom);
+    return {
+      ...JSON.parse(stringifiedChatroom),
+    };
+  });
+  // realm.close();
+  return chatroomObject;
 }
 
 export async function getCommunityData() {
@@ -56,7 +72,7 @@ export async function getCommunityData() {
     };
   });
 
-  realm.close(); // Close the Realm instance after reading data
+  // realm.close(); // Close the Realm instance after reading data
 
   return communityObject;
 }

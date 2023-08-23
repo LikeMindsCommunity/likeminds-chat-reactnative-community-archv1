@@ -23,6 +23,6 @@ export interface Member {
   attendingStatus?: boolean;
   hasProfileImage?: boolean;
   updatedAt?: number;
-  // sdkClientInfo: SDKClientInfo;
+  sdkClientInfo: SDKClientInfo;
   uuid: string;
 }
