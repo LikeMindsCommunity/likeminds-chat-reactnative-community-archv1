@@ -33,7 +33,7 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
   id!: string;
   chatroomId!: string;
   communityId!: string;
-  // member?: MemberRO | null;
+  member?: MemberRO | null;
   answer!: string;
   state!: number;
   createdEpoch!: number;

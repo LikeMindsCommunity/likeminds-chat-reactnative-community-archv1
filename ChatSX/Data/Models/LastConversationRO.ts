@@ -9,11 +9,11 @@ import {
   OPTIONAL_MEMBER_RO,
   OPTIONAL_STRING,
   STRING,
-} from "../constants";
-import { AttachmentRO } from "./AttachmentRO";
-import { LinkRO } from "./LinkRO";
-import { MemberRO } from "./MemberRO";
-import Realm from "realm";
+} from '../constants';
+import {AttachmentRO} from './AttachmentRO';
+import {LinkRO} from './LinkRO';
+import {MemberRO} from './MemberRO';
+import Realm from 'realm';
 
 export class LastConversationRO extends Realm.Object<LastConversationRO> {
   id!: string;

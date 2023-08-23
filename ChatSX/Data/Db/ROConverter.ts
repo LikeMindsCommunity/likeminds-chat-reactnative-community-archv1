@@ -15,6 +15,8 @@ import {Member} from '../responseModels/Member';
 import {SDKClientInfo} from '../responseModels/SDKClientInfo';
 import Realm from 'realm';
 import Db from './db';
+import {getChatroomData} from './dbhelper';
+import {ConversationRO} from '../Models/ConversationRO';
 
 export const convertCommunity = (community: any): any => {
   if (community == null) return null;
@@ -30,11 +32,9 @@ export const convertCommunity = (community: any): any => {
   return updatedCommunity;
 };
 
-function convertToSDKClientInfoRO(
+const convertToSDKClientInfoRO = (
   sdkClientInfo: SDKClientInfo,
-): SDKClientInfoRO {
-  const realm = new Realm(Db.getInstance());
-
+): SDKClientInfoRO => {
   console.log('s,mnvdlfk ====>', sdkClientInfo);
 
   // const sdkClientInfoRO = realm.create<SDKClientInfoRO>(
@@ -55,10 +55,10 @@ function convertToSDKClientInfoRO(
   };
 
   return sdkClientInfoRO;
-}
+};
 
 const convertToMemberRO = (member: Member): MemberRO => {
-  const realm = new Realm(Db.getInstance());
+  console.log('memberrrrrrrr', member);
   const convertedSdkClientInfo = convertToSDKClientInfoRO(member.sdkClientInfo);
 
   const memberRO: MemberRO = {
@@ -81,14 +81,123 @@ const convertToMemberRO = (member: Member): MemberRO => {
   return memberRO;
 };
 
+const convertToLastConversationRO = (
+  lastConversation: Conversation,
+): LastConversationRO => {
+  const convertedMember = convertToMemberRO(lastConversation.member);
+  let convertedDeletedByMember: MemberRO | null;
+  if (lastConversation.deletedByMember == undefined) {
+    convertedDeletedByMember = null;
+  } else {
+    convertedDeletedByMember = convertToMemberRO(
+      lastConversation.deletedByMember,
+    );
+  }
+
+  const lastConversationRO: LastConversationRO = {
+    id: lastConversation.id || '',
+    member: convertedMember,
+    createdAt: lastConversation.createdAt || null,
+    answer: lastConversation.answer,
+    state: lastConversation.state,
+    // attachments:
+    date: lastConversation.date || null,
+    deletedBy: lastConversation.deletedBy,
+    uploadWorkerUUID: lastConversation.uploadWorkerUUID,
+    createdEpoch: lastConversation.createdEpoch,
+    chatroomId: lastConversation.chatroomId,
+    communityId: lastConversation.communityId,
+    attachmentCount: lastConversation.attachmentCount,
+    attachmentsUploaded: lastConversation.attachmentUploaded,
+    // link:
+    // deletedByMember: convertedDeletedByMember,
+  };
+
+  return lastConversationRO;
+};
+
+export const convertToConversationRO = (
+  conversation: Conversation,
+): ConversationRO => {
+  // const realm = new Realm(Db.getInstance());
+  const convertedMember = convertToMemberRO(conversation.member);
+  console.log('convertedMember -> convertToConversationRO', convertedMember);
+  const conversationRO: ConversationRO = {
+    id: conversation.id || '',
+    chatroomId: conversation.chatroomId || '',
+    communityId: conversation.communityId || '',
+    member: convertedMember,
+    answer: conversation.answer,
+    state: conversation.state,
+    createdEpoch: conversation.createdEpoch || 0,
+    createdAt: conversation.createdAt || null,
+    date: conversation.date || null,
+    isEdited: conversation.isEdited || null,
+    lastSeen: conversation.lastSeen,
+    replyConversationId: conversation.replyConversationId || null,
+    deletedBy: conversation.deletedBy || null,
+    attachmentCount: conversation.attachmentCount || null,
+    attachmentsUploaded: conversation.attachmentUploaded || null,
+    uploadWorkerUUID: conversation.uploadWorkerUUID || null,
+    localSavedEpoch: conversation.localCreatedEpoch || 0,
+    temporaryId: conversation.temporaryId || null,
+    isAnonymous: conversation.isAnonymous || null,
+    allowAddOption: conversation.allowAddOption || null,
+    pollType: conversation.pollType || null,
+    pollTypeText: conversation.pollTypeText || null,
+    submitTypeText: conversation.submitTypeText || null,
+    expiryTime: conversation.expiryTime || null,
+    multipleSelectNum: conversation.multipleSelectNum || null,
+    multipleSelectState: conversation.multipleSelectState || null,
+    pollAnswerText: conversation.pollAnswerText || null,
+    toShowResults: conversation.toShowResults || null,
+    replyChatRoomId: conversation.replyChatroomId || null,
+    lastUpdatedAt: conversation.lastUpdated || 0,
+    // attachments: new Realm.List<AttachmentRO>(
+    //   (conversation.attachments || []).map((attachment) => ({
+    //     property1: attachment.property1 || '',
+    //     property2: attachment.property2 || '',
+    //     // ...
+    //   }))
+    // ),
+    // reactions: new Realm.List<ReactionRO>(
+    //   (conversation.reactions || []).map((reaction) => ({
+    //     property1: reaction.property1 || '',
+    //     property2: reaction.property2 || '',
+    //     // ...
+    //   }))
+    // ),
+    // polls: new Realm.List<PollRO>(
+    //   (conversation.polls || []).map((poll) => ({
+    //     property1: poll.property1 || '',
+    //     property2: poll.property2 || '',
+    //     // ...
+    //   }))
+    // ),
+    // replyConversation: conversation.replyConversation
+    //   ? new Realm.List<ConversationRO>(
+    //       conversation.replyConversation.map((replyConv) => convertConversationToRO(replyConv))
+    //     )
+    //   : null,
+  };
+
+  return conversationRO;
+};
+
 export const convertToChatroomRO = (
   chatroom: Chatroom,
   member: Member,
+  lastConversation: Conversation,
 ): ChatroomRO => {
-  const realm = new Realm(Db.getInstance());
+  // const realm = new Realm(Db.getInstance());
   console.log('convertToMemberRO -- member ==>', member);
   const convertedMember = convertToMemberRO(member);
   console.log('convertedMember', convertedMember);
+  // const convertedLastConversationRO =
+  //   convertToLastConversationRO(lastConversation);
+  // console.log('convertedLastConversationRO', convertedLastConversationRO);
+  // const convertedLastConversation = convertToConversationRO(lastConversation);
+  // console.log('convertedLastConversation', convertedLastConversation);
 
   const chatroomRO: ChatroomRO = {
     id: `${chatroom.id}`,
@@ -101,7 +210,7 @@ export const convertToChatroomRO = (
     chatroomImageUrl: chatroom.chatroomImageUrl || null,
     header: chatroom.header || null,
     cardCreationTime: chatroom.cardCreationTime || null,
-    totalResponseCount: parseInt(chatroom.totalResponseCount || '0'),
+    totalResponseCount: parseInt('0'), //TODO
     totalAllResponseCount: parseInt('0'), // TODO
     muteStatus: chatroom.muteStatus || null,
     followStatus: chatroom.followStatus || null,
@@ -111,9 +220,10 @@ export const convertToChatroomRO = (
     isPending: chatroom.isPending || null,
     deletedBy: chatroom.deletedBy || null,
     updatedAt: chatroom.updatedAt || null,
-    // lastConversation: lastConversationRO,
+    // lastConversation: convertedLastConversation,
+    // lastConversationRO: convertedLastConversationRO,
     lastSeenConversationId: chatroom.lastSeenConversationId || null,
-    // lastSeenConversation: chatroom.lastSeenConversation || null,
+    // lastSeenConversation: chatroom.lastSeenConversation || null,  //TODO
     dateEpoch: chatroom.dateEpoch || null,
     unseenCount: chatroom.unseenCount || 0,
     relationshipNeeded: false, // Assign as needed
@@ -127,7 +237,7 @@ export const convertToChatroomRO = (
     //   ...(chatroom.conversations || []),
     // ),
     topicId: `${chatroom.topicId}` || null,
-    // topic: topicRO,
+    // topic: topicRO,  //TODO
     autoFollowDone: chatroom.autoFollowDone || null,
     memberCanMessage: chatroom.memberCanMessage || null,
     isEdited: chatroom.isEdited || null,
@@ -138,7 +248,6 @@ export const convertToChatroomRO = (
     isConversationStored: false, // Assign as needed
     // isDraft: chatroom.isDraft || null,
     lastConversationId: `${chatroom.lastConversationId}` || null,
-    // ... Continue with other properties ...
   };
 
   return chatroomRO;

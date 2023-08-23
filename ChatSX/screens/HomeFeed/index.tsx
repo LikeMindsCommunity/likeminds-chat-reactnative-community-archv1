@@ -151,10 +151,14 @@ const HomeFeed = ({navigation}: Props) => {
     if (!!res) {
       const val = await syncChatroomAPI();
       const DbRes = val?.data;
-      console.log('DbRes ==', DbRes?.communityMeta['50504']);
+      console.log('DbRes ==', DbRes?.conversationMeta['3869393']);
       saveCommunityData(DbRes?.communityMeta['50504']); // Save community data;
       DbRes?.chatroomsData.forEach((data: any) => {
-        saveChatroomData(data, DbRes?.userMeta['427196']); // Save each chatroom data
+        saveChatroomData(
+          data,
+          DbRes?.userMeta['427196'],
+          DbRes?.conversationMeta['3869393'],
+        ); // Save each chatroom data
       });
       await dispatch(getMemberState() as any);
 

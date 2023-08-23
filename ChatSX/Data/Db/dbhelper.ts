@@ -22,12 +22,23 @@ export function saveCommunityData(communityData: any) {
   });
 }
 
-export function saveChatroomData(chatroomData: any, member: any) {
+export function saveChatroomData(
+  chatroomData: any,
+  member: any,
+  lastConversation: any,
+) {
   // const chatroom = convertToChatroomRO(chatroomData, member);
-  // console.log('chatroom inside save Chatroom ====>>', chatroom);
+  console.log(
+    'lastConversation inside save lastConversation ====>>',
+    lastConversation,
+  );
   return Realm.open(Db.getInstance()).then(realm => {
     realm.write(() => {
-      const chatroom = convertToChatroomRO(chatroomData, member);
+      const chatroom = convertToChatroomRO(
+        chatroomData,
+        member,
+        lastConversation,
+      );
       realm.create(ChatroomRO.schema.name, chatroom, Realm.UpdateMode.All);
     });
     // realm.close(); // Close the Realm instance after the write operation

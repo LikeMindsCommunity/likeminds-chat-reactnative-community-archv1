@@ -70,7 +70,7 @@ export class ChatroomRO extends Realm.Object<ChatroomRO> {
   isConversationStored!: boolean;
   isDraft?: boolean | null;
   lastConversationId?: string | null;
-  // communities?: Realm.Results<CommunityRO> | null;
+  communities?: Realm.Results<CommunityRO> | null;
 
   static schema: Realm.ObjectSchema = {
     name: CHATROOM_RO,
