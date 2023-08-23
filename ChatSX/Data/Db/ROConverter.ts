@@ -35,15 +35,24 @@ function convertToSDKClientInfoRO(
 ): SDKClientInfoRO {
   const realm = new Realm(Db.getInstance());
 
-  const sdkClientInfoRO = realm.create<SDKClientInfoRO>(
-    SDKClientInfoRO.schema.name,
-    {
-      community: sdkClientInfo.communityId,
-      user: `${sdkClientInfo.user}`,
-      userUniqueId: sdkClientInfo.userUniqueId,
-      uuid: sdkClientInfo.uuid,
-    },
-  );
+  console.log('s,mnvdlfk ====>', sdkClientInfo);
+
+  // const sdkClientInfoRO = realm.create<SDKClientInfoRO>(
+  //   SDKClientInfoRO.schema.name,
+  //   {
+  //     community: sdkClientInfo.communityId,
+  //     user: `${sdkClientInfo.user}`,
+  //     userUniqueId: sdkClientInfo.userUniqueId,
+  //     uuid: sdkClientInfo.uuid,
+  //   },
+  // );
+
+  const sdkClientInfoRO: SDKClientInfoRO = {
+    community: sdkClientInfo.communityId,
+    user: `${sdkClientInfo.user}`,
+    userUniqueId: sdkClientInfo.userUniqueId,
+    uuid: sdkClientInfo.uuid,
+  };
 
   return sdkClientInfoRO;
 }
@@ -52,7 +61,7 @@ const convertToMemberRO = (member: Member): MemberRO => {
   const realm = new Realm(Db.getInstance());
   const convertedSdkClientInfo = convertToSDKClientInfoRO(member.sdkClientInfo);
 
-  const memberRO = realm.create<MemberRO>(MemberRO.schema.name, {
+  const memberRO: MemberRO = {
     uid: `${member.id}`,
     id: `${member.id}`,
     name: member.name,
@@ -67,7 +76,7 @@ const convertToMemberRO = (member: Member): MemberRO => {
     userUniqueId: member.userUniqueId,
     uuid: member.uuid,
     sdkClientInfoRO: convertedSdkClientInfo,
-  });
+  };
 
   return memberRO;
 };
@@ -81,7 +90,7 @@ export const convertToChatroomRO = (
   const convertedMember = convertToMemberRO(member);
   console.log('convertedMember', convertedMember);
 
-  const chatroomRO = realm.create<ChatroomRO>(ChatroomRO.schema.name, {
+  const chatroomRO: ChatroomRO = {
     id: `${chatroom.id}`,
     communityId: `${chatroom.communityId}` || '',
     title: chatroom.title,
@@ -130,7 +139,7 @@ export const convertToChatroomRO = (
     // isDraft: chatroom.isDraft || null,
     lastConversationId: `${chatroom.lastConversationId}` || null,
     // ... Continue with other properties ...
-  });
+  };
 
   return chatroomRO;
 };
