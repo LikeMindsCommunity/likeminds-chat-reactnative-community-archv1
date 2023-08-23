@@ -119,11 +119,11 @@ export class ChatroomRO extends Realm.Object<ChatroomRO> {
       isConversationStored: BOOLEAN,
       isDraft: OPTIONAL_BOOLEAN,
       lastConversationId: OPTIONAL_STRING,
-      // communities: {
-      //   type: LINKING_OBJECTS,
-      //   objectType: COMMUNITY_RO,
-      //   property: CHATROOMS,
-      // },
+      communities: {
+        type: LINKING_OBJECTS,
+        objectType: COMMUNITY_RO,
+        property: CHATROOMS,
+      },
     },
     primaryKey: ID,
   };

@@ -20,7 +20,7 @@ export class MemberRO extends Realm.Object<MemberRO> {
   customIntroText?: string | null;
   customClickText?: string | null;
   customTitle?: string | null;
-  communityId?: number | null;
+  communityId?: string | null;
   isOwner!: boolean;
   isGuest!: boolean;
   userUniqueId!: string;

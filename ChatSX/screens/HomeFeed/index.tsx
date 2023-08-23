@@ -30,6 +30,7 @@ import {
   getChatroomData,
   getCommunityData,
   saveChatroomData,
+  saveChatroomResponse,
   saveCommunityData,
 } from '../../Data/Db/dbhelper';
 // import DbHelper from '../../Data/Db/dbhelper';
@@ -151,23 +152,22 @@ const HomeFeed = ({navigation}: Props) => {
     if (!!res) {
       const val = await syncChatroomAPI();
       const DbRes = val?.data;
-      console.log('DbRes ==', DbRes?.conversationMeta['3869393']);
-      saveCommunityData(DbRes?.communityMeta['50504']); // Save community data;
-      DbRes?.chatroomsData.forEach((data: any) => {
-        saveChatroomData(
-          data,
-          DbRes?.userMeta['427196'],
-          DbRes?.conversationMeta['3869393'],
-        ); // Save each chatroom data
-      });
+      console.log('DbRes ==', DbRes?.chatroomsData);
+      console.log('communityID ==', res?.community?.id);
+
+      saveCommunityData(DbRes?.communityMeta['50487']); // Save community data;
+      saveChatroomResponse(DbRes, DbRes?.chatroomsData, res?.community?.id);
+
       await dispatch(getMemberState() as any);
 
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
+
+      const resp1 = await getChatroomData();
+      console.log('chatroomData', resp1[0]);
+
       const resp = await getCommunityData();
       console.log('getCommunitydata ==', resp);
-      const resp1 = await getChatroomData();
-      console.log('chatroomData', resp1);
     }
 
     return res;

@@ -32,7 +32,7 @@ export const convertCommunity = (community: any): any => {
   return updatedCommunity;
 };
 
-const convertToSDKClientInfoRO = (
+export const convertToSDKClientInfoRO = (
   sdkClientInfo: SDKClientInfo,
 ): SDKClientInfoRO => {
   console.log('s,mnvdlfk ====>', sdkClientInfo);
@@ -57,12 +57,16 @@ const convertToSDKClientInfoRO = (
   return sdkClientInfoRO;
 };
 
-const convertToMemberRO = (member: Member): MemberRO => {
-  console.log('memberrrrrrrr', member);
+export const convertToMemberRO = (
+  member: Member,
+  communityId: string,
+): MemberRO => {
   const convertedSdkClientInfo = convertToSDKClientInfoRO(member.sdkClientInfo);
+  const uuid = member.sdkClientInfo?.uuid;
+  const uid = `${uuid}#${communityId}`;
 
   const memberRO: MemberRO = {
-    uid: `${member.id}`,
+    uid: uid,
     id: `${member.id}`,
     name: member.name,
     imageUrl: member.imageUrl || '',
@@ -70,7 +74,7 @@ const convertToMemberRO = (member: Member): MemberRO => {
     customIntroText: member.customIntroText || null,
     customClickText: member.customClickText || null,
     customTitle: member.customTitle || null,
-    communityId: member.communityId || null,
+    communityId: communityId || null,
     isOwner: member.isOwner,
     isGuest: member.isGuest,
     userUniqueId: member.userUniqueId,
@@ -81,22 +85,23 @@ const convertToMemberRO = (member: Member): MemberRO => {
   return memberRO;
 };
 
-const convertToLastConversationRO = (
+export const convertToLastConversationRO = (
   lastConversation: Conversation,
+  chatroomCreatorRO: MemberRO,
 ): LastConversationRO => {
-  const convertedMember = convertToMemberRO(lastConversation.member);
+  // const convertedMember = convertToMemberRO(lastConversation.member);
   let convertedDeletedByMember: MemberRO | null;
   if (lastConversation.deletedByMember == undefined) {
     convertedDeletedByMember = null;
   } else {
-    convertedDeletedByMember = convertToMemberRO(
-      lastConversation.deletedByMember,
-    );
+    // convertedDeletedByMember = convertToMemberRO(
+    //   lastConversation.deletedByMember,
+    // );
   }
 
   const lastConversationRO: LastConversationRO = {
     id: lastConversation.id || '',
-    member: convertedMember,
+    member: chatroomCreatorRO,
     createdAt: lastConversation.createdAt || null,
     answer: lastConversation.answer,
     state: lastConversation.state,
@@ -118,15 +123,16 @@ const convertToLastConversationRO = (
 
 export const convertToConversationRO = (
   conversation: Conversation,
+  chatroomCreatorRO: MemberRO,
 ): ConversationRO => {
   // const realm = new Realm(Db.getInstance());
-  const convertedMember = convertToMemberRO(conversation.member);
-  console.log('convertedMember -> convertToConversationRO', convertedMember);
+  // const convertedMember = convertToMemberRO(conversation.member);
+  // console.log('convertedMember -> convertToConversationRO', convertedMember);
   const conversationRO: ConversationRO = {
     id: conversation.id || '',
     chatroomId: conversation.chatroomId || '',
     communityId: conversation.communityId || '',
-    member: convertedMember,
+    member: chatroomCreatorRO,
     answer: conversation.answer,
     state: conversation.state,
     createdEpoch: conversation.createdEpoch || 0,
@@ -186,25 +192,20 @@ export const convertToConversationRO = (
 
 export const convertToChatroomRO = (
   chatroom: Chatroom,
-  member: Member,
-  lastConversation: Conversation,
+  chatroomCreatorRO: MemberRO,
+  lastConversationRO?: Conversation,
 ): ChatroomRO => {
-  // const realm = new Realm(Db.getInstance());
-  console.log('convertToMemberRO -- member ==>', member);
-  const convertedMember = convertToMemberRO(member);
-  console.log('convertedMember', convertedMember);
-  // const convertedLastConversationRO =
-  //   convertToLastConversationRO(lastConversation);
-  // console.log('convertedLastConversationRO', convertedLastConversationRO);
-  // const convertedLastConversation = convertToConversationRO(lastConversation);
-  // console.log('convertedLastConversation', convertedLastConversation);
+  const realm = new Realm(Db.getInstance());
+  // console.log('convertToMemberRO -- member ==>', chatroomCreatorRO);
+  // const convertedMember = convertToMemberRO(member, communityId);
+  console.log('convertedMember', chatroomCreatorRO);
 
   const chatroomRO: ChatroomRO = {
     id: `${chatroom.id}`,
     communityId: `${chatroom.communityId}` || '',
     title: chatroom.title,
     state: chatroom.state,
-    member: convertedMember,
+    member: chatroomCreatorRO,
     createdAt: chatroom.createdAt || null,
     type: chatroom.type || null,
     chatroomImageUrl: chatroom.chatroomImageUrl || null,

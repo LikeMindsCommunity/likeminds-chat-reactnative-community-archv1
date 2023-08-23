@@ -22,8 +22,8 @@ export class CommunityRO extends Realm.Object<CommunityRO> {
   updatedAt?: number | null;
   relationshipNeeded!: boolean;
   downloadableContentTypes?: Realm.List<string> | null;
-  // conversations!: Realm.List<ConversationRO>;
-  // chatrooms!: Realm.List<ChatroomRO>;
+  conversations!: Realm.List<ConversationRO>;
+  chatrooms!: Realm.List<ChatroomRO>;
 
   static schema: Realm.ObjectSchema = {
     name: COMMUNITY_RO,
@@ -35,8 +35,8 @@ export class CommunityRO extends Realm.Object<CommunityRO> {
       updatedAt: OPTIONAL_INT,
       relationshipNeeded: BOOLEAN,
       // downloadableContentTypes: OPTIONAL_LIST_STRING,
-      // conversations: LIST_CONVERSATION_RO,
-      // chatrooms: LIST_CHATROOM_RO,
+      conversations: LIST_CONVERSATION_RO,
+      chatrooms: LIST_CHATROOM_RO,
     },
     primaryKey: ID,
   };
