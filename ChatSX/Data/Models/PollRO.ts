@@ -6,9 +6,9 @@ import {
   OPTIONAL_STRING,
   POLL_RO,
   STRING,
-} from "../constants";
-import { MemberRO } from "./MemberRO";
-import Realm from "realm";
+} from '../constants';
+import {MemberRO} from './MemberRO';
+import Realm from 'realm';
 
 export class PollRO extends Realm.Object<PollRO> {
   id!: string;

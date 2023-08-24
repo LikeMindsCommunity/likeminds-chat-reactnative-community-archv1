@@ -1,7 +1,7 @@
-import { Member } from "./Member";
+import {Member} from './Member';
 
 export interface Poll {
-  id?: string;
+  id: string;
   text: string;
   isSelected?: boolean;
   percentage?: number;

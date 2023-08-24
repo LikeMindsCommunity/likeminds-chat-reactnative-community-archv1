@@ -4,9 +4,9 @@ import {
   OPTIONAL_INT,
   OPTIONAL_STRING,
   STRING,
-} from "../constants";
-import { AttachmentMetaRO } from "./AttachmentMetaRO";
-import Realm from "realm";
+} from '../constants';
+import {AttachmentMetaRO} from './AttachmentMetaRO';
+import Realm from 'realm';
 
 export class AttachmentRO extends Realm.Object<AttachmentRO> {
   id!: string;

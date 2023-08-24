@@ -25,13 +25,17 @@ import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
-import {SyncChatroomRequest} from 'reactnative-chat-data';
+import {
+  SyncChatroomRequest,
+  SyncConversationRequest,
+} from 'reactnative-chat-data';
 import {
   getChatroomData,
   getCommunityData,
-  saveChatroomData,
+  getConversationData,
   saveChatroomResponse,
   saveCommunityData,
+  saveConversationData,
 } from '../../Data/Db/dbhelper';
 // import DbHelper from '../../Data/Db/dbhelper';
 
@@ -128,8 +132,22 @@ const HomeFeed = ({navigation}: Props) => {
         .setPage(0)
         .setPageSize(20)
         .setChatroomTypes([0, 7])
-        .setMaxTimestamp(Math.floor(Date.now() / 1000))
+        .setMaxTimestamp(Math.floor(Date.now()))
         .setMinTimestamp(0)
+        .build(),
+    );
+    console.log('--------> resssss ----->', res);
+    return res;
+  }
+
+  async function syncConversationAPI() {
+    const res = await myClient?.syncConversation(
+      SyncConversationRequest.builder()
+        .setChatroomId('2889247')
+        .setPage(0)
+        .setMinTimestamp(0)
+        .setMaxTimestamp(Math.floor(Date.now()))
+        .setPageSize(20)
         .build(),
     );
     console.log('--------> resssss ----->', res);
@@ -151,12 +169,25 @@ const HomeFeed = ({navigation}: Props) => {
 
     if (!!res) {
       const val = await syncChatroomAPI();
+      const syncConversationResponse = await syncConversationAPI();
+
+      console.log('syncConversationResponse', syncConversationResponse);
+
       const DbRes = val?.data;
+      console.log('DbResAll', DbRes);
       console.log('DbRes ==', DbRes?.chatroomsData);
       console.log('communityID ==', res?.community?.id);
 
+      console.log('DbRes?.conversationMeta', DbRes?.conversationMeta);
+
       saveCommunityData(DbRes?.communityMeta['50487']); // Save community data;
       saveChatroomResponse(DbRes, DbRes?.chatroomsData, res?.community?.id);
+      saveConversationData(
+        DbRes,
+        DbRes?.chatroomsData,
+        DbRes?.conversationMeta,
+        res?.community?.id,
+      );
 
       await dispatch(getMemberState() as any);
 
@@ -168,6 +199,9 @@ const HomeFeed = ({navigation}: Props) => {
 
       const resp = await getCommunityData();
       console.log('getCommunitydata ==', resp);
+
+      const resp2 = await getConversationData();
+      console.log('getConversationData ======>>>', resp2);
     }
 
     return res;

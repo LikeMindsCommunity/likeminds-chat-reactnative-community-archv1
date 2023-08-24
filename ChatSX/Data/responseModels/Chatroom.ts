@@ -53,4 +53,5 @@ export interface Chatroom {
   unreadConversationCount?: number;
   chatroomImageUrl?: string;
   accessWithoutSubscription?: boolean;
+  totalAllResponseCount?: string;
 }

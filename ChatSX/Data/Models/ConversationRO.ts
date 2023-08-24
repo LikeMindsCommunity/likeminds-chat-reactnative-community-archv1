@@ -38,20 +38,20 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
   state!: number;
   createdEpoch!: number;
   createdAt?: string | null;
-  // attachments!: Realm.List<AttachmentRO>;
+  attachments!: Realm.List<AttachmentRO>;
   // link?: LinkRO | null;
   date?: string | null;
   isEdited?: boolean | null;
   lastSeen!: boolean;
   replyConversationId?: string | null;
-  replyConversation?: Realm.List<ConversationRO> | null;
+  // replyConversation?: Realm.List<ConversationRO> | null;
   deletedBy?: string | null;
   attachmentCount?: number | null;
   attachmentsUploaded?: boolean | null;
   uploadWorkerUUID?: string | null;
   localSavedEpoch!: number;
   temporaryId?: string | null;
-  // reactions!: Realm.List<ReactionRO>;
+  reactions?: Realm.List<ReactionRO> | null;
   isAnonymous?: boolean | null;
   allowAddOption?: boolean | null;
   pollType?: number | null;
@@ -60,7 +60,7 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
   expiryTime?: number | null;
   multipleSelectNum?: number | null;
   multipleSelectState?: number | null;
-  // polls!: Realm.List<PollRO>;
+  polls!: Realm.List<PollRO>;
   pollAnswerText?: string | null;
   toShowResults?: boolean | null;
   replyChatRoomId?: string | null;
@@ -80,7 +80,7 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
       state: INT,
       createdEpoch: INT,
       createdAt: OPTIONAL_STRING,
-      // attachments: LIST_ATTACHMENT_RO,
+      attachments: LIST_ATTACHMENT_RO,
       // link: OPTIONAL_LINK_RO,
       date: OPTIONAL_STRING,
       isEdited: OPTIONAL_BOOLEAN,
@@ -93,7 +93,7 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
       uploadWorkerUUID: OPTIONAL_STRING,
       localSavedEpoch: INT,
       temporaryId: OPTIONAL_STRING,
-      // reactions: LIST_REACTION_RO,
+      reactions: LIST_REACTION_RO,
       isAnonymous: OPTIONAL_BOOLEAN,
       allowAddOption: OPTIONAL_BOOLEAN,
       pollType: OPTIONAL_INT,
@@ -102,7 +102,7 @@ export class ConversationRO extends Realm.Object<ConversationRO> {
       expiryTime: OPTIONAL_INT,
       multipleSelectNum: OPTIONAL_INT,
       multipleSelectState: OPTIONAL_INT,
-      // polls: LIST_POLL_RO,
+      polls: LIST_POLL_RO,
       pollAnswerText: OPTIONAL_STRING,
       toShowResults: OPTIONAL_BOOLEAN,
       replyChatRoomId: OPTIONAL_STRING,

@@ -1,6 +1,6 @@
-import { OPTIONAL_MEMBER_RO, REACTION_RO, STRING } from "../constants";
-import { MemberRO } from "./MemberRO";
-import Realm from "realm";
+import {OPTIONAL_MEMBER_RO, REACTION_RO, STRING} from '../constants';
+import {MemberRO} from './MemberRO';
+import Realm from 'realm';
 
 export class ReactionRO extends Realm.Object<ReactionRO> {
   member?: MemberRO | null;

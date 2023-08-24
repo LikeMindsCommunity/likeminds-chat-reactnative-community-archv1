@@ -34,7 +34,7 @@ export interface Conversation {
   pollTypeText?: string;
   submitTypeText?: string;
   expiryTime?: number;
-  multipleSelectNum?: number;
+  multipleSelectNo?: number;
   multipleSelectState?: number;
   polls?: Poll[];
   toShowResults?: boolean;
