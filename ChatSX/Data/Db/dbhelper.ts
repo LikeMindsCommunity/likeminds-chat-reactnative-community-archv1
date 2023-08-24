@@ -143,16 +143,17 @@ export function saveChatroomResponse(
           // realm,
           lastConversation,
           lastConversationCreatorRO,
+          chatroom?.id,
           // lastConversationAttachment,
           // lastConversationDeletedByMemberRO,
         );
 
-        console.log('Hello world 4', lastConversation);
+        console.log('Hello world 4', lastConversationRO);
 
         if (!lastConversationRO) return;
         console.log('Hello world 5');
 
-        // realmWrite.insertOrUpdate(lastConversationRO);
+        // // realmWrite.insertOrUpdate(lastConversationRO);
         // realm.create(
         //   ConversationRO.schema.name,
         //   lastConversationRO,

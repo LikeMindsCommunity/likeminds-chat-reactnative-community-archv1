@@ -21,7 +21,7 @@ import {ConversationRO} from '../Models/ConversationRO';
 export const convertCommunity = (community: any): any => {
   if (community == null) return null;
   let updatedCommunity: Community = {
-    id: community?.id,
+    id: community?.id?.toString(),
     name: community?.name,
     imageUrl: community?.imageUrl,
     membersCount: community?.membersCount,
@@ -35,7 +35,7 @@ export const convertCommunity = (community: any): any => {
 export const convertToSDKClientInfoRO = (
   sdkClientInfo: SDKClientInfo,
 ): SDKClientInfoRO => {
-  console.log('s,mnvdlfk ====>', sdkClientInfo);
+  // console.log('s,mnvdlfk ====>', sdkClientInfo);
 
   // const sdkClientInfoRO = realm.create<SDKClientInfoRO>(
   //   SDKClientInfoRO.schema.name,
@@ -48,7 +48,7 @@ export const convertToSDKClientInfoRO = (
   // );
 
   const sdkClientInfoRO: SDKClientInfoRO = {
-    community: sdkClientInfo.communityId,
+    community: sdkClientInfo.communityId?.toString(),
     user: `${sdkClientInfo.user}`,
     userUniqueId: sdkClientInfo.userUniqueId,
     uuid: sdkClientInfo.uuid,
@@ -67,14 +67,14 @@ export const convertToMemberRO = (
 
   const memberRO: MemberRO = {
     uid: uid,
-    id: `${member.id}`,
+    id: member.id?.toString(),
     name: member.name,
     imageUrl: member.imageUrl || '',
     state: member.state || 0,
     customIntroText: member.customIntroText || null,
     customClickText: member.customClickText || null,
     customTitle: member.customTitle || null,
-    communityId: communityId || null,
+    communityId: communityId?.toString() || null,
     isOwner: member.isOwner,
     isGuest: member.isGuest,
     userUniqueId: member.userUniqueId,
@@ -88,6 +88,7 @@ export const convertToMemberRO = (
 export const convertToLastConversationRO = (
   lastConversation: Conversation,
   chatroomCreatorRO: MemberRO,
+  chatroomId: number,
 ): LastConversationRO => {
   // const convertedMember = convertToMemberRO(lastConversation.member);
   let convertedDeletedByMember: MemberRO | null;
@@ -99,8 +100,10 @@ export const convertToLastConversationRO = (
     // );
   }
 
+  console.log('lastConversation ===>[[[?]]]]', lastConversation);
+
   const lastConversationRO: LastConversationRO = {
-    id: lastConversation.id || '',
+    id: lastConversation?.id?.toString() || '',
     member: chatroomCreatorRO,
     createdAt: lastConversation.createdAt || null,
     answer: lastConversation.answer,
@@ -110,8 +113,8 @@ export const convertToLastConversationRO = (
     deletedBy: lastConversation.deletedBy,
     uploadWorkerUUID: lastConversation.uploadWorkerUUID,
     createdEpoch: lastConversation.createdEpoch,
-    chatroomId: lastConversation.chatroomId,
-    communityId: lastConversation.communityId,
+    chatroomId: chatroomId?.toString(),
+    communityId: lastConversation.communityId?.toString(),
     attachmentCount: lastConversation.attachmentCount,
     attachmentsUploaded: lastConversation.attachmentUploaded,
     // link:
@@ -128,10 +131,12 @@ export const convertToConversationRO = (
   // const realm = new Realm(Db.getInstance());
   // const convertedMember = convertToMemberRO(conversation.member);
   // console.log('convertedMember -> convertToConversationRO', convertedMember);
+  console.log('conversation.chatroomId ===>', conversation.chatroomId);
+
   const conversationRO: ConversationRO = {
-    id: conversation.id || '',
-    chatroomId: conversation.chatroomId || '',
-    communityId: conversation.communityId || '',
+    id: conversation.id?.toString() || '',
+    chatroomId: conversation.chatroomId?.toString() || '',
+    communityId: conversation.communityId?.toString() || '',
     member: chatroomCreatorRO,
     answer: conversation.answer,
     state: conversation.state,

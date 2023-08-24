@@ -15,7 +15,7 @@ import {ConversationRO} from './ConversationRO';
 import Realm from 'realm';
 
 export class CommunityRO extends Realm.Object<CommunityRO> {
-  id!: number;
+  id!: string;
   name!: string;
   imageUrl?: string | null;
   membersCount?: number | null;
@@ -28,7 +28,7 @@ export class CommunityRO extends Realm.Object<CommunityRO> {
   static schema: Realm.ObjectSchema = {
     name: COMMUNITY_RO,
     properties: {
-      id: INT,
+      id: STRING,
       name: STRING,
       imageUrl: OPTIONAL_STRING,
       membersCount: OPTIONAL_INT,

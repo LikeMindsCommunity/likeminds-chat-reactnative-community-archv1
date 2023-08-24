@@ -38,7 +38,7 @@ export class MemberRO extends Realm.Object<MemberRO> {
       customIntroText: OPTIONAL_STRING,
       customClickText: OPTIONAL_STRING,
       customTitle: OPTIONAL_STRING,
-      communityId: OPTIONAL_INT,
+      communityId: OPTIONAL_STRING,
       isOwner: BOOLEAN,
       isGuest: BOOLEAN,
       userUniqueId: STRING,
