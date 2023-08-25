@@ -136,7 +136,6 @@ const HomeFeed = ({navigation}: Props) => {
         .setMinTimestamp(0)
         .build(),
     );
-    console.log('--------> resssss ----->', res);
     return res;
   }
 
@@ -150,7 +149,6 @@ const HomeFeed = ({navigation}: Props) => {
         .setPageSize(20)
         .build(),
     );
-    console.log('--------> resssss ----->', res);
     return res;
   }
 
@@ -171,14 +169,7 @@ const HomeFeed = ({navigation}: Props) => {
       const val = await syncChatroomAPI();
       const syncConversationResponse = await syncConversationAPI();
 
-      console.log('syncConversationResponse', syncConversationResponse);
-
       const DbRes = val?.data;
-      console.log('DbResAll', DbRes);
-      console.log('DbRes ==', DbRes?.chatroomsData);
-      console.log('communityID ==', res?.community?.id);
-
-      console.log('DbRes?.conversationMeta', DbRes?.conversationMeta);
 
       saveCommunityData(DbRes?.communityMeta['50487']); // Save community data;
       saveChatroomResponse(DbRes, DbRes?.chatroomsData, res?.community?.id);
@@ -195,13 +186,13 @@ const HomeFeed = ({navigation}: Props) => {
       setAccessToken(res?.accessToken);
 
       const resp1 = await getChatroomData();
-      console.log('chatroomData', resp1[0]);
+      console.log('getChatroomData', resp1);
 
       const resp = await getCommunityData();
-      console.log('getCommunitydata ==', resp);
+      console.log('getCommunityData', resp);
 
       const resp2 = await getConversationData();
-      console.log('getConversationData ======>>>', resp2);
+      console.log('getConversationData', resp2);
     }
 
     return res;

@@ -589,7 +589,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   //this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
-    console.log('fetchData ==');
     let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
     let response = await dispatch(
       getConversations(
