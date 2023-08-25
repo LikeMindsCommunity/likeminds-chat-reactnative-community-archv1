@@ -198,8 +198,8 @@ export function saveChatroomResponse(
         const chatroomRO = convertToChatroomRO(
           chatroom,
           chatroomCreatorRO,
-          lastConversationRO, //its of type LastConversationRO
           lastConvRO,
+          lastConversationRO, //its of type LastConversationRO
         );
 
         if (chatroomRO) {
