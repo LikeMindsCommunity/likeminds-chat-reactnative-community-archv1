@@ -12,14 +12,37 @@ import SwitchComponent from './ChatSX/navigation/SwitchComponent';
 import notifee, {EventType} from '@notifee/react-native';
 import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './RootNavigation';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import FetchKeyInputScreen from './Sample';
+import {FetchKeyInputScreen} from './Sample';
+import {useQuery, RealmProvider} from '@realm/react';
+import LMChatClient from '@likeminds.community/chat-js';
+import {UserSchemaRO} from './ChatSX/db/schemas/UserSchema';
 
 const Stack = createNativeStackNavigator();
 
+// let API_KEY = '';
+
+// Realm.open({schema: [UserSchemaRO]}).then(realm => {
+//   const users = realm.objects(UserSchemaRO.schema.name);
+//   console.log('userRealmIndex.js', users);
+//   API_KEY = users[0]?.apiKey;
+// });
+
+// export const myClient = LMChatClient.setApiKey()
+// .setPlatformCode('rn')
+// .setVersionCode(parseInt('13'))
+// .build();
+
 function App(): JSX.Element {
-  const [userUniqueID, setUserUniqueID] = useState<any>();
-  const [userName, setUserName] = useState<any>();
+  const users = useQuery('UserSchemaRO');
+  const [userUniqueID, setUserUniqueID] = useState<any>(users[0]?.userUniqueID);
+  const [userName, setUserName] = useState<any>(users[0]?.userName);
+  const [isTrue, setIsTrue] = useState(true);
+
+  useEffect(() => {
+    setUserName(users[0]?.userName);
+    setUserUniqueID(users[0]?.userUniqueID);
+  }, [users]);
+
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
     async function bootstrap() {
@@ -33,16 +56,8 @@ function App(): JSX.Element {
     bootstrap();
   }, []);
 
-  // this useEffect is for the sample app only
-  useEffect(() => {
-    async function invokeDataLayer() {
-      const userUniqueID = await AsyncStorage.getItem('userUniqueID');
-      setUserUniqueID(userUniqueID);
-      const userName = await AsyncStorage.getItem('userName');
-      setUserName(userName);
-    }
-    invokeDataLayer();
-  }, []);
+  // console.log('users', userName, userUniqueID);
+  // console.log('usersArr', users[0]?.userName);
 
   return userUniqueID && userName ? (
     <ReduxProvider store={store}>
@@ -53,7 +68,7 @@ function App(): JSX.Element {
       </KeyboardAvoidingView>
     </ReduxProvider>
   ) : (
-    <FetchKeyInputScreen />
+    <FetchKeyInputScreen isTrue={isTrue} setIsTrue={setIsTrue} />
   );
 }
 

@@ -4,7 +4,7 @@ import {
   useIsFocused,
 } from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-
+import {Image as CompressedImage} from 'react-native-compressor';
 import {
   View,
   Text,
@@ -115,7 +115,7 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useQuery} from '@realm/react';
 
 interface Data {
   id: string;
@@ -166,6 +166,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
+  const users = useQuery('UserSchemaRO');
 
   const {
     chatroomID,
@@ -626,11 +627,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function fetch initiate API
   async function fetchInitAPI() {
     //this line of code is for the sample app only, pass your userUniqueID instead of this.
-    const UUID = await AsyncStorage.getItem('userUniqueID');
+
+    const UUID = users[0]?.userUniqueID;
+    const userName = users[0]?.userName;
 
     let payload = {
       userUniqueId: UUID, // user unique ID
-      userName: '', // user name
+      userName: userName, // user name
       isGuest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
@@ -1602,7 +1605,19 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      const img = await fetchResourceFromURI(item?.uri);
+      let uriFinal: any;
+
+      if (attachmentType === IMAGE_TEXT) {
+        //image compression
+        const compressedImgURI = await CompressedImage.compress(item.uri, {
+          compressionMethod: 'auto',
+        });
+        const compressedImg = await fetchResourceFromURI(compressedImgURI);
+        uriFinal = compressedImg;
+      } else {
+        const img = await fetchResourceFromURI(item.uri);
+        uriFinal = img;
+      }
 
       //for video thumbnail
       let thumbnailUrlImg = null;
@@ -1613,7 +1628,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       const params = {
         Bucket: BUCKET,
         Key: path,
-        Body: img,
+        Body: uriFinal,
         ACL: 'public-read-write',
         ContentType: item?.type, // Replace with the appropriate content type for your file
       };

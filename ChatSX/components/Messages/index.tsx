@@ -13,6 +13,7 @@ import {
   SET_POSITION,
 } from '../../store/types/types';
 import {PollConversationView} from '../Poll';
+import {useQuery} from '@realm/react';
 
 interface Messages {
   item: any;
@@ -52,6 +53,7 @@ const Messages = ({
   const isTypeSent = item?.member?.id === user?.id ? true : false;
   const chatRequestedBy = chatroomDetails?.chatroom?.chat_requested_by;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
+  const users = useQuery('UserSchemaRO');
 
   const dispatch = useAppDispatch();
   let defaultReactionArrLen = item?.reactions?.length;
@@ -87,6 +89,30 @@ const Messages = ({
       }
     }
   }, [item?.reactions]);
+
+  // Method to get userUniqueId stored in realm
+  const getUserUniqueId = async () => {
+    const userUniqueID = users[0]?.userUniqueID;
+    return userUniqueID;
+  };
+
+  // Method to trim the initial DM connection message based on loggedInMember id
+  const answerTrimming = (answer: string) => {
+    const loggedInMember = getUserUniqueId();
+    const chatroomWithUser =
+      chatroomDetails?.chatroom?.chatroom_with_user?.user_unique_id;
+    if (loggedInMember === chatroomWithUser) {
+      const startingIndex = answer.lastIndexOf('<');
+      return answer.substring(0, startingIndex - 2);
+    } else {
+      const startingIndex = answer.indexOf('<');
+      const endingIndex = answer.indexOf('>');
+      return (
+        answer.substring(0, startingIndex - 1) +
+        answer.substring(endingIndex + 2)
+      );
+    }
+  };
 
   const reactionLen = reactionArr.length;
 

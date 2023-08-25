@@ -23,6 +23,7 @@ import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs
 import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
+import {useQuery} from '@realm/react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 
@@ -50,6 +51,7 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
+  const users = useQuery('UserSchemaRO');
 
   const db = myClient?.fbInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
@@ -116,8 +118,9 @@ const HomeFeed = ({navigation}: Props) => {
 
   async function fetchData() {
     //this line of code is for the sample app only, pass your userUniqueID instead of this.
-    const UUID = await AsyncStorage.getItem('userUniqueID');
-    const userName = await AsyncStorage.getItem('userName');
+
+    const UUID = users[0]?.userUniqueID;
+    const userName = users[0]?.userName;
 
     let payload = {
       userUniqueId: UUID, // user unique ID

@@ -22,6 +22,7 @@
     "@react-navigation/material-top-tabs": "6.6.2",
     "@react-navigation/native": "6.1.2",
     "@react-navigation/native-stack": "6.9.8",
+    "@realm/react": "0.5.1",
     "@reduxjs/toolkit": "1.9.2",
     "@shopify/flash-list": "1.4.3",
     "aws-sdk": "2.1380.0",
@@ -31,6 +32,7 @@
     "moment": "^2.29.4",
     "react": "18.2.0",
     "react-native": "0.71.1",
+    "react-native-compressor": "^1.7.0",
     "react-native-create-thumbnail": "1.6.4",
     "react-native-device-info": "10.4.0",
     "react-native-document-picker": "8.2.0",
@@ -48,6 +50,7 @@
     "react-native-uuid": "^2.0.1",
     "react-native-video": "5.2.1",
     "react-redux": "8.0.5",
+    "realm": "11.10.2",
     "redux-thunk": "2.4.2",
     "rn-emoji-keyboard": "1.2.1"
   },

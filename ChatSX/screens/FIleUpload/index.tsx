@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import styles from './styles';
+import {Image as CompressedImage} from 'react-native-compressor';
 import Layout from '../../constants/Layout';
 import InputBox from '../../components/InputBox';
 import {
@@ -132,7 +133,19 @@ const FileUpload = ({navigation, route}: any) => {
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      const img = await fetchResourceFromURI(item?.uri);
+      let uriFinal: any;
+
+      if (attachmentType === IMAGE_TEXT) {
+        //image compression
+        const compressedImgURI = await CompressedImage.compress(item.uri, {
+          compressionMethod: 'auto',
+        });
+        const compressedImg = await fetchResourceFromURI(compressedImgURI);
+        uriFinal = compressedImg;
+      } else {
+        const img = await fetchResourceFromURI(item.uri);
+        uriFinal = img;
+      }
 
       //for video thumbnail
       let thumbnailUrlImg = null;
@@ -143,7 +156,7 @@ const FileUpload = ({navigation, route}: any) => {
       const params = {
         Bucket: BUCKET,
         Key: path,
-        Body: img,
+        Body: uriFinal,
         ACL: 'public-read-write',
         ContentType: item?.type, // Replace with the appropriate content type for your file
       };
