@@ -39,9 +39,10 @@ export interface Chatroom {
   lastConversationId?: string;
   dateEpoch?: number;
   isSecret?: boolean;
+  isConversationStored?: boolean;
   secretChatroomParticipants?: number[];
   secretChatroomLeft?: boolean;
-  reactions?: Reaction[];
+  reactions?: Reaction[] | null;
   topicId?: string;
   topic?: Conversation;
   autoFollowDone?: boolean;

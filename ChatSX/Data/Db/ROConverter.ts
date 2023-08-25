@@ -274,6 +274,16 @@ export const convertToConversationRO = (
   return conversationRO;
 };
 
+const convertToSecretChatroomParticipants = (
+  secretChatroomParticipants: number[],
+): List<number> => {
+  let convertedAttachments: any = [];
+  for (let i = 0; i < secretChatroomParticipants.length; i++) {
+    convertedAttachments.push(secretChatroomParticipants[i]);
+  }
+  return convertedAttachments;
+};
+
 export const convertToChatroomRO = (
   chatroom: Chatroom,
   member: MemberRO,
@@ -315,14 +325,20 @@ export const convertToChatroomRO = (
     relationshipNeeded: false, // Assign as needed
     // draftConversation: chatroom.draftConversation || null,  //TODO
     isSecret: chatroom.isSecret || null,
-    // secretChatRoomParticipants: new Realm.List<number>('int', chatroom.secretChatroomParticipants), //TODO
+    secretChatRoomParticipants: chatroom?.secretChatroomParticipants
+      ? convertToSecretChatroomParticipants(
+          chatroom?.secretChatroomParticipants,
+        )
+      : new List(), //TODO
     secretChatRoomLeft: chatroom.secretChatroomLeft || null,
     topicId: `${chatroom.topicId}` || null,
     // topic: topicRO,  //TODO
     autoFollowDone: chatroom.autoFollowDone || null,
     memberCanMessage: chatroom.memberCanMessage || null,
     isEdited: chatroom.isEdited || null,
-    // reactions: new Realm.List<ReactionRO>(...reactions), //TODO
+    reactions: chatroom?.reactions
+      ? convertToReaction(chatroom?.reactions, `${chatroom.communityId}`)
+      : null,
     unreadConversationsCount: chatroom.unreadConversationCount || null,
     accessWithoutSubscription: chatroom.accessWithoutSubscription || false,
     externalSeen: chatroom.externalSeen || null,
