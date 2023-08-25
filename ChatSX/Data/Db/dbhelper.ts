@@ -103,6 +103,13 @@ export function saveChatroomResponse(
           communityId,
         );
 
+        const lastConvRO = convertToConversationRO(
+          lastConversation,
+          lastConversationCreatorRO,
+          lastConversationAttachment,
+          lastConversationPolls,
+        );
+
         if (!lastConversationCreatorRO) return;
 
         const lastConversationRO = convertToLastConversationRO(
@@ -192,6 +199,7 @@ export function saveChatroomResponse(
           chatroom,
           chatroomCreatorRO,
           lastConversationRO, //its of type LastConversationRO
+          lastConvRO,
         );
 
         if (chatroomRO) {

@@ -287,6 +287,7 @@ const convertToSecretChatroomParticipants = (
 export const convertToChatroomRO = (
   chatroom: Chatroom,
   member: MemberRO,
+  lastConversation: ConversationRO,
   lastConversationRO?: LastConversationRO,
 ): ChatroomRO => {
   const chatroomRO: ChatroomRO = {
@@ -316,10 +317,9 @@ export const convertToChatroomRO = (
     isPending: chatroom.isPending || null,
     deletedBy: chatroom.deletedBy || null,
     updatedAt: chatroom.updatedAt || null,
-    // lastConversation: convertedLastConversation,  //TODO
+    lastConversation: lastConversation, //TODO
     lastConversationRO: lastConversationRO,
     lastSeenConversationId: chatroom.lastSeenConversationId || null,
-    // : chatroom.lastSeenConversation || null,  //TODO
     dateEpoch: chatroom.dateEpoch || null,
     unseenCount: chatroom.unseenCount || 0,
     relationshipNeeded: false, // Assign as needed
@@ -329,7 +329,7 @@ export const convertToChatroomRO = (
       ? convertToSecretChatroomParticipants(
           chatroom?.secretChatroomParticipants,
         )
-      : new List(), //TODO
+      : new List(),
     secretChatRoomLeft: chatroom.secretChatroomLeft || null,
     topicId: `${chatroom.topicId}` || null,
     // topic: topicRO,  //TODO
@@ -342,7 +342,7 @@ export const convertToChatroomRO = (
     unreadConversationsCount: chatroom.unreadConversationCount || null,
     accessWithoutSubscription: chatroom.accessWithoutSubscription || false,
     externalSeen: chatroom.externalSeen || null,
-    isConversationStored: false, // Assign as needed
+    isConversationStored: chatroom?.isConversationStored || false, // Assign as needed
     // isDraft: chatroom.isDraft || null,
     lastConversationId: `${chatroom.lastConversationId}` || null,
   };
