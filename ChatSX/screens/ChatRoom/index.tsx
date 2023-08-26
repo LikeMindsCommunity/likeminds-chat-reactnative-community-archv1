@@ -118,6 +118,7 @@ import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {SyncConversationRequest} from 'reactnative-chat-data';
 
 interface Data {
   id: string;
@@ -192,6 +193,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     state => state.homefeed,
   );
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+
+  const INITIAL_SYNC_PAGE = 1;
 
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.followStatus;
@@ -587,9 +590,46 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  //this function fetchConversations when we first move inside Chatroom
+  // Sync conversation API call
+  async function syncConversationAPI(page: number) {
+    const res = await myClient?.syncConversation(
+      SyncConversationRequest.builder()
+        .setChatroomId(chatroomID)
+        .setPage(page)
+        .setMinTimestamp(0)
+        .setMaxTimestamp(Math.floor(Date.now()))
+        .setPageSize(20)
+        .build(),
+    );
+    return res;
+  }
+
+  // pagination call for sync conversation
+  const paginatedSyncAPI = async (page: number) => {
+    const val = await syncConversationAPI(page);
+
+    const DB_RESPONSE = val?.data;
+
+    myClient.saveConversationData(
+      DB_RESPONSE,
+      DB_RESPONSE?.chatroomsData,
+      DB_RESPONSE?.conversationMeta,
+      community?.id,
+    );
+
+    if (DB_RESPONSE?.chatroomsData?.length === 0) {
+      return;
+    } else {
+      paginatedSyncAPI(page + 1);
+    }
+  };
+
+  // this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
     let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
+
+    paginatedSyncAPI(INITIAL_SYNC_PAGE);
+
     let response = await dispatch(
       getConversations(
         payload,
