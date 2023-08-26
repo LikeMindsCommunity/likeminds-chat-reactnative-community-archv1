@@ -27,17 +27,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {
   SyncChatroomRequest,
-  SyncConversationRequest,
 } from 'reactnative-chat-data';
-import {
-  getChatroomData,
-  getCommunityData,
-  getConversationData,
-  saveChatroomResponse,
-  saveCommunityData,
-  saveConversationData,
-} from '../../Data/Db/dbhelper';
-// import DbHelper from '../../Data/Db/dbhelper';
 
 interface Props {
   navigation: any;
@@ -63,6 +53,8 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
+
+  const INITIAL_SYNC_PAGE = 1;
 
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
   const setOptions = () => {
@@ -112,6 +104,7 @@ const HomeFeed = ({navigation}: Props) => {
     });
   };
 
+  //push API to receive firebase notifications
   const pushAPI = async (fcmToken: any, accessToken: any) => {
     const deviceID = await getUniqueId();
     try {
@@ -126,10 +119,11 @@ const HomeFeed = ({navigation}: Props) => {
     }
   };
 
-  async function syncChatroomAPI() {
+  // sync Chatrrom API
+  async function syncChatroomAPI(page: number) {
     const res = await myClient?.syncChatroom(
       SyncChatroomRequest.builder()
-        .setPage(0)
+        .setPage(page)
         .setPageSize(20)
         .setChatroomTypes([0, 7])
         .setMaxTimestamp(Math.floor(Date.now()))
@@ -139,18 +133,32 @@ const HomeFeed = ({navigation}: Props) => {
     return res;
   }
 
-  async function syncConversationAPI() {
-    const res = await myClient?.syncConversation(
-      SyncConversationRequest.builder()
-        .setChatroomId('2889247')
-        .setPage(0)
-        .setMinTimestamp(0)
-        .setMaxTimestamp(Math.floor(Date.now()))
-        .setPageSize(20)
-        .build(),
+  // pagination call for sync chatroom
+  const paginatedSyncAPI = async (page: number) => {
+    const val = await syncChatroomAPI(page);
+    const DB_RESPONSE = val?.data;
+
+    if (page === INITIAL_SYNC_PAGE) {
+      myClient.saveCommunityData(DB_RESPONSE?.communityMeta[communityId]); // Save community data;
+    }
+    myClient.saveChatroomResponse(
+      DB_RESPONSE,
+      DB_RESPONSE?.chatroomsData,
+      communityId,
     );
-    return res;
-  }
+    myClient.saveConversationData(
+      DB_RESPONSE,
+      DB_RESPONSE?.chatroomsData,
+      DB_RESPONSE?.conversationMeta,
+      communityId,
+    );
+
+    if (DB_RESPONSE?.chatroomsData?.length === 0) {
+      return;
+    } else {
+      paginatedSyncAPI(page + 1);
+    }
+  };
 
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
@@ -159,40 +167,18 @@ const HomeFeed = ({navigation}: Props) => {
 
     let payload = {
       userUniqueId: uuid,
-      // userUniqueId: '65632569-c8c9-4d20-b536-e23c86741787',
-      userName: 'Himanshu',
+      userName: '',
     };
 
     let res = await dispatch(initAPI(payload) as any);
 
     if (!!res) {
-      const val = await syncChatroomAPI();
-      const syncConversationResponse = await syncConversationAPI();
-
-      const DbRes = val?.data;
-
-      saveCommunityData(DbRes?.communityMeta['50487']); // Save community data;
-      saveChatroomResponse(DbRes, DbRes?.chatroomsData, res?.community?.id);
-      saveConversationData(
-        DbRes,
-        DbRes?.chatroomsData,
-        DbRes?.conversationMeta,
-        res?.community?.id,
-      );
-
       await dispatch(getMemberState() as any);
 
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
 
-      const resp1 = await getChatroomData();
-      console.log('getChatroomData', resp1);
-
-      const resp = await getCommunityData();
-      console.log('getCommunityData', resp);
-
-      const resp2 = await getConversationData();
-      console.log('getConversationData', resp2);
+      paginatedSyncAPI(INITIAL_SYNC_PAGE + 1);
     }
 
     return res;
