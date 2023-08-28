@@ -54,7 +54,7 @@ const DMFeed = ({navigation}: Props) => {
     useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
 
-  const db = myClient?.fbInstance();
+  const db = myClient?.firebaseInstance();
   const chatrooms = [...myDMChatrooms];
 
   async function fetchData() {
@@ -69,14 +69,17 @@ const DMFeed = ({navigation}: Props) => {
           requestFrom: 'dm_feed_v2',
         });
         let response = apiRes?.data;
+
         if (!!response) {
           let routeURL = response?.cta;
           const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+
           if (hasShowList) {
             const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+
             setShowList(showListValue);
           }
-          setShowDM(response?.show_dm);
+          setShowDM(response?.showDm);
         }
       }
     }
@@ -196,7 +199,7 @@ const DMFeed = ({navigation}: Props) => {
           }}
           estimatedItemSize={15}
           renderItem={({item}: any) => {
-            let chatroomWithUser = item?.chatroom?.chatroom_with_user;
+            let chatroomWithUser = item?.chatroom?.chatroomWithUser;
             let chatroom = item?.chatroom;
             const homeFeedProps = {
               title:
@@ -205,19 +208,25 @@ const DMFeed = ({navigation}: Props) => {
                   : chatroom?.member?.name!,
               avatar:
                 user?.id !== chatroomWithUser?.id
-                  ? chatroomWithUser?.image_url!
-                  : chatroom?.member?.image_url!,
-              lastMessage: item?.last_conversation?.answer!,
-              lastMessageUser: item?.last_conversation?.member?.name!,
-              time: item?.last_conversation_time!,
-              unreadCount: item?.unseen_conversation_count!,
+                  ? chatroomWithUser?.imageUrl!
+                  : chatroom?.member?.imageUrl!,
+              lastMessage: item?.lastConversation?.answer!,
+              lastMessageUser: item?.lastConversation?.member?.name!,
+              time: item?.lastConversationTime!,
+              unreadCount: item?.unseenConversationCount!,
               pinned: false,
-              lastConversation: item?.last_conversation!,
+              lastConversation: item?.lastConversation!,
               chatroomID: chatroom?.id!,
-              deletedBy: item?.last_conversation?.deleted_by,
-              isSecret: chatroom?.is_secret,
+              deletedBy: item?.lastConversation?.deletedBy,
+              conversationDeletor:
+                item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
+              conversationCreator:
+                item?.lastConversation?.member?.sdkClientInfo?.uuid,
+              conversationDeletorName:
+                item?.lastConversation?.deletedByMember?.name,
+              isSecret: chatroom?.isSecret,
               chatroomType: chatroom?.type,
-              muteStatus: chatroom?.mute_status,
+              muteStatus: chatroom?.muteStatus,
             };
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}

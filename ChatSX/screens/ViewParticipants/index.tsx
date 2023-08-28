@@ -128,7 +128,7 @@ const ViewParticipants = ({navigation, route}: any) => {
   };
 
   const fetchParticipants = async () => {
-    const apiRes = await myClient?.viewParticipants({
+    const apiRes = await myClient?.getParticipants({
       chatroomId: chatroomID,
       isSecret: isSecret,
       page: 1,
@@ -136,11 +136,12 @@ const ViewParticipants = ({navigation, route}: any) => {
       participantName: search,
     } as any);
     const res = apiRes?.data;
-    setTotalChatroomCount(res?.total_participants_count);
+
+    setTotalChatroomCount(res?.totalParticipantsCount);
     setParticipants(res?.participants);
 
     if (!!res && res?.participants.length === 10) {
-      const apiResponse = await myClient?.viewParticipants({
+      const apiResponse = await myClient?.getParticipants({
         chatroomId: chatroomID,
         isSecret: isSecret,
         page: 2,
@@ -148,6 +149,7 @@ const ViewParticipants = ({navigation, route}: any) => {
         participantName: search,
       } as any);
       const response = apiResponse?.data;
+
       setParticipants((participants: any) => [
         ...participants,
         ...response?.participants,
@@ -202,7 +204,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       pageSize: 10,
       participantName: search,
     };
-    let response = await myClient?.viewParticipants(payload);
+    let response = await myClient?.getParticipants(payload);
     return response?.data;
   }
 
@@ -287,8 +289,8 @@ const ViewParticipants = ({navigation, route}: any) => {
             <View key={item?.id} style={styles.participants}>
               <Image
                 source={
-                  !!item?.image_url
-                    ? {uri: item?.image_url}
+                  !!item?.imageUrl
+                    ? {uri: item?.imageUrl}
                     : require('../../assets/images/default_pic.png')
                 }
                 style={styles.avatar}
@@ -296,11 +298,11 @@ const ViewParticipants = ({navigation, route}: any) => {
               <View style={styles.infoContainer}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
-                  {!!item?.custom_title ? (
+                  {!!item?.customTitle ? (
                     <Text
                       style={
                         styles.messageCustomTitle
-                      }>{` • ${item?.custom_title}`}</Text>
+                      }>{` • ${item?.customTitle}`}</Text>
                   ) : null}
                 </Text>
               </View>

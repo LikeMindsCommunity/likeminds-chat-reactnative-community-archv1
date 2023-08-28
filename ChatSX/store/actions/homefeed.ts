@@ -37,7 +37,7 @@ import {Dispatch} from '@reduxjs/toolkit';
 
 export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
   try {
-    return await dispatch({
+    const temp = await dispatch({
       type: INIT_API_SUCCESS,
       [CALL_API]: {
         func: myClient?.initiateUser(payload),
@@ -46,6 +46,7 @@ export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
         showLoader: true,
       },
     });
+    return temp;
   } catch (error) {
     Alert.alert(`${error}`);
   }

@@ -47,7 +47,7 @@ const GroupFeed = ({navigation}: Props) => {
     community,
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
-  const db = myClient?.fbInstance();
+  const db = myClient?.firebaseInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
 
   async function fetchData() {
@@ -55,15 +55,15 @@ const GroupFeed = ({navigation}: Props) => {
       getInvites({channelType: 1, page: 1, pageSize: 10}, true) as any,
     );
 
-    if (!!invitesRes?.user_invites) {
-      if (invitesRes?.user_invites?.length < 10) {
+    if (!!invitesRes?.userInvites) {
+      if (invitesRes?.userInvites?.length < 10) {
         let payload = {
           page: 1,
         };
-        await dispatch(getHomeFeedData(payload) as any);
+        const temp = await dispatch(getHomeFeedData(payload) as any);
       } else {
         await dispatch(
-          updateInvites({channel_type: 1, page: 2, page_size: 10}, true) as any,
+          updateInvites({channelType: 1, page: 2, pageSize: 10}, true) as any,
         );
         setInvitePage(invitePage => {
           return invitePage + 1;
@@ -113,7 +113,7 @@ const GroupFeed = ({navigation}: Props) => {
         setIsLoading(true);
         await dispatch(
           updateInvites(
-            {channel_type: 1, page: invitePage + 1, page_size: 10},
+            {channelType: 1, page: invitePage + 1, pageSize: 10},
             true,
           ) as any,
         );
@@ -165,20 +165,26 @@ const GroupFeed = ({navigation}: Props) => {
         renderItem={({item}: any) => {
           const homeFeedProps = {
             title: item?.chatroom?.header!,
-            avatar: item?.chatroom?.chatroom_image_url!,
-            lastMessage: item?.last_conversation?.answer!,
-            lastMessageUser: item?.last_conversation?.member?.name!,
-            time: item?.last_conversation_time!,
-            unreadCount: item?.unseen_conversation_count!,
+            avatar: item?.chatroom?.chatroomImageUrl!,
+            lastMessage: item?.lastConversation?.answer!,
+            lastMessageUser: item?.lastConversation?.member?.name!,
+            time: item?.lastConversationTime!,
+            unreadCount: item?.unseenConversationCount!,
             pinned: false,
-            lastConversation: item?.last_conversation!,
-            lastConversationMember: item?.last_conversation?.member?.name!,
+            lastConversation: item?.lastConversation!,
+            lastConversationMember: item?.lastConversation?.member?.name!,
             chatroomID: item?.chatroom?.id!,
-            isSecret: item?.chatroom?.is_secret,
-            deletedBy: item?.last_conversation?.deleted_by,
-            inviteReceiver: item?.invite_receiver,
+            isSecret: item?.chatroom?.isSecret,
+            deletedBy: item?.lastConversation?.deletedBy,
+            conversationDeletor:
+              item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
+            conversationCreator:
+              item?.lastConversation?.member?.sdkClientInfo?.uuid,
+            conversationDeletorName:
+              item?.lastConversation?.deletedByMember?.name,
+            inviteReceiver: item?.inviteReceiver,
             chatroomType: item?.chatroom?.type,
-            muteStatus: item?.chatroom?.mute_status,
+            muteStatus: item?.chatroom?.muteStatus,
           };
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}

@@ -94,7 +94,7 @@ const ImageScreen = ({navigation, route}: ImageScreen) => {
                       width: '100%',
                       resizeMode: 'contain',
                     }}
-                    source={{uri: val?.thumbnail_url}}
+                    source={{uri: val?.thumbnailUrl}}
                   />
                   {val?.type === VIDEO_TEXT ? (
                     <View style={{position: 'absolute', bottom: 20, left: 20}}>

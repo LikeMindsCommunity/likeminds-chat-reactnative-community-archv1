@@ -121,9 +121,11 @@ const FileUpload = ({navigation, route}: any) => {
 
     for (let i = 0; i < selectedImages?.length; i++) {
       let item = selectedImages[i];
+
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
-      let thumbnailURL = item?.thumbnail_url;
+
+      let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
           ? item.fileName
@@ -135,14 +137,21 @@ const FileUpload = ({navigation, route}: any) => {
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
 
-      //image compression
-      const compressedImgURI = await CompressedImage.compress(item.uri, {
-        compressionMethod: 'auto',
-      });
-      const compressedImg = await fetchResourceFromURI(compressedImgURI);
+      let uriFinal: any;
+
+      if (attachmentType === IMAGE_TEXT) {
+        const compressedImgURI = await CompressedImage.compress(item.uri, {
+          compressionMethod: 'auto',
+        });
+        const compressedImg = await fetchResourceFromURI(compressedImgURI);
+        uriFinal = compressedImg;
+      } else {
+        const img = await fetchResourceFromURI(item.uri);
+        uriFinal = img;
+      }
 
       //for video thumbnail
-      let thumbnailUrlImg = null;
+      let thumbnailUrlImg: any;
       if (thumbnailURL && attachmentType === VIDEO_TEXT) {
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
       }
@@ -150,7 +159,7 @@ const FileUpload = ({navigation, route}: any) => {
       const params = {
         Bucket: BUCKET,
         Key: path,
-        Body: compressedImg,
+        Body: uriFinal,
         ACL: 'public-read-write',
         ContentType: item?.type, // Replace with the appropriate content type for your file
       };
@@ -172,6 +181,7 @@ const FileUpload = ({navigation, route}: any) => {
         }
         const data = await s3.upload(params).promise();
         let awsResponse = data.Location;
+
         if (awsResponse) {
           let fileType = '';
           if (docAttachmentType === PDF_TEXT) {
@@ -250,6 +260,7 @@ const FileUpload = ({navigation, route}: any) => {
       uploadingFilesMessages,
       isRetry: isRetry,
     });
+
     return res;
   };
 
@@ -300,7 +311,7 @@ const FileUpload = ({navigation, route}: any) => {
           </View>
         ) : docItemType === PDF_TEXT ? (
           <Image
-            source={{uri: selectedFileToView?.thumbnail_url}}
+            source={{uri: selectedFileToView?.thumbnailUrl}}
             style={styles.mainImage}
           />
         ) : null}

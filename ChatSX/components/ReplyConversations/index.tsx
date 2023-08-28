@@ -52,7 +52,7 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
         </Text>
       </View>
       <View style={styles.alignRow}>
-        {!!item?.has_files ? (
+        {!!item?.hasFiles ? (
           item?.attachments[0]?.type === IMAGE_TEXT ? (
             <Image
               source={require('../../assets/images/image_icon3x.png')}
@@ -86,7 +86,7 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
             false,
           )}
         </Text>
-        {!!item?.has_files && item?.attachments.length > 1 ? (
+        {!!item?.hasFiles && item?.attachments.length > 1 ? (
           <View>
             <Text style={styles.messageText}>{` (+${
               item?.attachments.length - 1
@@ -152,7 +152,7 @@ const ReplyConversations = ({
       }
     } else {
       let index = conversations.findIndex(
-        (element: any) => element?.id === item?.reply_conversation_object?.id,
+        (element: any) => element?.id === item?.replyConversationObject?.id,
       );
       if (index >= 0) {
         onScrollToIndex(index);
@@ -177,11 +177,11 @@ const ReplyConversations = ({
         {!!(item?.member?.id === user?.id) ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
-            {!!item?.member?.custom_title ? (
+            {!!item?.member?.customTitle ? (
               <Text
                 style={
                   styles.messageCustomTitle
-                }>{` • ${item?.member?.custom_title}`}</Text>
+                }>{` • ${item?.member?.customTitle}`}</Text>
             ) : null}
           </Text>
         )}
@@ -191,10 +191,10 @@ const ReplyConversations = ({
           onPress={handleOnPress}>
           <ReplyBox
             isIncluded={isIncluded}
-            item={item?.reply_conversation_object}
+            item={item?.replyConversationObject}
           />
         </TouchableOpacity>
-        {item?.attachment_count > 0 ? (
+        {item?.attachmentCount > 0 ? (
           <AttachmentConversations
             isReplyConversation={true}
             navigation={navigation}
@@ -216,10 +216,10 @@ const ReplyConversations = ({
               {decode(item?.answer, true)}
             </View>
             <View style={styles.alignTime}>
-              {item?.is_edited ? (
+              {item?.isEdited ? (
                 <Text style={styles.messageDate}>{`Edited • `}</Text>
               ) : null}
-              <Text style={styles.messageDate}>{item?.created_at}</Text>
+              <Text style={styles.messageDate}>{item?.createdAt}</Text>
             </View>
           </View>
         )}

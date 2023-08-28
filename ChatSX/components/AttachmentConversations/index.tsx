@@ -79,11 +79,11 @@ const AttachmentConversations = ({
         {!!(item?.member?.id === user?.id) || isReply ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
-            {!!item?.member?.custom_title ? (
+            {!!item?.member?.customTitle ? (
               <Text
                 style={
                   styles.messageCustomTitle
-                }>{` • ${item?.member?.custom_title}`}</Text>
+                }>{` • ${item?.member?.customTitle}`}</Text>
             ) : null}
           </Text>
         )}
@@ -125,10 +125,10 @@ const AttachmentConversations = ({
           {decode(item?.answer, true)}
         </View>
         <View style={styles.alignTime}>
-          {item?.is_edited ? (
+          {item?.isEdited ? (
             <Text style={styles.messageDate}>{`Edited • `}</Text>
           ) : null}
-          <Text style={styles.messageDate}>{item?.created_at}</Text>
+          <Text style={styles.messageDate}>{item?.createdAt}</Text>
         </View>
       </View>
 
@@ -240,7 +240,7 @@ export const VideoConversations = ({
   };
   return (
     <View>
-      {item?.attachment_count > 1 ? (
+      {item?.attachmentCount > 1 ? (
         <View style={{gap: 2}}>
           {!isFullList ? (
             <View>
@@ -313,7 +313,7 @@ export const VideoConversations = ({
           </Text>
         </TouchableOpacity>
       )}
-      {item.attachment_count > 2 && !isFullList && (
+      {item.attachmentCount > 2 && !isFullList && (
         <TouchableOpacity
           onLongPress={handleLongPress}
           delayLongPress={200}
@@ -355,7 +355,7 @@ export const VideoConversations = ({
             }
           }}>
           <Text style={styles.fullListCount}>{`+${
-            item.attachment_count - 2
+            item.attachmentCount - 2
           } more`}</Text>
         </TouchableOpacity>
       )}
@@ -451,7 +451,7 @@ export const PDFConversations = ({
   };
   return (
     <View>
-      {item?.attachment_count > 1 ? (
+      {item?.attachmentCount > 1 ? (
         <View style={{gap: 2}}>
           {!isFullList ? (
             <View>
@@ -524,7 +524,7 @@ export const PDFConversations = ({
           </Text>
         </TouchableOpacity>
       )}
-      {item.attachment_count > 2 && !isFullList && (
+      {item.attachmentCount > 2 && !isFullList && (
         <TouchableOpacity
           onLongPress={handleLongPress}
           delayLongPress={200}
@@ -566,7 +566,7 @@ export const PDFConversations = ({
             }
           }}>
           <Text style={styles.fullListCount}>{`+${
-            item.attachment_count - 2
+            item.attachmentCount - 2
           } more`}</Text>
         </TouchableOpacity>
       )}
@@ -681,7 +681,7 @@ export const ImageConversations = ({
 
   return (
     <View>
-      {item?.attachment_count === 1 ? (
+      {item?.attachmentCount === 1 ? (
         <TouchableOpacity
           onLongPress={handleLongPress}
           delayLongPress={200}
@@ -693,7 +693,7 @@ export const ImageConversations = ({
             source={{
               uri:
                 attachment0?.type === VIDEO_TEXT
-                  ? attachment0?.thumbnail_url
+                  ? attachment0?.thumbnailUrl
                   : attachment0?.url,
             }}
           />
@@ -706,7 +706,7 @@ export const ImageConversations = ({
             </View>
           ) : null}
         </TouchableOpacity>
-      ) : item?.attachment_count === 2 ? (
+      ) : item?.attachmentCount === 2 ? (
         <View style={styles.doubleImgParent}>
           <TouchableOpacity
             style={styles.touchableImg}
@@ -719,7 +719,7 @@ export const ImageConversations = ({
               source={{
                 uri:
                   attachment0?.type === VIDEO_TEXT
-                    ? attachment0?.thumbnail_url
+                    ? attachment0?.thumbnailUrl
                     : attachment0?.url,
               }}
               style={styles.doubleImg}
@@ -744,7 +744,7 @@ export const ImageConversations = ({
               source={{
                 uri:
                   attachment1?.type === VIDEO_TEXT
-                    ? attachment1?.thumbnail_url
+                    ? attachment1?.thumbnailUrl
                     : attachment1?.url,
               }}
               style={styles.doubleImg}
@@ -759,7 +759,7 @@ export const ImageConversations = ({
             ) : null}
           </TouchableOpacity>
         </View>
-      ) : item?.attachment_count === 3 ? (
+      ) : item?.attachmentCount === 3 ? (
         <TouchableOpacity
           onLongPress={handleLongPress}
           delayLongPress={200}
@@ -813,7 +813,7 @@ export const ImageConversations = ({
               source={{
                 uri:
                   attachment0?.type === VIDEO_TEXT
-                    ? attachment0?.thumbnail_url
+                    ? attachment0?.thumbnailUrl
                     : attachment0?.url,
               }}
               style={styles.multipleImg}
@@ -833,7 +833,7 @@ export const ImageConversations = ({
               source={{
                 uri:
                   attachment1?.type === VIDEO_TEXT
-                    ? attachment1?.thumbnail_url
+                    ? attachment1?.thumbnailUrl
                     : attachment1?.url,
               }}
             />
@@ -850,7 +850,7 @@ export const ImageConversations = ({
             <Text style={styles.tripleImgText}>+2</Text>
           </View>
         </TouchableOpacity>
-      ) : item?.attachment_count === 4 ? (
+      ) : item?.attachmentCount === 4 ? (
         <View style={{gap: 5}}>
           <View style={styles.doubleImgParent}>
             <TouchableOpacity
@@ -864,7 +864,7 @@ export const ImageConversations = ({
                 source={{
                   uri:
                     attachment0?.type === VIDEO_TEXT
-                      ? attachment0?.thumbnail_url
+                      ? attachment0?.thumbnailUrl
                       : attachment0?.url,
                 }}
                 style={styles.doubleImg}
@@ -889,7 +889,7 @@ export const ImageConversations = ({
                 source={{
                   uri:
                     attachment1?.type === VIDEO_TEXT
-                      ? attachment1?.thumbnail_url
+                      ? attachment1?.thumbnailUrl
                       : attachment1?.url,
                 }}
                 style={styles.doubleImg}
@@ -916,7 +916,7 @@ export const ImageConversations = ({
                 source={{
                   uri:
                     attachment2?.type === VIDEO_TEXT
-                      ? attachment2?.thumbnail_url
+                      ? attachment2?.thumbnailUrl
                       : attachment2?.url,
                 }}
                 style={styles.doubleImg}
@@ -941,7 +941,7 @@ export const ImageConversations = ({
                 source={{
                   uri:
                     attachment3?.type === VIDEO_TEXT
-                      ? attachment3?.thumbnail_url
+                      ? attachment3?.thumbnailUrl
                       : attachment3?.url,
                 }}
                 style={styles.doubleImg}
@@ -957,7 +957,7 @@ export const ImageConversations = ({
             </TouchableOpacity>
           </View>
         </View>
-      ) : item?.attachment_count > 4 ? (
+      ) : item?.attachmentCount > 4 ? (
         <TouchableOpacity
           style={{gap: 5}}
           onLongPress={handleLongPress}
@@ -1012,7 +1012,7 @@ export const ImageConversations = ({
                 source={{
                   uri:
                     attachment0?.type === VIDEO_TEXT
-                      ? attachment0?.thumbnail_url
+                      ? attachment0?.thumbnailUrl
                       : attachment0?.url,
                 }}
                 style={styles.multipleImg}
@@ -1032,7 +1032,7 @@ export const ImageConversations = ({
                 source={{
                   uri:
                     attachment1?.type === VIDEO_TEXT
-                      ? attachment1?.thumbnail_url
+                      ? attachment1?.thumbnailUrl
                       : attachment1?.url,
                 }}
               />
@@ -1052,7 +1052,7 @@ export const ImageConversations = ({
                 source={{
                   uri:
                     attachment2?.type === VIDEO_TEXT
-                      ? attachment2?.thumbnail_url
+                      ? attachment2?.thumbnailUrl
                       : attachment2?.url,
                 }}
                 style={styles.multipleImg}
@@ -1072,7 +1072,7 @@ export const ImageConversations = ({
                 source={{
                   uri:
                     attachment3?.type === VIDEO_TEXT
-                      ? attachment3?.thumbnail_url
+                      ? attachment3?.thumbnailUrl
                       : attachment3?.url,
                 }}
               />
@@ -1087,13 +1087,13 @@ export const ImageConversations = ({
             </View>
             <View style={styles.tripleImgOverlay}>
               <Text style={styles.tripleImgText}>{`+${
-                item?.attachment_count - 3
+                item?.attachmentCount - 3
               }`}</Text>
             </View>
           </View>
         </TouchableOpacity>
       ) : null}
-      {isIncluded && item?.attachment_count <= 3 ? (
+      {isIncluded && item?.attachmentCount <= 3 ? (
         <View
           style={{
             position: 'absolute',
@@ -1103,7 +1103,7 @@ export const ImageConversations = ({
             opacity: 0.5,
           }}
         />
-      ) : isIncluded && item?.attachment_count > 3 ? (
+      ) : isIncluded && item?.attachmentCount > 3 ? (
         <View
           style={{
             position: 'absolute',

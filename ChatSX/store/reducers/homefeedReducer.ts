@@ -50,10 +50,10 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case GET_INVITES_SUCCESS: {
-      const {user_invites = []} = action.body;
+      const {userInvites = []} = action.body;
       return {
         ...state,
-        invitedChatrooms: user_invites,
+        invitedChatrooms: userInvites,
       };
     }
     case ACCEPT_INVITE_SUCCESS: {
@@ -77,38 +77,38 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case UPDATE_INVITES_SUCCESS: {
-      const {user_invites = []} = action.body;
+      const {userInvites = []} = action.body;
       return {
         ...state,
-        invitedChatrooms: [...state.invitedChatrooms, ...user_invites],
+        invitedChatrooms: [...state.invitedChatrooms, ...userInvites],
       };
     }
     case GET_HOMEFEED_CHAT_SUCCESS: {
-      const {my_chatrooms, unseen_chatroom_count, total_chatroom_count} =
+      const {myChatrooms, unseenChatroomCount, totalChatroomCount} =
         action.body;
       return {
         ...state,
-        myChatrooms: my_chatrooms,
-        totalCount: total_chatroom_count,
-        unseenCount: unseen_chatroom_count,
+        myChatrooms: myChatrooms,
+        totalCount: totalChatroomCount,
+        unseenCount: unseenChatroomCount,
       };
     }
     case UPDATE_HOMEFEED_CHAT_SUCCESS: {
-      const {my_chatrooms = []} = action.body;
-      return {...state, myChatrooms: [...state.myChatrooms, ...my_chatrooms]};
+      const {myChatrooms = []} = action.body;
+      return {...state, myChatrooms: [...state.myChatrooms, ...myChatrooms]};
     }
     case GET_DMFEED_CHAT_SUCCESS: {
-      const {dm_chatrooms} = action.body;
+      const {dmChatrooms} = action.body;
       return {
         ...state,
-        myDMChatrooms: dm_chatrooms,
+        myDMChatrooms: dmChatrooms,
       };
     }
     case UPDATE_DMFEED_CHAT_SUCCESS: {
-      const {dm_chatrooms = []} = action.body;
+      const {dmChatrooms = []} = action.body;
       return {
         ...state,
-        myDMChatrooms: [...state.myDMChatrooms, ...dm_chatrooms],
+        myDMChatrooms: [...state.myDMChatrooms, ...dmChatrooms],
       };
     }
     case UPDATE_LAST_CONVERSATION: {
@@ -125,8 +125,8 @@ export function homefeedReducer(state = initialState, action: any) {
         let chatroomObject = arr[index];
         arr[index] = {
           ...chatroomObject,
-          last_conversation: {
-            ...chatroomObject?.last_conversation,
+          lastConversation: {
+            ...chatroomObject?.lastConversation,
             answer: lastConversationAnswer,
           },
         };
@@ -142,8 +142,8 @@ export function homefeedReducer(state = initialState, action: any) {
       return {...state, community: community};
     }
     case PROFILE_DATA_SUCCESS: {
-      const {member = {}, member_rights = []} = action.body;
-      return {...state, user: member, memberRights: member_rights};
+      const {member = {}, memberRights = []} = action.body;
+      return {...state, user: member, memberRights: memberRights};
     }
     case SHOW_TOAST: {
       const {isToast, msg} = action.body;

@@ -48,9 +48,9 @@ export interface CreatePollCallbacks {
 
 export interface Poll {
   id: string;
-  is_selected: boolean;
+  isSelected: boolean;
   percentage: number;
-  no_votes: number;
+  noVotes: number;
 }
 
 export interface PollConversationViewProps {

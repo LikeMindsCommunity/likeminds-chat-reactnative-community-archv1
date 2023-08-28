@@ -86,7 +86,7 @@ const ReportScreen = ({navigation, route}: Props) => {
 
   const reportMessage = async () => {
     try {
-      const call = await myClient?.pushReport({
+      const call = await myClient?.postReport({
         conversationId: Number(conversationID),
         tagId: Number(selectedId),
         reason: otherReason != '' ? otherReason : '',

@@ -41,6 +41,7 @@ import {
   UPDATE_CONVERSATIONS,
   UPDATE_LAST_CONVERSATION,
   EMPTY_BLOCK_DELETION,
+  UPDATE_MULTIMEDIA_CONVERSATIONS,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -85,6 +86,7 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
+import {getConversations} from '../../store/actions/chatroom';
 
 interface InputBox {
   replyChatID?: any;
@@ -314,7 +316,7 @@ const InputBox = ({
           for (let i = 0; i < selectedDocs?.length; i++) {
             selectedDocs[i] = {
               ...selectedDocs[i],
-              thumbnail_url: allThumbnailsArr[i]?.uri,
+              thumbnailUrl: allThumbnailsArr[i]?.uri,
             };
           }
 
@@ -334,7 +336,7 @@ const InputBox = ({
           //redux action to save thumbnail of selected file
           dispatch({
             type: SELECTED_FILE_TO_VIEW,
-            body: {image: {...selectedDocs[0], thumbnail_url: res[0]?.uri}},
+            body: {image: {...selectedDocs[0], thumbnailUrl: res[0]?.uri}},
           });
 
           //redux action to change status bar color
@@ -345,7 +347,7 @@ const InputBox = ({
         } else if (isUploadScreen === true) {
           let arr: any = await getAllPdfThumbnail(selectedDocs);
           for (let i = 0; i < selectedDocs?.length; i++) {
-            selectedDocs[i] = {...selectedDocs[i], thumbnail_url: arr[i]?.uri};
+            selectedDocs[i] = {...selectedDocs[i], thumbnailUrl: arr[i]?.uri};
           }
 
           //redux action to select more files to upload
@@ -454,20 +456,20 @@ const InputBox = ({
         let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
         if (attachmentType === IMAGE_TEXT) {
           let obj = {
-            image_url: selectedFilesToUpload[i].uri,
+            imageUrl: selectedFilesToUpload[i].uri,
             index: i,
           };
           dummySelectedFileArr = [...dummySelectedFileArr, obj];
         } else if (attachmentType === VIDEO_TEXT) {
           let obj = {
-            video_url: selectedFilesToUpload[i].uri,
+            videoUrl: selectedFilesToUpload[i].uri,
             index: i,
-            thumbnail_url: selectedFilesToUpload[i].thumbanil,
+            thumbnailUrl: selectedFilesToUpload[i].thumbanil,
           };
           dummySelectedFileArr = [...dummySelectedFileArr, obj];
         } else if (docAttachmentType === PDF_TEXT) {
           let obj = {
-            pdf_file: selectedFilesToUpload[i].uri,
+            pdfFile: selectedFilesToUpload[i].uri,
             index: i,
           };
           dummySelectedFileArr = [...dummySelectedFileArr, obj];
@@ -493,7 +495,7 @@ const InputBox = ({
             ...selectedFilesToUpload[i],
             type: attachmentType,
             url: URI,
-            thumbnail_url: selectedFilesToUpload[i].thumbnail_url,
+            thumbnailUrl: selectedFilesToUpload[i].thumbnailUrl,
             index: i,
             name: selectedFilesToUpload[i].fileName,
           };
@@ -525,12 +527,12 @@ const InputBox = ({
     if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
       if (isReply) {
-        replyObj.reply_conversation = replyMessage?.id;
-        replyObj.reply_conversation_object = replyMessage;
+        replyObj.replyConversation = replyMessage?.id;
+        replyObj.replyConversationObject = replyMessage;
         replyObj.member.name = user?.name;
         replyObj.member.id = user?.id;
         replyObj.answer = conversationText.trim();
-        replyObj.created_at = `${hr.toLocaleString('en-US', {
+        replyObj.createdAt = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
           useGrouping: false,
         })}:${min.toLocaleString('en-US', {
@@ -538,21 +540,21 @@ const InputBox = ({
           useGrouping: false,
         })}`;
         replyObj.id = ID;
-        replyObj.chatroom_id = chatroomDetails?.chatroom?.id;
-        replyObj.community_id = community?.id;
+        replyObj.chatroomId = chatroomDetails?.chatroom?.id;
+        replyObj.communityId = community?.id;
         replyObj.date = `${
           time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
         } ${months[time.getMonth()]} ${time.getFullYear()}`;
         replyObj.id = ID;
-        replyObj.chatroom_id = chatroomDetails?.chatroom?.id;
-        replyObj.community_id = community?.id;
+        replyObj.chatroomId = chatroomDetails?.chatroom?.id;
+        replyObj.communityId = community?.id;
         replyObj.date = `${
           time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
         } ${months[time.getMonth()]} ${time.getFullYear()}`;
-        replyObj.attachment_count = attachmentsCount;
+        replyObj.attachmentCount = attachmentsCount;
         replyObj.attachments = dummyAttachmentsArr;
-        replyObj.has_files = attachmentsCount > 0 ? true : false;
-        replyObj.attachments_uploaded = attachmentsCount > 0 ? true : false;
+        replyObj.hasFiles = attachmentsCount > 0 ? true : false;
+        replyObj.attachmentsUploaded = attachmentsCount > 0 ? true : false;
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
@@ -561,7 +563,7 @@ const InputBox = ({
       obj.member.name = user?.name;
       obj.member.id = user?.id;
       obj.answer = conversationText.trim();
-      obj.created_at = `${hr.toLocaleString('en-US', {
+      obj.createdAt = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,
         useGrouping: false,
       })}:${min.toLocaleString('en-US', {
@@ -569,15 +571,15 @@ const InputBox = ({
         useGrouping: false,
       })}`;
       obj.id = ID;
-      obj.chatroom_id = chatroomDetails?.chatroom?.id;
-      obj.community_id = community?.id;
+      obj.chatroomId = chatroomDetails?.chatroom?.id;
+      obj.communityId = community?.id;
       obj.date = `${
         time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
       } ${months[time.getMonth()]} ${time.getFullYear()}`;
-      obj.attachment_count = attachmentsCount;
+      obj.attachmentCount = attachmentsCount;
       obj.attachments = dummyAttachmentsArr;
-      obj.has_files = attachmentsCount > 0 ? true : false;
-      obj.attachments_uploaded = attachmentsCount > 0 ? true : false;
+      obj.hasFiles = attachmentsCount > 0 ? true : false;
+      obj.attachmentsUploaded = attachmentsCount > 0 ? true : false;
       obj.images = dummySelectedFileArr;
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
@@ -707,20 +709,27 @@ const InputBox = ({
                   ? {
                       ...replyObj,
                       id: response?.id,
-                      temporary_id: ID,
+                      temporaryId: ID,
                       isInProgress: SUCCESS,
                     }
                   : {
                       ...obj,
                       id: response?.id,
-                      temporary_id: ID,
+                      temporaryId: ID,
                       isInProgress: SUCCESS,
                     },
                 ID: response?.id,
               },
             });
-
             await handleFileUpload(response?.id, false);
+            const getConversationPayload = {
+              chatroomID: chatroomID,
+              paginateBy: conversations.length * 2,
+              topNavigate: false,
+            };
+            await dispatch(
+              getConversations(getConversationPayload, false) as any,
+            );
           }
           dispatch({
             type: STATUS_BAR_STYLE,
@@ -753,11 +762,8 @@ const InputBox = ({
     });
     if (!!res) {
       isSecret
-        ? setUserTaggingList([
-            ...userTaggingList,
-            ...res?.chatroom_participants,
-          ])
-        : setUserTaggingList([...userTaggingList, ...res?.community_members]);
+        ? setUserTaggingList([...userTaggingList, ...res?.chatroomParticipants])
+        : setUserTaggingList([...userTaggingList, ...res?.communityMembers]);
       setIsLoading(false);
     }
   };
@@ -824,10 +830,10 @@ const InputBox = ({
             isSecret: isSecret,
           });
           if (len > 0) {
-            let groupTagsLength = res?.group_tags?.length;
+            let groupTagsLength = res?.groupTags?.length;
             let communityMembersLength = isSecret
-              ? res?.chatroom_participants.length
-              : res?.community_members.length;
+              ? res?.chatroomParticipants.length
+              : res?.communityMembers.length;
             let arrLength = communityMembersLength + groupTagsLength;
             if (arrLength >= 5) {
               setUserTaggingListHeight(5 * 58);
@@ -836,9 +842,9 @@ const InputBox = ({
               setUserTaggingListHeight(height);
             }
             isSecret
-              ? setUserTaggingList(res?.chatroom_participants)
-              : setUserTaggingList(res?.community_members);
-            setGroupTags(res?.group_tags);
+              ? setUserTaggingList(res?.chatroomParticipants)
+              : setUserTaggingList(res?.communityMembers);
+            setGroupTags(res?.groupTags);
             setIsUserTagging(true);
           }
         }, 500);
@@ -874,7 +880,7 @@ const InputBox = ({
     changedConversation = {
       ...selectedConversation,
       answer: editedConversation,
-      is_edited: true,
+      isEdited: true,
     };
 
     dispatch({
@@ -964,11 +970,11 @@ const InputBox = ({
                 data={[...groupTags, ...userTaggingList]}
                 renderItem={({item, index}: any) => {
                   let description = item?.description;
-                  let imageUrl = item?.image_url;
+                  let imageUrl = item?.imageUrl;
                   return (
                     <Pressable
                       onPress={() => {
-                        let uuid = item?.sdk_client_info?.uuid;
+                        let uuid = item?.sdkClientInfo?.uuid;
                         const res = replaceLastMention(
                           message,
                           taggedUserName,
@@ -1289,7 +1295,9 @@ const InputBox = ({
                       setModalVisible(false);
                       navigation.navigate(CREATE_POLL_SCREEN, {
                         chatroomID: chatroomID,
+                        conversationsLength: conversations.length * 2,
                       });
+
                       // setPollModalVisible(true);
                     }}
                     style={styles.pollStyle}>

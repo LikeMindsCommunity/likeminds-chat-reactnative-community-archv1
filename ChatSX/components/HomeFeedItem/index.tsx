@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import {
   VIDEO_TEXT,
 } from '../../constants/Strings';
 import Layout from '../../constants/Layout';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Props {
   avatar: string;
@@ -44,7 +45,10 @@ interface Props {
   chatroomID: number;
   lastConversationMember?: string;
   isSecret: boolean;
-  deletedBy?: number;
+  deletedBy: number;
+  conversationDeletor: string;
+  conversationCreator: string;
+  conversationDeletorName: string;
   inviteReceiver?: any;
   chatroomType: number;
   muteStatus: boolean;
@@ -63,11 +67,23 @@ const HomeFeedItem: React.FC<Props> = ({
   lastConversationMember,
   isSecret,
   deletedBy,
+  conversationDeletor,
+  conversationCreator,
+  conversationDeletorName,
   inviteReceiver,
   chatroomType,
   muteStatus,
 }) => {
   const dispatch = useAppDispatch();
+  const [uuid, setUuid] = useState<any>();
+
+  useEffect(() => {
+    async function getUuid() {
+      const uuid = await AsyncStorage.getItem('uuid');
+      setUuid(uuid);
+    }
+    getUuid();
+  }, []);
 
   const showJoinAlert = () =>
     Alert.alert(
@@ -279,10 +295,7 @@ const HomeFeedItem: React.FC<Props> = ({
       );
     } else if (val?.state === 10) {
       return (
-        <View
-          style={[
-            styles.alignCenter,
-          ]}>
+        <View style={[styles.alignCenter]}>
           <Image
             source={require('../../assets/images/poll_icon3x.png')}
             style={[styles.icon, {tintColor: STYLES.$COLORS.PRIMARY}]}
@@ -350,10 +363,29 @@ const HomeFeedItem: React.FC<Props> = ({
               },
             ]}>
             {!!deletedBy ? (
-              <Text
-                style={
-                  styles.deletedMessage
-                }>{`This message has been deleted`}</Text>
+              chatroomType !== 10 ? (
+                uuid === conversationDeletor ? (
+                  <Text style={styles.deletedMessage}>
+                    This message has been deleted by you
+                  </Text>
+                ) : conversationCreator === conversationDeletor ? (
+                  <Text style={styles.deletedMessage}>
+                    This message has been deleted by {conversationDeletorName}
+                  </Text>
+                ) : (
+                  <Text style={styles.deletedMessage}>
+                    This message has been deleted by Community Manager
+                  </Text>
+                )
+              ) : uuid === conversationDeletor ? (
+                <Text style={styles.deletedMessage}>
+                  This message has been deleted by you
+                </Text>
+              ) : (
+                <Text style={styles.deletedMessage}>
+                  This message has been deleted by {conversationDeletorName}
+                </Text>
+              )
             ) : (
               <Text
                 style={[
@@ -371,7 +403,7 @@ const HomeFeedItem: React.FC<Props> = ({
                 ) : null}
 
                 <Text numberOfLines={1} style={[styles.parentLastMessage]}>
-                  {!!lastConversation?.has_files
+                  {!!lastConversation?.hasFiles
                     ? getFeedIconAttachment(lastConversation)
                     : lastConversation?.state === 10
                     ? getFeedIconAttachment(lastConversation)

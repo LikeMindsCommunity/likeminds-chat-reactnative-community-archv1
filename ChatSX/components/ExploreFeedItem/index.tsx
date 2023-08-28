@@ -19,7 +19,7 @@ interface Props {
   isJoined: boolean;
   participants: number;
   messageCount: number;
-  external_seen: number;
+  externalSeen: number;
   isSecret: boolean;
   chatroomID: number;
   filterState: any;
@@ -35,7 +35,7 @@ const ExploreFeedItem: React.FC<Props> = ({
   isJoined = false,
   participants,
   messageCount,
-  external_seen,
+  externalSeen,
   isSecret,
   chatroomID,
   filterState,
@@ -50,7 +50,7 @@ const ExploreFeedItem: React.FC<Props> = ({
   const leaveChatroom = async (val: boolean) => {
     const payload = {
       collabcardId: chatroomID,
-      memberId: user?.id,
+      uuid: user?.sdkClientInfo?.uuid,
       value: val,
     };
     const res = await myClient
@@ -109,7 +109,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           </View>
         )}
 
-        {!external_seen && !pinned && (
+        {!externalSeen && !pinned && (
           <View style={styles.newBadge}>
             <Text style={styles.newBadgeText}>New</Text>
           </View>

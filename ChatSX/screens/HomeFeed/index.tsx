@@ -51,7 +51,7 @@ const HomeFeed = ({navigation}: Props) => {
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
 
-  const db = myClient?.fbInstance();
+  const db = myClient?.firebaseInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
   const setOptions = () => {
     navigation.setOptions({
@@ -75,14 +75,14 @@ const HomeFeed = ({navigation}: Props) => {
             width: 35,
             height: 35,
             borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
-            backgroundColor: !!user?.image_url ? 'white' : 'purple',
+            backgroundColor: !!user?.imageUrl ? 'white' : 'purple',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 5,
             paddingTop: Platform.OS === 'ios' ? 5 : 3,
           }}>
-          {!!user?.image_url ? (
-            <Image source={{uri: user?.image_url}} style={styles.avatar} />
+          {!!user?.imageUrl ? (
+            <Image source={{uri: user?.imageUrl}} style={styles.avatar} />
           ) : (
             <Text
               style={{
@@ -115,19 +115,23 @@ const HomeFeed = ({navigation}: Props) => {
   };
 
   async function fetchData() {
-    //this line of code is for the sample app only, pass your userUniqueID instead of this.
-    const UUID = await AsyncStorage.getItem('userUniqueID');
+    //this line of code is for the sample app only, pass your uuid instead of this.
+
+    const uuid = await AsyncStorage.getItem('uuid');
 
     let payload = {
-      userUniqueId: UUID, // user unique ID
-      userName: '', // user name
+      uuid: uuid, // uuid
+      userName: 'ranjanDas', // user name
       isGuest: false,
     };
+
     let res = await dispatch(initAPI(payload) as any);
+
     if (!!res) {
       await dispatch(getMemberState() as any);
+
       setCommunityId(res?.community?.id);
-      setAccessToken(res?.access_token);
+      setAccessToken(res?.accessToken);
     }
 
     return res;
@@ -153,6 +157,7 @@ const HomeFeed = ({navigation}: Props) => {
   useEffect(() => {
     const func = async () => {
       const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+
       if (res) {
         let uploadingFilesMessagesSavedObject = JSON.parse(res);
         let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
@@ -195,7 +200,7 @@ const HomeFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      {community?.hide_dm_tab === false ? (
+      {community?.hideDmTab === false ? (
         <Tab.Navigator
           screenOptions={{
             tabBarLabelStyle: styles.font,
@@ -226,7 +231,7 @@ const HomeFeed = ({navigation}: Props) => {
             component={DMFeed}
           />
         </Tab.Navigator>
-      ) : community?.hide_dm_tab === true ? (
+      ) : community?.hideDmTab === true ? (
         <GroupFeed navigation={navigation} />
       ) : null}
     </View>

@@ -122,6 +122,9 @@ export const decode = (
   text: string | undefined,
   enableClick: boolean,
   isLongPress?: boolean,
+  memberUuid?: string,
+  chatroomWithUserUuid?: string,
+  chatroomWithUserMemberId?: string,
 ) => {
   if (!text) {
     return;
@@ -134,7 +137,20 @@ export const decode = (
       if (!!matchResult.match(REGEX_USER_TAGGING)) {
         let match = REGEX_USER_TAGGING.exec(matchResult);
         if (match !== null) {
-          const {name, route} = match?.groups!;
+          let {name, route} = match?.groups!;
+
+          if (memberUuid && chatroomWithUserUuid && chatroomWithUserMemberId) {
+            const startingIndex = route.indexOf('/');
+
+            const currentMemberId = route.substring(startingIndex + 1);
+
+            if (currentMemberId == chatroomWithUserMemberId) {
+              route = `user_profile/${chatroomWithUserUuid}`;
+            } else {
+              route = `user_profile/${memberUuid}`;
+            }
+          }
+
           arr.push({key: name, route: route});
         }
       } else {
@@ -342,7 +358,7 @@ export const getVideoThumbnail = async ({
           arr = [...arr, {uri: response.path}];
           dummyArrSelectedFiles[i] = {
             ...dummyArrSelectedFiles[i],
-            thumbnail_url: response.path,
+            thumbnailUrl: response.path,
           };
         })
         .catch(err => {});

@@ -82,7 +82,7 @@ const PollResult = ({navigation, route}: any) => {
                           textAlign: 'center',
                         },
                       ]}>
-                      {val?.no_votes}
+                      {val?.noVotes}
                     </Text>
                     <Text
                       style={[
@@ -115,17 +115,17 @@ const TabScreenUI = ({pollID, conversationID}: any) => {
       pollId: pollID,
       conversationId: conversationID,
     };
-    // console.log('payload =====', payload);
+
     const res: any = await myClient.getPollUsers({
       pollId: parseInt(pollID!),
       conversationId: conversationID,
     });
-    // console.log('resss ==', res);
+
     if (res?.success) {
       setUsers(res?.data?.members);
     }
   };
-  // console.log('users =====', users);
+
   return (
     <View style={styles.page}>
       {users.length < 1 ? (
@@ -147,8 +147,8 @@ const TabScreenUI = ({pollID, conversationID}: any) => {
               <View key={item?.id} style={styles.participants}>
                 <Image
                   source={
-                    !!item?.image_url
-                      ? {uri: item?.image_url}
+                    !!item?.imageUrl
+                      ? {uri: item?.imageUrl}
                       : require('../../assets/images/default_pic.png')
                   }
                   style={styles.avatar}
@@ -157,17 +157,17 @@ const TabScreenUI = ({pollID, conversationID}: any) => {
                   <View>
                     <Text style={styles.title} numberOfLines={1}>
                       {item?.name}
-                      {!!item?.custom_title ? (
+                      {!!item?.customTitle ? (
                         <Text
                           style={
                             styles.messageCustomTitle
-                          }>{` • ${item?.custom_title}`}</Text>
+                          }>{` • ${item?.customTitle}`}</Text>
                       ) : null}
                     </Text>
                   </View>
                   <View>
                     <Text style={[styles.secondaryTitle]} numberOfLines={1}>
-                      {item?.member_since}
+                      {item?.memberSince}
                     </Text>
                   </View>
                 </View>

@@ -26,6 +26,7 @@ import {
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
   EMPTY_BLOCK_DELETION,
+  UPDATE_MULTIMEDIA_CONVERSATIONS,
 } from '../types/types';
 
 const initialState = {
@@ -82,7 +83,7 @@ export function chatroomReducer(state = initialState, action: any) {
       const data = action.body;
       const {conversations = []} = data;
       let ID = conversations[0]?.id;
-      let temporaryID = conversations[0]?.temporary_id;
+      let temporaryID = conversations[0]?.temporaryId;
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
@@ -109,10 +110,10 @@ export function chatroomReducer(state = initialState, action: any) {
       const data = action.body;
       const {conversation = []} = data;
 
-      if (conversation?.has_files || !!conversation?.reply_conversation) {
+      if (conversation?.hasFiles || !!conversation?.replyConversation) {
         return {...state};
       }
-      let temporaryID = conversation?.temporary_id;
+      let temporaryID = conversation?.temporaryId;
 
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
@@ -121,7 +122,7 @@ export function chatroomReducer(state = initialState, action: any) {
       let index = conversationsList.findIndex((element: any) => {
         return (
           element?.id?.toString() === temporaryID || // to check locally handled item id with temporaryID
-          element?.temporary_id?.toString() === temporaryID // to replace the messsage if message is already there by verifying message's temporaryID with conversationMeta temporaryID;
+          element?.temporaryId?.toString() === temporaryID // to replace the messsage if message is already there by verifying message's temporaryID with conversationMeta temporaryID;
         );
       });
 
@@ -141,7 +142,10 @@ export function chatroomReducer(state = initialState, action: any) {
       const {obj} = action.body;
       return {...state, conversations: [obj, ...state.conversations]};
     }
-
+    case UPDATE_MULTIMEDIA_CONVERSATIONS: {
+      const id = action.body;
+      // return null;
+    }
     case CLEAR_CHATROOM_CONVERSATION: {
       const {conversations = []} = action.body;
       return {...state, conversations: conversations};
@@ -162,7 +166,7 @@ export function chatroomReducer(state = initialState, action: any) {
           ...state.chatroomDetails,
           chatroom: {
             ...state.chatroomDetails.chatroom,
-            chat_request_state: chatRequestState,
+            chatRequestState: chatRequestState,
           },
         },
       };
