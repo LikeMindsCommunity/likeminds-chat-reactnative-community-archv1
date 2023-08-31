@@ -332,13 +332,14 @@ const GroupFeed = ({navigation}: Props) => {
           />
         )}
         renderItem={({item}: any) => {
+          console.log('itemHomeFeedItem', item);
           const homeFeedProps = {
             title: item?.header!,
             avatar: item?.chatroomImageUrl!,
             lastMessage: item?.lastConversation?.answer!,
             lastMessageUser: item?.lastConversation?.member?.name!,
-            time: item?.lastConversationTime!,
-            unreadCount: item?.unseenConversationCount!,
+            time: item?.lastConversation?.createdAt!,
+            unreadCount: item?.unseenCount!,
             pinned: false,
             lastConversation: item?.lastConversation!,
             lastConversationMember: item?.lastConversationRO?.member?.name!,
