@@ -27,11 +27,13 @@ import {
   UPDATE_CONVERSATIONS,
   EMPTY_BLOCK_DELETION,
   UPDATE_MULTIMEDIA_CONVERSATIONS,
+  GET_CHATROOM_DB_SUCCESS,
 } from '../types/types';
 
 const initialState = {
   conversations: [],
   chatroomDetails: {} as any,
+  chatroomDetailsDB: {},
   messageSent: '' as any,
   isLongPress: false,
   selectedMessages: [],
@@ -153,6 +155,10 @@ export function chatroomReducer(state = initialState, action: any) {
     case GET_CHATROOM_SUCCESS: {
       const chatroomDetails = action.body;
       return {...state, chatroomDetails: chatroomDetails};
+    }
+    case GET_CHATROOM_DB_SUCCESS: {
+      const {chatroomDBDetails = {}} = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
     }
     case CLEAR_CHATROOM_DETAILS: {
       const {chatroomDetails} = action.body;

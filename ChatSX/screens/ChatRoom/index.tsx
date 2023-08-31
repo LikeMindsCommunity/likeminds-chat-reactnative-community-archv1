@@ -57,6 +57,8 @@ import {
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
+  GET_CHATROOM_DB_SUCCESS,
+  GET_CHATROOM_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
@@ -183,6 +185,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {
     conversations = [],
     chatroomDetails,
+    chatroomDBDetails,
     messageSent,
     isLongPress,
     selectedMessages,
@@ -228,7 +231,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ? user?.id !== chatroomWithUser?.id
         ? chatroomWithUser?.name
         : chatroomDetails?.chatroom?.member?.name!
-      : chatroomDetails?.chatroom?.header;
+      : chatroomDBDetails?.header;
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -610,14 +613,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     const DB_RESPONSE = val?.data;
 
-    myClient.saveConversationData(
-      DB_RESPONSE,
-      DB_RESPONSE?.chatroomsData,
-      DB_RESPONSE?.conversationMeta,
-      community?.id,
-    );
+    // TODO
+    // myClient.saveConversationData(
+    //   DB_RESPONSE,
+    //   DB_RESPONSE?.chatroomsData,
+    //   DB_RESPONSE?.conversationMeta,
+    //   community?.id,
+    // );
 
-    if (DB_RESPONSE?.chatroomsData?.length === 0) {
+    if (DB_RESPONSE?.conversationsData?.length === 0) {
       return;
     } else {
       paginatedSyncAPI(page + 1);
@@ -628,7 +632,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchData(showLoaderVal?: boolean) {
     let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
 
-    paginatedSyncAPI(INITIAL_SYNC_PAGE);
+    // TODO -- hide sync conversation API call
+    // paginatedSyncAPI(INITIAL_SYNC_PAGE);
 
     let response = await dispatch(
       getConversations(
@@ -662,6 +667,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   //this function fetchChatroomDetails when we first move inside Chatroom
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
+    let DB_DATA = await myClient.getChatroomData(chatroomID?.toString());
+
+    if (DB_DATA.length > 0) {
+      dispatch({
+        type: GET_CHATROOM_DB_SUCCESS,
+        body: {chatroomDBDetails: DB_DATA[0]},
+      });
+    }
     let response = await dispatch(getChatroom(payload) as any);
     return response;
   }

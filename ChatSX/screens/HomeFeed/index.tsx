@@ -25,9 +25,7 @@ import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
-import {
-  SyncChatroomRequest,
-} from 'reactnative-chat-data';
+import {SyncChatroomRequest} from 'reactnative-chat-data';
 
 interface Props {
   navigation: any;
@@ -141,17 +139,6 @@ const HomeFeed = ({navigation}: Props) => {
     if (page === INITIAL_SYNC_PAGE) {
       myClient.saveCommunityData(DB_RESPONSE?.communityMeta[communityId]); // Save community data;
     }
-    myClient.saveChatroomResponse(
-      DB_RESPONSE,
-      DB_RESPONSE?.chatroomsData,
-      communityId,
-    );
-    myClient.saveConversationData(
-      DB_RESPONSE,
-      DB_RESPONSE?.chatroomsData,
-      DB_RESPONSE?.conversationMeta,
-      communityId,
-    );
 
     if (DB_RESPONSE?.chatroomsData?.length === 0) {
       return;
@@ -178,7 +165,7 @@ const HomeFeed = ({navigation}: Props) => {
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
 
-      paginatedSyncAPI(INITIAL_SYNC_PAGE + 1);
+      paginatedSyncAPI(INITIAL_SYNC_PAGE);
     }
 
     return res;
