@@ -23,10 +23,27 @@ import {
   updateInvites,
 } from '../../../../store/actions/homefeed';
 import styles from './styles';
-import {SET_PAGE} from '../../../../store/types/types';
+import {
+  GET_SYNC_HOMEFEED_CHAT_SUCCESS,
+  SET_PAGE,
+} from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
+import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
+import {
+  getChatroomData,
+  getTimeStamp,
+  saveChatroomResponse,
+  saveCommunityData,
+  updateChatroomData,
+  updateTimeStamp,
+} from '../../../../Data/Db/dbhelper';
+import {SyncChatroomRequest} from 'reactnative-chat-data';
+import Realm from 'realm';
+import {Observable} from 'rxjs';
+import Db from '../../../../Data/Db/db';
+import {ChatroomRO} from '../../../../Data/Models/ChatroomRO';
 
 interface Props {
   navigation: any;
@@ -36,6 +53,8 @@ const GroupFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [invitePage, setInvitePage] = useState(1);
   const [FCMToken, setFCMToken] = useState('');
+  const [chatroomsObservable, setChatroomsObservable] = useState<any>([]);
+  const isFocused = useIsFocused();
   const dispatch = useAppDispatch();
 
   const {
@@ -49,6 +68,166 @@ const GroupFeed = ({navigation}: Props) => {
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient?.firebaseInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
+  const INITIAL_SYNC_PAGE = 1;
+
+  // sync Chatrrom API
+  async function syncChatroomAPI(
+    page: number,
+    minTimeStamp: number,
+    maxTimeStamp: number,
+  ) {
+    const res = await myClient?.syncChatroom(
+      SyncChatroomRequest.builder()
+        .setPage(page)
+        .setPageSize(50)
+        .setChatroomTypes([0, 7])
+        .setMaxTimestamp(maxTimeStamp)
+        .setMinTimestamp(minTimeStamp)
+        .build(),
+    );
+    return res;
+  }
+
+  // pagination call for sync chatroom
+  const paginatedSyncAPI = async (
+    page: number,
+    cId: string,
+    isFirebase: boolean,
+  ) => {
+    const timeStampStored = await getTimeStamp();
+    const temp = JSON.stringify(timeStampStored);
+    let parsedTimeStamp = JSON.parse(temp);
+    let maxTimeStampNow = Math.floor(Date.now() / 1000);
+
+    const val = await syncChatroomAPI(
+      page,
+      parsedTimeStamp[0].minTimeStamp,
+      maxTimeStampNow,
+    );
+
+    console.log('parsedTimeStamp', parsedTimeStamp);
+    console.log('maxTimeStampNow', maxTimeStampNow);
+
+    const DB_RESPONSE = val?.data;
+    console.log('DB_RESPONSE', DB_RESPONSE);
+
+    if (page === INITIAL_SYNC_PAGE && DB_RESPONSE?.chatroomsData.length !== 0) {
+      saveCommunityData(
+        DB_RESPONSE?.communityMeta[user?.sdkClientInfo?.community],
+      ); // Save community data;
+    }
+    console.log('cId', user?.sdkClientInfo?.community);
+    if (DB_RESPONSE?.chatroomsData.length !== 0) {
+      await saveChatroomResponse(
+        DB_RESPONSE,
+        DB_RESPONSE?.chatroomsData,
+        user?.sdkClientInfo?.community,
+      );
+    }
+
+    // console.log('isFirebase', isFirebase);
+    // if (isFirebase && DB_RESPONSE?.chatroomsData.length !== 0) {
+    //   updateChatroomData(DB_RESPONSE, user?.sdkClientInfo?.community);
+    // }
+
+    const data = await getChatroomData();
+    // console.log('dataSaved', data);
+
+    // if (DB_RESPONSE?.chatroomsData?.length != 0) {
+    //   dispatch({
+    //     type: GET_SYNC_HOMEFEED_CHAT_SUCCESS,
+    //     body: data,
+    //   });
+    // }
+
+    updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
+    const timeStampStoredNew = await getTimeStamp();
+    console.log('updatedNyaHai', timeStampStoredNew);
+
+    if (DB_RESPONSE?.chatroomsData?.length === 0) {
+      return;
+    } else {
+      await paginatedSyncAPI(page + 1, cId, isFirebase);
+    }
+  };
+
+  const callPaginated = async (isFirebase: boolean) => {
+    console.log('Welcome');
+    if (!user?.sdkClientInfo?.community) return;
+    await paginatedSyncAPI(
+      INITIAL_SYNC_PAGE,
+      user?.sdkClientInfo?.community,
+      isFirebase,
+    );
+  };
+
+  useEffect(() => {
+    if (isFocused) {
+      callPaginated(false);
+    }
+  }, [isFocused, user]);
+
+  const listener = async () => {
+    const chatroomObservable = new Observable(observer => {
+      Realm.open(Db.getInstance())
+        .then(realm => {
+          const chatrooms = realm.objects(ChatroomRO.schema.name);
+          const listener = (newChatrooms: any, changes: any) => {
+            console.log('newChatrooms', newChatrooms);
+            console.log('changes', changes);
+            const chatroomsArray = Array.from(newChatrooms);
+            observer.next(chatroomsArray);
+          };
+          chatrooms.addListener(listener);
+          return () => {
+            chatrooms.removeListener(listener);
+            realm.close();
+          };
+        })
+        .catch(error => {
+          observer.error(error);
+        });
+    });
+    const subscription = chatroomObservable.subscribe({
+      next: updatedChatrooms => {
+        console.log('updatedChatrooms', updatedChatrooms);
+        setChatroomsObservable(updatedChatrooms);
+        updatedChatrooms.sort(function (a: any, b: any) {
+          var keyA = a.updatedAt,
+            keyB = b.updatedAt;
+          if (keyA > keyB) return -1;
+          if (keyA < keyB) return 1;
+          return 0;
+        });
+        dispatch({
+          type: GET_SYNC_HOMEFEED_CHAT_SUCCESS,
+          body: updatedChatrooms,
+        });
+      },
+      error: error => {
+        console.error('Error observing chatrooms:', error);
+      },
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  };
+
+  useEffect(() => {
+    listener();
+  }, [isFocused]);
+
+  useEffect(() => {
+    const query = ref(db, `/community/${community?.id}`);
+    return onValue(query, snapshot => {
+      if (snapshot.exists()) {
+        console.log('queryFirebase', query);
+        console.log('snapshotFirebase', snapshot);
+        if (!user?.sdkClientInfo?.community) return;
+        callPaginated(true);
+      }
+    });
+  }, [user]);
 
   async function fetchData() {
     const invitesRes = await dispatch(
@@ -72,9 +251,9 @@ const GroupFeed = ({navigation}: Props) => {
     }
   }
 
-  useLayoutEffect(() => {
-    fetchData();
-  }, [navigation]);
+  // useLayoutEffect(() => {
+  //   fetchData();
+  // }, [navigation]);
 
   useEffect(() => {
     const token = async () => {
@@ -141,16 +320,6 @@ const GroupFeed = ({navigation}: Props) => {
     ) : null;
   };
 
-  useEffect(() => {
-    const query = ref(db, `/community/${community?.id}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        dispatch(getHomeFeedData({page: 1}, false) as any);
-        dispatch({type: SET_PAGE, body: 1});
-      }
-    });
-  }, []);
-
   return (
     <View style={styles.page}>
       <FlashList
@@ -164,27 +333,27 @@ const GroupFeed = ({navigation}: Props) => {
         )}
         renderItem={({item}: any) => {
           const homeFeedProps = {
-            title: item?.chatroom?.header!,
-            avatar: item?.chatroom?.chatroomImageUrl!,
+            title: item?.header!,
+            avatar: item?.chatroomImageUrl!,
             lastMessage: item?.lastConversation?.answer!,
             lastMessageUser: item?.lastConversation?.member?.name!,
             time: item?.lastConversationTime!,
             unreadCount: item?.unseenConversationCount!,
             pinned: false,
             lastConversation: item?.lastConversation!,
-            lastConversationMember: item?.lastConversation?.member?.name!,
-            chatroomID: item?.chatroom?.id!,
-            isSecret: item?.chatroom?.isSecret,
-            deletedBy: item?.lastConversation?.deletedBy,
+            lastConversationMember: item?.lastConversationRO?.member?.name!,
+            chatroomID: item?.id!,
+            isSecret: item?.isSecret,
+            deletedBy: item?.lastConversationRO?.deletedBy,
             conversationDeletor:
-              item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
+              item?.lastConversationRO?.deletedByMember?.sdkClientInfo?.uuid,
             conversationCreator:
-              item?.lastConversation?.member?.sdkClientInfo?.uuid,
+              item?.lastConversationRO?.member?.sdkClientInfo?.uuid,
             conversationDeletorName:
-              item?.lastConversation?.deletedByMember?.name,
+              item?.lastConversationRO?.deletedByMember?.name,
             inviteReceiver: item?.inviteReceiver,
-            chatroomType: item?.chatroom?.type,
-            muteStatus: item?.chatroom?.muteStatus,
+            chatroomType: item?.type,
+            muteStatus: item?.muteStatus,
           };
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}
@@ -192,10 +361,14 @@ const GroupFeed = ({navigation}: Props) => {
           value: [chatrooms, unseenCount, totalCount],
         }}
         estimatedItemSize={15}
-        onEndReached={handleLoadMore}
+        // onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => item?.chatroom?.id?.toString()}
+        keyExtractor={(item: any) => {
+          // console.log('itemGF', item);
+          // console.log('itemIdGF', item?.id);
+          return item?.id?.toString();
+        }}
       />
     </View>
   );

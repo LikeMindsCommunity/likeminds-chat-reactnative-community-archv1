@@ -9,6 +9,7 @@ import {SET_EXPLORE_FEED_PAGE, SET_PAGE} from '../../store/types/types';
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 import {CHATROOM} from '../../constants/Screens';
+import {deleteOneChatroom} from '../../Data/Db/dbhelper';
 
 interface Props {
   avatar: string;
@@ -64,20 +65,21 @@ const ExploreFeedItem: React.FC<Props> = ({
           setMsg('Joined successfully');
           setIsToast(true);
         } else {
+          deleteOneChatroom(chatroomID);
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
         }
         dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
         await dispatch(getExploreFeedData(payload) as any);
-        dispatch({type: SET_PAGE, body: 1});
-        await dispatch(
-          getHomeFeedData(
-            {
-              page: 1,
-            },
-            false,
-          ) as any,
-        );
+        // dispatch({type: SET_PAGE, body: 1});
+        // await dispatch(
+        //   getHomeFeedData(
+        //     {
+        //       page: 1,
+        //     },
+        //     false,
+        //   ) as any,
+        // );
       })
       .catch(() => {
         // Alert.alert('Leave Chatroom failed');

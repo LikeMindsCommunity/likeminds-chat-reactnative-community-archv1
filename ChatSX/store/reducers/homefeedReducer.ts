@@ -6,6 +6,7 @@ import {
   GET_INVITES_SUCCESS,
   INIT_API_SUCCESS,
   PROFILE_DATA_SUCCESS,
+  GET_SYNC_HOMEFEED_CHAT_SUCCESS,
   REJECT_INVITE_SUCCESS,
   SET_DM_PAGE,
   SET_PAGE,
@@ -47,6 +48,14 @@ export function homefeedReducer(state = initialState, action: any) {
       return {
         ...state,
         dmPage: page,
+      };
+    }
+    case GET_SYNC_HOMEFEED_CHAT_SUCCESS: {
+      const myChatrooms = action.body;
+      return {
+        ...state,
+        myChatrooms: myChatrooms,
+        totalCount: myChatrooms.length,
       };
     }
     case GET_INVITES_SUCCESS: {
