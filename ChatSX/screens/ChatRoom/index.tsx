@@ -174,7 +174,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
   const [lastScrollOffset, setLastScrollOffset] = useState(true);
-  const [isFirst, setIsFirst] = useState(true);
+  const [response, setResponse] = useState([]);
 
   const {
     chatroomID,
@@ -838,6 +838,25 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isFocused]);
 
+  useEffect(() => {
+    setTimeout(() => {
+      if (!!response) {
+        const len = response?.conversations?.length;
+        if (len != 0 && len != undefined) {
+          let index = len;
+          if (
+            conversations[index + 1].attachmentCount == 0 &&
+            conversations[index + 1].polls == undefined
+          ) {
+            index = len - 2;
+          }
+          scrollToVisibleIndex(index);
+        }
+        setIsLoading(false);
+      }
+    }, 1500);
+  }, [response]);
+
   //This useEffect has logic to or hide message privately when long press on a message
   useEffect(() => {
     if (selectedMessages.length === 1) {
@@ -866,7 +885,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroomID: chatroomID,
       conversationID: conversations[conversations.length - 1]?.id,
       scrollDirection: 0, //scroll up -> 0
-      paginateBy: 10,
+      paginateBy: 50,
       topNavigate: false,
     };
     let response = await dispatch(
@@ -881,7 +900,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroomID: chatroomID,
       conversationID: conversations[0]?.id,
       scrollDirection: 1, //scroll down -> 1
-      paginateBy: 10,
+      paginateBy: 50,
       topNavigate: false,
     };
     let response = await dispatch(
@@ -896,7 +915,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await endOfPaginatedData();
 
     // To check if its the end of list (top of list in our case)
-    if (res.conversations.length == 0) {
+    if (res?.conversations?.length == 0) {
       setShouldLoadMoreChatEnd(false);
     }
 
@@ -905,11 +924,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  const scrollToVisibleIndex = (ind: number) => {
+  const scrollToVisibleIndex = (index: number) => {
     if (flatlistRef.current) {
       flatlistRef.current.scrollToIndex({
         animated: false,
-        index: ind,
+        index: index,
       });
     }
   };
@@ -920,19 +939,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await startOfPaginatedData();
 
     // To check if its the start of list (bottom of list in our case)
-    if (res.conversations.length == 0) {
+    if (res?.conversations?.length == 0) {
       setShouldLoadMoreChatStart(false);
     }
-
-    if (!!res) {
-      const len = res.conversations.length;
-      if (len != 0) {
-        let temp = isFirst ? len + 2 : Math.ceil(len / 2);
-        setIsFirst(!isFirst);
-        scrollToVisibleIndex(temp);
-      }
-      setIsLoading(false);
-    }
+    setResponse(res);
   };
 
   // Function checks the pagination logic, if it verifies the condition then call startLoadData
@@ -1918,7 +1928,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   return (
     <View style={styles.container}>
       <FlashList
-        estimatedItemSize={30}
+        estimatedItemSize={50}
         ref={flatlistRef}
         data={conversations}
         keyExtractor={(item: any, index) => {
