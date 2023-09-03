@@ -16,6 +16,7 @@ import {
   UPDATE_HOMEFEED_CHAT_SUCCESS,
   UPDATE_INVITES_SUCCESS,
   UPDATE_LAST_CONVERSATION,
+  TO_BE_DELETED,
 } from '../types/types';
 
 const initialState = {
@@ -48,6 +49,23 @@ export function homefeedReducer(state = initialState, action: any) {
       return {
         ...state,
         dmPage: page,
+      };
+    }
+    case TO_BE_DELETED: {
+      const chatroomId = action.body;
+      const clonedChatrooms = state.myChatrooms;
+      for (let i = 0; i < clonedChatrooms.length; i++) {
+        const chatroom = clonedChatrooms[i];
+        if (chatroom.id == chatroomId) {
+          console.log('chatroomSeletedId', chatroom.id);
+          clonedChatrooms.splice(i, 1);
+          break;
+        }
+      }
+      return {
+        ...state,
+        myChatrooms: clonedChatrooms,
+        totalCount: clonedChatrooms.length,
       };
     }
     case GET_SYNC_HOMEFEED_CHAT_SUCCESS: {

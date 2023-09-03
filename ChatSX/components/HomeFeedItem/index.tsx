@@ -107,7 +107,8 @@ const HomeFeedItem: React.FC<Props> = ({
             });
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
             dispatch({type: SET_PAGE, body: 1});
-            await dispatch(getHomeFeedData({page: 1}, false) as any);
+            //TODO
+            // await dispatch(getHomeFeedData({page: 1}, false) as any);
           },
           style: 'default',
         },
@@ -314,6 +315,8 @@ const HomeFeedItem: React.FC<Props> = ({
         navigation.navigate(CHATROOM, {
           chatroomID: chatroomID,
           isInvited: !!inviteReceiver ? true : false,
+          muteStatus: muteStatus,
+          // handleOnDelete: handleOnDelete,
         });
       }}
       style={({pressed}) => [

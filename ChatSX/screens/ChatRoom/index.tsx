@@ -4,7 +4,7 @@ import {
   useIsFocused,
 } from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-
+import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {
   View,
   Text,
@@ -57,6 +57,8 @@ import {
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
+  GET_CHATROOM_SUCCESS,
+  GET_SYNC_HOMEFEED_CHAT_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
@@ -70,6 +72,7 @@ import {
   SET_POSITION,
   SET_REPLY_MESSAGE,
   SHOW_TOAST,
+  TO_BE_DELETED,
   UPDATE_CHAT_REQUEST_STATE,
 } from '../../store/types/types';
 import {
@@ -118,6 +121,15 @@ import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {SyncConversationRequest} from 'reactnative-chat-data';
+import {
+  deleteOneChatroom,
+  getChatroomData,
+  getOneChatroomData,
+  getTimeStamp,
+  updateChatroomData,
+  updateMuteStatus,
+} from '../../Data/Db/dbhelper';
 
 interface Data {
   id: string;
@@ -142,7 +154,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
   let refInput = useRef<any>();
 
-  const db = myClient?.firebaseInstance();
+  // const db = myClient?.firebaseInstance();
+
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -172,6 +185,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {
     chatroomID,
     isInvited,
+    muteStatus,
+    // handleOnDelete,
     previousChatroomID,
     navigationFromNotification,
   } = route.params;
@@ -181,6 +196,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {
     conversations = [],
     chatroomDetails,
+    // chatroomDBDetails,
     messageSent,
     isLongPress,
     selectedMessages,
@@ -191,6 +207,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     state => state.homefeed,
   );
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+
+  const INITIAL_SYNC_PAGE = 1;
 
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.followStatus;
@@ -219,6 +237,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       : chatroomHeaderName  
   */
   }
+
+  // console.log('chatroomDBDetails', chatroomDBDetails);
+
   let chatroomName =
     chatroomType === 10
       ? user?.id !== chatroomWithUser?.id
@@ -586,9 +607,48 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  //this function fetchConversations when we first move inside Chatroom
+  // Sync conversation API call
+  async function syncConversationAPI(page: number) {
+    const res = await myClient?.syncConversation(
+      SyncConversationRequest.builder()
+        .setChatroomId(chatroomID)
+        .setPage(page)
+        .setMinTimestamp(0)
+        .setMaxTimestamp(Math.floor(Date.now()))
+        .setPageSize(20)
+        .build(),
+    );
+    return res;
+  }
+
+  // pagination call for sync conversation
+  const paginatedSyncAPI = async (page: number) => {
+    const val = await syncConversationAPI(page);
+
+    const DB_RESPONSE = val?.data;
+
+    // TODO
+    // myClient.saveConversationData(
+    //   DB_RESPONSE,
+    //   DB_RESPONSE?.chatroomsData,
+    //   DB_RESPONSE?.conversationMeta,
+    //   community?.id,
+    // );
+
+    if (DB_RESPONSE?.conversationsData?.length === 0) {
+      return;
+    } else {
+      paginatedSyncAPI(page + 1);
+    }
+  };
+
+  // this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
     let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
+
+    // TODO -- hide sync conversation API call
+    // paginatedSyncAPI(INITIAL_SYNC_PAGE);
+
     let response = await dispatch(
       getConversations(
         payload,
@@ -612,7 +672,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       if (chatroomType === 10) {
         dispatch(getDMFeedData({page: 1}, false) as any);
       } else {
-        await dispatch(getHomeFeedData({page: 1}, false) as any);
+        // await dispatch(getHomeFeedData({page: 1}, false) as any);
       }
     }
     return response;
@@ -622,6 +682,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
     let response = await dispatch(getChatroom(payload) as any);
+    console.log('respfetchChatroomDetails', response);
     return response;
   }
 
@@ -631,9 +692,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const uuid = await AsyncStorage.getItem('uuid');
 
     let payload = {
-      uuid: uuid, // uuid
-      userName: '', // user name
-      isGuest: false,
+      userUniqueId: uuid,
+      // userUniqueId: '65632569-c8c9-4d20-b536-e23c86741787',
+      userName: 'Himanshu',
     };
     let res = await dispatch(initAPI(payload) as any);
     return res;
@@ -801,25 +862,25 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }, [isLongPress, selectedMessages]);
 
   //useffect includes firebase realtime listener
-  useEffect(() => {
-    const query = ref(db, `/collabcards/${chatroomID}`);
-    return onValue(query, async (snapshot: DataSnapshot) => {
-      if (snapshot.exists()) {
-        let firebaseData = snapshot.val();
-        let conversationID = firebaseData?.collabcard?.answerId;
+  // useEffect(() => {
+  //   const query = ref(db, `/collabcards/${chatroomID}`);
+  //   return onValue(query, async (snapshot: DataSnapshot) => {
+  //     if (snapshot.exists()) {
+  //       let firebaseData = snapshot.val();
+  //       let conversationID = firebaseData?.collabcard?.answerId;
 
-        let payload = {
-          chatroomId: chatroomID,
-          conversationId: firebaseData?.collabcard?.answerId,
-        };
-        if (conversationID) {
-          const res = await dispatch(
-            firebaseConversation(payload, false) as any,
-          );
-        }
-      }
-    });
-  }, []);
+  //       let payload = {
+  //         chatroomId: chatroomID,
+  //         conversationId: firebaseData?.collabcard?.answerId,
+  //       };
+  //       if (conversationID) {
+  //         const res = await dispatch(
+  //           firebaseConversation(payload, false) as any,
+  //         );
+  //       }
+  //     }
+  //   });
+  // }, []);
 
   // this useffect updates routes, previousRoute variables when we come to chatroom.
   useEffect(() => {
@@ -921,7 +982,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          // await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
             body: {conversations: []},
@@ -932,20 +993,31 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          // updatePageInRedux();
+          // handleOnDelete(chatroomID);
+          console.log('going back...');
+          // await dispatch(getHomeFeedData({page: 1}) as any);
+          // dispatch({
+          //   type: CLEAR_CHATROOM_CONVERSATION,
+          //   body: {conversations: []},
+          // });
+          // dispatch({
+          //   type: CLEAR_CHATROOM_DETAILS,
+          //   body: {chatroomDetails: {}},
+          // });
+          navigation.pop();
+          console.log('stackPopped');
           dispatch({
-            type: CLEAR_CHATROOM_CONVERSATION,
-            body: {conversations: []},
+            type: TO_BE_DELETED,
+            body: chatroomID,
           });
-          dispatch({
-            type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
-          });
-          navigation.goBack();
+          console.log('reduxDeleted');
+          await deleteOneChatroom(chatroomID);
+          console.log('deletedShyd');
         }
       })
-      .catch(() => {
+      .catch(err => {
+        console.log('errorMessage', err);
         Alert.alert('Leave Chatroom failed');
       });
 
@@ -976,7 +1048,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          // await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
             body: {conversations: []},
@@ -987,20 +1059,32 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          // updatePageInRedux();
+          // handleOnDelete(chatroomID);
+          console.log('going back...');
+          // await dispatch(getHomeFeedData({page: 1}) as any);
+          // dispatch({
+          //   type: CLEAR_CHATROOM_CONVERSATION,
+          //   body: {conversations: []},
+          // });
+          // dispatch({
+          //   type: CLEAR_CHATROOM_DETAILS,
+          //   body: {chatroomDetails: {}},
+          // });
+          navigation.pop();
+          console.log('stackPopped');
           dispatch({
-            type: CLEAR_CHATROOM_CONVERSATION,
-            body: {conversations: []},
+            type: TO_BE_DELETED,
+            body: chatroomID,
           });
-          dispatch({
-            type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
-          });
-          navigation.goBack();
+          console.log('reduxDeleted');
+          await deleteOneChatroom(chatroomID);
+          console.log('deletedShyd');
+          fetchChatroomDetails();
         }
       })
-      .catch(() => {
+      .catch(err => {
+        console.log('errorMessage', err);
         Alert.alert('Leave Chatroom failed');
       });
     return res;
@@ -1023,10 +1107,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          // await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          // await dispatch(getHomeFeedData({page: 1}) as any);
         }
         navigation.dispatch(
           CommonActions.reset({
@@ -1072,10 +1156,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          // await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
+          // await dispatch(getHomeFeedData({page: 1}) as any);
         }
       })
       .catch(() => {
@@ -1094,6 +1178,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then((res: any) => {
         fetchChatroomDetails();
+        updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
       })
@@ -1111,6 +1196,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then(() => {
         fetchChatroomDetails();
+        updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications unmuted for this chatroom');
         setIsToast(true);
       })
@@ -1143,7 +1229,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
             updatePageInRedux();
             await dispatch(getChatroom({chatroomId: chatroomID}) as any);
-            await dispatch(getHomeFeedData({page: 1}, false) as any);
+            // await dispatch(getHomeFeedData({page: 1}, false) as any);
           },
           style: 'default',
         },
@@ -1807,10 +1893,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       <FlashList
         ref={flatlistRef}
         data={conversations}
-        keyExtractor={(item: any, index) => {
-          let isArray = Array.isArray(item);
-          return isArray ? index?.toString() : item?.id?.toString();
-        }}
+        // keyExtractor={(item: any, index) => {
+        //   // console.log('itemCHatroom', item);
+        //   let isArray = Array.isArray(item);
+        //   return isArray ? `${index}` : `${item?.id}`;
+        // }}
         extraData={{
           value: [
             selectedMessages,
@@ -1832,6 +1919,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           let isIncluded = selectedMessages.some(
             (val: any) => val?.id === item?.id && !isStateIncluded,
           );
+
           return (
             <View>
               {index < conversations.length &&
@@ -1929,6 +2017,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
+        // maintainVisibleContentPosition={{
+        //   autoscrollToTopThreshold: undefined,
+        //   minIndexForVisible: 1,
+        // }}
       />
 
       {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}

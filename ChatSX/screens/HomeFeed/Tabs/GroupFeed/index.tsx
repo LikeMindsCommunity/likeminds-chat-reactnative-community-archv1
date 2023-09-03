@@ -32,11 +32,9 @@ import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import {
-  getChatroomData,
   getTimeStamp,
   saveChatroomResponse,
   saveCommunityData,
-  updateChatroomData,
   updateTimeStamp,
 } from '../../../../Data/Db/dbhelper';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
@@ -53,7 +51,6 @@ const GroupFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [invitePage, setInvitePage] = useState(1);
   const [FCMToken, setFCMToken] = useState('');
-  const [chatroomsObservable, setChatroomsObservable] = useState<any>([]);
   const isFocused = useIsFocused();
   const dispatch = useAppDispatch();
 
@@ -68,6 +65,7 @@ const GroupFeed = ({navigation}: Props) => {
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient?.firebaseInstance();
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
+
   const INITIAL_SYNC_PAGE = 1;
 
   // sync Chatrrom API
@@ -99,24 +97,21 @@ const GroupFeed = ({navigation}: Props) => {
     let parsedTimeStamp = JSON.parse(temp);
     let maxTimeStampNow = Math.floor(Date.now() / 1000);
 
-    const val = await syncChatroomAPI(
-      page,
-      parsedTimeStamp[0].minTimeStamp,
-      maxTimeStampNow,
-    );
+    let minTimeStampNow =
+      parsedTimeStamp[0].minTimeStamp == 0
+        ? 0
+        : parsedTimeStamp[0].maxTimeStamp;
 
-    console.log('parsedTimeStamp', parsedTimeStamp);
-    console.log('maxTimeStampNow', maxTimeStampNow);
+    const val = await syncChatroomAPI(page, minTimeStampNow, maxTimeStampNow);
 
     const DB_RESPONSE = val?.data;
-    console.log('DB_RESPONSE', DB_RESPONSE);
 
     if (page === INITIAL_SYNC_PAGE && DB_RESPONSE?.chatroomsData.length !== 0) {
       saveCommunityData(
         DB_RESPONSE?.communityMeta[user?.sdkClientInfo?.community],
-      ); // Save community data;
+      );
     }
-    console.log('cId', user?.sdkClientInfo?.community);
+
     if (DB_RESPONSE?.chatroomsData.length !== 0) {
       await saveChatroomResponse(
         DB_RESPONSE,
@@ -130,19 +125,7 @@ const GroupFeed = ({navigation}: Props) => {
     //   updateChatroomData(DB_RESPONSE, user?.sdkClientInfo?.community);
     // }
 
-    const data = await getChatroomData();
-    // console.log('dataSaved', data);
-
-    // if (DB_RESPONSE?.chatroomsData?.length != 0) {
-    //   dispatch({
-    //     type: GET_SYNC_HOMEFEED_CHAT_SUCCESS,
-    //     body: data,
-    //   });
-    // }
-
     updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
-    const timeStampStoredNew = await getTimeStamp();
-    console.log('updatedNyaHai', timeStampStoredNew);
 
     if (DB_RESPONSE?.chatroomsData?.length === 0) {
       return;
@@ -152,7 +135,6 @@ const GroupFeed = ({navigation}: Props) => {
   };
 
   const callPaginated = async (isFirebase: boolean) => {
-    console.log('Welcome');
     if (!user?.sdkClientInfo?.community) return;
     await paginatedSyncAPI(
       INITIAL_SYNC_PAGE,
@@ -173,8 +155,6 @@ const GroupFeed = ({navigation}: Props) => {
         .then(realm => {
           const chatrooms = realm.objects(ChatroomRO.schema.name);
           const listener = (newChatrooms: any, changes: any) => {
-            console.log('newChatrooms', newChatrooms);
-            console.log('changes', changes);
             const chatroomsArray = Array.from(newChatrooms);
             observer.next(chatroomsArray);
           };
@@ -190,8 +170,6 @@ const GroupFeed = ({navigation}: Props) => {
     });
     const subscription = chatroomObservable.subscribe({
       next: updatedChatrooms => {
-        console.log('updatedChatrooms', updatedChatrooms);
-        setChatroomsObservable(updatedChatrooms);
         updatedChatrooms.sort(function (a: any, b: any) {
           var keyA = a.updatedAt,
             keyB = b.updatedAt;
@@ -221,8 +199,6 @@ const GroupFeed = ({navigation}: Props) => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
-        console.log('queryFirebase', query);
-        console.log('snapshotFirebase', snapshot);
         if (!user?.sdkClientInfo?.community) return;
         callPaginated(true);
       }
@@ -332,7 +308,6 @@ const GroupFeed = ({navigation}: Props) => {
           />
         )}
         renderItem={({item}: any) => {
-          console.log('itemHomeFeedItem', item);
           const homeFeedProps = {
             title: item?.header!,
             avatar: item?.chatroomImageUrl!,

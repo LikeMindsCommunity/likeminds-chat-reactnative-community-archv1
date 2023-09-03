@@ -5,7 +5,11 @@ import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
 import {getHomeFeedData} from '../../store/actions/homefeed';
-import {SET_EXPLORE_FEED_PAGE, SET_PAGE} from '../../store/types/types';
+import {
+  SET_EXPLORE_FEED_PAGE,
+  SET_PAGE,
+  TO_BE_DELETED,
+} from '../../store/types/types';
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 import {CHATROOM} from '../../constants/Screens';
@@ -65,7 +69,11 @@ const ExploreFeedItem: React.FC<Props> = ({
           setMsg('Joined successfully');
           setIsToast(true);
         } else {
-          deleteOneChatroom(chatroomID);
+          dispatch({
+            type: TO_BE_DELETED,
+            body: chatroomID,
+          });
+          await deleteOneChatroom(chatroomID);
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
         }

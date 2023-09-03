@@ -30,6 +30,8 @@ import {
   saveTimeStamp,
   updateTimeStamp,
 } from '../../Data/Db/dbhelper';
+import {SyncChatroomRequest} from 'reactnative-chat-data';
+import {useIsFocused} from '@react-navigation/native';
 
 interface Props {
   navigation: any;
@@ -44,6 +46,7 @@ const HomeFeed = ({navigation}: Props) => {
   const [FCMToken, setFCMToken] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const dispatch = useAppDispatch();
+  const isFocused = useIsFocused();
 
   const {
     myChatrooms,
@@ -56,7 +59,8 @@ const HomeFeed = ({navigation}: Props) => {
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
 
-  const db = myClient?.firebaseInstance();
+  const INITIAL_SYNC_PAGE = 1;
+
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
   const setOptions = () => {
     navigation.setOptions({
@@ -105,6 +109,7 @@ const HomeFeed = ({navigation}: Props) => {
     });
   };
 
+  //push API to receive firebase notifications
   const pushAPI = async (fcmToken: any, accessToken: any) => {
     const deviceID = await getUniqueId();
     try {
@@ -119,6 +124,36 @@ const HomeFeed = ({navigation}: Props) => {
     }
   };
 
+  // sync Chatrrom API
+  async function syncChatroomAPI(page: number) {
+    const res = await myClient?.syncChatroom(
+      SyncChatroomRequest.builder()
+        .setPage(page)
+        .setPageSize(20)
+        .setChatroomTypes([0, 7])
+        .setMaxTimestamp(Math.floor(Date.now()))
+        .setMinTimestamp(0)
+        .build(),
+    );
+    return res;
+  }
+
+  // pagination call for sync chatroom
+  const paginatedSyncAPI = async (page: number) => {
+    const val = await syncChatroomAPI(page);
+    const DB_RESPONSE = val?.data;
+
+    if (page === INITIAL_SYNC_PAGE) {
+      myClient.saveCommunityData(DB_RESPONSE?.communityMeta[communityId]); // Save community data;
+    }
+
+    if (DB_RESPONSE?.chatroomsData?.length === 0) {
+      return;
+    } else {
+      paginatedSyncAPI(page + 1);
+    }
+  };
+
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
 
@@ -126,7 +161,7 @@ const HomeFeed = ({navigation}: Props) => {
 
     let payload = {
       uuid: uuid, // uuid
-      userName: 'ranjanDas', // user name
+      userName: 'jadsfdmn', // user name
       isGuest: false,
     };
 
@@ -137,6 +172,8 @@ const HomeFeed = ({navigation}: Props) => {
 
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
+
+      // paginatedSyncAPI(INITIAL_SYNC_PAGE);
     }
 
     return res;
@@ -155,7 +192,7 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     timeSetter();
-  }, []);
+  }, [isFocused]);
 
   useLayoutEffect(() => {
     fetchData();
