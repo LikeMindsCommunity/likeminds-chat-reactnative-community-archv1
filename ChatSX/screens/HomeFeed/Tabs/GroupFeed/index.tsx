@@ -133,13 +133,13 @@ const GroupFeed = ({navigation}: Props) => {
     }
   };
 
-  // useEffect(() => {
-  //   if (isFocused) {
-  //     // getExistingData();
-  //     if (!user?.sdkClientInfo?.community) return;
-  //     // paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
-  //   }
-  // }, [isFocused, user]);
+  useEffect(() => {
+    if (isFocused) {
+      getExistingData();
+      if (!user?.sdkClientInfo?.community) return;
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+    }
+  }, [isFocused, user]);
 
   const listener = async () => {
     const chatroomObservable = new Observable(observer => {
@@ -180,19 +180,19 @@ const GroupFeed = ({navigation}: Props) => {
     };
   };
 
-  // useEffect(() => {
-  //   listener();
-  // }, [isFocused]);
+  useEffect(() => {
+    listener();
+  }, [isFocused]);
 
-  // useEffect(() => {
-  //   const query = ref(db, `/community/${community?.id}`);
-  //   return onValue(query, snapshot => {
-  //     if (snapshot.exists()) {
-  //       if (!user?.sdkClientInfo?.community) return;
-  //       // paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
-  //     }
-  //   });
-  // }, [user]);
+  useEffect(() => {
+    const query = ref(db, `/community/${community?.id}`);
+    return onValue(query, snapshot => {
+      if (snapshot.exists()) {
+        if (!user?.sdkClientInfo?.community) return;
+        paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+      }
+    });
+  }, [user]);
 
   async function fetchData() {
     const invitesRes = await dispatch(
