@@ -6,7 +6,6 @@ import {chatroomReducer} from './ChatSX/store/reducers/chatroomReducer';
 import {explorefeedReducer} from './ChatSX/store/reducers/explorefeedReducer';
 import {homefeedReducer} from './ChatSX/store/reducers/homefeedReducer';
 import {loader} from './ChatSX/store/reducers/loader';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {fileUploadReducer} from './ChatSX/store/reducers/fileUploadReducer';
 
 const rootReducer = combineReducers({

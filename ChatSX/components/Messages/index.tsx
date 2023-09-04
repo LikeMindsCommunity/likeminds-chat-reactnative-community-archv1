@@ -13,7 +13,7 @@ import {
   SET_POSITION,
 } from '../../store/types/types';
 import {PollConversationView} from '../Poll';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useQuery} from '@realm/react';
 
 interface Messages {
   item: any;
@@ -47,6 +47,7 @@ const Messages = ({
   const conversationDeletorName = item?.deletedByMember?.name;
   const chatroomWithUserUuid = chatroomWithUser?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = chatroomWithUser?.id;
+  const users = useQuery('UserSchemaRO');
 
   const {user} = useAppSelector(state => state.homefeed);
   const {
@@ -67,14 +68,6 @@ const Messages = ({
 
   const dispatch = useAppDispatch();
   let defaultReactionArrLen = item?.reactions?.length;
-
-  useEffect(() => {
-    async function getUuid() {
-      const uuid = await AsyncStorage.getItem('uuid');
-      setUuid(uuid);
-    }
-    getUuid();
-  }, []);
 
   //this useEffect update setReactionArr in format of { reaction: 👌, memberArr: []}
   useEffect(() => {
@@ -108,9 +101,14 @@ const Messages = ({
     }
   }, [item?.reactions]);
 
+  const getUserUniqueId = async () => {
+    const userUniqueID = users[0]?.userUniqueID;
+    return userUniqueID;
+  };
+
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {
-    const loggedInMember = uuid;
+    const loggedInMember = getUserUniqueId();
     const chatroomWithUser =
       chatroomDetails?.chatroom?.member?.sdkClientInfo?.uuid;
 

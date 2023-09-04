@@ -119,8 +119,8 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
+import {useQuery} from '@realm/react';
 
 interface Data {
   id: string;
@@ -172,6 +172,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
+  const users = useQuery('UserSchemaRO');
 
   const {
     chatroomID,
@@ -677,12 +678,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function fetch initiate API
   async function fetchInitAPI() {
     //this line of code is for the sample app only, pass your uuid instead of this.
-    const uuid = await AsyncStorage.getItem('uuid');
+    const UUID = users[0]?.userUniqueID;
+    const userName = users[0]?.userName;
 
     let payload = {
-      userUniqueId: uuid,
-      // userUniqueId: '65632569-c8c9-4d20-b536-e23c86741787',
-      userName: 'Himanshu',
+      userUniqueId: UUID,
+      userName: userName,
     };
     let res = await dispatch(initAPI(payload) as any);
     return res;

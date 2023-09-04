@@ -126,12 +126,20 @@ const GroupFeed = ({navigation}: Props) => {
     }
   };
 
-  useEffect(() => {
-    if (isFocused) {
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+  const getExistingData = async () => {
+    const existingChatrooms: any = await myClient?.getChatroomData();
+    if (!!existingChatrooms && existingChatrooms.length != 0) {
+      setRealmChatrooms(existingChatrooms);
     }
-  }, [isFocused, user]);
+  };
+
+  // useEffect(() => {
+  //   if (isFocused) {
+  //     // getExistingData();
+  //     if (!user?.sdkClientInfo?.community) return;
+  //     // paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+  //   }
+  // }, [isFocused, user]);
 
   const listener = async () => {
     const chatroomObservable = new Observable(observer => {
@@ -172,23 +180,23 @@ const GroupFeed = ({navigation}: Props) => {
     };
   };
 
-  useEffect(() => {
-    listener();
-  }, [isFocused]);
+  // useEffect(() => {
+  //   listener();
+  // }, [isFocused]);
 
-  useEffect(() => {
-    const query = ref(db, `/community/${community?.id}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
-      }
-    });
-  }, [user]);
+  // useEffect(() => {
+  //   const query = ref(db, `/community/${community?.id}`);
+  //   return onValue(query, snapshot => {
+  //     if (snapshot.exists()) {
+  //       if (!user?.sdkClientInfo?.community) return;
+  //       // paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+  //     }
+  //   });
+  // }, [user]);
 
   async function fetchData() {
     const invitesRes = await dispatch(
-      getInvites({channelType: 1, page: 1, pageSize: 10}, true) as any,
+      getInvites({channelType: 1, page: 1, pageSize: 10}, false) as any,
     );
 
     if (!!invitesRes?.userInvites) {
@@ -199,7 +207,7 @@ const GroupFeed = ({navigation}: Props) => {
         const temp = await dispatch(getHomeFeedData(payload) as any);
       } else {
         await dispatch(
-          updateInvites({channelType: 1, page: 2, pageSize: 10}, true) as any,
+          updateInvites({channelType: 1, page: 2, pageSize: 10}, false) as any,
         );
         setInvitePage(invitePage => {
           return invitePage + 1;
@@ -250,7 +258,7 @@ const GroupFeed = ({navigation}: Props) => {
         await dispatch(
           updateInvites(
             {channelType: 1, page: invitePage + 1, pageSize: 10},
-            true,
+            false,
           ) as any,
         );
         setInvitePage(invitePage => {

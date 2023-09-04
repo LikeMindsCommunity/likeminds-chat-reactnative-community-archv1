@@ -27,6 +27,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {useIsFocused} from '@react-navigation/native';
+import {useQuery} from '@realm/react';
 
 interface Props {
   navigation: any;
@@ -53,6 +54,7 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
+  const users = useQuery('UserSchemaRO');
 
   const INITIAL_SYNC_PAGE = 1;
 
@@ -152,11 +154,12 @@ const HomeFeed = ({navigation}: Props) => {
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
 
-    const uuid = await AsyncStorage.getItem('uuid');
+    const UUID = users[0]?.userUniqueID;
+    const userName = users[0]?.userName;
 
     let payload = {
-      uuid: uuid, // uuid
-      userName: 'jadsfdmn', // user name
+      uuid: UUID, // uuid
+      userName: userName, // user name
       isGuest: false,
     };
 

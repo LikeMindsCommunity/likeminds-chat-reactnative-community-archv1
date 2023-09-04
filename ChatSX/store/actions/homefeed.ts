@@ -159,7 +159,7 @@ export const getHomeFeedData =
             GET_HOMEFEED_CHAT_SUCCESS,
             GET_HOMEFEED_CHAT_FAILED,
           ],
-          showLoader: showLoader != undefined ? false : true,
+          showLoader: showLoader ? true : false,
         },
       });
     } catch (error) {
@@ -201,7 +201,7 @@ export const getDMFeedData =
             GET_DMFEED_CHAT_SUCCESS,
             GET_DMFEED_CHAT_FAILED,
           ],
-          showLoader: showLoader != undefined ? false : true,
+          showLoader: showLoader ? true : false,
         },
       });
     } catch (error) {
@@ -222,7 +222,7 @@ export const updateDMFeedData =
             UPDATE_DMFEED_CHAT_SUCCESS,
             UPDATE_DMFEED_CHAT_FAILED,
           ],
-          showLoader: showLoader != undefined ? false : true,
+          showLoader: showLoader ? true : false,
         },
       });
     } catch (error) {
