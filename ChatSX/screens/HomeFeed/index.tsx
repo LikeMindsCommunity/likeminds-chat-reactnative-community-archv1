@@ -25,11 +25,6 @@ import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
-import {
-  getTimeStamp,
-  saveTimeStamp,
-  updateTimeStamp,
-} from '../../Data/Db/dbhelper';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {useIsFocused} from '@react-navigation/native';
 
@@ -180,14 +175,13 @@ const HomeFeed = ({navigation}: Props) => {
   }
 
   const timeSetter = async () => {
-    const timeStampStored = await getTimeStamp();
+    const timeStampStored = await myClient?.getTimeStamp();
     if (timeStampStored.length == 0) {
       const maxTimeStamp = Math.floor(Date.now() / 1000);
       const minTimeStamp = 0;
-      saveTimeStamp(minTimeStamp, maxTimeStamp);
+      myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
     }
-    updateTimeStamp(0, Math.floor(Date.now() / 1000));
-    console.log('saveTimeStamp', await getTimeStamp());
+    myClient?.updateTimeStamp(0, Math.floor(Date.now() / 1000));
   };
 
   useEffect(() => {

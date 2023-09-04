@@ -13,7 +13,6 @@ import {
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 import {CHATROOM} from '../../constants/Screens';
-import {deleteOneChatroom} from '../../Data/Db/dbhelper';
 
 interface Props {
   avatar: string;
@@ -69,28 +68,15 @@ const ExploreFeedItem: React.FC<Props> = ({
           setMsg('Joined successfully');
           setIsToast(true);
         } else {
-          dispatch({
-            type: TO_BE_DELETED,
-            body: chatroomID,
-          });
-          await deleteOneChatroom(chatroomID);
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
+          await myClient?.deleteOneChatroom(chatroomID);
         }
         dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
         await dispatch(getExploreFeedData(payload) as any);
-        // dispatch({type: SET_PAGE, body: 1});
-        // await dispatch(
-        //   getHomeFeedData(
-        //     {
-        //       page: 1,
-        //     },
-        //     false,
-        //   ) as any,
-        // );
       })
       .catch(() => {
-        // Alert.alert('Leave Chatroom failed');
+        Alert.alert('Leave Chatroom failed');
       });
 
     return res;

@@ -10,7 +10,6 @@ import {
   Image,
 } from 'react-native';
 import {myClient} from '../../../../..';
-import {getNameInitials} from '../../../../commonFuctions';
 import HomeFeedExplore from '../../../../components/HomeFeedExplore';
 import HomeFeedItem from '../../../../components/HomeFeedItem';
 import STYLES from '../../../../constants/Styles';
@@ -31,17 +30,9 @@ import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import {
-  getTimeStamp,
-  saveChatroomResponse,
-  saveCommunityData,
-  updateTimeStamp,
-} from '../../../../Data/Db/dbhelper';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import Realm from 'realm';
 import {Observable} from 'rxjs';
-import Db from '../../../../Data/Db/db';
-import {ChatroomRO} from '../../../../Data/Models/ChatroomRO';
 
 interface Props {
   navigation: any;
@@ -51,6 +42,7 @@ const GroupFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [invitePage, setInvitePage] = useState(1);
   const [FCMToken, setFCMToken] = useState('');
+  const [realmChatrooms, setRealmChatrooms] = useState([]);
   const isFocused = useIsFocused();
   const dispatch = useAppDispatch();
 
@@ -86,13 +78,20 @@ const GroupFeed = ({navigation}: Props) => {
     return res;
   }
 
+  const callHomeFeedOnce = async () => {
+    let payload = {
+      page: 1,
+    };
+    const temp = await dispatch(getHomeFeedData(payload) as any);
+  };
+
+  useEffect(() => {
+    callHomeFeedOnce();
+  }, []);
+
   // pagination call for sync chatroom
-  const paginatedSyncAPI = async (
-    page: number,
-    cId: string,
-    isFirebase: boolean,
-  ) => {
-    const timeStampStored = await getTimeStamp();
+  const paginatedSyncAPI = async (page: number, communityId: string) => {
+    const timeStampStored = await myClient?.getTimeStamp();
     const temp = JSON.stringify(timeStampStored);
     let parsedTimeStamp = JSON.parse(temp);
     let maxTimeStampNow = Math.floor(Date.now() / 1000);
@@ -107,53 +106,38 @@ const GroupFeed = ({navigation}: Props) => {
     const DB_RESPONSE = val?.data;
 
     if (page === INITIAL_SYNC_PAGE && DB_RESPONSE?.chatroomsData.length !== 0) {
-      saveCommunityData(
-        DB_RESPONSE?.communityMeta[user?.sdkClientInfo?.community],
-      );
+      myClient?.saveCommunityData(DB_RESPONSE?.communityMeta[communityId]);
     }
 
     if (DB_RESPONSE?.chatroomsData.length !== 0) {
-      await saveChatroomResponse(
+      await myClient?.saveChatroomResponse(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomsData,
-        user?.sdkClientInfo?.community,
+        communityId,
       );
     }
 
-    // console.log('isFirebase', isFirebase);
-    // if (isFirebase && DB_RESPONSE?.chatroomsData.length !== 0) {
-    //   updateChatroomData(DB_RESPONSE, user?.sdkClientInfo?.community);
-    // }
-
-    updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
+    myClient?.updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
 
     if (DB_RESPONSE?.chatroomsData?.length === 0) {
       return;
     } else {
-      await paginatedSyncAPI(page + 1, cId, isFirebase);
+      await paginatedSyncAPI(page + 1, communityId);
     }
-  };
-
-  const callPaginated = async (isFirebase: boolean) => {
-    if (!user?.sdkClientInfo?.community) return;
-    await paginatedSyncAPI(
-      INITIAL_SYNC_PAGE,
-      user?.sdkClientInfo?.community,
-      isFirebase,
-    );
   };
 
   useEffect(() => {
     if (isFocused) {
-      callPaginated(false);
+      if (!user?.sdkClientInfo?.community) return;
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
     }
   }, [isFocused, user]);
 
   const listener = async () => {
     const chatroomObservable = new Observable(observer => {
-      Realm.open(Db.getInstance())
+      Realm.open(myClient?.getInstance())
         .then(realm => {
-          const chatrooms = realm.objects(ChatroomRO.schema.name);
+          const chatrooms = realm.objects('ChatroomRO');
           const listener = (newChatrooms: any, changes: any) => {
             const chatroomsArray = Array.from(newChatrooms);
             observer.next(chatroomsArray);
@@ -169,7 +153,7 @@ const GroupFeed = ({navigation}: Props) => {
         });
     });
     const subscription = chatroomObservable.subscribe({
-      next: updatedChatrooms => {
+      next: (updatedChatrooms: any) => {
         updatedChatrooms.sort(function (a: any, b: any) {
           var keyA = a.updatedAt,
             keyB = b.updatedAt;
@@ -177,13 +161,10 @@ const GroupFeed = ({navigation}: Props) => {
           if (keyA < keyB) return 1;
           return 0;
         });
-        dispatch({
-          type: GET_SYNC_HOMEFEED_CHAT_SUCCESS,
-          body: updatedChatrooms,
-        });
+        setRealmChatrooms(updatedChatrooms);
       },
       error: error => {
-        console.error('Error observing chatrooms:', error);
+        Alert.alert('Error observing chatrooms:', error);
       },
     });
     return () => {
@@ -200,7 +181,7 @@ const GroupFeed = ({navigation}: Props) => {
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
         if (!user?.sdkClientInfo?.community) return;
-        callPaginated(true);
+        paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
       }
     });
   }, [user]);
@@ -299,7 +280,7 @@ const GroupFeed = ({navigation}: Props) => {
   return (
     <View style={styles.page}>
       <FlashList
-        data={chatrooms}
+        data={realmChatrooms}
         ListHeaderComponent={() => (
           <HomeFeedExplore
             newCount={unseenCount}
@@ -334,15 +315,13 @@ const GroupFeed = ({navigation}: Props) => {
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}
         extraData={{
-          value: [chatrooms, unseenCount, totalCount],
+          value: [realmChatrooms, unseenCount, totalCount],
         }}
         estimatedItemSize={15}
         // onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         keyExtractor={(item: any) => {
-          // console.log('itemGF', item);
-          // console.log('itemIdGF', item?.id);
           return item?.id?.toString();
         }}
       />

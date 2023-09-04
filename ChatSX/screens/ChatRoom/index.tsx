@@ -58,7 +58,6 @@ import {
   CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
-  GET_SYNC_HOMEFEED_CHAT_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
@@ -122,14 +121,6 @@ import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
-import {
-  deleteOneChatroom,
-  getChatroomData,
-  getOneChatroomData,
-  getTimeStamp,
-  updateChatroomData,
-  updateMuteStatus,
-} from '../../Data/Db/dbhelper';
 
 interface Data {
   id: string;
@@ -237,8 +228,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       : chatroomHeaderName  
   */
   }
-
-  // console.log('chatroomDBDetails', chatroomDBDetails);
 
   let chatroomName =
     chatroomType === 10
@@ -682,7 +671,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
     let response = await dispatch(getChatroom(payload) as any);
-    console.log('respfetchChatroomDetails', response);
     return response;
   }
 
@@ -993,31 +981,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          // updatePageInRedux();
-          // handleOnDelete(chatroomID);
-          console.log('going back...');
-          // await dispatch(getHomeFeedData({page: 1}) as any);
-          // dispatch({
-          //   type: CLEAR_CHATROOM_CONVERSATION,
-          //   body: {conversations: []},
-          // });
-          // dispatch({
-          //   type: CLEAR_CHATROOM_DETAILS,
-          //   body: {chatroomDetails: {}},
-          // });
-          navigation.pop();
-          console.log('stackPopped');
-          dispatch({
-            type: TO_BE_DELETED,
-            body: chatroomID,
-          });
-          console.log('reduxDeleted');
-          await deleteOneChatroom(chatroomID);
-          console.log('deletedShyd');
+          navigation.goBack();
+          await myClient?.deleteOneChatroom(chatroomID);
         }
       })
-      .catch(err => {
-        console.log('errorMessage', err);
+      .catch(() => {
         Alert.alert('Leave Chatroom failed');
       });
 
@@ -1059,32 +1027,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          // updatePageInRedux();
-          // handleOnDelete(chatroomID);
-          console.log('going back...');
-          // await dispatch(getHomeFeedData({page: 1}) as any);
-          // dispatch({
-          //   type: CLEAR_CHATROOM_CONVERSATION,
-          //   body: {conversations: []},
-          // });
-          // dispatch({
-          //   type: CLEAR_CHATROOM_DETAILS,
-          //   body: {chatroomDetails: {}},
-          // });
-          navigation.pop();
-          console.log('stackPopped');
-          dispatch({
-            type: TO_BE_DELETED,
-            body: chatroomID,
-          });
-          console.log('reduxDeleted');
-          await deleteOneChatroom(chatroomID);
-          console.log('deletedShyd');
-          fetchChatroomDetails();
+          navigation.goBack();
+          await myClient?.deleteOneChatroom(chatroomID);
         }
       })
-      .catch(err => {
-        console.log('errorMessage', err);
+      .catch(() => {
         Alert.alert('Leave Chatroom failed');
       });
     return res;
@@ -1178,7 +1125,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then((res: any) => {
         fetchChatroomDetails();
-        updateMuteStatus(chatroomID, muteStatus);
+        myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
       })
@@ -1196,7 +1143,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then(() => {
         fetchChatroomDetails();
-        updateMuteStatus(chatroomID, muteStatus);
+        myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications unmuted for this chatroom');
         setIsToast(true);
       })
@@ -1893,11 +1840,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       <FlashList
         ref={flatlistRef}
         data={conversations}
-        // keyExtractor={(item: any, index) => {
-        //   // console.log('itemCHatroom', item);
-        //   let isArray = Array.isArray(item);
-        //   return isArray ? `${index}` : `${item?.id}`;
-        // }}
+        keyExtractor={(item: any, index) => {
+          let isArray = Array.isArray(item);
+          return isArray ? `${index}` : `${item?.id}`;
+        }}
         extraData={{
           value: [
             selectedMessages,

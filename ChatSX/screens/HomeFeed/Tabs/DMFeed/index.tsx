@@ -54,7 +54,7 @@ const DMFeed = ({navigation}: Props) => {
     useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
 
-  const db = myClient?.firebaseInstance();
+  // const db = myClient?.firebaseInstance();
   const chatrooms = [...myDMChatrooms];
 
   async function fetchData() {
@@ -145,15 +145,15 @@ const DMFeed = ({navigation}: Props) => {
     ) : null;
   };
 
-  useEffect(() => {
-    const query = ref(db, `/community/${community?.id}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        dispatch(getDMFeedData({page: 1}, false) as any);
-        dispatch({type: SET_DM_PAGE, body: 1});
-      }
-    });
-  }, []);
+  // useEffect(() => {
+  //   const query = ref(db, `/community/${community?.id}`);
+  //   return onValue(query, snapshot => {
+  //     if (snapshot.exists()) {
+  //       dispatch(getDMFeedData({page: 1}, false) as any);
+  //       dispatch({type: SET_DM_PAGE, body: 1});
+  //     }
+  //   });
+  // }, []);
 
   return (
     <View style={styles.page}>
