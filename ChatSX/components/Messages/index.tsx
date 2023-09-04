@@ -101,14 +101,9 @@ const Messages = ({
     }
   }, [item?.reactions]);
 
-  const getUserUniqueId = async () => {
-    const userUniqueID = users[0]?.userUniqueID;
-    return userUniqueID;
-  };
-
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {
-    const loggedInMember = getUserUniqueId();
+    const loggedInMember = users[0]?.userUniqueID;
     const chatroomWithUser =
       chatroomDetails?.chatroom?.member?.sdkClientInfo?.uuid;
 

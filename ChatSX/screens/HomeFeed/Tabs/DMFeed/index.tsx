@@ -38,10 +38,6 @@ import {
   NO_DM_TEXT,
 } from '../../../../constants/Strings';
 import {FlashList} from '@shopify/flash-list';
-import {useIsFocused} from '@react-navigation/native';
-import {SyncChatroomRequest} from 'reactnative-chat-data';
-import Realm from 'realm';
-import {Observable} from 'rxjs';
 
 interface Props {
   navigation: any;
@@ -53,15 +49,12 @@ const DMFeed = ({navigation}: Props) => {
   const [showList, setShowList] = useState<any>(null);
   const [FCMToken, setFCMToken] = useState('');
   const dispatch = useAppDispatch();
-  const isFocused = useIsFocused();
-  const [realmDM, setRealmDM] = useState([]);
 
   const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
-  const INITIAL_SYNC_PAGE = 1;
 
-  // const db = myClient?.firebaseInstance();
+  const db = myClient?.firebaseInstance();
   const chatrooms = [...myDMChatrooms];
 
   async function fetchData() {
@@ -76,14 +69,11 @@ const DMFeed = ({navigation}: Props) => {
           requestFrom: 'dm_feed_v2',
         });
         let response = apiRes?.data;
-
         if (!!response) {
           let routeURL = response?.cta;
           const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-
           if (hasShowList) {
             const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-
             setShowList(showListValue);
           }
           setShowDM(response?.showDm);
@@ -152,15 +142,15 @@ const DMFeed = ({navigation}: Props) => {
     ) : null;
   };
 
-  // useEffect(() => {
-  //   const query = ref(db, `/community/${community?.id}`);
-  //   return onValue(query, snapshot => {
-  //     if (snapshot.exists()) {
-  //       if (!user?.sdkClientInfo?.community) return;
-  //       paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
-  //     }
-  //   });
-  // }, []);
+  useEffect(() => {
+    const query = ref(db, `/community/${community?.id}`);
+    return onValue(query, snapshot => {
+      if (snapshot.exists()) {
+        dispatch(getDMFeedData({page: 1}, false) as any);
+        dispatch({type: SET_DM_PAGE, body: 1});
+      }
+    });
+  }, []);
 
   return (
     <View style={styles.page}>
@@ -200,9 +190,9 @@ const DMFeed = ({navigation}: Props) => {
         </View>
       ) : (
         <FlashList
-          data={realmDM}
+          data={chatrooms}
           extraData={{
-            value: [user, realmDM],
+            value: [user, chatrooms],
           }}
           estimatedItemSize={15}
           renderItem={({item}: any) => {
@@ -225,12 +215,6 @@ const DMFeed = ({navigation}: Props) => {
               lastConversation: item?.lastConversation!,
               chatroomID: chatroom?.id!,
               deletedBy: item?.lastConversation?.deletedBy,
-              conversationDeletor:
-                item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
-              conversationCreator:
-                item?.lastConversation?.member?.sdkClientInfo?.uuid,
-              conversationDeletorName:
-                item?.lastConversation?.deletedByMember?.name,
               isSecret: chatroom?.isSecret,
               chatroomType: chatroom?.type,
               muteStatus: chatroom?.muteStatus,
