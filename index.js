@@ -1,15 +1,12 @@
 /**
  * @format
  */
-if (__DEV__) {
-  import('./ReactotronConfig').then(() => console.log('Reactotron Configured'));
-}
 import React from 'react';
 import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
 import messaging from '@react-native-firebase/messaging';
-import {LMChatClient} from 'reactnative-chat-data';
+import LMChatClient from '@likeminds.community/chat-js';
 import notifee, {EventType} from '@notifee/react-native';
 import getNotification from './ChatSX/notifications';
 import {getRoute} from './ChatSX/notifications/routes';
@@ -32,9 +29,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
   return val;
 });
 
-export const myClient = LMChatClient.setApiKey(
-  'a80df679-4fdc-4a4f-b646-dafd10603b62',
-)
+export const myClient = LMChatClient.setApiKey('')
   .setPlatformCode('rn')
   .setVersionCode(parseInt('15'))
   .build();

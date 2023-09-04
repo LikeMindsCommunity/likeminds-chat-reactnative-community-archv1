@@ -61,7 +61,7 @@ const DMFeed = ({navigation}: Props) => {
   const {user, community} = useAppSelector(state => state.homefeed);
   const INITIAL_SYNC_PAGE = 1;
 
-  const db = myClient?.firebaseInstance();
+  // const db = myClient?.firebaseInstance();
   const chatrooms = [...myDMChatrooms];
 
   async function fetchData() {
@@ -92,124 +92,9 @@ const DMFeed = ({navigation}: Props) => {
     }
   }
 
-  // sync Chatrrom API
-  async function syncChatroomAPI(
-    page: number,
-    minTimeStamp: number,
-    maxTimeStamp: number,
-  ) {
-    const res = await myClient?.syncChatroom(
-      SyncChatroomRequest.builder()
-        .setPage(page)
-        .setPageSize(50)
-        .setChatroomTypes([10])
-        .setMaxTimestamp(maxTimeStamp)
-        .setMinTimestamp(minTimeStamp)
-        .build(),
-    );
-    return res;
-  }
-
-  // pagination call for sync chatroom
-  const paginatedSyncAPI = async (page: number, communityId: string) => {
-    const timeStampStored = await myClient?.getTimeStamp();
-    const temp = JSON.stringify(timeStampStored);
-    let parsedTimeStamp = JSON.parse(temp);
-    let maxTimeStampNow = Math.floor(Date.now() / 1000);
-
-    let minTimeStampNow =
-      parsedTimeStamp[0].minTimeStamp == 0
-        ? 0
-        : parsedTimeStamp[0].maxTimeStamp;
-
-    const val = await syncChatroomAPI(page, minTimeStampNow, maxTimeStampNow);
-
-    const DB_RESPONSE = val?.data;
-
-    if (page === INITIAL_SYNC_PAGE && DB_RESPONSE?.chatroomsData.length !== 0) {
-      myClient?.saveCommunityData(DB_RESPONSE?.communityMeta[communityId]);
-    }
-
-    if (DB_RESPONSE?.chatroomsData.length !== 0) {
-      await myClient?.saveChatroomResponse(
-        DB_RESPONSE,
-        DB_RESPONSE?.chatroomsData,
-        communityId,
-      );
-    }
-
-    myClient?.updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
-
-    if (DB_RESPONSE?.chatroomsData?.length === 0) {
-      return;
-    } else {
-      await paginatedSyncAPI(page + 1, communityId);
-    }
-  };
-
-  const getExistingData = async () => {
-    const existingDM: any = await myClient?.getChatroomData();
-    if (!!existingDM && existingDM.length != 0) {
-      console.log('realmDM1', realmDM);
-      setRealmDM(existingDM);
-    }
-  };
-
-  // useEffect(() => {
-  //   if (isFocused) {
-  //     getExistingData();
-  //     if (!user?.sdkClientInfo?.community) return;
-  //     paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
-  //   }
-  // }, [isFocused, user]);
-
-  const listener = async () => {
-    const chatroomObservable = new Observable(observer => {
-      Realm.open(myClient?.getInstance())
-        .then(realm => {
-          const chatrooms = realm.objects('ChatroomRO');
-          const listener = (newChatrooms: any, changes: any) => {
-            const chatroomsArray = Array.from(newChatrooms);
-            observer.next(chatroomsArray);
-          };
-          chatrooms.addListener(listener);
-          return () => {
-            chatrooms.removeListener(listener);
-            realm.close();
-          };
-        })
-        .catch(error => {
-          observer.error(error);
-        });
-    });
-    const subscription = chatroomObservable.subscribe({
-      next: (updatedDM: any) => {
-        updatedDM.sort(function (a: any, b: any) {
-          var keyA = a.updatedAt,
-            keyB = b.updatedAt;
-          if (keyA > keyB) return -1;
-          if (keyA < keyB) return 1;
-          return 0;
-        });
-        console.log('realmDM2', updatedDM);
-        setRealmDM(updatedDM);
-      },
-      error: error => {
-        Alert.alert('Error observing chatrooms:', error);
-      },
-    });
-    return () => {
-      subscription.unsubscribe();
-    };
-  };
-
-  // useEffect(() => {
-  //   listener();
-  // }, [isFocused]);
-
-  // useLayoutEffect(() => {
-  //   fetchData();
-  // }, [navigation, community]);
+  useLayoutEffect(() => {
+    fetchData();
+  }, [navigation, community]);
 
   useEffect(() => {
     const token = async () => {
@@ -275,7 +160,7 @@ const DMFeed = ({navigation}: Props) => {
   //       paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
   //     }
   //   });
-  // }, [user]);
+  // }, []);
 
   return (
     <View style={styles.page}>
@@ -352,7 +237,7 @@ const DMFeed = ({navigation}: Props) => {
             };
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
-          // onEndReached={handleLoadMore}
+          onEndReached={handleLoadMore}
           onEndReachedThreshold={0.1}
           ListFooterComponent={renderFooter}
           keyExtractor={(item: any) => item?.chatroom?.id.toString()}
