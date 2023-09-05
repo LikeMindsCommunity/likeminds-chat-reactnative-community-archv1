@@ -60,7 +60,18 @@ const GroupFeed = ({navigation}: Props) => {
 
   const INITIAL_SYNC_PAGE = 1;
 
-  // sync Chatrrom API
+  // Filtering GroupFeed Chatrooms from DMs
+  const filterChatrooms = (chatrooms: any) => {
+    let chatroomArr: any = [];
+    chatrooms.forEach((chatroom: any) => {
+      if (chatroom.type !== 10) {
+        chatroomArr.push(chatroom);
+      }
+    });
+    return chatroomArr;
+  };
+
+  // Sync Chatrrom API
   async function syncChatroomAPI(
     page: number,
     minTimeStamp: number,
@@ -86,16 +97,18 @@ const GroupFeed = ({navigation}: Props) => {
   };
 
   useEffect(() => {
+    // To get total number of chatrooms
     callHomeFeedOnce();
   }, []);
 
-  // pagination call for sync chatroom
+  // Pagination call for sync chatroom
   const paginatedSyncAPI = async (page: number, communityId: string) => {
     const timeStampStored = await myClient?.getTimeStamp();
     const temp = JSON.stringify(timeStampStored);
     let parsedTimeStamp = JSON.parse(temp);
     let maxTimeStampNow = Math.floor(Date.now() / 1000);
 
+    // Taking minTimeStamp as 0 for the first time else last maxTimeStamp will become current minTimeStamp
     let minTimeStampNow =
       parsedTimeStamp[0].minTimeStamp == 0
         ? 0
@@ -106,7 +119,9 @@ const GroupFeed = ({navigation}: Props) => {
     const DB_RESPONSE = val?.data;
 
     if (page === INITIAL_SYNC_PAGE && DB_RESPONSE?.chatroomsData.length !== 0) {
-      myClient?.saveCommunityData(DB_RESPONSE?.communityMeta[communityId]);
+      await myClient?.saveCommunityData(
+        DB_RESPONSE?.communityMeta[communityId],
+      );
     }
 
     if (DB_RESPONSE?.chatroomsData.length !== 0) {
@@ -126,10 +141,12 @@ const GroupFeed = ({navigation}: Props) => {
     }
   };
 
+  // Fetching already existing chatrooms from Realm
   const getExistingData = async () => {
     const existingChatrooms: any = await myClient?.getChatroomData();
     if (!!existingChatrooms && existingChatrooms.length != 0) {
-      setRealmChatrooms(existingChatrooms);
+      const temp = filterChatrooms(existingChatrooms);
+      setRealmChatrooms(temp);
     }
   };
 
@@ -141,6 +158,7 @@ const GroupFeed = ({navigation}: Props) => {
     }
   }, [isFocused, user]);
 
+  // Listener for Realm which will be called with any kind of change in Realm
   const listener = async () => {
     const chatroomObservable = new Observable(observer => {
       Realm.open(myClient?.getInstance())
@@ -162,14 +180,16 @@ const GroupFeed = ({navigation}: Props) => {
     });
     const subscription = chatroomObservable.subscribe({
       next: (updatedChatrooms: any) => {
-        updatedChatrooms.sort(function (a: any, b: any) {
+        const temp = filterChatrooms(updatedChatrooms);
+        // Sorting the updatedChatrooms based on updatedAt
+        temp.sort(function (a: any, b: any) {
           var keyA = a.updatedAt,
             keyB = b.updatedAt;
           if (keyA > keyB) return -1;
           if (keyA < keyB) return 1;
           return 0;
         });
-        setRealmChatrooms(updatedChatrooms);
+        setRealmChatrooms(temp);
       },
       error: error => {
         Alert.alert('Error observing chatrooms:', error);
@@ -326,8 +346,6 @@ const GroupFeed = ({navigation}: Props) => {
           value: [realmChatrooms, unseenCount, totalCount],
         }}
         estimatedItemSize={15}
-        // onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         keyExtractor={(item: any) => {
           return item?.id?.toString();

@@ -145,7 +145,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
   let refInput = useRef<any>();
 
-  // const db = myClient?.firebaseInstance();
+  const db = myClient?.firebaseInstance();
 
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
@@ -983,6 +983,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           navigation.goBack();
         } else {
           navigation.goBack();
+          // Deleting the chatroom from realm in case of leaving the chatroom
           await myClient?.deleteOneChatroom(chatroomID);
         }
       })
@@ -1029,6 +1030,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           navigation.goBack();
         } else {
           navigation.goBack();
+          // Deleting the chatroom from realm in case of leaving the chatroom
           await myClient?.deleteOneChatroom(chatroomID);
         }
       })
@@ -1126,6 +1128,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then((res: any) => {
         fetchChatroomDetails();
+        // Updating Realm in case of muting of chatroom/Dm
         myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
@@ -1144,6 +1147,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then(() => {
         fetchChatroomDetails();
+        // Updating Realm in case of muting of chatroom/Dm
         myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications unmuted for this chatroom');
         setIsToast(true);

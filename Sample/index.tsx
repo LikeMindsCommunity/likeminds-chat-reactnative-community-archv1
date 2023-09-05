@@ -27,7 +27,6 @@ const FetchKeyInputScreen: React.FC<ChildProps> = ({isTrue, setIsTrue}) => {
 
   const realm = useRealm();
   const data = useQuery('UserSchemaRO');
-  // console.log('data', data);
   const handleAddNotes = (userUniqueID: string, userName: string) => {
     realm.write(() => {
       realm.create('UserSchemaRO', {
@@ -44,13 +43,11 @@ const FetchKeyInputScreen: React.FC<ChildProps> = ({isTrue, setIsTrue}) => {
     userUniqueID && userName
       ? setIsButtonClicked(true)
       : setIsButtonClicked(false);
-    // console.log('UNI', userUniqueID, userName, isButtonClicked);
     userUniqueID && userName && isButtonClicked ? (
       setIsTrue(!isTrue)
     ) : (
       <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
     );
-    console.log('isButtonClicked', isButtonClicked);
 
     if (userUniqueID && userName) {
       Keyboard.dismiss();
