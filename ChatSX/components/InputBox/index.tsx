@@ -517,7 +517,8 @@ const InputBox = ({
       // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
-        return `<<${name}|route://${name}>>`;
+        let newName = name.substring(1);
+        return `<<${name}|route://${newName}>>`;
       } else {
         return `<<${name}|route://${id}>>`;
       }

@@ -200,6 +200,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   );
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
+  // To reduce the unseenCount to 0 in case of sending of DM to someone
+  useEffect(() => {
+    return () => {
+      myClient?.updateUnseenCount(chatroomID.toString());
+    };
+  }, []);
+
   const INITIAL_SYNC_PAGE = 1;
 
   let chatroomType = chatroomDetails?.chatroom?.type;
@@ -660,7 +667,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
       //if isDM
       if (chatroomType === 10) {
-        dispatch(getDMFeedData({page: 1}, false) as any);
+        // dispatch(getDMFeedData({page: 1}, false) as any);
       } else {
         // await dispatch(getHomeFeedData({page: 1}, false) as any);
       }
@@ -802,7 +809,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           let payload = {
             page: 1,
           };
-          const res = await dispatch(getDMFeedData(payload, false) as any);
+          // const res = await dispatch(getDMFeedData(payload, false) as any);
 
           if (!!res) {
             let apiRes = await myClient?.checkDMStatus({
