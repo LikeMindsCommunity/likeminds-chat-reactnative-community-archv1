@@ -69,25 +69,29 @@ const DMFeed = ({navigation}: Props) => {
       let payload = {
         page: 1,
       };
-      const res = await dispatch(getDMFeedData(payload) as any);
+      // const res = await dispatch(getDMFeedData(payload) as any);
 
-      if (!!res) {
-        let apiRes = await myClient?.checkDMStatus({
-          requestFrom: 'dm_feed_v2',
-        });
-        let response = apiRes?.data;
-        if (!!response) {
-          let routeURL = response?.cta;
-          const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-          if (hasShowList) {
-            const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-            setShowList(showListValue);
-          }
-          setShowDM(response?.showDm);
+      // if (!!res) {
+      let apiRes = await myClient?.checkDMStatus({
+        requestFrom: 'dm_feed_v2',
+      });
+      let response = apiRes?.data;
+      if (!!response) {
+        let routeURL = response?.cta;
+        const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+        if (hasShowList) {
+          const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+          setShowList(showListValue);
         }
+        setShowDM(response?.showDm);
       }
+      // }
     }
   }
+
+  useLayoutEffect(() => {
+    fetchData();
+  }, [navigation, community]);
 
   useEffect(() => {
     const token = async () => {
@@ -144,6 +148,17 @@ const DMFeed = ({navigation}: Props) => {
     }
 
     if (DB_RESPONSE?.chatroomsData.length !== 0) {
+      const totalChatrooms = DB_RESPONSE?.chatroomsData;
+      for (let i = 0; i < totalChatrooms.length; i++) {
+        const chatroom = totalChatrooms[i];
+        const userData =
+          user?.id !== chatroom?.chatroomWithUserId
+            ? DB_RESPONSE?.userMeta[chatroom?.chatroomWithUserId]?.name
+            : DB_RESPONSE?.userMeta[chatroom?.userId]?.name;
+
+        DB_RESPONSE.chatroomsData[i].chatroomWithUserName = userData;
+      }
+
       await myClient?.saveChatroomResponse(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomsData,
@@ -152,7 +167,6 @@ const DMFeed = ({navigation}: Props) => {
     }
 
     myClient?.updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
-    const newTimeStamp = await myClient?.getTimeStamp();
 
     if (DB_RESPONSE?.chatroomsData?.length === 0) {
       return;
@@ -333,7 +347,7 @@ const DMFeed = ({navigation}: Props) => {
           estimatedItemSize={15}
           renderItem={({item}: any) => {
             const homeFeedProps = {
-              title: item?.member?.name,
+              title: item?.chatroomWithUserName,
               avatar: item?.chatroomImageUrl!,
               lastMessage: item?.lastConversation?.answer!,
               lastMessageUser: item?.lastConversation?.member?.name!,
