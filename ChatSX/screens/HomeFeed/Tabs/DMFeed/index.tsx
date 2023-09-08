@@ -69,14 +69,11 @@ const DMFeed = ({navigation}: Props) => {
           requestFrom: 'dm_feed_v2',
         });
         let response = apiRes?.data;
-
         if (!!response) {
           let routeURL = response?.cta;
           const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-
           if (hasShowList) {
             const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-
             setShowList(showListValue);
           }
           setShowDM(response?.showDm);
@@ -218,12 +215,6 @@ const DMFeed = ({navigation}: Props) => {
               lastConversation: item?.lastConversation!,
               chatroomID: chatroom?.id!,
               deletedBy: item?.lastConversation?.deletedBy,
-              conversationDeletor:
-                item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
-              conversationCreator:
-                item?.lastConversation?.member?.sdkClientInfo?.uuid,
-              conversationDeletorName:
-                item?.lastConversation?.deletedByMember?.name,
               isSecret: chatroom?.isSecret,
               chatroomType: chatroom?.type,
               muteStatus: chatroom?.muteStatus,
