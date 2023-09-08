@@ -838,6 +838,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isFocused]);
 
+  // This is for scrolling down mainly ie whenever response changes this useEffect will be triggered and it'll calculate the index of the last message before prepending of new data and scroll to that index
   useEffect(() => {
     setTimeout(() => {
       if (!!response) {
