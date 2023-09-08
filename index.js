@@ -1,6 +1,7 @@
 /**
  * @format
  */
+import React from 'react';
 import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
@@ -10,7 +11,8 @@ import notifee, {EventType} from '@notifee/react-native';
 import getNotification from './ChatSX/notifications';
 import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './RootNavigation';
-import React from 'react';
+import {UserSchemaRO} from './ChatSX/db/schemas/UserSchema';
+import {RealmProvider} from '@realm/react';
 
 notifee.onBackgroundEvent(async ({type, detail}) => {
   let routes = getRoute(detail?.notification?.data?.route);
@@ -38,7 +40,13 @@ function HeadlessCheck({isHeadless}) {
     return null;
   }
 
-  return <App />;
+  return (
+    <RealmProvider schema={[UserSchemaRO]}>
+      <App />
+    </RealmProvider>
+  );
+
+  // return <App />;
 }
 
 AppRegistry.registerComponent(appName, () => HeadlessCheck);

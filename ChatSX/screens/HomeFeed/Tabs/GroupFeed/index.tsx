@@ -216,6 +216,7 @@ const GroupFeed = ({navigation}: Props) => {
     }
   }
 
+  // TODO -- add
   // useLayoutEffect(() => {
   //   fetchData();
   // }, [navigation]);
