@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {removeKey} from '../../commonFuctions';
+import {myClient} from '../../..';
 import {
   CLEAR_FILE_UPLOADING_MESSAGES,
   IS_FILE_UPLOADING,
@@ -34,11 +35,17 @@ export function fileUploadReducer(state = initialState, action: any) {
       };
 
       const func = async () => {
-        const res = await AsyncStorage.getItem('uploadingFilesMessages');
-        await AsyncStorage.setItem(
-          'uploadingFilesMessages',
-          JSON.stringify({...JSON.parse(res as any), ...dummyState}),
+        // const res = await AsyncStorage.getItem('uploadingFilesMessages');
+        // await AsyncStorage.setItem(
+        //   'uploadingFilesMessages',
+        //   JSON.stringify({...JSON.parse(res as any), ...dummyState}),
+        // );
+
+        myClient?.saveAttachmentUploadConversation(
+          ID.toString(),
+          JSON.stringify(message),
         );
+        const res = await myClient?.getAllAttachmentUploadConversations();
       };
 
       func();
@@ -58,12 +65,14 @@ export function fileUploadReducer(state = initialState, action: any) {
       };
 
       const func = async () => {
-        const res = await AsyncStorage.getItem('uploadingFilesMessages');
-        let obj = removeKey(ID, JSON.parse(res as any));
-        await AsyncStorage.setItem(
-          'uploadingFilesMessages',
-          JSON.stringify(obj),
-        );
+        // const res = await AsyncStorage.getItem('uploadingFilesMessages');
+        // let obj = removeKey(ID, JSON.parse(res as any));
+        // await AsyncStorage.setItem(
+        //   'uploadingFilesMessages',
+        //   JSON.stringify(obj),
+        // );
+        myClient?.removeAttactmentUploadConversationByKey(ID?.toString());
+        const res = await myClient?.getAllAttachmentUploadConversations();
       };
 
       func();

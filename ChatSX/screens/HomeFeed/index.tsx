@@ -166,10 +166,7 @@ const HomeFeed = ({navigation}: Props) => {
       const maxTimeStamp = Math.floor(Date.now() / 1000);
       const minTimeStamp = 0;
       myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
-    } else {
-      // Updating the timeStamp incase of reopening of App
-      myClient?.updateTimeStamp(0, Math.floor(Date.now() / 1000));
-    }
+    } else myClient?.updateTimeStamp(0, Math.floor(Date.now() / 1000));
   };
 
   useEffect(() => {
@@ -195,22 +192,27 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const func = async () => {
-      const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+      // const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+      const res: any = await myClient?.getAllAttachmentUploadConversations();
 
       if (res) {
-        let uploadingFilesMessagesSavedObject = JSON.parse(res);
-        let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
-        let len = arrOfKeys.length;
+        // const temp = JSON.stringify(timeStampStored);
+        // let parsedTimeStamp = JSON.parse(temp);
+        // let uploadingFilesMessagesSavedObject = JSON.parse(res);
+        // let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
+        let len = res.length;
         if (len > 0) {
           for (let i = 0; i < len; i++) {
+            let data = res[i];
+            let uploadingFilesMessagesSavedObject = JSON.parse(data?.value);
             dispatch({
               type: UPDATE_FILE_UPLOADING_OBJECT,
               body: {
                 message: {
-                  ...uploadingFilesMessagesSavedObject[arrOfKeys[i]],
+                  ...uploadingFilesMessagesSavedObject,
                   isInProgress: FAILED,
                 },
-                ID: arrOfKeys[i],
+                ID: data?.key,
               },
             });
           }

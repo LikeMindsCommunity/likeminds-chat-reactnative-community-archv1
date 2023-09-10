@@ -44,7 +44,7 @@ interface Props {
   chatroomID: number;
   lastConversationMember?: string;
   isSecret: boolean;
-  deletedBy?: number;
+  deletedBy?: string;
   inviteReceiver?: any;
   chatroomType: number;
   muteStatus: boolean;
@@ -133,9 +133,19 @@ const HomeFeedItem: React.FC<Props> = ({
     );
 
   const getFeedIconAttachment = (val: any) => {
-    let imageCount = val?.images?.length;
-    let videosCount = val?.videos?.length;
-    let pdfCount = val?.pdf?.length;
+    const attachments = val.attachments;
+    let imageCount = 0;
+    let videosCount = 0;
+    let pdfCount = 0;
+    for (let i = 0; i < attachments.length; i++) {
+      if (attachments[i].type == 'image') {
+        imageCount++;
+      } else if (attachments[i].type == 'video') {
+        videosCount++;
+      } else {
+        pdfCount++;
+      }
+    }
 
     if (imageCount > 0 && videosCount > 0 && pdfCount > 0) {
       return (
@@ -346,7 +356,7 @@ const HomeFeedItem: React.FC<Props> = ({
                 width: '80%',
               },
             ]}>
-            {!!deletedBy ? (
+            {deletedBy !== 'null' && deletedBy !== null ? (
               <Text
                 style={
                   styles.deletedMessage
@@ -368,7 +378,7 @@ const HomeFeedItem: React.FC<Props> = ({
                 ) : null}
 
                 <Text numberOfLines={1} style={[styles.parentLastMessage]}>
-                  {!!lastConversation?.has_files
+                  {lastConversation.hasFiles > 0
                     ? getFeedIconAttachment(lastConversation)
                     : lastConversation?.state === 10
                     ? getFeedIconAttachment(lastConversation)

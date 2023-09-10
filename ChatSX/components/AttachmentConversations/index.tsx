@@ -76,7 +76,7 @@ const AttachmentConversations = ({
           isTypeSent ? styles.sentMessage : styles.receivedMessage,
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
-        {!!(item?.member?.id === user?.id) || isReply ? null : (
+        {!!(item?.member?.id == user?.id) || isReply ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
             {!!item?.member?.customTitle ? (

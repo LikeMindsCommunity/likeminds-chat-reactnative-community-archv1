@@ -224,7 +224,7 @@ const GroupFeed = ({navigation}: Props) => {
         let payload = {
           page: 1,
         };
-        const temp = await dispatch(getHomeFeedData(payload) as any);
+        // const temp = await dispatch(getHomeFeedData(payload) as any);
       } else {
         await dispatch(
           updateInvites({channelType: 1, page: 2, pageSize: 10}, false) as any,
@@ -236,9 +236,9 @@ const GroupFeed = ({navigation}: Props) => {
     }
   }
 
-  // useLayoutEffect(() => {
-  //   fetchData();
-  // }, [navigation]);
+  useLayoutEffect(() => {
+    fetchData();
+  }, [navigation]);
 
   useEffect(() => {
     const token = async () => {
@@ -329,7 +329,7 @@ const GroupFeed = ({navigation}: Props) => {
             lastConversationMember: item?.lastConversationRO?.member?.name!,
             chatroomID: item?.id!,
             isSecret: item?.isSecret,
-            deletedBy: item?.lastConversationRO?.deletedBy,
+            deletedBy: item?.lastConversation?.deletedByUserId,
             conversationDeletor:
               item?.lastConversationRO?.deletedByMember?.sdkClientInfo?.uuid,
             conversationCreator:

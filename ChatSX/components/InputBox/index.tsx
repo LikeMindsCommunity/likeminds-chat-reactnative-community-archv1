@@ -42,6 +42,7 @@ import {
   UPDATE_LAST_CONVERSATION,
   EMPTY_BLOCK_DELETION,
   UPDATE_MULTIMEDIA_CONVERSATIONS,
+  GET_CONVERSATIONS_SUCCESS,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -532,6 +533,7 @@ const InputBox = ({
         replyObj.replyConversationObject = replyMessage;
         replyObj.member.name = user?.name;
         replyObj.member.id = user?.id;
+        replyObj.member.sdkClientInfo = user?.sdkClientInfo;
         replyObj.answer = conversationText.trim();
         replyObj.createdAt = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
@@ -563,6 +565,7 @@ const InputBox = ({
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
       obj.member.id = user?.id;
+      obj.member.sdkClientInfo = user?.sdkClientInfo;
       obj.answer = conversationText.trim();
       obj.createdAt = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,
@@ -595,6 +598,34 @@ const InputBox = ({
         type: MESSAGE_SENT,
         body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
+
+      if (isReply) {
+        if (attachmentsCount > 0) {
+          const editedReplyObj = {...replyObj, isInProgress: SUCCESS};
+          await myClient?.saveNewConversationToRealm(
+            chatroomID.toString(),
+            editedReplyObj,
+          );
+        } else {
+          await myClient?.saveNewConversationToRealm(
+            chatroomID.toString(),
+            replyObj,
+          );
+        }
+      } else {
+        if (attachmentsCount > 0) {
+          const editedObj = {...obj, isInProgress: SUCCESS};
+          await myClient?.saveNewConversationToRealm(
+            chatroomID.toString(),
+            editedObj,
+          );
+        } else {
+          await myClient?.saveNewConversationToRealm(
+            chatroomID.toString(),
+            obj,
+          );
+        }
+      }
 
       if (isUploadScreen) {
         dispatch({
@@ -637,6 +668,9 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 0},
         });
+        if (!!response) {
+          await myClient?.replaceSavedConversation(response?.data);
+        }
       } else if (
         chatroomType === 10 && // if DM
         chatRequestState === null &&
@@ -647,10 +681,14 @@ const InputBox = ({
           chatRequestState: 1,
           text: message.trim(),
         });
+
         dispatch({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 1},
         });
+        if (!!response) {
+          await myClient?.replaceSavedConversation(response?.data);
+        }
       } else {
         if (!isUploadScreen) {
           let payload = {
@@ -661,7 +699,15 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
+          const chatroomKeAccConv = await myClient?.getConversationData(
+            chatroomID,
+          );
+
           let response = await dispatch(onConversationsCreate(payload) as any);
+
+          if (!!response) {
+            await myClient?.replaceSavedConversation(response);
+          }
 
           //Handling conversation failed case
           if (response === undefined) {
@@ -692,6 +738,14 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
+          await myClient?.replaceSavedConversation(response);
+          const conversationGet = await myClient?.getConversationData(
+            chatroomID,
+          );
+          dispatch({
+            type: GET_CONVERSATIONS_SUCCESS,
+            body: {conversations: conversationGet.reverse()},
+          });
           if (response === undefined) {
             dispatch({
               type: SHOW_TOAST,
@@ -728,9 +782,9 @@ const InputBox = ({
               paginateBy: conversations.length * 2,
               topNavigate: false,
             };
-            await dispatch(
-              getConversations(getConversationPayload, false) as any,
-            );
+            // await dispatch(
+            //   getConversations(getConversationPayload, false) as any,
+            // );
           }
           dispatch({
             type: STATUS_BAR_STYLE,
@@ -918,10 +972,11 @@ const InputBox = ({
     setMessage('');
     setIsEditable(false);
 
-    await myClient?.editConversation({
+    const resp = await myClient?.editConversation({
       conversationId: conversationId,
       text: editedConversation,
     });
+    await myClient?.updateSingleConversation(conversationId.toString(), resp);
   };
 
   return (

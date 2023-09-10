@@ -14,6 +14,7 @@ import {
 } from '../../store/types/types';
 import {PollConversationView} from '../Poll';
 import {useQuery} from '@realm/react';
+import {myClient} from '../../..';
 
 interface Messages {
   item: any;
@@ -26,7 +27,6 @@ interface Messages {
   handleTapToUndo: any;
   handleFileUpload: any;
   chatroomType: any;
-  chatroomWithUser: any;
 }
 
 const Messages = ({
@@ -40,16 +40,26 @@ const Messages = ({
   handleTapToUndo,
   handleFileUpload,
   chatroomType,
-  chatroomWithUser,
 }: Messages) => {
-  const conversationCreator = item?.member?.sdkClientInfo?.uuid;
-  const conversationDeletor = item?.deletedByMember?.sdkClientInfo?.uuid;
-  const conversationDeletorName = item?.deletedByMember?.name;
-  const chatroomWithUserUuid = chatroomWithUser?.sdkClientInfo?.uuid;
-  const chatroomWithUserMemberId = chatroomWithUser?.id;
-  const users = useQuery('UserSchemaRO');
-
   const {user} = useAppSelector(state => state.homefeed);
+
+  const [conversationCreator, setConversationCreator] = useState();
+
+  const getConversationCreator = async () => {
+    const getConv = await myClient?.getConversationData(item?.chatroomId);
+    const answer = getConv[0].answer;
+    const startingIndex = answer.lastIndexOf('<');
+    const endingIndex = answer.lastIndexOf('|');
+    const trimmedAnswer = answer.substring(startingIndex + 1, endingIndex);
+    if (trimmedAnswer !== undefined) {
+      setConversationCreator(trimmedAnswer);
+    } else {
+      setConversationCreator(item?.member?.sdkClientInfo?.uuid);
+    }
+  };
+
+  getConversationCreator();
+
   const {
     selectedMessages,
     isLongPress,
@@ -61,8 +71,8 @@ const Messages = ({
   const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [reactionArr, setReactionArr] = useState([] as any);
-  const [uuid, setUuid] = useState<any>();
-  const isTypeSent = item?.member?.id === user?.id ? true : false;
+  const userIdStringified = user?.id.toString();
+  const isTypeSent = item?.member?.id == userIdStringified ? true : false;
   const chatRequestedBy = chatroomDetails?.chatroom?.chatRequestedBy;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
@@ -184,12 +194,18 @@ const Messages = ({
     }
   };
 
+  const conversationDeletor = item?.deletedByMember?.sdkClientInfo?.uuid;
+  const conversationDeletorName = item?.deletedByMember?.name;
+  const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
+  const chatroomWithUserMemberId = user?.id;
+  const users = useQuery('UserSchemaRO');
+
   return (
     <View style={styles.messageParent}>
       <View>
         {!!item?.deletedBy ? (
           chatroomType !== 10 ? (
-            uuid === conversationDeletor ? (
+            users[0]?.userUniqueID === conversationDeletor ? (
               <View
                 style={[
                   styles.message,
@@ -198,9 +214,7 @@ const Messages = ({
                     ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                     : null,
                 ]}>
-                <Text style={styles.deletedMsg}>
-                  This message has been deleted by you
-                </Text>
+                <Text style={styles.deletedMsg}>You deleted this message</Text>
               </View>
             ) : conversationCreator === conversationDeletor ? (
               <View
@@ -229,7 +243,7 @@ const Messages = ({
                 </Text>
               </View>
             )
-          ) : uuid === conversationDeletor ? (
+          ) : users[0]?.userUniqueID === conversationDeletor ? (
             <View
               style={[
                 styles.message,
@@ -238,9 +252,7 @@ const Messages = ({
                   ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                   : null,
               ]}>
-              <Text style={styles.deletedMsg}>
-                This message has been deleted by you
-              </Text>
+              <Text style={styles.deletedMsg}>You deleted this message</Text>
             </View>
           ) : (
             <View
@@ -322,7 +334,7 @@ const Messages = ({
                 conversations[0].state === 19 &&
                 conversations[0]?.id === item?.id &&
                 (!!chatRequestedBy
-                  ? chatRequestedBy[0]?.id === user?.id
+                  ? chatRequestedBy[0]?.id == userIdStringified
                   : null) ? (
                   <Pressable
                     onPress={() => {
@@ -394,7 +406,7 @@ const Messages = ({
                       ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                       : null,
                   ]}>
-                  {!!(item?.member?.id === user?.id) ? null : (
+                  {!!(item?.member?.id == userIdStringified) ? null : (
                     <Text style={styles.messageInfo} numberOfLines={1}>
                       {item?.member?.name}
                       {!!item?.member?.customTitle ? (
@@ -584,12 +596,12 @@ const Messages = ({
 
           //logic to check clicked index and findIndex are same so that we can remove reaction
           let index = item?.reactions.findIndex(
-            (val: any) => val?.member?.id === user?.id,
+            (val: any) => val?.member?.id == userIdStringified,
           );
 
           if (
             index !== -1 &&
-            item?.reactions[index]?.member?.id === reactionArr?.id // this condition checks if clicked reaction ID matches the findIndex ID
+            item?.reactions[index]?.member?.id == reactionArr?.id // this condition checks if clicked reaction ID matches the findIndex ID
           ) {
             setModalVisible(false);
           }

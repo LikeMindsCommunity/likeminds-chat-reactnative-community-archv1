@@ -58,6 +58,7 @@ import {
   CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_SUCCESS,
+  GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
@@ -121,6 +122,8 @@ import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
 import {useQuery} from '@realm/react';
+import Realm from 'realm';
+import {Observable} from 'rxjs';
 
 interface Data {
   id: string;
@@ -165,6 +168,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [DMBlockAlertModalVisible, setDMBlockAlertModalVisible] =
     useState(false);
   const [showDM, setShowDM] = useState<any>(null);
+  const [type, setType] = useState();
   const [showList, setShowList] = useState<any>(null);
   const [isMessagePrivately, setIsMessagePrivately] = useState<any>(false);
   const [isEditable, setIsEditable] = useState<any>(false);
@@ -178,7 +182,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     chatroomID,
     isInvited,
     muteStatus,
-    // handleOnDelete,
     previousChatroomID,
     navigationFromNotification,
   } = route.params;
@@ -200,20 +203,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   );
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
-  // To reduce the unseenCount to 0 in case of sending of DM to someone
-  useEffect(() => {
-    return () => {
-      myClient?.updateUnseenCount(chatroomID.toString());
-    };
-  }, []);
-
   const INITIAL_SYNC_PAGE = 1;
 
   let chatroomType = chatroomDetails?.chatroom?.type;
+
   let chatroomFollowStatus = chatroomDetails?.chatroom?.followStatus;
   let memberCanMessage = chatroomDetails?.chatroom?.memberCanMessage;
   let chatroomWithUser = chatroomDetails?.chatroom?.chatroomWithUser;
   let chatRequestState = chatroomDetails?.chatroom?.chatRequestState;
+
+  // To reduce the unseenCount to 0 in case of sending of DM to someone
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -237,9 +236,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   */
   }
 
+  const userIdStringified = user?.id;
+
   let chatroomName =
     chatroomType === 10
-      ? user?.id !== chatroomWithUser?.id
+      ? userIdStringified !== chatroomWithUser?.id
         ? chatroomWithUser?.name
         : chatroomDetails?.chatroom?.member?.name!
       : chatroomDetails?.chatroom?.header;
@@ -258,7 +259,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
   let chatroomProfile =
     chatroomType === 10
-      ? user?.id !== chatroomWithUser?.id
+      ? userIdStringified !== chatroomWithUser?.id
         ? chatroomWithUser?.imageUrl
         : chatroomDetails?.chatroom?.member?.imageUrl!
       : null;
@@ -409,7 +410,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
         if (selectedMessagesLength === 1) {
           if (
-            selectedMessages[0].member.id === user?.id &&
+            selectedMessages[0].member.id == userIdStringified &&
             !!selectedMessages[0].answer
           ) {
             isSelectedMessageEditable = true;
@@ -433,7 +434,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           }
 
           if (
-            selectedMessages[i]?.member?.id === user?.id &&
+            selectedMessages[i]?.member?.id == userIdStringified &&
             !!!selectedMessages[i]?.deletedBy
           ) {
             userCanDeleteParticularMessageArr = [
@@ -556,13 +557,41 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     .then(async () => {
                       dispatch({type: SELECTED_MESSAGES, body: []});
                       dispatch({type: LONG_PRESSED, body: false});
+                      for (let i = 0; i < selectedMessagesIDArr.length; i++) {
+                        const conversationFromRealm =
+                          await myClient?.getSingleConversationData(
+                            selectedMessagesIDArr[i],
+                          );
+                        conversationFromRealm[0].deletedBy = user?.id;
+                        conversationFromRealm[0].deletedByMember = user;
+                        await myClient?.updateDeletedBy(
+                          selectedMessagesIDArr[i],
+                          conversationFromRealm[0],
+                        );
+                        const conversationAgainFromRealm =
+                          await myClient?.getSingleConversationData(
+                            selectedMessagesIDArr[i],
+                          );
+                        for (let j = 0; j < conversations.length; j++) {
+                          if (
+                            conversations[j].id == conversationFromRealm[0].id
+                          ) {
+                            conversations[j] = conversationFromRealm[0];
+                            break;
+                          }
+                        }
+                      }
+                      dispatch({
+                        type: GET_CONVERSATIONS_SUCCESS,
+                        body: {conversations: conversations},
+                      });
                       setInitialHeader();
                       let payload = {
                         chatroomID: chatroomID,
                         paginateBy: conversations.length * 2,
                         topNavigate: false,
                       };
-                      await dispatch(getConversations(payload, false) as any);
+                      // await dispatch(getConversations(payload, false) as any);
                     })
                     .catch(() => {
                       Alert.alert('Delete message failed');
@@ -605,13 +634,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   // Sync conversation API call
-  async function syncConversationAPI(page: number) {
+  async function syncConversationAPI(
+    page: number,
+    maxTimeStamp: number,
+    minTimeStamp: number,
+  ) {
     const res = await myClient?.syncConversation(
       SyncConversationRequest.builder()
         .setChatroomId(chatroomID)
         .setPage(page)
-        .setMinTimestamp(0)
-        .setMaxTimestamp(Math.floor(Date.now()))
+        .setMinTimestamp(minTimeStamp)
+        .setMaxTimestamp(maxTimeStamp)
         .setPageSize(20)
         .build(),
     );
@@ -620,17 +653,43 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // pagination call for sync conversation
   const paginatedSyncAPI = async (page: number) => {
-    const val = await syncConversationAPI(page);
-
+    const val = await syncConversationAPI(page, Math.floor(Date.now()), 0);
     const DB_RESPONSE = val?.data;
+    if (DB_RESPONSE?.conversationsData?.length !== 0) {
+      const totalConversations = DB_RESPONSE?.conversationsData;
+      for (let i = 0; i < totalConversations.length; i++) {
+        const conversation = totalConversations[i];
+        if (conversation.deletedByUserId != null) {
+          DB_RESPONSE.conversationsData[i].deletedBy =
+            DB_RESPONSE?.userMeta[conversation.deletedByUserId].id.toString();
+          DB_RESPONSE.conversationsData[i].deletedByMember =
+            DB_RESPONSE?.userMeta[conversation.deletedByUserId];
+        }
+      }
+      // const totalConversations: any = await getConversationData(chatroomID);
+      for (let i = 0; i < totalConversations.length; i++) {
+        const conversation = totalConversations[i];
+        if (
+          conversation?.replyId !== null &&
+          conversation?.replyId !== 'null'
+        ) {
+          const convToBeReplied = await myClient?.getSingleConversationData(
+            conversation.replyId,
+          );
+          if (convToBeReplied.length !== 0) {
+            DB_RESPONSE.conversationsData[i].replyConversationObject =
+              convToBeReplied[0];
+          }
+        }
+      }
 
-    // TODO
-    // myClient.saveConversationData(
-    //   DB_RESPONSE,
-    //   DB_RESPONSE?.chatroomsData,
-    //   DB_RESPONSE?.conversationMeta,
-    //   community?.id,
-    // );
+      await myClient?.saveConversationData(
+        DB_RESPONSE,
+        DB_RESPONSE?.chatroomMeta,
+        DB_RESPONSE?.conversationsData,
+        community?.id,
+      );
+    }
 
     if (DB_RESPONSE?.conversationsData?.length === 0) {
       return;
@@ -639,19 +698,55 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
+  useEffect(() => {
+    const leavingChatroom = async () => {
+      await myClient?.updateUnseenCount(chatroomID.toString());
+    };
+    return () => {
+      leavingChatroom();
+    };
+  }, []);
+
+  // Fetching already existing chatrooms from Realm
+  const getExistingData = async () => {
+    const existingChatrooms: any = await myClient?.getConversationData(
+      chatroomID.toString(),
+    );
+    if (!!existingChatrooms && existingChatrooms.length != 0) {
+      existingChatrooms.sort(function (a: any, b: any) {
+        let keyA = a.createdEpoch;
+        let keyB = b.createdEpoch;
+        if (keyA > keyB) return -1;
+        if (keyA < keyB) return 1;
+        return 0;
+      });
+      dispatch({
+        type: GET_CONVERSATIONS_SUCCESS,
+        body: {conversations: existingChatrooms},
+      });
+    }
+  };
+
   // this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
-    let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
-
-    // TODO -- hide sync conversation API call
-    // paginatedSyncAPI(INITIAL_SYNC_PAGE);
-
-    let response = await dispatch(
-      getConversations(
-        payload,
-        showLoaderVal != undefined && showLoaderVal == false ? false : true,
-      ) as any,
+    // let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
+    await getExistingData();
+    await paginatedSyncAPI(INITIAL_SYNC_PAGE);
+    let conversationsFromRealm: any = await myClient?.getConversationData(
+      chatroomID.toString(),
     );
+    conversationsFromRealm.sort(function (a: any, b: any) {
+      let keyA = a.createdEpoch;
+      let keyB = b.createdEpoch;
+      if (keyA > keyB) return -1;
+      if (keyA < keyB) return 1;
+      return 0;
+    });
+    dispatch({
+      type: GET_CONVERSATIONS_SUCCESS,
+      body: {conversations: conversationsFromRealm},
+    });
+
     if (!isInvited) {
       const response = await myClient?.markReadChatroom({
         chatroomId: chatroomID,
@@ -664,15 +759,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       });
 
       updatePageInRedux();
-
-      //if isDM
-      if (chatroomType === 10) {
-        // dispatch(getDMFeedData({page: 1}, false) as any);
-      } else {
-        // await dispatch(getHomeFeedData({page: 1}, false) as any);
-      }
     }
-    return response;
+    return conversationsFromRealm;
   }
 
   //this function fetchChatroomDetails when we first move inside Chatroom
@@ -811,21 +899,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           // const res = await dispatch(getDMFeedData(payload, false) as any);
 
-          if (!!res) {
-            let apiRes = await myClient?.checkDMStatus({
-              requestFrom: 'group_channel',
-            });
-            let response = apiRes?.data;
-            if (!!response) {
-              let routeURL = response?.cta;
-              const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-              if (hasShowList) {
-                const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-                setShowList(showListValue);
-              }
-              setShowDM(response?.showDm);
-            }
-          }
+          // if (!!res) {
+          //   let apiRes = await myClient?.checkDMStatus({
+          //     requestFrom: 'group_channel',
+          //   });
+          //   let response = apiRes?.data;
+          //   if (!!response) {
+          //     let routeURL = response?.cta;
+          //     const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+          //     if (hasShowList) {
+          //       const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+          //       setShowList(showListValue);
+          //     }
+          //     setShowDM(response?.showDm);
+          //   }
+          // }
         }
       }
       let res = await fetchData(false);
@@ -892,7 +980,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let selectedMessagesMember = selectedMessages[0]?.member;
       if (
         showDM &&
-        selectedMessagesMember?.id !== user?.id &&
+        selectedMessagesMember?.id !== userIdStringified &&
         !selectedMessages[0]?.deletedBy
       ) {
         if (showList == 2 && selectedMessagesMember?.state === 1) {
@@ -1103,7 +1191,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           paginateBy: 100,
           topNavigate: false,
         };
-        await dispatch(getConversations(getConversationsPayload, true) as any);
+        // await dispatch(getConversations(getConversationsPayload, true) as any);
 
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
@@ -1261,16 +1349,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let changedMsg;
     if (selectedMessages[0]?.reactions.length > 0) {
       let isReactedArr = selectedMessages[0]?.reactions.filter(
-        (val: any) => val?.member?.id === user?.id,
+        (val: any) => val?.member?.id === userIdStringified,
       );
       if (isReactedArr.length > 0) {
         // Reacted different emoji
         if (isReactedArr[0].reaction !== val) {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
-            element?.member?.id === user?.id
+            element?.member?.id === userIdStringified
               ? {
                   member: {
-                    id: user?.id,
+                    id: userIdStringified,
                     name: user?.name,
                     imageUrl: '',
                   },
@@ -1287,10 +1375,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else if (isReactedArr[0].reaction === val) {
           // Reacted same emoji
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
-            element?.member?.id === user?.id
+            element?.member?.id === userIdStringified
               ? {
                   member: {
-                    id: user?.id,
+                    id: userIdStringified,
                     name: user?.name,
                     imageUrl: '',
                   },
@@ -1312,7 +1400,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             ...selectedMessages[0]?.reactions,
             {
               member: {
-                id: user?.id,
+                id: userIdStringified,
                 name: user?.name,
                 imageUrl: '',
               },
@@ -1330,7 +1418,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           ...selectedMessages[0]?.reactions,
           {
             member: {
-              id: user?.id,
+              id: userIdStringified,
               name: user?.name,
               imageUrl: '',
             },
@@ -1366,7 +1454,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     if (item?.reactions?.length > 0) {
       let index = item?.reactions.findIndex(
-        (val: any) => val?.member?.id === user?.id,
+        (val: any) => val?.member?.id === userIdStringified,
       );
 
       // this condition checks if clicked reaction ID matches the findIndex ID
@@ -1924,7 +2012,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 }}
                 style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
                 <Messages
-                  chatroomWithUser={chatroomWithUser}
                   chatroomType={chatroomType}
                   onScrollToIndex={(index: any) => {
                     flatlistRef.current?.scrollToIndex({animated: true, index});
@@ -2106,12 +2193,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           {/* 
               if chat_request_state === 0 (Not requested yet) &&
               (chat_requested_by !== null
-                ? chat_requested_by[0]?.id !== user?.id (TRUE or FALSE)
+                ? chat_requested_by[0]?.id !== userIdStringified (TRUE or FALSE)
                 : null (FALSE) )
           */}
           {chatRequestState === 0 &&
           (!!chatroomDetails?.chatroom?.chatRequestedBy
-            ? chatroomDetails?.chatroom?.chatRequestedBy[0]?.id !== user?.id
+            ? chatroomDetails?.chatroom?.chatRequestedBy[0]?.id !==
+              userIdStringified
             : null) ? (
             <View style={styles.dmRequestView}>
               <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>

@@ -71,8 +71,7 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case GET_CONVERSATIONS_SUCCESS: {
       const {conversations = []} = action.body;
-      let arr = conversations.reverse();
-      return {...state, conversations: arr};
+      return {...state, conversations: conversations};
     }
     case PAGINATED_CONVERSATIONS_SUCCESS: {
       const {conversations = []} = action.body;
