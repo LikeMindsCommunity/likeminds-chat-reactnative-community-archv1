@@ -700,12 +700,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   useEffect(() => {
     const leavingChatroom = async () => {
-      await myClient?.updateUnseenCount(chatroomID.toString());
+      if (chatroomType === 10) {
+        await myClient?.markReadChatroom({
+          chatroomId: chatroomID,
+        });
+        await myClient?.updateUnseenCount(chatroomID.toString());
+      }
     };
     return () => {
       leavingChatroom();
     };
-  }, []);
+  }, [chatroomType]);
 
   // Fetching already existing chatrooms from Realm
   const getExistingData = async () => {

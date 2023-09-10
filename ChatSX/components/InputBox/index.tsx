@@ -599,31 +599,36 @@ const InputBox = ({
         body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
 
-      if (isReply) {
-        if (attachmentsCount > 0) {
-          const editedReplyObj = {...replyObj, isInProgress: SUCCESS};
-          await myClient?.saveNewConversationToRealm(
-            chatroomID.toString(),
-            editedReplyObj,
-          );
+      if (
+        chatroomType !== 10 && // if DM
+        chatRequestState !== null
+      ) {
+        if (isReply) {
+          if (attachmentsCount > 0) {
+            const editedReplyObj = {...replyObj, isInProgress: SUCCESS};
+            await myClient?.saveNewConversationToRealm(
+              chatroomID.toString(),
+              editedReplyObj,
+            );
+          } else {
+            await myClient?.saveNewConversationToRealm(
+              chatroomID.toString(),
+              replyObj,
+            );
+          }
         } else {
-          await myClient?.saveNewConversationToRealm(
-            chatroomID.toString(),
-            replyObj,
-          );
-        }
-      } else {
-        if (attachmentsCount > 0) {
-          const editedObj = {...obj, isInProgress: SUCCESS};
-          await myClient?.saveNewConversationToRealm(
-            chatroomID.toString(),
-            editedObj,
-          );
-        } else {
-          await myClient?.saveNewConversationToRealm(
-            chatroomID.toString(),
-            obj,
-          );
+          if (attachmentsCount > 0) {
+            const editedObj = {...obj, isInProgress: SUCCESS};
+            await myClient?.saveNewConversationToRealm(
+              chatroomID.toString(),
+              editedObj,
+            );
+          } else {
+            await myClient?.saveNewConversationToRealm(
+              chatroomID.toString(),
+              obj,
+            );
+          }
         }
       }
 
@@ -668,9 +673,6 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 0},
         });
-        if (!!response) {
-          await myClient?.replaceSavedConversation(response?.data);
-        }
       } else if (
         chatroomType === 10 && // if DM
         chatRequestState === null &&
@@ -686,9 +688,6 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 1},
         });
-        if (!!response) {
-          await myClient?.replaceSavedConversation(response?.data);
-        }
       } else {
         if (!isUploadScreen) {
           let payload = {
