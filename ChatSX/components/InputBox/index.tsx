@@ -529,12 +529,13 @@ const InputBox = ({
     if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
       if (isReply) {
-        replyObj.replyConversation = replyMessage?.id;
+        replyObj.replyConversation = replyMessage?.id?.toString();
         replyObj.replyConversationObject = replyMessage;
         replyObj.member.name = user?.name;
-        replyObj.member.id = user?.id;
+        replyObj.member.id = user?.id?.toString();
         replyObj.member.sdkClientInfo = user?.sdkClientInfo;
-        replyObj.answer = conversationText.trim();
+        replyObj.member.uuid = user?.uuid;
+        replyObj.answer = conversationText.trim()?.toString();
         replyObj.createdAt = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
           useGrouping: false,
@@ -542,15 +543,15 @@ const InputBox = ({
           minimumIntegerDigits: 2,
           useGrouping: false,
         })}`;
-        replyObj.id = ID;
-        replyObj.chatroomId = chatroomDetails?.chatroom?.id;
-        replyObj.communityId = community?.id;
+        replyObj.id = ID?.toString();
+        replyObj.chatroomId = chatroomDetails?.chatroom?.id?.toString();
+        replyObj.communityId = community?.id?.toString();
         replyObj.date = `${
           time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
         } ${months[time.getMonth()]} ${time.getFullYear()}`;
-        replyObj.id = ID;
-        replyObj.chatroomId = chatroomDetails?.chatroom?.id;
-        replyObj.communityId = community?.id;
+        replyObj.id = ID.toString();
+        replyObj.chatroomId = chatroomDetails?.chatroom?.id?.toString();
+        replyObj.communityId = community?.id?.toString();
         replyObj.date = `${
           time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
         } ${months[time.getMonth()]} ${time.getFullYear()}`;
@@ -564,9 +565,10 @@ const InputBox = ({
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
-      obj.member.id = user?.id;
+      obj.member.id = user?.id?.toString();
       obj.member.sdkClientInfo = user?.sdkClientInfo;
-      obj.answer = conversationText.trim();
+      obj.member.uuid = user?.uuid;
+      obj.answer = conversationText.trim()?.toString();
       obj.createdAt = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,
         useGrouping: false,
@@ -574,9 +576,9 @@ const InputBox = ({
         minimumIntegerDigits: 2,
         useGrouping: false,
       })}`;
-      obj.id = ID;
-      obj.chatroomId = chatroomDetails?.chatroom?.id;
-      obj.communityId = community?.id;
+      obj.id = ID?.toString();
+      obj.chatroomId = chatroomDetails?.chatroom?.id?.toString();
+      obj.communityId = community?.id?.toString();
       obj.date = `${
         time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
       } ${months[time.getMonth()]} ${time.getFullYear()}`;
@@ -705,7 +707,7 @@ const InputBox = ({
           let response = await dispatch(onConversationsCreate(payload) as any);
 
           if (!!response) {
-            await myClient?.replaceSavedConversation(response);
+            await myClient?.replaceSavedConversation(response?.conversation);
           }
 
           //Handling conversation failed case
@@ -737,7 +739,7 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
-          await myClient?.replaceSavedConversation(response);
+          await myClient?.replaceSavedConversation(response?.conversation);
           const conversationGet = await myClient?.getConversationData(
             chatroomID,
           );
@@ -975,7 +977,10 @@ const InputBox = ({
       conversationId: conversationId,
       text: editedConversation,
     });
-    await myClient?.updateSingleConversation(conversationId.toString(), resp);
+    await myClient?.updateSingleConversation(
+      conversationId.toString(),
+      resp?.data,
+    );
   };
 
   return (
