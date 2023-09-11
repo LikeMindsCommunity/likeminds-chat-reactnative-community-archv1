@@ -166,7 +166,14 @@ const HomeFeed = ({navigation}: Props) => {
       const maxTimeStamp = Math.floor(Date.now() / 1000);
       const minTimeStamp = 0;
       myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
-    } else myClient?.updateTimeStamp(0, Math.floor(Date.now() / 1000));
+    } else {
+      const temp = JSON.stringify(timeStampStored);
+      let parsedTimeStamp = JSON.parse(temp);
+      myClient?.updateTimeStamp(
+        parsedTimeStamp[0].maxTimeStamp,
+        Math.floor(Date.now() / 1000),
+      );
+    }
   };
 
   useEffect(() => {

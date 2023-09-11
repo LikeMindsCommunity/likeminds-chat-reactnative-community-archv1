@@ -12,12 +12,14 @@ import {
   QUESTION_WARNING,
   TIME_TEXT,
 } from '../../../constants/Strings';
-import {SHOW_TOAST} from '../../../store/types/types';
+import {
+  GET_CONVERSATIONS_SUCCESS,
+  SHOW_TOAST,
+} from '../../../store/types/types';
 import {myClient} from '../../../..';
 import CreatePollUI from '../CreatePollUI';
 import {CreatePoll, CreatePollStateProps} from '../../../Models/PollModels';
 import {formatDate} from '../../../commonFuctions';
-import {getConversations} from '../../../store/actions/chatroom';
 
 const CreatePollScreen = ({navigation, route}: CreatePoll) => {
   const [question, setQuestion] = useState<string>('');
@@ -293,12 +295,27 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
         expiryTime: Date.parse(time.toString()),
       };
       const res = await myClient.postPollConversation(payload);
-      let getConversationsPayload = {
-        chatroomID: chatroomID,
-        paginateBy: conversationsLength,
-        topNavigate: false,
-      };
-      await dispatch(getConversations(getConversationsPayload, true) as any);
+
+      await myClient?.saveNewConversationToRealm(
+        chatroomID.toString(),
+        res?.data?.conversation,
+      );
+
+      const realmConversations = await myClient?.getConversationData(
+        chatroomID.toString(),
+      );
+
+      realmConversations.sort(function (a: any, b: any) {
+        let keyA = a.createdEpoch;
+        let keyB = b.createdEpoch;
+        if (keyA > keyB) return -1;
+        if (keyA < keyB) return 1;
+        return 0;
+      });
+      dispatch({
+        type: GET_CONVERSATIONS_SUCCESS,
+        body: {conversations: realmConversations},
+      });
       handleOnCancel();
     } catch (error) {
       // process error
