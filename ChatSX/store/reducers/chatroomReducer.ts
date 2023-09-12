@@ -12,7 +12,7 @@ import {
   LONG_PRESSED,
   MESSAGE_SENT,
   ON_CONVERSATIONS_CREATE_SUCCESS,
-  PAGINATED_CONVERSATIONS_SUCCESS,
+  PAGINATED_CONVERSATIONS_END_SUCCESS,
   REACTION_SENT,
   SELECTED_FILES_TO_UPLOAD,
   SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
@@ -27,6 +27,7 @@ import {
   UPDATE_CONVERSATIONS,
   EMPTY_BLOCK_DELETION,
   UPDATE_MULTIMEDIA_CONVERSATIONS,
+  PAGINATED_CONVERSATIONS_START_SUCCESS,
 } from '../types/types';
 
 const initialState = {
@@ -74,10 +75,18 @@ export function chatroomReducer(state = initialState, action: any) {
       let arr = conversations.reverse();
       return {...state, conversations: arr};
     }
-    case PAGINATED_CONVERSATIONS_SUCCESS: {
+    case PAGINATED_CONVERSATIONS_END_SUCCESS: {
       const {conversations = []} = action.body;
       let arr = conversations.reverse();
       return {...state, conversations: [...state.conversations, ...arr]};
+    }
+    case PAGINATED_CONVERSATIONS_START_SUCCESS: {
+      const {conversations = []} = action.body;
+      let arr = conversations.reverse();
+      return {
+        ...state,
+        conversations: [...arr, ...state.conversations],
+      };
     }
     case FIREBASE_CONVERSATIONS_SUCCESS: {
       const data = action.body;
