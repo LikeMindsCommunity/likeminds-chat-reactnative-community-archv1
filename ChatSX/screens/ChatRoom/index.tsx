@@ -38,7 +38,6 @@ import {useAppDispatch, useAppSelector} from '../../../store';
 import {
   firebaseConversation,
   getChatroom,
-  getConversations,
   paginatedConversations,
 } from '../../store/actions/chatroom';
 import {styles} from './styles';
@@ -559,7 +558,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       dispatch({type: LONG_PRESSED, body: false});
                       for (let i = 0; i < selectedMessagesIDArr.length; i++) {
                         const conversationFromRealm =
-                          await myClient?.getSingleConversationData(
+                          await myClient?.getConversation(
                             selectedMessagesIDArr[i],
                           );
                         conversationFromRealm[0].deletedBy = user?.id;
@@ -569,7 +568,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                           conversationFromRealm[0],
                         );
                         const conversationAgainFromRealm =
-                          await myClient?.getSingleConversationData(
+                          await myClient?.getConversation(
                             selectedMessagesIDArr[i],
                           );
                         for (let j = 0; j < conversations.length; j++) {
@@ -591,7 +590,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         paginateBy: conversations.length * 2,
                         topNavigate: false,
                       };
-                      // await dispatch(getConversations(payload, false) as any);
                     })
                     .catch(() => {
                       Alert.alert('Delete message failed');
@@ -666,14 +664,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             DB_RESPONSE?.userMeta[conversation.deletedByUserId];
         }
       }
-      // const totalConversations: any = await getConversationData(chatroomID);
+      // const totalConversations: any = await getConversations(chatroomID);
       for (let i = 0; i < totalConversations.length; i++) {
         const conversation = totalConversations[i];
         if (
           conversation?.replyId !== null &&
           conversation?.replyId !== 'null'
         ) {
-          const convToBeReplied = await myClient?.getSingleConversationData(
+          const convToBeReplied = await myClient?.getConversation(
             conversation.replyId,
           );
           if (convToBeReplied.length !== 0) {
@@ -714,7 +712,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // Fetching already existing chatrooms from Realm
   const getExistingData = async () => {
-    const existingChatrooms: any = await myClient?.getConversationData(
+    const existingChatrooms: any = await myClient?.getConversations(
       chatroomID.toString(),
     );
     if (!!existingChatrooms && existingChatrooms.length != 0) {
@@ -737,7 +735,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     // let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
     await getExistingData();
     await paginatedSyncAPI(INITIAL_SYNC_PAGE);
-    let conversationsFromRealm: any = await myClient?.getConversationData(
+    let conversationsFromRealm: any = await myClient?.getConversations(
       chatroomID.toString(),
     );
     conversationsFromRealm.sort(function (a: any, b: any) {
@@ -1084,7 +1082,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else {
           navigation.goBack();
           // Deleting the chatroom from realm in case of leaving the chatroom
-          await myClient?.deleteOneChatroom(chatroomID);
+          await myClient?.deleteChatroom(chatroomID);
         }
       })
       .catch(() => {
@@ -1131,7 +1129,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else {
           navigation.goBack();
           // Deleting the chatroom from realm in case of leaving the chatroom
-          await myClient?.deleteOneChatroom(chatroomID);
+          await myClient?.deleteChatroom(chatroomID);
         }
       })
       .catch(() => {
@@ -1196,7 +1194,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           paginateBy: 100,
           topNavigate: false,
         };
-        // await dispatch(getConversations(getConversationsPayload, true) as any);
 
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});

@@ -87,7 +87,6 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
-import {getConversations} from '../../store/actions/chatroom';
 
 interface InputBox {
   replyChatID?: any;
@@ -608,12 +607,12 @@ const InputBox = ({
         if (isReply) {
           if (attachmentsCount > 0) {
             const editedReplyObj = {...replyObj, isInProgress: SUCCESS};
-            await myClient?.saveNewConversationToRealm(
+            await myClient?.saveNewConversation(
               chatroomID.toString(),
               editedReplyObj,
             );
           } else {
-            await myClient?.saveNewConversationToRealm(
+            await myClient?.saveNewConversation(
               chatroomID.toString(),
               replyObj,
             );
@@ -621,15 +620,12 @@ const InputBox = ({
         } else {
           if (attachmentsCount > 0) {
             const editedObj = {...obj, isInProgress: SUCCESS};
-            await myClient?.saveNewConversationToRealm(
+            await myClient?.saveNewConversation(
               chatroomID.toString(),
               editedObj,
             );
           } else {
-            await myClient?.saveNewConversationToRealm(
-              chatroomID.toString(),
-              obj,
-            );
+            await myClient?.saveNewConversation(chatroomID.toString(), obj);
           }
         }
       }
@@ -700,7 +696,7 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
-          const chatroomKeAccConv = await myClient?.getConversationData(
+          const chatroomKeAccConv = await myClient?.getConversations(
             chatroomID,
           );
 
@@ -739,10 +735,9 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
+          console.log('responseNotUpload', response);
           await myClient?.replaceSavedConversation(response?.conversation);
-          const conversationGet = await myClient?.getConversationData(
-            chatroomID,
-          );
+          const conversationGet = await myClient?.getConversations(chatroomID);
           dispatch({
             type: GET_CONVERSATIONS_SUCCESS,
             body: {conversations: conversationGet.reverse()},
@@ -778,14 +773,6 @@ const InputBox = ({
               },
             });
             await handleFileUpload(response?.id, false);
-            const getConversationPayload = {
-              chatroomID: chatroomID,
-              paginateBy: conversations.length * 2,
-              topNavigate: false,
-            };
-            // await dispatch(
-            //   getConversations(getConversationPayload, false) as any,
-            // );
           }
           dispatch({
             type: STATUS_BAR_STYLE,
@@ -977,10 +964,7 @@ const InputBox = ({
       conversationId: conversationId,
       text: editedConversation,
     });
-    await myClient?.updateSingleConversation(
-      conversationId.toString(),
-      resp?.data,
-    );
+    await myClient?.updateConversation(conversationId.toString(), resp?.data);
   };
 
   return (

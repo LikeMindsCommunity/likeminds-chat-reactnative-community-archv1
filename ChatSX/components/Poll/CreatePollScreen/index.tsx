@@ -296,12 +296,12 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
       };
       const res = await myClient.postPollConversation(payload);
 
-      await myClient?.saveNewConversationToRealm(
+      await myClient?.saveNewConversation(
         chatroomID.toString(),
         res?.data?.conversation,
       );
 
-      const realmConversations = await myClient?.getConversationData(
+      const realmConversations = await myClient?.getConversations(
         chatroomID.toString(),
       );
 

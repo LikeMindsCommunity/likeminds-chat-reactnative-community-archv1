@@ -20,27 +20,6 @@ import {
   FIREBASE_CONVERSATIONS_FAILED,
 } from '../types/types';
 
-export const getConversations =
-  (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
-    try {
-      return await dispatch({
-        type: GET_CONVERSATIONS_SUCCESS,
-        [CALL_API]: {
-          func: myClient?.getConversations(payload),
-          body: payload,
-          types: [
-            GET_CONVERSATIONS,
-            GET_CONVERSATIONS_SUCCESS,
-            GET_CONVERSATIONS_FAILED,
-          ],
-          showLoader: showLoader,
-        },
-      });
-    } catch (error) {
-      Alert.alert(`${error}`);
-    }
-  };
-
 export const paginatedConversations =
   (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
     try {

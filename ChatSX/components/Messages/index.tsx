@@ -46,7 +46,7 @@ const Messages = ({
   const [conversationCreator, setConversationCreator] = useState();
 
   const getConversationCreator = async () => {
-    const getConv = await myClient?.getConversationData(item?.chatroomId);
+    const getConv = await myClient?.getConversations(item?.chatroomId);
     const answer = getConv[0].answer;
     const startingIndex = answer.lastIndexOf('<');
     const endingIndex = answer.lastIndexOf('|');

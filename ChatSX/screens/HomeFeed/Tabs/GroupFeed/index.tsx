@@ -119,9 +119,7 @@ const GroupFeed = ({navigation}: Props) => {
     const DB_RESPONSE = val?.data;
 
     if (page === INITIAL_SYNC_PAGE && DB_RESPONSE?.chatroomsData.length !== 0) {
-      await myClient?.saveCommunityData(
-        DB_RESPONSE?.communityMeta[communityId],
-      );
+      await myClient?.saveCommunity(DB_RESPONSE?.communityMeta[communityId]);
     }
 
     if (DB_RESPONSE?.chatroomsData.length !== 0) {
@@ -143,7 +141,7 @@ const GroupFeed = ({navigation}: Props) => {
 
   // Fetching already existing chatrooms from Realm
   const getExistingData = async () => {
-    const existingChatrooms: any = await myClient?.getChatroomData();
+    const existingChatrooms: any = await myClient?.getChatrooms();
     if (!!existingChatrooms && existingChatrooms.length != 0) {
       const temp = filterChatrooms(existingChatrooms);
       setRealmChatrooms(temp);
