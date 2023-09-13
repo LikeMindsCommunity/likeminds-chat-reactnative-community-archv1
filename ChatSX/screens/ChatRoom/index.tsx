@@ -21,6 +21,7 @@ import {
   ScrollView,
   Platform,
   LogBox,
+  ScrollViewProps,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
 import {myClient} from '../../..';
@@ -38,7 +39,9 @@ import {useAppDispatch, useAppSelector} from '../../../store';
 import {
   firebaseConversation,
   getChatroom,
-  paginatedConversations,
+  getConversations,
+  paginatedConversationsEnd,
+  paginatedConversationsStart,
 } from '../../store/actions/chatroom';
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -150,14 +153,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const db = myClient?.firebaseInstance();
 
   const [replyChatID, setReplyChatID] = useState<number>();
-  const [page, setPage] = useState(1);
+  const [endPage, setEndPage] = useState(1);
+  const [startPage, setStartPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [isToast, setIsToast] = useState(false);
   const [msg, setMsg] = useState('');
   const [apiRes, setApiRes] = useState();
   const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
+  const [shouldLoadMoreChatEnd, setShouldLoadMoreChatEnd] = useState(true);
+  const [shouldLoadMoreChatStart, setShouldLoadMoreChatStart] = useState(true);
   const [isReact, setIsReact] = useState(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [DMApproveAlertModalVisible, setDMApproveAlertModalVisible] =
@@ -176,6 +181,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
   const users = useQuery('UserSchemaRO');
+  const [lastScrollOffset, setLastScrollOffset] = useState(true);
+  const [response, setResponse] = useState([]);
 
   const {
     chatroomID,
@@ -783,7 +790,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       userUniqueId: UUID,
       userName: userName,
     };
+
     let res = await dispatch(initAPI(payload) as any);
+
     return res;
   }
 
@@ -977,6 +986,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isFocused]);
 
+  // This is for scrolling down mainly ie whenever response changes this useEffect will be triggered and it'll calculate the index of the last message before prepending of new data and scroll to that index
+  useEffect(() => {
+    setTimeout(() => {
+      if (!!response) {
+        const len = response?.conversations?.length;
+        if (len != 0 && len != undefined) {
+          let index = len;
+          if (
+            conversations[index + 1].attachmentCount == 0 &&
+            conversations[index + 1].polls == undefined
+          ) {
+            index = len - 2;
+          }
+          scrollToVisibleIndex(index);
+        }
+        setIsLoading(false);
+      }
+    }, 1500);
+  }, [response]);
+
   //This useEffect has logic to or hide message privately when long press on a message
   useEffect(() => {
     if (selectedMessages.length === 1) {
@@ -999,39 +1028,129 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [selectedMessages, showDM, showList]);
 
-  //function calls paginatedConversations action which internally calls getConversation to update conversation array with the new data.
-  async function paginatedData(newPage: number) {
+  // Function calls paginatedConversationsEnd action which internally calls getConversations to update conversation array with the new data.
+  async function endOfPaginatedData() {
     let payload = {
       chatroomID: chatroomID,
       conversationID: conversations[conversations.length - 1]?.id,
-      scrollDirection: 0,
+      scrollDirection: 0, //scroll up -> 0
       paginateBy: 50,
       topNavigate: false,
     };
-    let response = await dispatch(paginatedConversations(payload, true) as any);
+    let response = await dispatch(
+      paginatedConversationsEnd(payload, true) as any,
+    );
     return response;
   }
 
-  // function shows loader in between calling the API and getting the response
-  const loadData = async (newPage: number) => {
+  // Function calls paginatedConversationsStart action which internally calls getConversations to update conversation array with the new data.
+  async function startOfPaginatedData() {
+    let payload = {
+      chatroomID: chatroomID,
+      conversationID: conversations[0]?.id,
+      scrollDirection: 1, //scroll down -> 1
+      paginateBy: 50,
+      topNavigate: false,
+    };
+    let response = await dispatch(
+      paginatedConversationsStart(payload, true) as any,
+    );
+    return response;
+  }
+
+  // Function shows loader in between calling the API and getting the response
+  const endLoadData = async () => {
     setIsLoading(true);
-    const res = await paginatedData(newPage);
-    if (res.conversations.length == 0) {
-      setShouldLoadMoreChat(false);
+    const res = await endOfPaginatedData();
+
+    // To check if its the end of list (top of list in our case)
+    if (res?.conversations?.length == 0) {
+      setShouldLoadMoreChatEnd(false);
     }
+
     if (!!res) {
       setIsLoading(false);
     }
   };
 
-  //function checks the pagination logic, if it verifies the condition then call loadData
-  const handleLoadMore = () => {
+  const scrollToVisibleIndex = (index: number) => {
+    if (flatlistRef.current) {
+      flatlistRef.current.scrollToIndex({
+        animated: false,
+        index: index,
+      });
+    }
+  };
+
+  // function shows loader in between calling the API and getting the response
+  const startLoadData = async () => {
+    setIsLoading(true);
+    const res = await startOfPaginatedData();
+
+    // To check if its the start of list (bottom of list in our case)
+    if (res?.conversations?.length == 0) {
+      setShouldLoadMoreChatStart(false);
+    }
+    setResponse(res);
+  };
+
+  // Function checks the pagination logic, if it verifies the condition then call startLoadData
+  const handleOnStartReached = () => {
+    if (!isLoading && conversations.length > 0) {
+      // Checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+      if (conversations.length > 15) {
+        const newPage = startPage + 1;
+        setStartPage(newPage);
+        startLoadData();
+      }
+    }
+  };
+
+  const onStartReached = () => {
+    handleOnStartReached();
+  };
+
+  const onEndReached = () => {
+    handleOnEndReached();
+  };
+
+  // For Scrolling Up
+  const handleOnScroll: ScrollViewProps['onScroll'] = event => {
+    const offset = event.nativeEvent.contentOffset.y;
+    const visibleLength = event.nativeEvent.layoutMeasurement.height;
+    const contentLength = event.nativeEvent.contentSize.height;
+    const onStartReachedThreshold = 10;
+    const onEndReachedThreshold = 10;
+
+    // Check if scroll has reached start of list.
+    const isScrollAtStart = offset < onStartReachedThreshold;
+    // Check if scroll has reached end of list.
+    const isScrollAtEnd =
+      contentLength - visibleLength - offset < onEndReachedThreshold;
+
+    if (isScrollAtStart && shouldLoadMoreChatStart && lastScrollOffset) {
+      renderFooter();
+      onStartReached();
+      setLastScrollOffset(false);
+      setTimeout(() => {
+        setLastScrollOffset(true);
+      }, 1000);
+    }
+
+    if (isScrollAtEnd && shouldLoadMoreChatEnd) {
+      renderFooter();
+      onEndReached();
+    }
+  };
+
+  // Function checks the pagination logic, if it verifies the condition then call endLoadData
+  const handleOnEndReached = () => {
     if (!isLoading && conversations.length > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
       if (conversations.length > 15) {
-        const newPage = page + 1;
-        setPage(newPage);
-        loadData(newPage);
+        const newPage = endPage + 1;
+        setEndPage(newPage);
+        endLoadData();
       }
     }
   };
@@ -1743,7 +1862,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let uriFinal: any;
 
       if (attachmentType === IMAGE_TEXT) {
-        //image compression
         const compressedImgURI = await CompressedImage.compress(item.uri, {
           compressionMethod: 'auto',
         });
@@ -1755,7 +1873,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       }
 
       //for video thumbnail
-      let thumbnailUrlImg = null;
+      let thumbnailUrlImg;
       if (thumbnailURL && attachmentType === VIDEO_TEXT) {
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
       }
@@ -1778,7 +1896,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       };
 
       try {
-        let getVideoThumbnailData = null;
+        let getVideoThumbnailData;
 
         if (thumbnailURL && attachmentType === VIDEO_TEXT) {
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
@@ -1874,6 +1992,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       uploadingFilesMessages,
       isRetry: isRetry,
     });
+    const getConversationPayload = {
+      chatroomID: chatroomID,
+      paginateBy: conversations.length * 2,
+      topNavigate: false,
+    };
+    await dispatch(getConversations(getConversationPayload, false) as any);
     return res;
   };
 
@@ -1940,6 +2064,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   return (
     <View style={styles.container}>
       <FlashList
+        estimatedItemSize={50}
         ref={flatlistRef}
         data={conversations}
         keyExtractor={(item: any, index) => {
@@ -1954,7 +2079,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             conversations,
           ],
         }}
-        estimatedItemSize={50}
         renderItem={({item: value, index}: any) => {
           let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
           let item = {...value};
@@ -2054,13 +2178,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           );
         }}
-        onEndReached={async () => {
-          if (shouldLoadMoreChat) {
-            handleLoadMore();
-          }
-          return;
-        }}
-        onEndReachedThreshold={0.1}
+        onScroll={handleOnScroll}
+        ListHeaderComponent={renderFooter}
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
