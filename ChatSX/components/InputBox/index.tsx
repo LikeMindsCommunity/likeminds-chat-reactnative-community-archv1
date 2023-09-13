@@ -548,7 +548,6 @@ const InputBox = ({
         replyObj.date = `${
           time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
         } ${months[time.getMonth()]} ${time.getFullYear()}`;
-        replyObj.id = ID.toString();
         replyObj.chatroomId = chatroomDetails?.chatroom?.id?.toString();
         replyObj.communityId = community?.id?.toString();
         replyObj.date = `${
@@ -601,8 +600,8 @@ const InputBox = ({
       });
 
       if (
-        chatroomType !== 10 && // if DM
-        chatRequestState !== null
+        chatroomType !== 10 && // if not DM
+        chatRequestState !== null // if not first DM message sent to an user
       ) {
         if (isReply) {
           if (attachmentsCount > 0) {
@@ -696,10 +695,6 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
-          const chatroomKeAccConv = await myClient?.getConversations(
-            chatroomID,
-          );
-
           let response = await dispatch(onConversationsCreate(payload) as any);
 
           if (!!response) {
@@ -735,7 +730,6 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
-          console.log('responseNotUpload', response);
           await myClient?.replaceSavedConversation(response?.conversation);
           const conversationGet = await myClient?.getConversations(chatroomID);
           dispatch({
@@ -960,11 +954,14 @@ const InputBox = ({
     setMessage('');
     setIsEditable(false);
 
-    const resp = await myClient?.editConversation({
+    const editConversationResponse = await myClient?.editConversation({
       conversationId: conversationId,
       text: editedConversation,
     });
-    await myClient?.updateConversation(conversationId.toString(), resp?.data);
+    await myClient?.updateConversation(
+      conversationId.toString(),
+      editConversationResponse?.data,
+    );
   };
 
   return (

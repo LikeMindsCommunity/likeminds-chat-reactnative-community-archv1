@@ -35,12 +35,6 @@ export function fileUploadReducer(state = initialState, action: any) {
       };
 
       const func = async () => {
-        // const res = await AsyncStorage.getItem('uploadingFilesMessages');
-        // await AsyncStorage.setItem(
-        //   'uploadingFilesMessages',
-        //   JSON.stringify({...JSON.parse(res as any), ...dummyState}),
-        // );
-
         myClient?.saveAttachmentUploadConversation(
           ID.toString(),
           JSON.stringify(message),
@@ -65,12 +59,6 @@ export function fileUploadReducer(state = initialState, action: any) {
       };
 
       const func = async () => {
-        // const res = await AsyncStorage.getItem('uploadingFilesMessages');
-        // let obj = removeKey(ID, JSON.parse(res as any));
-        // await AsyncStorage.setItem(
-        //   'uploadingFilesMessages',
-        //   JSON.stringify(obj),
-        // );
         myClient?.removeAttactmentUploadConversationByKey(ID?.toString());
         const res = await myClient?.getAllAttachmentUploadConversations();
       };

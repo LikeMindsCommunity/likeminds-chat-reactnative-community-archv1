@@ -42,6 +42,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import Realm from 'realm';
 import {Observable} from 'rxjs';
+import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 
 interface Props {
   navigation: any;
@@ -52,7 +53,7 @@ const DMFeed = ({navigation}: Props) => {
   const [showDM, setShowDM] = useState(false);
   const [showList, setShowList] = useState<any>(null);
   const [FCMToken, setFCMToken] = useState('');
-  const [realmDMs, setRealmDMs] = useState([]);
+  const [dmChatrooms, setDMChatrooms] = useState([]);
   const dispatch = useAppDispatch();
   const isFocused = useIsFocused();
 
@@ -106,98 +107,21 @@ const DMFeed = ({navigation}: Props) => {
     token();
   }, []);
 
-  // Sync Chatrrom API
-  async function syncChatroomAPI(
-    page: number,
-    minTimeStamp: number,
-    maxTimeStamp: number,
-  ) {
-    const res = await myClient?.syncChatroom(
-      SyncChatroomRequest.builder()
-        .setPage(page)
-        .setPageSize(50)
-        .setChatroomTypes([10])
-        .setMaxTimestamp(maxTimeStamp)
-        .setMinTimestamp(minTimeStamp)
-        .build(),
-    );
-    return res;
-  }
-
-  // Pagination call for sync chatroom
-  const paginatedSyncAPI = async (page: number, communityId: string) => {
-    const timeStampStored = await myClient?.getTimeStamp();
-    const temp = JSON.stringify(timeStampStored);
-    let parsedTimeStamp = JSON.parse(temp);
-    let maxTimeStampNow = Math.floor(Date.now() / 1000);
-
-    // Taking minTimeStamp as 0 for the first time else last maxTimeStamp will become current minTimeStamp
-    let minTimeStampNow =
-      parsedTimeStamp[0].minTimeStamp === 0
-        ? 0
-        : parsedTimeStamp[0].maxTimeStamp;
-
-    const val = await syncChatroomAPI(page, minTimeStampNow, maxTimeStampNow);
-
-    const DB_RESPONSE = val?.data;
-
-    if (page === INITIAL_SYNC_PAGE && DB_RESPONSE?.chatroomsData.length !== 0) {
-      await myClient?.saveCommunity(DB_RESPONSE?.communityMeta[communityId]);
-    }
-
-    if (DB_RESPONSE?.chatroomsData.length !== 0) {
-      const totalChatrooms = DB_RESPONSE?.chatroomsData;
-      for (let i = 0; i < totalChatrooms.length; i++) {
-        const chatroom = totalChatrooms[i];
-        const userData =
-          user?.id !== chatroom?.chatroomWithUserId
-            ? DB_RESPONSE?.userMeta[chatroom?.chatroomWithUserId]?.name
-            : DB_RESPONSE?.userMeta[chatroom?.userId]?.name;
-
-        DB_RESPONSE.chatroomsData[i].chatroomWithUserName = userData;
-      }
-
-      await myClient?.saveChatroomResponse(
-        DB_RESPONSE,
-        DB_RESPONSE?.chatroomsData,
-        communityId,
-      );
-    }
-
-    myClient?.updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
-
-    if (DB_RESPONSE?.chatroomsData?.length === 0) {
-      return;
-    } else {
-      await paginatedSyncAPI(page + 1, communityId);
-    }
-  };
-
-  // Filtering DMs from GroupFeed Chatrooms
-  const filterDMs = (chatrooms: any) => {
-    let dmArr: any = [];
-    chatrooms.forEach((chatroom: any) => {
-      if (chatroom.type === 10) {
-        dmArr.push(chatroom);
-      }
-    });
-    return dmArr;
-  };
-
   // Fetching already existing chatrooms from Realm
   const getExistingData = async () => {
     const existingChatrooms: any = await myClient?.getChatrooms();
     if (!!existingChatrooms && existingChatrooms.length != 0) {
-      const temp = filterDMs(existingChatrooms);
-      setRealmDMs(temp);
+      const filteredChatrooms: any = await myClient?.getFilteredChatrooms(true);
+      setDMChatrooms(filteredChatrooms);
     }
   };
 
+  // This useEffect is used to firstly get the already existing chatroom from realm and then call the paginatedSyncAPI
   useEffect(() => {
     if (isFocused) {
       getExistingData();
       if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
     }
   }, [isFocused, user]);
 
@@ -208,8 +132,9 @@ const DMFeed = ({navigation}: Props) => {
         .then(realm => {
           const chatrooms = realm.objects('ChatroomRO');
           const listener = (newChatrooms: any, changes: any) => {
-            const chatroomsArray = Array.from(newChatrooms);
-            observer.next(chatroomsArray);
+            const filteredChatroom = chatrooms.filtered(`type = 10`);
+            const sortedChatroom = filteredChatroom.sorted('updatedAt', true);
+            observer.next(sortedChatroom);
           };
           chatrooms.addListener(listener);
           return () => {
@@ -222,17 +147,8 @@ const DMFeed = ({navigation}: Props) => {
         });
     });
     const subscription = chatroomObservable.subscribe({
-      next: (updatedChatrooms: any) => {
-        const temp = filterDMs(updatedChatrooms);
-        // Sorting the updatedChatrooms based on updatedAt
-        temp.sort(function (a: any, b: any) {
-          var keyA = a.updatedAt,
-            keyB = b.updatedAt;
-          if (keyA > keyB) return -1;
-          if (keyA < keyB) return 1;
-          return 0;
-        });
-        setRealmDMs(temp);
+      next: (sortedChatroom: any) => {
+        setDMChatrooms(sortedChatroom);
       },
       error: error => {
         Alert.alert('Error observing chatrooms:', error);
@@ -243,6 +159,7 @@ const DMFeed = ({navigation}: Props) => {
     };
   };
 
+  // This useEffect calls the listener which is attached to realm
   useEffect(() => {
     listener();
   }, [isFocused]);
@@ -252,7 +169,7 @@ const DMFeed = ({navigation}: Props) => {
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
         if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+        paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
       }
     });
   }, [user]);
@@ -302,7 +219,7 @@ const DMFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      {realmDMs?.length === 0 ? (
+      {dmChatrooms?.length === 0 ? (
         <View style={styles.nothingDM}>
           <View style={[styles.justifyCenter]}>
             <Image
@@ -338,9 +255,9 @@ const DMFeed = ({navigation}: Props) => {
         </View>
       ) : (
         <FlashList
-          data={realmDMs}
+          data={dmChatrooms}
           extraData={{
-            value: [user, realmDMs],
+            value: [user, dmChatrooms],
           }}
           estimatedItemSize={15}
           renderItem={({item}: any) => {
@@ -365,7 +282,7 @@ const DMFeed = ({navigation}: Props) => {
           keyExtractor={(item: any) => item?.id.toString()}
         />
       )}
-      {showDM && realmDMs?.length > 0 ? (
+      {showDM && dmChatrooms?.length > 0 ? (
         <Pressable
           onPress={() => {
             navigation.navigate(DM_ALL_MEMBERS, {showList: showList});

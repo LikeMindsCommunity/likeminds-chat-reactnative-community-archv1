@@ -33,6 +33,7 @@ import {FlashList} from '@shopify/flash-list';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import Realm from 'realm';
 import {Observable} from 'rxjs';
+import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 
 interface Props {
   navigation: any;
@@ -42,7 +43,7 @@ const GroupFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [invitePage, setInvitePage] = useState(1);
   const [FCMToken, setFCMToken] = useState('');
-  const [realmChatrooms, setRealmChatrooms] = useState([]);
+  const [groupfeedChatrooms, setGroupfeedChatrooms] = useState([]);
   const isFocused = useIsFocused();
   const dispatch = useAppDispatch();
 
@@ -60,35 +61,6 @@ const GroupFeed = ({navigation}: Props) => {
 
   const INITIAL_SYNC_PAGE = 1;
 
-  // Filtering GroupFeed Chatrooms from DMs
-  const filterChatrooms = (chatrooms: any) => {
-    let chatroomArr: any = [];
-    chatrooms.forEach((chatroom: any) => {
-      if (chatroom.type !== 10) {
-        chatroomArr.push(chatroom);
-      }
-    });
-    return chatroomArr;
-  };
-
-  // Sync Chatrrom API
-  async function syncChatroomAPI(
-    page: number,
-    minTimeStamp: number,
-    maxTimeStamp: number,
-  ) {
-    const res = await myClient?.syncChatroom(
-      SyncChatroomRequest.builder()
-        .setPage(page)
-        .setPageSize(50)
-        .setChatroomTypes([0, 7])
-        .setMaxTimestamp(maxTimeStamp)
-        .setMinTimestamp(minTimeStamp)
-        .build(),
-    );
-    return res;
-  }
-
   const callHomeFeedOnce = async () => {
     let payload = {
       page: 1,
@@ -101,58 +73,21 @@ const GroupFeed = ({navigation}: Props) => {
     callHomeFeedOnce();
   }, []);
 
-  // Pagination call for sync chatroom
-  const paginatedSyncAPI = async (page: number, communityId: string) => {
-    const timeStampStored = await myClient?.getTimeStamp();
-    const temp = JSON.stringify(timeStampStored);
-    let parsedTimeStamp = JSON.parse(temp);
-    let maxTimeStampNow = Math.floor(Date.now() / 1000);
-
-    // Taking minTimeStamp as 0 for the first time else last maxTimeStamp will become current minTimeStamp
-    let minTimeStampNow =
-      parsedTimeStamp[0].minTimeStamp == 0
-        ? 0
-        : parsedTimeStamp[0].maxTimeStamp;
-
-    const val = await syncChatroomAPI(page, minTimeStampNow, maxTimeStampNow);
-
-    const DB_RESPONSE = val?.data;
-
-    if (page === INITIAL_SYNC_PAGE && DB_RESPONSE?.chatroomsData.length !== 0) {
-      await myClient?.saveCommunity(DB_RESPONSE?.communityMeta[communityId]);
-    }
-
-    if (DB_RESPONSE?.chatroomsData.length !== 0) {
-      await myClient?.saveChatroomResponse(
-        DB_RESPONSE,
-        DB_RESPONSE?.chatroomsData,
-        communityId,
-      );
-    }
-
-    myClient?.updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
-
-    if (DB_RESPONSE?.chatroomsData?.length === 0) {
-      return;
-    } else {
-      await paginatedSyncAPI(page + 1, communityId);
-    }
-  };
-
   // Fetching already existing chatrooms from Realm
   const getExistingData = async () => {
     const existingChatrooms: any = await myClient?.getChatrooms();
     if (!!existingChatrooms && existingChatrooms.length != 0) {
-      const temp = filterChatrooms(existingChatrooms);
-      setRealmChatrooms(temp);
+      const filteredChatroom: any = await myClient?.getFilteredChatrooms(false);
+      setGroupfeedChatrooms(filteredChatroom);
     }
   };
 
+  // This useEffect is used to firstly get the already existing chatroom from realm and then call the paginatedSyncAPI
   useEffect(() => {
     if (isFocused) {
       getExistingData();
       if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
     }
   }, [isFocused, user]);
 
@@ -163,8 +98,9 @@ const GroupFeed = ({navigation}: Props) => {
         .then(realm => {
           const chatrooms = realm.objects('ChatroomRO');
           const listener = (newChatrooms: any, changes: any) => {
-            const chatroomsArray = Array.from(newChatrooms);
-            observer.next(chatroomsArray);
+            const filteredChatroom = chatrooms.filtered(`type = 0 || type=7`);
+            const sortedChatroom = filteredChatroom.sorted('updatedAt', true);
+            observer.next(sortedChatroom);
           };
           chatrooms.addListener(listener);
           return () => {
@@ -176,18 +112,10 @@ const GroupFeed = ({navigation}: Props) => {
           observer.error(error);
         });
     });
+    // const filteredChatroom: any = await myClient?.getFilteredChatrooms(false);
     const subscription = chatroomObservable.subscribe({
-      next: (updatedChatrooms: any) => {
-        const temp = filterChatrooms(updatedChatrooms);
-        // Sorting the updatedChatrooms based on updatedAt
-        temp.sort(function (a: any, b: any) {
-          var keyA = a.updatedAt,
-            keyB = b.updatedAt;
-          if (keyA > keyB) return -1;
-          if (keyA < keyB) return 1;
-          return 0;
-        });
-        setRealmChatrooms(temp);
+      next: (sortedChatroom: any) => {
+        setGroupfeedChatrooms(sortedChatroom);
       },
       error: error => {
         Alert.alert('Error observing chatrooms:', error);
@@ -198,6 +126,7 @@ const GroupFeed = ({navigation}: Props) => {
     };
   };
 
+  // This useEffect calls the listener which is attached to realm
   useEffect(() => {
     listener();
   }, [isFocused]);
@@ -207,7 +136,7 @@ const GroupFeed = ({navigation}: Props) => {
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
         if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+        paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
       }
     });
   }, [user]);
@@ -306,7 +235,7 @@ const GroupFeed = ({navigation}: Props) => {
   return (
     <View style={styles.page}>
       <FlashList
-        data={realmChatrooms}
+        data={groupfeedChatrooms}
         ListHeaderComponent={() => (
           <HomeFeedExplore
             newCount={unseenCount}
@@ -341,7 +270,7 @@ const GroupFeed = ({navigation}: Props) => {
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}
         extraData={{
-          value: [realmChatrooms, unseenCount, totalCount],
+          value: [groupfeedChatrooms, unseenCount, totalCount],
         }}
         estimatedItemSize={15}
         ListFooterComponent={renderFooter}

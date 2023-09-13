@@ -46,8 +46,8 @@ const Messages = ({
   const [conversationCreator, setConversationCreator] = useState();
 
   const getConversationCreator = async () => {
-    const getConv = await myClient?.getConversations(item?.chatroomId);
-    const answer = getConv[0].answer;
+    const conversation = await myClient?.getConversations(item?.chatroomId);
+    const answer = conversation[0].answer;
     const startingIndex = answer.lastIndexOf('<');
     const endingIndex = answer.lastIndexOf('|');
     const trimmedAnswer = answer.substring(startingIndex + 1, endingIndex);
@@ -58,6 +58,7 @@ const Messages = ({
     }
   };
 
+  // This is to get the second user from the answer key
   getConversationCreator();
 
   const {
@@ -110,28 +111,6 @@ const Messages = ({
       }
     }
   }, [item?.reactions]);
-
-  // Method to trim the initial DM connection message based on loggedInMember id
-  const answerTrimming = (answer: string) => {
-    const loggedInMember = users[0]?.userUniqueID;
-    const chatroomWithUser =
-      chatroomDetails?.chatroom?.member?.sdkClientInfo?.uuid;
-
-    if (loggedInMember !== chatroomWithUser) {
-      const startingIndex = answer.lastIndexOf('<');
-      const temp = answer.substring(0, startingIndex - 2);
-
-      return temp;
-    } else {
-      const startingIndex = answer.indexOf('<');
-      const endingIndex = answer.indexOf('>');
-      const temp =
-        answer.substring(0, startingIndex - 1) +
-        answer.substring(endingIndex + 2);
-
-      return temp;
-    }
-  };
 
   const reactionLen = reactionArr.length;
 
@@ -199,13 +178,36 @@ const Messages = ({
   const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = user?.id;
   const users = useQuery('UserSchemaRO');
+  const currentUserUuid = users[0]?.userUniqueID;
+
+  // Method to trim the initial DM connection message based on loggedInMember id
+  const answerTrimming = (answer: string) => {
+    const loggedInMember = currentUserUuid;
+    const chatroomWithUser =
+      chatroomDetails?.chatroom?.member?.sdkClientInfo?.uuid;
+
+    if (loggedInMember !== chatroomWithUser) {
+      const startingIndex = answer.lastIndexOf('<');
+      const receivingUser = answer.substring(0, startingIndex - 2);
+
+      return receivingUser;
+    } else {
+      const startingIndex = answer.indexOf('<');
+      const endingIndex = answer.indexOf('>');
+      const sendingUser =
+        answer.substring(0, startingIndex - 1) +
+        answer.substring(endingIndex + 2);
+
+      return sendingUser;
+    }
+  };
 
   return (
     <View style={styles.messageParent}>
       <View>
         {!!item?.deletedBy ? (
           chatroomType !== 10 ? (
-            users[0]?.userUniqueID === conversationDeletor ? (
+            currentUserUuid === conversationDeletor ? (
               <View
                 style={[
                   styles.message,
@@ -243,7 +245,7 @@ const Messages = ({
                 </Text>
               </View>
             )
-          ) : users[0]?.userUniqueID === conversationDeletor ? (
+          ) : currentUserUuid === conversationDeletor ? (
             <View
               style={[
                 styles.message,
