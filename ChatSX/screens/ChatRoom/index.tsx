@@ -737,9 +737,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  // this function fetchConversations when we first move inside Chatroom
+  // This function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
-    // let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
     await getExistingData();
     await paginatedSyncAPI(INITIAL_SYNC_PAGE);
     let conversationsFromRealm: any = await myClient?.getConversations(
