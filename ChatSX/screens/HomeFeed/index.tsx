@@ -135,22 +135,6 @@ const HomeFeed = ({navigation}: Props) => {
     return res;
   }
 
-  // pagination call for sync chatroom
-  const paginatedSyncAPI = async (page: number) => {
-    const val = await syncChatroomAPI(page);
-    const DB_RESPONSE = val?.data;
-
-    if (page === INITIAL_SYNC_PAGE) {
-      myClient.saveCommunityData(DB_RESPONSE?.communityMeta[communityId]); // Save community data;
-    }
-
-    if (DB_RESPONSE?.chatroomsData?.length === 0) {
-      return;
-    } else {
-      paginatedSyncAPI(page + 1);
-    }
-  };
-
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
 
@@ -170,8 +154,6 @@ const HomeFeed = ({navigation}: Props) => {
 
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
-
-      // paginatedSyncAPI(INITIAL_SYNC_PAGE);
     }
 
     return res;
@@ -180,11 +162,18 @@ const HomeFeed = ({navigation}: Props) => {
   const timeSetter = async () => {
     const timeStampStored = await myClient?.getTimeStamp();
     if (timeStampStored.length == 0) {
+      // Setting the initial timeStamp for the first time
       const maxTimeStamp = Math.floor(Date.now() / 1000);
       const minTimeStamp = 0;
       myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
+    } else {
+      const temp = JSON.stringify(timeStampStored);
+      let parsedTimeStamp = JSON.parse(temp);
+      myClient?.updateTimeStamp(
+        parsedTimeStamp[0].maxTimeStamp,
+        Math.floor(Date.now() / 1000),
+      );
     }
-    myClient?.updateTimeStamp(0, Math.floor(Date.now() / 1000));
   };
 
   useEffect(() => {
@@ -210,22 +199,27 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const func = async () => {
-      const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+      // const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+      const res: any = await myClient?.getAllAttachmentUploadConversations();
 
       if (res) {
-        let uploadingFilesMessagesSavedObject = JSON.parse(res);
-        let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
-        let len = arrOfKeys.length;
+        // const temp = JSON.stringify(timeStampStored);
+        // let parsedTimeStamp = JSON.parse(temp);
+        // let uploadingFilesMessagesSavedObject = JSON.parse(res);
+        // let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
+        let len = res.length;
         if (len > 0) {
           for (let i = 0; i < len; i++) {
+            let data = res[i];
+            let uploadingFilesMessagesSavedObject = JSON.parse(data?.value);
             dispatch({
               type: UPDATE_FILE_UPLOADING_OBJECT,
               body: {
                 message: {
-                  ...uploadingFilesMessagesSavedObject[arrOfKeys[i]],
+                  ...uploadingFilesMessagesSavedObject,
                   isInProgress: FAILED,
                 },
-                ID: arrOfKeys[i],
+                ID: data?.key,
               },
             });
           }
