@@ -4,7 +4,6 @@ import {myClient} from '../../..';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
-import {getHomeFeedData} from '../../store/actions/homefeed';
 import {
   SET_EXPLORE_FEED_PAGE,
   SET_PAGE,

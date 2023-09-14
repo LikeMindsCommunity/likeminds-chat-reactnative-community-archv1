@@ -46,11 +46,7 @@ import {
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
-import {
-  getDMFeedData,
-  getHomeFeedData,
-  initAPI,
-} from '../../store/actions/homefeed';
+import {getDMFeedData, initAPI} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
@@ -197,7 +193,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {
     conversations = [],
     chatroomDetails,
-    // chatroomDBDetails,
     messageSent,
     isLongPress,
     selectedMessages,
@@ -563,40 +558,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     .then(async () => {
                       dispatch({type: SELECTED_MESSAGES, body: []});
                       dispatch({type: LONG_PRESSED, body: false});
+                      let updatedConversations;
                       for (let i = 0; i < selectedMessagesIDArr.length; i++) {
-                        const conversationFromRealm =
-                          await myClient?.getConversation(
+                        updatedConversations =
+                          await myClient?.deleteConversation(
                             selectedMessagesIDArr[i],
+                            user,
+                            conversations,
                           );
-                        conversationFromRealm[0].deletedBy = user?.id;
-                        conversationFromRealm[0].deletedByMember = user;
-                        await myClient?.updateDeletedBy(
-                          selectedMessagesIDArr[i],
-                          conversationFromRealm[0],
-                        );
-                        const conversationAgainFromRealm =
-                          await myClient?.getConversation(
-                            selectedMessagesIDArr[i],
-                          );
-                        for (let j = 0; j < conversations.length; j++) {
-                          if (
-                            conversations[j].id == conversationFromRealm[0].id
-                          ) {
-                            conversations[j] = conversationFromRealm[0];
-                            break;
-                          }
-                        }
                       }
                       dispatch({
                         type: GET_CONVERSATIONS_SUCCESS,
-                        body: {conversations: conversations},
+                        body: {conversations: updatedConversations},
                       });
                       setInitialHeader();
-                      let payload = {
-                        chatroomID: chatroomID,
-                        paginateBy: conversations.length * 2,
-                        topNavigate: false,
-                      };
                     })
                     .catch(() => {
                       Alert.alert('Delete message failed');
@@ -660,34 +635,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const paginatedSyncAPI = async (page: number) => {
     const val = await syncConversationAPI(page, Math.floor(Date.now()), 0);
     const DB_RESPONSE = val?.data;
-    if (DB_RESPONSE?.conversationsData?.length !== 0) {
-      const totalConversations = DB_RESPONSE?.conversationsData;
-      for (let i = 0; i < totalConversations.length; i++) {
-        const conversation = totalConversations[i];
-        if (conversation.deletedByUserId != null) {
-          DB_RESPONSE.conversationsData[i].deletedBy =
-            DB_RESPONSE?.userMeta[conversation.deletedByUserId].id.toString();
-          DB_RESPONSE.conversationsData[i].deletedByMember =
-            DB_RESPONSE?.userMeta[conversation.deletedByUserId];
-        }
-      }
-      // const totalConversations: any = await getConversations(chatroomID);
-      for (let i = 0; i < totalConversations.length; i++) {
-        const conversation = totalConversations[i];
-        if (
-          conversation?.replyId !== null &&
-          conversation?.replyId !== 'null'
-        ) {
-          const convToBeReplied = await myClient?.getConversation(
-            conversation.replyId,
-          );
-          if (convToBeReplied.length !== 0) {
-            DB_RESPONSE.conversationsData[i].replyConversationObject =
-              convToBeReplied[0];
-          }
-        }
-      }
 
+    if (DB_RESPONSE?.conversationsData?.length !== 0) {
       await myClient?.saveConversationData(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomMeta,
@@ -723,13 +672,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroomID.toString(),
     );
     if (!!existingChatrooms && existingChatrooms.length != 0) {
-      existingChatrooms.sort(function (a: any, b: any) {
-        let keyA = a.createdEpoch;
-        let keyB = b.createdEpoch;
-        if (keyA > keyB) return -1;
-        if (keyA < keyB) return 1;
-        return 0;
-      });
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         body: {conversations: existingChatrooms},
@@ -744,13 +686,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let conversationsFromRealm: any = await myClient?.getConversations(
       chatroomID.toString(),
     );
-    conversationsFromRealm.sort(function (a: any, b: any) {
-      let keyA = a.createdEpoch;
-      let keyB = b.createdEpoch;
-      if (keyA > keyB) return -1;
-      if (keyA < keyB) return 1;
-      return 0;
-    });
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
       body: {conversations: conversationsFromRealm},
@@ -908,29 +843,23 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           let payload = {
             page: 1,
           };
-          // const res = await dispatch(getDMFeedData(payload, false) as any);
 
-          // if (!!res) {
-          //   let apiRes = await myClient?.checkDMStatus({
-          //     requestFrom: 'group_channel',
-          //   });
-          //   let response = apiRes?.data;
-          //   if (!!response) {
-          //     let routeURL = response?.cta;
-          //     const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-          //     if (hasShowList) {
-          //       const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-          //       setShowList(showListValue);
-          //     }
-          //     setShowDM(response?.showDm);
-          //   }
-          // }
+          let apiRes = await myClient?.checkDMStatus({
+            requestFrom: 'group_channel',
+          });
+          let response = apiRes?.data;
+          if (!!response) {
+            let routeURL = response?.cta;
+            const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+            if (hasShowList) {
+              const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+              setShowList(showListValue);
+            }
+            setShowDM(response?.showDm);
+          }
         }
       }
       let res = await fetchData(false);
-      if (!!res) {
-        // dispatch({type: STOP_CHATROOM_LOADING});
-      }
     }
 
     if (!!chatroomDetails?.chatroom) {
@@ -956,26 +885,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isLongPress, selectedMessages]);
 
-  //useffect includes firebase realtime listener
-  // useEffect(() => {
-  //   const query = ref(db, `/collabcards/${chatroomID}`);
-  //   return onValue(query, async (snapshot: DataSnapshot) => {
-  //     if (snapshot.exists()) {
-  //       let firebaseData = snapshot.val();
-  //       let conversationID = firebaseData?.collabcard?.answerId;
+  // useEffect includes firebase realtime listener
+  useEffect(() => {
+    const query = ref(db, `/collabcards/${chatroomID}`);
+    return onValue(query, async (snapshot: DataSnapshot) => {
+      if (snapshot.exists()) {
+        let firebaseData = snapshot.val();
+        let conversationID = firebaseData?.collabcard?.answerId;
 
-  //       let payload = {
-  //         chatroomId: chatroomID,
-  //         conversationId: firebaseData?.collabcard?.answerId,
-  //       };
-  //       if (conversationID) {
-  //         const res = await dispatch(
-  //           firebaseConversation(payload, false) as any,
-  //         );
-  //       }
-  //     }
-  //   });
-  // }, []);
+        let payload = {
+          chatroomId: chatroomID,
+          conversationId: firebaseData?.collabcard?.answerId,
+        };
+        if (conversationID) {
+          const res = await dispatch(
+            firebaseConversation(payload, false) as any,
+          );
+        }
+      }
+    });
+  }, []);
 
   // this useffect updates routes, previousRoute variables when we come to chatroom.
   useEffect(() => {
@@ -1187,7 +1116,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          // await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
             body: {conversations: []},
@@ -1234,7 +1162,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          // await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
             body: {conversations: []},
@@ -1273,10 +1200,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          // await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
           updatePageInRedux();
-          // await dispatch(getHomeFeedData({page: 1}) as any);
         }
         navigation.dispatch(
           CommonActions.reset({
@@ -1321,10 +1246,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          // await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
           updatePageInRedux();
-          // await dispatch(getHomeFeedData({page: 1}) as any);
         }
       })
       .catch(() => {
@@ -1396,7 +1319,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
             updatePageInRedux();
             await dispatch(getChatroom({chatroomId: chatroomID}) as any);
-            // await dispatch(getHomeFeedData({page: 1}, false) as any);
           },
           style: 'default',
         },

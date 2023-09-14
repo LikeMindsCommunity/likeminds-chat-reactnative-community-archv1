@@ -72,7 +72,6 @@ export const paginatedSyncAPI = async (
       DB_RESPONSE?.chatroomsData,
       user?.sdkClientInfo?.community,
     );
-    const chatrooms = await myClient?.getChatrooms();
   }
 
   myClient?.updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);

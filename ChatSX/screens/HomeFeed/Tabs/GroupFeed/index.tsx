@@ -23,6 +23,7 @@ import {
 } from '../../../../store/actions/homefeed';
 import styles from './styles';
 import {
+  GET_HOMEFEED_CHAT_SUCCESS,
   GET_SYNC_HOMEFEED_CHAT_SUCCESS,
   SET_PAGE,
 } from '../../../../store/types/types';
@@ -61,16 +62,14 @@ const GroupFeed = ({navigation}: Props) => {
 
   const INITIAL_SYNC_PAGE = 1;
 
-  const callHomeFeedOnce = async () => {
-    let payload = {
-      page: 1,
-    };
-    const temp = await dispatch(getHomeFeedData(payload) as any);
+  const getExploreTabCount = async () => {
+    const exploreTabCount = await myClient?.getExploreTabCount();
+    dispatch({type: GET_HOMEFEED_CHAT_SUCCESS, body: exploreTabCount?.data});
   };
 
   useEffect(() => {
-    // To get total number of chatrooms
-    callHomeFeedOnce();
+    // To get total number of chatrooms and number of unseen chatrooms
+    getExploreTabCount();
   }, []);
 
   // Fetching already existing chatrooms from Realm
@@ -97,9 +96,8 @@ const GroupFeed = ({navigation}: Props) => {
       Realm.open(myClient?.getInstance())
         .then(realm => {
           const chatrooms = realm.objects('ChatroomRO');
-          const listener = (newChatrooms: any, changes: any) => {
-            const filteredChatroom = chatrooms.filtered(`type = 0 || type=7`);
-            const sortedChatroom = filteredChatroom.sorted('updatedAt', true);
+          const listener = async (newChatrooms: any, changes: any) => {
+            const sortedChatroom = await myClient?.getFilteredChatrooms(false);
             observer.next(sortedChatroom);
           };
           chatrooms.addListener(listener);
@@ -112,7 +110,6 @@ const GroupFeed = ({navigation}: Props) => {
           observer.error(error);
         });
     });
-    // const filteredChatroom: any = await myClient?.getFilteredChatrooms(false);
     const subscription = chatroomObservable.subscribe({
       next: (sortedChatroom: any) => {
         setGroupfeedChatrooms(sortedChatroom);
@@ -151,7 +148,6 @@ const GroupFeed = ({navigation}: Props) => {
         let payload = {
           page: 1,
         };
-        // const temp = await dispatch(getHomeFeedData(payload) as any);
       } else {
         await dispatch(
           updateInvites({channelType: 1, page: 2, pageSize: 10}, false) as any,

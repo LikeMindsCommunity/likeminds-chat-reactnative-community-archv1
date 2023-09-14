@@ -70,9 +70,6 @@ const DMFeed = ({navigation}: Props) => {
       let payload = {
         page: 1,
       };
-      // const res = await dispatch(getDMFeedData(payload) as any);
-
-      // if (!!res) {
       let apiRes = await myClient?.checkDMStatus({
         requestFrom: 'dm_feed_v2',
       });
@@ -86,7 +83,6 @@ const DMFeed = ({navigation}: Props) => {
         }
         setShowDM(response?.showDm);
       }
-      // }
     }
   }
 
@@ -131,9 +127,8 @@ const DMFeed = ({navigation}: Props) => {
       Realm.open(myClient?.getInstance())
         .then(realm => {
           const chatrooms = realm.objects('ChatroomRO');
-          const listener = (newChatrooms: any, changes: any) => {
-            const filteredChatroom = chatrooms.filtered(`type = 10`);
-            const sortedChatroom = filteredChatroom.sorted('updatedAt', true);
+          const listener = async (newChatrooms: any, changes: any) => {
+            const sortedChatroom = await myClient?.getFilteredChatrooms(true);
             observer.next(sortedChatroom);
           };
           chatrooms.addListener(listener);

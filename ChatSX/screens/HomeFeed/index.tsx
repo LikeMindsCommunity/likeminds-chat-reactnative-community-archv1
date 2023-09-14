@@ -23,7 +23,6 @@ import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs
 import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {useIsFocused} from '@react-navigation/native';

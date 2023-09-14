@@ -86,13 +86,11 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case GET_HOMEFEED_CHAT_SUCCESS: {
-      const {myChatrooms, unseenChatroomCount, totalChatroomCount} =
-        action.body;
+      const {unseenChannelCount, totalChannelCount} = action.body;
       return {
         ...state,
-        myChatrooms: myChatrooms,
-        totalCount: totalChatroomCount,
-        unseenCount: unseenChatroomCount,
+        totalCount: totalChannelCount,
+        unseenCount: unseenChannelCount,
       };
     }
     case UPDATE_HOMEFEED_CHAT_SUCCESS: {

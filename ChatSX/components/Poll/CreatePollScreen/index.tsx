@@ -301,20 +301,13 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
         res?.data?.conversation,
       );
 
-      const realmConversations = await myClient?.getConversations(
+      const conversations = await myClient?.getConversations(
         chatroomID.toString(),
       );
 
-      realmConversations.sort(function (a: any, b: any) {
-        let keyA = a.createdEpoch;
-        let keyB = b.createdEpoch;
-        if (keyA > keyB) return -1;
-        if (keyA < keyB) return 1;
-        return 0;
-      });
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
-        body: {conversations: realmConversations},
+        body: {conversations: conversations},
       });
       handleOnCancel();
     } catch (error) {
