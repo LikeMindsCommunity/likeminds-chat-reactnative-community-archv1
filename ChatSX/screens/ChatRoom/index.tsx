@@ -653,7 +653,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   useEffect(() => {
-    const leavingChatroom = async () => {
+    const closingChatroom = async () => {
       await myClient?.markReadChatroom({
         chatroomId: chatroomID,
       });
@@ -661,7 +661,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
     return () => {
       if (previousRoute?.name !== EXPLORE_FEED) {
-        leavingChatroom();
+        closingChatroom();
       }
     };
   }, []);

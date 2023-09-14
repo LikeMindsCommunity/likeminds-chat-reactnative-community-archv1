@@ -31,10 +31,8 @@ import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import {SyncChatroomRequest} from 'reactnative-chat-data';
 import Realm from 'realm';
 import {Observable} from 'rxjs';
-import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 
 interface Props {
   navigation: any;
@@ -85,8 +83,6 @@ const GroupFeed = ({navigation}: Props) => {
   useEffect(() => {
     if (isFocused) {
       getExistingData();
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
     }
   }, [isFocused, user]);
 
@@ -127,16 +123,6 @@ const GroupFeed = ({navigation}: Props) => {
   useEffect(() => {
     listener();
   }, [isFocused]);
-
-  useEffect(() => {
-    const query = ref(db, `/community/${community?.id}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
-      }
-    });
-  }, [user]);
 
   async function fetchData() {
     const invitesRes = await dispatch(

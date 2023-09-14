@@ -6,15 +6,12 @@ async function syncChatroomAPI(
   page: number,
   minTimeStamp: number,
   maxTimeStamp: number,
-  isDmFeed: boolean,
 ) {
-  const chatroomType = isDmFeed ? [10] : [0, 7];
-
   const res = await myClient?.syncChatroom(
     SyncChatroomRequest.builder()
       .setPage(page)
       .setPageSize(50)
-      .setChatroomTypes(chatroomType)
+      .setChatroomTypes([0, 7, 10])
       .setMaxTimestamp(maxTimeStamp)
       .setMinTimestamp(minTimeStamp)
       .build(),
@@ -25,11 +22,7 @@ async function syncChatroomAPI(
 const INITIAL_SYNC_PAGE = 1;
 
 // Pagination call for sync chatroom
-export const paginatedSyncAPI = async (
-  page: number,
-  user: any,
-  isDmFeed: boolean,
-) => {
+export const paginatedSyncAPI = async (page: number, user: any) => {
   const timeStampStored = await myClient?.getTimeStamp();
   const temp = JSON.stringify(timeStampStored);
   let parsedTimeStamp = JSON.parse(temp);
@@ -39,12 +32,7 @@ export const paginatedSyncAPI = async (
   let minTimeStampNow =
     parsedTimeStamp[0].minTimeStamp === 0 ? 0 : parsedTimeStamp[0].maxTimeStamp;
 
-  const val = await syncChatroomAPI(
-    page,
-    minTimeStampNow,
-    maxTimeStampNow,
-    isDmFeed,
-  );
+  const val = await syncChatroomAPI(page, minTimeStampNow, maxTimeStampNow);
 
   const DB_RESPONSE = val?.data;
 
@@ -54,9 +42,8 @@ export const paginatedSyncAPI = async (
     );
   }
 
-  if (DB_RESPONSE?.chatroomsData.length !== 0 && isDmFeed) {
+  if (DB_RESPONSE?.chatroomsData.length !== 0) {
     const totalChatrooms = DB_RESPONSE?.chatroomsData;
-
     const chatroom = totalChatrooms[0];
     const userData =
       user?.id !== chatroom?.chatroomWithUserId
@@ -64,9 +51,7 @@ export const paginatedSyncAPI = async (
         : DB_RESPONSE?.userMeta[chatroom?.userId]?.name;
 
     DB_RESPONSE.chatroomsData[0].chatroomWithUserName = userData;
-  }
 
-  if (DB_RESPONSE?.chatroomsData.length !== 0) {
     await myClient?.saveChatroomResponse(
       DB_RESPONSE,
       DB_RESPONSE?.chatroomsData,
@@ -79,6 +64,6 @@ export const paginatedSyncAPI = async (
   if (DB_RESPONSE?.chatroomsData?.length === 0) {
     return;
   } else {
-    await paginatedSyncAPI(page + 1, user?.sdkClientInfo?.community, isDmFeed);
+    await paginatedSyncAPI(page + 1, user?.sdkClientInfo?.community);
   }
 };

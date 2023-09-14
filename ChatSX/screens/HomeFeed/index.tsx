@@ -27,6 +27,8 @@ import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {useIsFocused} from '@react-navigation/native';
 import {useQuery} from '@realm/react';
+import {onValue, ref} from '@firebase/database';
+import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 
 interface Props {
   navigation: any;
@@ -42,6 +44,7 @@ const HomeFeed = ({navigation}: Props) => {
   const [accessToken, setAccessToken] = useState('');
   const dispatch = useAppDispatch();
   const isFocused = useIsFocused();
+  const db = myClient?.firebaseInstance();
 
   const {
     myChatrooms,
@@ -120,20 +123,6 @@ const HomeFeed = ({navigation}: Props) => {
     }
   };
 
-  // sync Chatrrom API
-  async function syncChatroomAPI(page: number) {
-    const res = await myClient?.syncChatroom(
-      SyncChatroomRequest.builder()
-        .setPage(page)
-        .setPageSize(20)
-        .setChatroomTypes([0, 7])
-        .setMaxTimestamp(Math.floor(Date.now()))
-        .setMinTimestamp(0)
-        .build(),
-    );
-    return res;
-  }
-
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
 
@@ -184,6 +173,23 @@ const HomeFeed = ({navigation}: Props) => {
   }, [navigation, myClient]);
 
   useEffect(() => {
+    const query = ref(db, `/community/${community?.id}`);
+    return onValue(query, snapshot => {
+      if (snapshot.exists()) {
+        if (!user?.sdkClientInfo?.community) return;
+        paginatedSyncAPI(INITIAL_SYNC_PAGE, user);
+      }
+    });
+  }, [user]);
+
+  useEffect(() => {
+    if (isFocused) {
+      if (!user?.sdkClientInfo?.community) return;
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user);
+    }
+  }, [isFocused, user]);
+
+  useEffect(() => {
     const token = async () => {
       const isPermissionEnabled = await requestUserPermission();
       if (isPermissionEnabled) {
@@ -202,10 +208,6 @@ const HomeFeed = ({navigation}: Props) => {
       const res: any = await myClient?.getAllAttachmentUploadConversations();
 
       if (res) {
-        // const temp = JSON.stringify(timeStampStored);
-        // let parsedTimeStamp = JSON.parse(temp);
-        // let uploadingFilesMessagesSavedObject = JSON.parse(res);
-        // let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
         let len = res.length;
         if (len > 0) {
           for (let i = 0; i < len; i++) {

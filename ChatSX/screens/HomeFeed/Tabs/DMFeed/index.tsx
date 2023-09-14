@@ -39,10 +39,8 @@ import {
 } from '../../../../constants/Strings';
 import {FlashList} from '@shopify/flash-list';
 import {useIsFocused} from '@react-navigation/native';
-import {SyncChatroomRequest} from 'reactnative-chat-data';
 import Realm from 'realm';
 import {Observable} from 'rxjs';
-import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 
 interface Props {
   navigation: any;
@@ -116,8 +114,6 @@ const DMFeed = ({navigation}: Props) => {
   useEffect(() => {
     if (isFocused) {
       getExistingData();
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
     }
   }, [isFocused, user]);
 
@@ -158,16 +154,6 @@ const DMFeed = ({navigation}: Props) => {
   useEffect(() => {
     listener();
   }, [isFocused]);
-
-  useEffect(() => {
-    const query = ref(db, `/community/${community?.id}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
-      }
-    });
-  }, [user]);
 
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {
