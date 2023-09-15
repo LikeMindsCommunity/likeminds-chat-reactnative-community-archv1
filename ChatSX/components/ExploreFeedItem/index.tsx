@@ -4,8 +4,11 @@ import {myClient} from '../../..';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
-import {getHomeFeedData} from '../../store/actions/homefeed';
-import {SET_EXPLORE_FEED_PAGE, SET_PAGE} from '../../store/types/types';
+import {
+  SET_EXPLORE_FEED_PAGE,
+  SET_PAGE,
+  TO_BE_DELETED,
+} from '../../store/types/types';
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 import {CHATROOM} from '../../constants/Screens';
@@ -66,21 +69,14 @@ const ExploreFeedItem: React.FC<Props> = ({
         } else {
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
+          // Deleting chatroom from realm in case of leaving of chatroom
+          await myClient?.deleteChatroom(`${chatroomID}`);
         }
         dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
         await dispatch(getExploreFeedData(payload) as any);
-        dispatch({type: SET_PAGE, body: 1});
-        await dispatch(
-          getHomeFeedData(
-            {
-              page: 1,
-            },
-            false,
-          ) as any,
-        );
       })
       .catch(() => {
-        // Alert.alert('Leave Chatroom failed');
+        Alert.alert('Leave Chatroom failed');
       });
 
     return res;

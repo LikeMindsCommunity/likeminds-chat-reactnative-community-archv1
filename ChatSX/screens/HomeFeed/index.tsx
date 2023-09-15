@@ -23,8 +23,12 @@ import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs
 import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
+import {SyncChatroomRequest} from 'reactnative-chat-data';
+import {useIsFocused} from '@react-navigation/native';
+import {useQuery} from '@realm/react';
+import {onValue, ref} from '@firebase/database';
+import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 
 interface Props {
   navigation: any;
@@ -39,6 +43,8 @@ const HomeFeed = ({navigation}: Props) => {
   const [FCMToken, setFCMToken] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const dispatch = useAppDispatch();
+  const isFocused = useIsFocused();
+  const db = myClient?.firebaseInstance();
 
   const {
     myChatrooms,
@@ -50,8 +56,10 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
+  const users = useQuery('UserSchemaRO');
 
-  const db = myClient?.firebaseInstance();
+  const INITIAL_SYNC_PAGE = 1;
+
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
   const setOptions = () => {
     navigation.setOptions({
@@ -100,6 +108,7 @@ const HomeFeed = ({navigation}: Props) => {
     });
   };
 
+  //push API to receive firebase notifications
   const pushAPI = async (fcmToken: any, accessToken: any) => {
     const deviceID = await getUniqueId();
     try {
@@ -117,11 +126,12 @@ const HomeFeed = ({navigation}: Props) => {
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
 
-    const uuid = await AsyncStorage.getItem('uuid');
+    const UUID = users[0]?.userUniqueID;
+    const userName = users[0]?.userName;
 
     let payload = {
-      uuid: uuid, // uuid
-      userName: 'ranjanDas', // user name
+      uuid: UUID, // uuid
+      userName: userName, // user name
       isGuest: false,
     };
 
@@ -137,9 +147,47 @@ const HomeFeed = ({navigation}: Props) => {
     return res;
   }
 
+  const timeSetter = async () => {
+    const timeStampStored = await myClient?.getTimeStamp();
+    if (timeStampStored.length == 0) {
+      // Setting the initial timeStamp for the first time
+      const maxTimeStamp = Math.floor(Date.now() / 1000);
+      const minTimeStamp = 0;
+      myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
+    } else {
+      const temp = JSON.stringify(timeStampStored);
+      let parsedTimeStamp = JSON.parse(temp);
+      myClient?.updateTimeStamp(
+        parsedTimeStamp[0].maxTimeStamp,
+        Math.floor(Date.now() / 1000),
+      );
+    }
+  };
+
+  useEffect(() => {
+    timeSetter();
+  }, [isFocused]);
+
   useLayoutEffect(() => {
     fetchData();
   }, [navigation, myClient]);
+
+  useEffect(() => {
+    const query = ref(db, `/community/${community?.id}`);
+    return onValue(query, snapshot => {
+      if (snapshot.exists()) {
+        if (!user?.sdkClientInfo?.community) return;
+        paginatedSyncAPI(INITIAL_SYNC_PAGE, user);
+      }
+    });
+  }, [user]);
+
+  useEffect(() => {
+    if (isFocused) {
+      if (!user?.sdkClientInfo?.community) return;
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user);
+    }
+  }, [isFocused, user]);
 
   useEffect(() => {
     const token = async () => {
@@ -156,22 +204,23 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const func = async () => {
-      const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+      // const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+      const res: any = await myClient?.getAllAttachmentUploadConversations();
 
       if (res) {
-        let uploadingFilesMessagesSavedObject = JSON.parse(res);
-        let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
-        let len = arrOfKeys.length;
+        let len = res.length;
         if (len > 0) {
           for (let i = 0; i < len; i++) {
+            let data = res[i];
+            let uploadingFilesMessagesSavedObject = JSON.parse(data?.value);
             dispatch({
               type: UPDATE_FILE_UPLOADING_OBJECT,
               body: {
                 message: {
-                  ...uploadingFilesMessagesSavedObject[arrOfKeys[i]],
+                  ...uploadingFilesMessagesSavedObject,
                   isInProgress: FAILED,
                 },
-                ID: arrOfKeys[i],
+                ID: data?.key,
               },
             });
           }

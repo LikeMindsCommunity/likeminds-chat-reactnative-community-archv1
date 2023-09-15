@@ -170,7 +170,7 @@ const SwitchComponent = () => {
           dispatch({type: SHOW_TOAST, body: {isToast: false, msg: ''}});
         }}
       />
-      {count > 0 && <LoaderComponent />}
+      {/* {count > 0 && <LoaderComponent />} */}
       {chatroomCount > 0 && <LoaderChatroomComponent />}
     </View>
   );

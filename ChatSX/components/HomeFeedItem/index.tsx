@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -31,7 +31,6 @@ import {
   VIDEO_TEXT,
 } from '../../constants/Strings';
 import Layout from '../../constants/Layout';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Props {
   avatar: string;
@@ -45,10 +44,7 @@ interface Props {
   chatroomID: number;
   lastConversationMember?: string;
   isSecret: boolean;
-  deletedBy: number;
-  conversationDeletor: string;
-  conversationCreator: string;
-  conversationDeletorName: string;
+  deletedBy?: string;
   inviteReceiver?: any;
   chatroomType: number;
   muteStatus: boolean;
@@ -67,23 +63,11 @@ const HomeFeedItem: React.FC<Props> = ({
   lastConversationMember,
   isSecret,
   deletedBy,
-  conversationDeletor,
-  conversationCreator,
-  conversationDeletorName,
   inviteReceiver,
   chatroomType,
   muteStatus,
 }) => {
   const dispatch = useAppDispatch();
-  const [uuid, setUuid] = useState<any>();
-
-  useEffect(() => {
-    async function getUuid() {
-      const uuid = await AsyncStorage.getItem('uuid');
-      setUuid(uuid);
-    }
-    getUuid();
-  }, []);
 
   const showJoinAlert = () =>
     Alert.alert(
@@ -149,9 +133,19 @@ const HomeFeedItem: React.FC<Props> = ({
     );
 
   const getFeedIconAttachment = (val: any) => {
-    let imageCount = val?.images?.length;
-    let videosCount = val?.videos?.length;
-    let pdfCount = val?.pdf?.length;
+    const attachments = val.attachments;
+    let imageCount = 0;
+    let videosCount = 0;
+    let pdfCount = 0;
+    for (let i = 0; i < attachments.length; i++) {
+      if (attachments[i].type == 'image') {
+        imageCount++;
+      } else if (attachments[i].type == 'video') {
+        videosCount++;
+      } else {
+        pdfCount++;
+      }
+    }
 
     if (imageCount > 0 && videosCount > 0 && pdfCount > 0) {
       return (
@@ -362,30 +356,11 @@ const HomeFeedItem: React.FC<Props> = ({
                 width: '80%',
               },
             ]}>
-            {!!deletedBy ? (
-              chatroomType !== 10 ? (
-                uuid === conversationDeletor ? (
-                  <Text style={styles.deletedMessage}>
-                    This message has been deleted by you
-                  </Text>
-                ) : conversationCreator === conversationDeletor ? (
-                  <Text style={styles.deletedMessage}>
-                    This message has been deleted by {conversationDeletorName}
-                  </Text>
-                ) : (
-                  <Text style={styles.deletedMessage}>
-                    This message has been deleted by Community Manager
-                  </Text>
-                )
-              ) : uuid === conversationDeletor ? (
-                <Text style={styles.deletedMessage}>
-                  This message has been deleted by you
-                </Text>
-              ) : (
-                <Text style={styles.deletedMessage}>
-                  This message has been deleted by {conversationDeletorName}
-                </Text>
-              )
+            {deletedBy !== 'null' && deletedBy !== null ? (
+              <Text
+                style={
+                  styles.deletedMessage
+                }>{`This message has been deleted`}</Text>
             ) : (
               <Text
                 style={[
@@ -403,7 +378,7 @@ const HomeFeedItem: React.FC<Props> = ({
                 ) : null}
 
                 <Text numberOfLines={1} style={[styles.parentLastMessage]}>
-                  {!!lastConversation?.hasFiles
+                  {lastConversation.hasFiles > 0
                     ? getFeedIconAttachment(lastConversation)
                     : lastConversation?.state === 10
                     ? getFeedIconAttachment(lastConversation)

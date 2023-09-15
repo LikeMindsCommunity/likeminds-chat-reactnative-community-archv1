@@ -4,7 +4,7 @@ import {
   useIsFocused,
 } from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-
+import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {
   View,
   Text,
@@ -46,11 +46,7 @@ import {
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
-import {
-  getDMFeedData,
-  getHomeFeedData,
-  initAPI,
-} from '../../store/actions/homefeed';
+import {getDMFeedData, initAPI} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
@@ -59,6 +55,8 @@ import {
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
+  GET_CHATROOM_SUCCESS,
+  GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
@@ -72,6 +70,7 @@ import {
   SET_POSITION,
   SET_REPLY_MESSAGE,
   SHOW_TOAST,
+  TO_BE_DELETED,
   UPDATE_CHAT_REQUEST_STATE,
 } from '../../store/types/types';
 import {
@@ -119,7 +118,10 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {SyncConversationRequest} from 'reactnative-chat-data';
+import {useQuery} from '@realm/react';
+import Realm from 'realm';
+import {Observable} from 'rxjs';
 
 interface Data {
   id: string;
@@ -166,6 +168,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [DMBlockAlertModalVisible, setDMBlockAlertModalVisible] =
     useState(false);
   const [showDM, setShowDM] = useState<any>(null);
+  const [type, setType] = useState();
   const [showList, setShowList] = useState<any>(null);
   const [isMessagePrivately, setIsMessagePrivately] = useState<any>(false);
   const [isEditable, setIsEditable] = useState<any>(false);
@@ -173,12 +176,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
+  const users = useQuery('UserSchemaRO');
   const [lastScrollOffset, setLastScrollOffset] = useState(true);
   const [response, setResponse] = useState([]);
 
   const {
     chatroomID,
     isInvited,
+    muteStatus,
     previousChatroomID,
     navigationFromNotification,
   } = route.params;
@@ -199,11 +204,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   );
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
+  const INITIAL_SYNC_PAGE = 1;
+
   let chatroomType = chatroomDetails?.chatroom?.type;
+
   let chatroomFollowStatus = chatroomDetails?.chatroom?.followStatus;
   let memberCanMessage = chatroomDetails?.chatroom?.memberCanMessage;
   let chatroomWithUser = chatroomDetails?.chatroom?.chatroomWithUser;
   let chatRequestState = chatroomDetails?.chatroom?.chatRequestState;
+
+  // To reduce the unseenCount to 0 in case of sending of DM to someone
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -226,9 +236,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       : chatroomHeaderName  
   */
   }
+
+  const userIdStringified = user?.id;
+
   let chatroomName =
     chatroomType === 10
-      ? user?.id !== chatroomWithUser?.id
+      ? userIdStringified !== chatroomWithUser?.id
         ? chatroomWithUser?.name
         : chatroomDetails?.chatroom?.member?.name!
       : chatroomDetails?.chatroom?.header;
@@ -247,7 +260,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
   let chatroomProfile =
     chatroomType === 10
-      ? user?.id !== chatroomWithUser?.id
+      ? userIdStringified !== chatroomWithUser?.id
         ? chatroomWithUser?.imageUrl
         : chatroomDetails?.chatroom?.member?.imageUrl!
       : null;
@@ -398,7 +411,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
         if (selectedMessagesLength === 1) {
           if (
-            selectedMessages[0].member.id === user?.id &&
+            selectedMessages[0].member.id == userIdStringified &&
             !!selectedMessages[0].answer
           ) {
             isSelectedMessageEditable = true;
@@ -422,7 +435,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           }
 
           if (
-            selectedMessages[i]?.member?.id === user?.id &&
+            selectedMessages[i]?.member?.id == userIdStringified &&
             !!!selectedMessages[i]?.deletedBy
           ) {
             userCanDeleteParticularMessageArr = [
@@ -545,13 +558,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     .then(async () => {
                       dispatch({type: SELECTED_MESSAGES, body: []});
                       dispatch({type: LONG_PRESSED, body: false});
+                      let updatedConversations;
+                      for (let i = 0; i < selectedMessagesIDArr.length; i++) {
+                        updatedConversations =
+                          await myClient?.deleteConversation(
+                            selectedMessagesIDArr[i],
+                            user,
+                            conversations,
+                          );
+                      }
+                      dispatch({
+                        type: GET_CONVERSATIONS_SUCCESS,
+                        body: {conversations: updatedConversations},
+                      });
                       setInitialHeader();
-                      let payload = {
-                        chatroomID: chatroomID,
-                        paginateBy: conversations.length * 2,
-                        topNavigate: false,
-                      };
-                      await dispatch(getConversations(payload, false) as any);
                     })
                     .catch(() => {
                       Alert.alert('Delete message failed');
@@ -593,15 +613,84 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  //this function fetchConversations when we first move inside Chatroom
-  async function fetchData(showLoaderVal?: boolean) {
-    let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
-    let response = await dispatch(
-      getConversations(
-        payload,
-        showLoaderVal != undefined && showLoaderVal == false ? false : true,
-      ) as any,
+  // Sync conversation API call
+  async function syncConversationAPI(
+    page: number,
+    maxTimeStamp: number,
+    minTimeStamp: number,
+  ) {
+    const res = await myClient?.syncConversation(
+      SyncConversationRequest.builder()
+        .setChatroomId(chatroomID)
+        .setPage(page)
+        .setMinTimestamp(minTimeStamp)
+        .setMaxTimestamp(maxTimeStamp)
+        .setPageSize(20)
+        .build(),
     );
+    return res;
+  }
+
+  // pagination call for sync conversation
+  const paginatedSyncAPI = async (page: number) => {
+    const val = await syncConversationAPI(page, Math.floor(Date.now()), 0);
+    const DB_RESPONSE = val?.data;
+
+    if (DB_RESPONSE?.conversationsData?.length !== 0) {
+      await myClient?.saveConversationData(
+        DB_RESPONSE,
+        DB_RESPONSE?.chatroomMeta,
+        DB_RESPONSE?.conversationsData,
+        community?.id,
+      );
+    }
+
+    if (DB_RESPONSE?.conversationsData?.length === 0) {
+      return;
+    } else {
+      paginatedSyncAPI(page + 1);
+    }
+  };
+
+  useEffect(() => {
+    const closingChatroom = async () => {
+      await myClient?.markReadChatroom({
+        chatroomId: chatroomID,
+      });
+      await myClient?.updateUnseenCount(chatroomID.toString());
+    };
+    return () => {
+      if (previousRoute?.name !== EXPLORE_FEED) {
+        closingChatroom();
+      }
+    };
+  }, []);
+
+  // Fetching already existing chatrooms from Realm
+  const getExistingData = async () => {
+    const existingChatrooms: any = await myClient?.getConversations(
+      chatroomID.toString(),
+    );
+    if (!!existingChatrooms && existingChatrooms.length != 0) {
+      dispatch({
+        type: GET_CONVERSATIONS_SUCCESS,
+        body: {conversations: existingChatrooms},
+      });
+    }
+  };
+
+  // This function fetchConversations when we first move inside Chatroom
+  async function fetchData(showLoaderVal?: boolean) {
+    await getExistingData();
+    await paginatedSyncAPI(INITIAL_SYNC_PAGE);
+    let conversationsFromRealm: any = await myClient?.getConversations(
+      chatroomID.toString(),
+    );
+    dispatch({
+      type: GET_CONVERSATIONS_SUCCESS,
+      body: {conversations: conversationsFromRealm},
+    });
+
     if (!isInvited) {
       const response = await myClient?.markReadChatroom({
         chatroomId: chatroomID,
@@ -614,15 +703,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       });
 
       updatePageInRedux();
-
-      //if isDM
-      if (chatroomType === 10) {
-        dispatch(getDMFeedData({page: 1}, false) as any);
-      } else {
-        await dispatch(getHomeFeedData({page: 1}, false) as any);
-      }
     }
-    return response;
+    return conversationsFromRealm;
   }
 
   //this function fetchChatroomDetails when we first move inside Chatroom
@@ -635,12 +717,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function fetch initiate API
   async function fetchInitAPI() {
     //this line of code is for the sample app only, pass your uuid instead of this.
-    const uuid = await AsyncStorage.getItem('uuid');
+    const UUID = users[0]?.userUniqueID;
+    const userName = users[0]?.userName;
 
     let payload = {
-      uuid: uuid, // uuid
-      userName: '', // user name
-      isGuest: false,
+      userUniqueId: UUID,
+      userName: userName,
     };
 
     let res = await dispatch(initAPI(payload) as any);
@@ -761,29 +843,23 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           let payload = {
             page: 1,
           };
-          const res = await dispatch(getDMFeedData(payload, false) as any);
 
-          if (!!res) {
-            let apiRes = await myClient?.checkDMStatus({
-              requestFrom: 'group_channel',
-            });
-            let response = apiRes?.data;
-            if (!!response) {
-              let routeURL = response?.cta;
-              const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-              if (hasShowList) {
-                const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-                setShowList(showListValue);
-              }
-              setShowDM(response?.showDm);
+          let apiRes = await myClient?.checkDMStatus({
+            requestFrom: 'group_channel',
+          });
+          let response = apiRes?.data;
+          if (!!response) {
+            let routeURL = response?.cta;
+            const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+            if (hasShowList) {
+              const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+              setShowList(showListValue);
             }
+            setShowDM(response?.showDm);
           }
         }
       }
       let res = await fetchData(false);
-      if (!!res) {
-        // dispatch({type: STOP_CHATROOM_LOADING});
-      }
     }
 
     if (!!chatroomDetails?.chatroom) {
@@ -809,7 +885,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isLongPress, selectedMessages]);
 
-  //useffect includes firebase realtime listener
+  // useEffect includes firebase realtime listener
   useEffect(() => {
     const query = ref(db, `/collabcards/${chatroomID}`);
     return onValue(query, async (snapshot: DataSnapshot) => {
@@ -864,7 +940,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let selectedMessagesMember = selectedMessages[0]?.member;
       if (
         showDM &&
-        selectedMessagesMember?.id !== user?.id &&
+        selectedMessagesMember?.id !== userIdStringified &&
         !selectedMessages[0]?.deletedBy
       ) {
         if (showList == 2 && selectedMessagesMember?.state === 1) {
@@ -1040,7 +1116,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
             body: {conversations: []},
@@ -1051,17 +1126,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
-          dispatch({
-            type: CLEAR_CHATROOM_CONVERSATION,
-            body: {conversations: []},
-          });
-          dispatch({
-            type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
-          });
           navigation.goBack();
+          // Deleting the chatroom from realm in case of leaving the chatroom
+          await myClient?.deleteChatroom(chatroomID);
         }
       })
       .catch(() => {
@@ -1095,7 +1162,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
           dispatch({
             type: CLEAR_CHATROOM_CONVERSATION,
             body: {conversations: []},
@@ -1106,17 +1172,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
-          dispatch({
-            type: CLEAR_CHATROOM_CONVERSATION,
-            body: {conversations: []},
-          });
-          dispatch({
-            type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
-          });
           navigation.goBack();
+          // Deleting the chatroom from realm in case of leaving the chatroom
+          await myClient?.deleteChatroom(chatroomID);
         }
       })
       .catch(() => {
@@ -1142,10 +1200,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
         }
         navigation.dispatch(
           CommonActions.reset({
@@ -1181,7 +1237,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           paginateBy: 100,
           topNavigate: false,
         };
-        await dispatch(getConversations(getConversationsPayload, true) as any);
 
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
@@ -1191,10 +1246,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           };
           await dispatch(getExploreFeedData(payload2, true) as any);
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
         } else {
           updatePageInRedux();
-          await dispatch(getHomeFeedData({page: 1}) as any);
         }
       })
       .catch(() => {
@@ -1213,6 +1266,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then((res: any) => {
         fetchChatroomDetails();
+        // Updating Realm in case of muting of chatroom/Dm
+        myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
       })
@@ -1230,6 +1285,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then(() => {
         fetchChatroomDetails();
+        // Updating Realm in case of muting of chatroom/Dm
+        myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications unmuted for this chatroom');
         setIsToast(true);
       })
@@ -1262,7 +1319,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
             updatePageInRedux();
             await dispatch(getChatroom({chatroomId: chatroomID}) as any);
-            await dispatch(getHomeFeedData({page: 1}, false) as any);
           },
           style: 'default',
         },
@@ -1335,16 +1391,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let changedMsg;
     if (selectedMessages[0]?.reactions.length > 0) {
       let isReactedArr = selectedMessages[0]?.reactions.filter(
-        (val: any) => val?.member?.id === user?.id,
+        (val: any) => val?.member?.id === userIdStringified,
       );
       if (isReactedArr.length > 0) {
         // Reacted different emoji
         if (isReactedArr[0].reaction !== val) {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
-            element?.member?.id === user?.id
+            element?.member?.id === userIdStringified
               ? {
                   member: {
-                    id: user?.id,
+                    id: userIdStringified,
                     name: user?.name,
                     imageUrl: '',
                   },
@@ -1361,10 +1417,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else if (isReactedArr[0].reaction === val) {
           // Reacted same emoji
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
-            element?.member?.id === user?.id
+            element?.member?.id === userIdStringified
               ? {
                   member: {
-                    id: user?.id,
+                    id: userIdStringified,
                     name: user?.name,
                     imageUrl: '',
                   },
@@ -1386,7 +1442,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             ...selectedMessages[0]?.reactions,
             {
               member: {
-                id: user?.id,
+                id: userIdStringified,
                 name: user?.name,
                 imageUrl: '',
               },
@@ -1404,7 +1460,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           ...selectedMessages[0]?.reactions,
           {
             member: {
-              id: user?.id,
+              id: userIdStringified,
               name: user?.name,
               imageUrl: '',
             },
@@ -1440,7 +1496,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     if (item?.reactions?.length > 0) {
       let index = item?.reactions.findIndex(
-        (val: any) => val?.member?.id === user?.id,
+        (val: any) => val?.member?.id === userIdStringified,
       );
 
       // this condition checks if clicked reaction ID matches the findIndex ID
@@ -1934,7 +1990,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         data={conversations}
         keyExtractor={(item: any, index) => {
           let isArray = Array.isArray(item);
-          return isArray ? index?.toString() : item?.id?.toString();
+          return isArray ? `${index}` : `${item?.id}`;
         }}
         extraData={{
           value: [
@@ -1956,6 +2012,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           let isIncluded = selectedMessages.some(
             (val: any) => val?.id === item?.id && !isStateIncluded,
           );
+
           return (
             <View>
               {index < conversations.length &&
@@ -2002,7 +2059,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 }}
                 style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
                 <Messages
-                  chatroomWithUser={chatroomWithUser}
                   chatroomType={chatroomType}
                   onScrollToIndex={(index: any) => {
                     flatlistRef.current?.scrollToIndex({animated: true, index});
@@ -2048,6 +2104,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
+        // maintainVisibleContentPosition={{
+        //   autoscrollToTopThreshold: undefined,
+        //   minIndexForVisible: 1,
+        // }}
       />
 
       {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
@@ -2175,12 +2235,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           {/* 
               if chat_request_state === 0 (Not requested yet) &&
               (chat_requested_by !== null
-                ? chat_requested_by[0]?.id !== user?.id (TRUE or FALSE)
+                ? chat_requested_by[0]?.id !== userIdStringified (TRUE or FALSE)
                 : null (FALSE) )
           */}
           {chatRequestState === 0 &&
           (!!chatroomDetails?.chatroom?.chatRequestedBy
-            ? chatroomDetails?.chatroom?.chatRequestedBy[0]?.id !== user?.id
+            ? chatroomDetails?.chatroom?.chatRequestedBy[0]?.id !==
+              userIdStringified
             : null) ? (
             <View style={styles.dmRequestView}>
               <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>

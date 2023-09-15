@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState} from 'react';
 import {
   View,
@@ -7,18 +6,52 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
+  ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import STYLES from '../ChatSX/constants/Styles';
+import Realm from 'realm';
+import {useQuery, useRealm} from '@realm/react';
+import {UserSchemaRO} from '../ChatSX/db/schemas/UserSchema';
+import SwitchComponent from '../ChatSX/navigation/SwitchComponent';
 
-const FetchKeyInputScreen = () => {
-  const [uuid, setUuid] = useState('');
+interface ChildProps {
+  isTrue: boolean;
+  setIsTrue: (isTrue: boolean) => void;
+}
+
+const FetchKeyInputScreen: React.FC<ChildProps> = ({isTrue, setIsTrue}) => {
+  const [userUniqueID, setUserUniqueID] = useState('');
+  const [userName, setUserName] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
+
+  const realm = useRealm();
+  const data = useQuery('UserSchemaRO');
+  const handleAddNotes = (userUniqueID: string, userName: string) => {
+    realm.write(() => {
+      realm.create('UserSchemaRO', {
+        userUniqueID: userUniqueID,
+        userName: userName,
+      });
+    });
+  };
 
   const handleButtonPress = () => {
     // Perform some action when the button is pressed
     // You can access the input values from input1 and input2 variables
-    AsyncStorage.setItem('uuid', uuid);
-    setIsButtonClicked(true);
+    handleAddNotes(userUniqueID, userName);
+    userUniqueID && userName
+      ? setIsButtonClicked(true)
+      : setIsButtonClicked(false);
+    userUniqueID && userName && isButtonClicked ? (
+      setIsTrue(!isTrue)
+    ) : (
+      <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
+    );
+
+    if (userUniqueID && userName) {
+      Keyboard.dismiss();
+    }
   };
 
   return (
@@ -26,8 +59,16 @@ const FetchKeyInputScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="User unique ID"
-        value={uuid}
-        onChangeText={text => setUuid(text)}
+        placeholderTextColor={'grey'}
+        value={userUniqueID}
+        onChangeText={text => setUserUniqueID(text)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="User Name"
+        value={userName}
+        onChangeText={text => setUserName(text)}
+        placeholderTextColor={'grey'}
       />
       <TouchableOpacity
         style={{
@@ -42,20 +83,9 @@ const FetchKeyInputScreen = () => {
             fontSize: STYLES.$FONT_SIZES.XL,
             fontFamily: STYLES.$FONT_TYPES.LIGHT,
           }}>
-          Press me
+          Submit
         </Text>
       </TouchableOpacity>
-
-      {!!uuid && !!isButtonClicked ? (
-        <Text
-          style={{
-            color: STYLES.$COLORS.PRIMARY,
-            fontSize: STYLES.$FONT_SIZES.MEDIUM,
-            fontFamily: STYLES.$FONT_TYPES.LIGHT,
-          }}>
-          Please kill the app and open it again
-        </Text>
-      ) : null}
     </View>
   );
 };
@@ -66,6 +96,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: 'white',
   },
   input: {
     width: '100%',
@@ -74,6 +105,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 20,
     paddingHorizontal: 10,
+    color: 'black',
   },
 });
 

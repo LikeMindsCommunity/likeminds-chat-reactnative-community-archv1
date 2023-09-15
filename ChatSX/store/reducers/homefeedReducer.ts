@@ -6,6 +6,7 @@ import {
   GET_INVITES_SUCCESS,
   INIT_API_SUCCESS,
   PROFILE_DATA_SUCCESS,
+  GET_SYNC_HOMEFEED_CHAT_SUCCESS,
   REJECT_INVITE_SUCCESS,
   SET_DM_PAGE,
   SET_PAGE,
@@ -15,6 +16,7 @@ import {
   UPDATE_HOMEFEED_CHAT_SUCCESS,
   UPDATE_INVITES_SUCCESS,
   UPDATE_LAST_CONVERSATION,
+  TO_BE_DELETED,
 } from '../types/types';
 
 const initialState = {
@@ -84,13 +86,11 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case GET_HOMEFEED_CHAT_SUCCESS: {
-      const {myChatrooms, unseenChatroomCount, totalChatroomCount} =
-        action.body;
+      const {unseenChannelCount, totalChannelCount} = action.body;
       return {
         ...state,
-        myChatrooms: myChatrooms,
-        totalCount: totalChatroomCount,
-        unseenCount: unseenChatroomCount,
+        totalCount: totalChannelCount,
+        unseenCount: unseenChannelCount,
       };
     }
     case UPDATE_HOMEFEED_CHAT_SUCCESS: {

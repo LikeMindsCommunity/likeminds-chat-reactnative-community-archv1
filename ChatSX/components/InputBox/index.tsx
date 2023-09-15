@@ -42,6 +42,7 @@ import {
   UPDATE_LAST_CONVERSATION,
   EMPTY_BLOCK_DELETION,
   UPDATE_MULTIMEDIA_CONVERSATIONS,
+  GET_CONVERSATIONS_SUCCESS,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -86,7 +87,6 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
-import {getConversations} from '../../store/actions/chatroom';
 
 interface InputBox {
   replyChatID?: any;
@@ -517,7 +517,8 @@ const InputBox = ({
       // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
-        return `<<${name}|route://${name}>>`;
+        let newName = name.substring(1);
+        return `<<${name}|route://${newName}>>`;
       } else {
         return `<<${name}|route://${id}>>`;
       }
@@ -527,11 +528,13 @@ const InputBox = ({
     if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
       if (isReply) {
-        replyObj.replyConversation = replyMessage?.id;
+        replyObj.replyConversation = replyMessage?.id?.toString();
         replyObj.replyConversationObject = replyMessage;
         replyObj.member.name = user?.name;
-        replyObj.member.id = user?.id;
-        replyObj.answer = conversationText.trim();
+        replyObj.member.id = user?.id?.toString();
+        replyObj.member.sdkClientInfo = user?.sdkClientInfo;
+        replyObj.member.uuid = user?.uuid;
+        replyObj.answer = conversationText.trim()?.toString();
         replyObj.createdAt = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
           useGrouping: false,
@@ -539,15 +542,14 @@ const InputBox = ({
           minimumIntegerDigits: 2,
           useGrouping: false,
         })}`;
-        replyObj.id = ID;
-        replyObj.chatroomId = chatroomDetails?.chatroom?.id;
-        replyObj.communityId = community?.id;
+        replyObj.id = ID?.toString();
+        replyObj.chatroomId = chatroomDetails?.chatroom?.id?.toString();
+        replyObj.communityId = community?.id?.toString();
         replyObj.date = `${
           time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
         } ${months[time.getMonth()]} ${time.getFullYear()}`;
-        replyObj.id = ID;
-        replyObj.chatroomId = chatroomDetails?.chatroom?.id;
-        replyObj.communityId = community?.id;
+        replyObj.chatroomId = chatroomDetails?.chatroom?.id?.toString();
+        replyObj.communityId = community?.id?.toString();
         replyObj.date = `${
           time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
         } ${months[time.getMonth()]} ${time.getFullYear()}`;
@@ -561,8 +563,10 @@ const InputBox = ({
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
-      obj.member.id = user?.id;
-      obj.answer = conversationText.trim();
+      obj.member.id = user?.id?.toString();
+      obj.member.sdkClientInfo = user?.sdkClientInfo;
+      obj.member.uuid = user?.uuid;
+      obj.answer = conversationText.trim()?.toString();
       obj.createdAt = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,
         useGrouping: false,
@@ -570,9 +574,9 @@ const InputBox = ({
         minimumIntegerDigits: 2,
         useGrouping: false,
       })}`;
-      obj.id = ID;
-      obj.chatroomId = chatroomDetails?.chatroom?.id;
-      obj.communityId = community?.id;
+      obj.id = ID?.toString();
+      obj.chatroomId = chatroomDetails?.chatroom?.id?.toString();
+      obj.communityId = community?.id?.toString();
       obj.date = `${
         time.getDate() < 10 ? `0${time.getDate()}` : time.getDate()
       } ${months[time.getMonth()]} ${time.getFullYear()}`;
@@ -594,6 +598,36 @@ const InputBox = ({
         type: MESSAGE_SENT,
         body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
+
+      if (
+        chatroomType !== 10 && // if not DM
+        chatRequestState !== null // if not first DM message sent to an user
+      ) {
+        if (isReply) {
+          if (attachmentsCount > 0) {
+            const editedReplyObj = {...replyObj, isInProgress: SUCCESS};
+            await myClient?.saveNewConversation(
+              chatroomID.toString(),
+              editedReplyObj,
+            );
+          } else {
+            await myClient?.saveNewConversation(
+              chatroomID.toString(),
+              replyObj,
+            );
+          }
+        } else {
+          if (attachmentsCount > 0) {
+            const editedObj = {...obj, isInProgress: SUCCESS};
+            await myClient?.saveNewConversation(
+              chatroomID.toString(),
+              editedObj,
+            );
+          } else {
+            await myClient?.saveNewConversation(chatroomID.toString(), obj);
+          }
+        }
+      }
 
       if (isUploadScreen) {
         dispatch({
@@ -646,6 +680,7 @@ const InputBox = ({
           chatRequestState: 1,
           text: message.trim(),
         });
+
         dispatch({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 1},
@@ -661,6 +696,10 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
+
+          if (!!response) {
+            await myClient?.replaceSavedConversation(response?.conversation);
+          }
 
           //Handling conversation failed case
           if (response === undefined) {
@@ -691,6 +730,12 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
           let response = await dispatch(onConversationsCreate(payload) as any);
+          await myClient?.replaceSavedConversation(response?.conversation);
+          const conversationGet = await myClient?.getConversations(chatroomID);
+          dispatch({
+            type: GET_CONVERSATIONS_SUCCESS,
+            body: {conversations: conversationGet.reverse()},
+          });
           if (response === undefined) {
             dispatch({
               type: SHOW_TOAST,
@@ -722,14 +767,6 @@ const InputBox = ({
               },
             });
             await handleFileUpload(response?.id, false);
-            const getConversationPayload = {
-              chatroomID: chatroomID,
-              paginateBy: conversations.length * 2,
-              topNavigate: false,
-            };
-            await dispatch(
-              getConversations(getConversationPayload, false) as any,
-            );
           }
           dispatch({
             type: STATUS_BAR_STYLE,
@@ -917,10 +954,14 @@ const InputBox = ({
     setMessage('');
     setIsEditable(false);
 
-    await myClient?.editConversation({
+    const editConversationResponse = await myClient?.editConversation({
       conversationId: conversationId,
       text: editedConversation,
     });
+    await myClient?.updateConversation(
+      conversationId.toString(),
+      editConversationResponse?.data,
+    );
   };
 
   return (

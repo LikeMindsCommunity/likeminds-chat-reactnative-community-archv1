@@ -12,12 +12,14 @@ import {
   QUESTION_WARNING,
   TIME_TEXT,
 } from '../../../constants/Strings';
-import {SHOW_TOAST} from '../../../store/types/types';
+import {
+  GET_CONVERSATIONS_SUCCESS,
+  SHOW_TOAST,
+} from '../../../store/types/types';
 import {myClient} from '../../../..';
 import CreatePollUI from '../CreatePollUI';
 import {CreatePoll, CreatePollStateProps} from '../../../Models/PollModels';
 import {formatDate} from '../../../commonFuctions';
-import {getConversations} from '../../../store/actions/chatroom';
 
 const CreatePollScreen = ({navigation, route}: CreatePoll) => {
   const [question, setQuestion] = useState<string>('');
@@ -293,12 +295,20 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
         expiryTime: Date.parse(time.toString()),
       };
       const res = await myClient.postPollConversation(payload);
-      let getConversationsPayload = {
-        chatroomID: chatroomID,
-        paginateBy: conversationsLength,
-        topNavigate: false,
-      };
-      await dispatch(getConversations(getConversationsPayload, true) as any);
+
+      await myClient?.saveNewConversation(
+        chatroomID.toString(),
+        res?.data?.conversation,
+      );
+
+      const conversations = await myClient?.getConversations(
+        chatroomID.toString(),
+      );
+
+      dispatch({
+        type: GET_CONVERSATIONS_SUCCESS,
+        body: {conversations: conversations},
+      });
       handleOnCancel();
     } catch (error) {
       // process error

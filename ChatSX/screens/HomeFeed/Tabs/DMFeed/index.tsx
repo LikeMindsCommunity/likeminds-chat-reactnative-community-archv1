@@ -38,6 +38,9 @@ import {
   NO_DM_TEXT,
 } from '../../../../constants/Strings';
 import {FlashList} from '@shopify/flash-list';
+import {useIsFocused} from '@react-navigation/native';
+import Realm from 'realm';
+import {Observable} from 'rxjs';
 
 interface Props {
   navigation: any;
@@ -48,7 +51,9 @@ const DMFeed = ({navigation}: Props) => {
   const [showDM, setShowDM] = useState(false);
   const [showList, setShowList] = useState<any>(null);
   const [FCMToken, setFCMToken] = useState('');
+  const [dmChatrooms, setDMChatrooms] = useState([]);
   const dispatch = useAppDispatch();
+  const isFocused = useIsFocused();
 
   const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
     useAppSelector(state => state.homefeed);
@@ -56,31 +61,25 @@ const DMFeed = ({navigation}: Props) => {
 
   const db = myClient?.firebaseInstance();
   const chatrooms = [...myDMChatrooms];
+  const INITIAL_SYNC_PAGE = 1;
 
   async function fetchData() {
     if (!!community?.id) {
       let payload = {
         page: 1,
       };
-      const res = await dispatch(getDMFeedData(payload) as any);
-
-      if (!!res) {
-        let apiRes = await myClient?.checkDMStatus({
-          requestFrom: 'dm_feed_v2',
-        });
-        let response = apiRes?.data;
-
-        if (!!response) {
-          let routeURL = response?.cta;
-          const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-
-          if (hasShowList) {
-            const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-
-            setShowList(showListValue);
-          }
-          setShowDM(response?.showDm);
+      let apiRes = await myClient?.checkDMStatus({
+        requestFrom: 'dm_feed_v2',
+      });
+      let response = apiRes?.data;
+      if (!!response) {
+        let routeURL = response?.cta;
+        const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+        if (hasShowList) {
+          const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+          setShowList(showListValue);
         }
+        setShowDM(response?.showDm);
       }
     }
   }
@@ -101,6 +100,60 @@ const DMFeed = ({navigation}: Props) => {
     };
     token();
   }, []);
+
+  // Fetching already existing chatrooms from Realm
+  const getExistingData = async () => {
+    const existingChatrooms: any = await myClient?.getChatrooms();
+    if (!!existingChatrooms && existingChatrooms.length != 0) {
+      const filteredChatrooms: any = await myClient?.getFilteredChatrooms(true);
+      setDMChatrooms(filteredChatrooms);
+    }
+  };
+
+  // This useEffect is used to firstly get the already existing chatroom from realm and then call the paginatedSyncAPI
+  useEffect(() => {
+    if (isFocused) {
+      getExistingData();
+    }
+  }, [isFocused, user]);
+
+  // Listener for Realm which will be called with any kind of change in Realm
+  const listener = async () => {
+    const chatroomObservable = new Observable(observer => {
+      Realm.open(myClient?.getInstance())
+        .then(realm => {
+          const chatrooms = realm.objects('ChatroomRO');
+          const listener = async (newChatrooms: any, changes: any) => {
+            const sortedChatroom = await myClient?.getFilteredChatrooms(true);
+            observer.next(sortedChatroom);
+          };
+          chatrooms.addListener(listener);
+          return () => {
+            chatrooms.removeListener(listener);
+            realm.close();
+          };
+        })
+        .catch(error => {
+          observer.error(error);
+        });
+    });
+    const subscription = chatroomObservable.subscribe({
+      next: (sortedChatroom: any) => {
+        setDMChatrooms(sortedChatroom);
+      },
+      error: error => {
+        Alert.alert('Error observing chatrooms:', error);
+      },
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  };
+
+  // This useEffect calls the listener which is attached to realm
+  useEffect(() => {
+    listener();
+  }, [isFocused]);
 
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {
@@ -145,19 +198,9 @@ const DMFeed = ({navigation}: Props) => {
     ) : null;
   };
 
-  useEffect(() => {
-    const query = ref(db, `/community/${community?.id}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        dispatch(getDMFeedData({page: 1}, false) as any);
-        dispatch({type: SET_DM_PAGE, body: 1});
-      }
-    });
-  }, []);
-
   return (
     <View style={styles.page}>
-      {chatrooms?.length === 0 ? (
+      {dmChatrooms?.length === 0 ? (
         <View style={styles.nothingDM}>
           <View style={[styles.justifyCenter]}>
             <Image
@@ -193,50 +236,34 @@ const DMFeed = ({navigation}: Props) => {
         </View>
       ) : (
         <FlashList
-          data={chatrooms}
+          data={dmChatrooms}
           extraData={{
-            value: [user, chatrooms],
+            value: [user, dmChatrooms],
           }}
           estimatedItemSize={15}
           renderItem={({item}: any) => {
-            let chatroomWithUser = item?.chatroom?.chatroomWithUser;
-            let chatroom = item?.chatroom;
             const homeFeedProps = {
-              title:
-                user?.id !== chatroomWithUser?.id
-                  ? chatroomWithUser?.name
-                  : chatroom?.member?.name!,
-              avatar:
-                user?.id !== chatroomWithUser?.id
-                  ? chatroomWithUser?.imageUrl!
-                  : chatroom?.member?.imageUrl!,
+              title: item?.chatroomWithUserName,
+              avatar: item?.chatroomImageUrl!,
               lastMessage: item?.lastConversation?.answer!,
               lastMessageUser: item?.lastConversation?.member?.name!,
-              time: item?.lastConversationTime!,
-              unreadCount: item?.unseenConversationCount!,
+              time: item?.lastConversation?.createdAt!,
+              unreadCount: item?.unseenCount!,
               pinned: false,
               lastConversation: item?.lastConversation!,
-              chatroomID: chatroom?.id!,
-              deletedBy: item?.lastConversation?.deletedBy,
-              conversationDeletor:
-                item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
-              conversationCreator:
-                item?.lastConversation?.member?.sdkClientInfo?.uuid,
-              conversationDeletorName:
-                item?.lastConversation?.deletedByMember?.name,
-              isSecret: chatroom?.isSecret,
-              chatroomType: chatroom?.type,
-              muteStatus: chatroom?.muteStatus,
+              chatroomID: item?.id!,
+              deletedBy: item?.lastConversationRO?.deletedBy,
+              isSecret: item?.isSecret,
+              chatroomType: item?.type,
+              muteStatus: item?.muteStatus,
             };
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.1}
           ListFooterComponent={renderFooter}
-          keyExtractor={(item: any) => item?.chatroom?.id.toString()}
+          keyExtractor={(item: any) => item?.id.toString()}
         />
       )}
-      {showDM && chatrooms?.length > 0 ? (
+      {showDM && dmChatrooms?.length > 0 ? (
         <Pressable
           onPress={() => {
             navigation.navigate(DM_ALL_MEMBERS, {showList: showList});
