@@ -188,8 +188,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   } = route.params;
   const isFocused = useIsFocused();
 
-  console.log('lastUpdatedAt ==== lastUpdatedAt =', updatedAt);
-
   const dispatch = useAppDispatch();
   const {
     conversations = [],
@@ -650,6 +648,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         PAGE_SIZE,
       );
 
+      // TODO sort in getConversation only
       conversationsFromRealm.sort(function (a: any, b: any) {
         let keyA = a.createdEpoch;
         let keyB = b.createdEpoch;
