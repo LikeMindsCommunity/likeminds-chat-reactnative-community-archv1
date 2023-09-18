@@ -171,7 +171,7 @@ const SwitchComponent = () => {
         }}
       />
 
-      // TODO
+      {/* TODO */}
       {/* {count > 0 && <LoaderComponent />} */}
       {chatroomCount > 0 && <LoaderChatroomComponent />}
     </View>

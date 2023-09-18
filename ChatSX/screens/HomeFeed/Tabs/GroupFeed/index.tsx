@@ -105,21 +105,34 @@ const GroupFeed = ({navigation}: Props) => {
 
     const DB_RESPONSE = val?.data;
 
-    if (page === INITIAL_SYNC_PAGE && DB_RESPONSE?.chatroomsData.length !== 0) {
-      myClient?.saveCommunityData(DB_RESPONSE?.communityMeta[communityId]);
-    }
-
     if (DB_RESPONSE?.chatroomsData.length !== 0) {
-      await myClient?.saveChatroomResponse(
+      if (page === INITIAL_SYNC_PAGE) {
+        console.log(
+          'DB_RESPONSE?.communityMeta[communityId] ==',
+          DB_RESPONSE?.communityMeta[communityId],
+        );
+        myClient.saveCommunityData(DB_RESPONSE?.communityMeta[communityId]);
+      }
+
+      console.log(
+        'DB_RESPONSE?.chatroomsData.length ==',
+        DB_RESPONSE?.chatroomsData.length,
+      );
+
+      console.log('response from API ==');
+      await myClient.saveChatroomResponse(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomsData,
         communityId,
       );
-    }
 
-    myClient?.updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
+      myClient?.updateTimeStamp(
+        parsedTimeStamp[0].maxTimeStamp,
+        maxTimeStampNow,
+      );
 
-    if (DB_RESPONSE?.chatroomsData?.length === 0) {
+      return;
+    } else if (DB_RESPONSE?.chatroomsData?.length === 0) {
       return;
     } else {
       await paginatedSyncAPI(page + 1, communityId);
@@ -127,7 +140,8 @@ const GroupFeed = ({navigation}: Props) => {
   };
 
   const getExistingData = async () => {
-    const existingChatrooms: any = await myClient?.getChatroomData();
+    const existingChatrooms: any = await myClient?.getAllChatroomData();
+    console.log('existing Data ==', existingChatrooms);
     if (!!existingChatrooms && existingChatrooms.length != 0) {
       setRealmChatrooms(existingChatrooms);
     }
@@ -142,54 +156,78 @@ const GroupFeed = ({navigation}: Props) => {
   }, [isFocused, user]);
 
   const listener = async () => {
-    const chatroomObservable = new Observable(observer => {
-      Realm.open(myClient?.getInstance())
-        .then(realm => {
-          const chatrooms = realm.objects('ChatroomRO');
-          const listener = (newChatrooms: any, changes: any) => {
-            const chatroomsArray = Array.from(newChatrooms);
-            observer.next(chatroomsArray);
-          };
-          chatrooms.addListener(listener);
-          return () => {
-            chatrooms.removeListener(listener);
-            realm.close();
-          };
-        })
-        .catch(error => {
-          observer.error(error);
-        });
-    });
-    const subscription = chatroomObservable.subscribe({
-      next: (updatedChatrooms: any) => {
-        updatedChatrooms.sort(function (a: any, b: any) {
-          var keyA = a.updatedAt,
-            keyB = b.updatedAt;
-          if (keyA > keyB) return -1;
-          if (keyA < keyB) return 1;
-          return 0;
-        });
-        setRealmChatrooms(updatedChatrooms);
-      },
-      error: error => {
-        Alert.alert('Error observing chatrooms:', error);
-      },
-    });
-    return () => {
-      subscription.unsubscribe();
-    };
+    // const chatrooms = await myClient.getAllChatroomData()
+    // const chatroomObservable = new Observable(observer => {
+    //   const realm = new Realm();
+    //   try {
+    //     console.log('chatrooms realm.isClosed ==', realm.isClosed);
+    //     const chatrooms = realm.objects('ChatroomRO');
+    //     console.log('chatrooms ==', chatrooms);
+    //     const listener = (newChatrooms: any, changes: any) => {
+    //       const chatroomsArray = Array.from(newChatrooms);
+    //       observer.next(chatroomsArray);
+    //     };
+
+    //     chatrooms.addListener(listener);
+    //     return () => {
+    //       chatrooms.removeListener(listener);
+    //     };
+    //   } catch (error) {
+    //     observer.error(error);
+    //   } finally {
+    //     console.log('Hello World!');
+    //     // realm.close();
+    //   }
+    // });
+
+    const chatroomObservable = await myClient.getAllChatroomData();
+
+    console.log('Hello ji! 22', chatroomObservable);
+
+    // const subscription = chatroomObservable.subscribe({
+    //   next: (updatedChatrooms: any) => {
+    //     console.log('indside next subscription');
+    //     updatedChatrooms.sort(function (a: any, b: any) {
+    //       var keyA = a.updatedAt,
+    //         keyB = b.updatedAt;
+    //       if (keyA > keyB) return -1;
+    //       if (keyA < keyB) return 1;
+    //       return 0;
+    //     });
+    //     console.log('hello ji 11');
+    //     setRealmChatrooms(updatedChatrooms);
+    //   },
+    //   error: error => {
+    //     Alert.alert('Error observing chatrooms:', error);
+    //   },
+    // });
+
+    // console.log('Hello ji! 33');
+    // return () => {
+    //   console.log('Hello ji! 44');
+    //   subscription.unsubscribe();
+    // };
   };
 
   useEffect(() => {
-    listener();
+    // listener();
   }, [isFocused]);
+
+
+  // this function is for chatroom sorting
+  const updateConversation = async () => {
+    await paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+    let chatrooms: any = await myClient.getAllChatroomData();
+    setRealmChatrooms(chatrooms);
+  };
 
   useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
         if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user?.sdkClientInfo?.community);
+
+        updateConversation();
       }
     });
   }, [user]);
@@ -298,6 +336,11 @@ const GroupFeed = ({navigation}: Props) => {
           />
         )}
         renderItem={({item}: any) => {
+          console.log(
+            'item?.lastSeenConversation?.lastUpdatedAt ==',
+            item?.lastSeenConversation?.lastUpdatedAt,
+          );
+
           const homeFeedProps = {
             title: item?.header!,
             avatar: item?.chatroomImageUrl!,
@@ -308,6 +351,7 @@ const GroupFeed = ({navigation}: Props) => {
             pinned: false,
             lastConversation: item?.lastConversation!,
             lastConversationMember: item?.lastConversationRO?.member?.name!,
+            updatedAt: item?.lastSeenConversation?.lastUpdatedAt,
             chatroomID: item?.id!,
             isSecret: item?.isSecret,
             deletedBy: item?.lastConversationRO?.deletedBy,
@@ -330,7 +374,8 @@ const GroupFeed = ({navigation}: Props) => {
         // onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => {
+        keyExtractor={(item: any, index: any) => {
+          console.log('the index is=============>', index, item?.id);
           return item?.id?.toString();
         }}
       />

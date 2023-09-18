@@ -42,12 +42,15 @@ const Messages = ({
   chatroomType,
   chatroomWithUser,
 }: Messages) => {
+  // console.log('item ====', item);
+  // console.log('item conversation ID ====', item?.id);
+  // console.log('item member ==', item?.member);
   const conversationCreator = item?.member?.sdkClientInfo?.uuid;
   const conversationDeletor = item?.deletedByMember?.sdkClientInfo?.uuid;
   const conversationDeletorName = item?.deletedByMember?.name;
   const chatroomWithUserUuid = chatroomWithUser?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = chatroomWithUser?.id;
-  const users = useQuery('UserSchemaRO');
+  const users : any = useQuery('UserSchemaRO');
 
   const {user} = useAppSelector(state => state.homefeed);
   const {
@@ -103,7 +106,7 @@ const Messages = ({
 
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {
-    const loggedInMember = users[0]?.userUniqueID;
+    const loggedInMember= users[0]?.userUniqueID ;
     const chatroomWithUser =
       chatroomDetails?.chatroom?.member?.sdkClientInfo?.uuid;
 

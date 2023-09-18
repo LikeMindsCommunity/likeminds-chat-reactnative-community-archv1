@@ -158,20 +158,23 @@ const HomeFeed = ({navigation}: Props) => {
     const userName = users[0]?.userName;
 
     let payload = {
-      uuid: UUID, // uuid
-      userName: userName, // user name
+      // userUniqueId: uuid,
+      // uuid: '65632569-c8c9-4d20-b536-e23c86741787',
+      uuid: '3eb79729-0005-4bb8-a347-4f16db004c21',
+      userName: 'Test',
       isGuest: false,
     };
 
     let res = await dispatch(initAPI(payload) as any);
 
     if (!!res) {
-      await dispatch(getMemberState() as any);
-
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
+      await dispatch(getMemberState() as any);
 
-      paginatedSyncAPI(INITIAL_SYNC_PAGE);
+      console.log('res?.community?.id ==', res?.community?.id);
+
+      // paginatedSyncAPI(INITIAL_SYNC_PAGE);
     }
 
     return res;
@@ -183,8 +186,16 @@ const HomeFeed = ({navigation}: Props) => {
       const maxTimeStamp = Math.floor(Date.now() / 1000);
       const minTimeStamp = 0;
       myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
+    } else {
+      // Updating the timeStamp incase of reopening of App
+      const temp1 = JSON.stringify(timeStampStored);
+      let parsedConversation = JSON.parse(temp1);
+      myClient.updateTimeStamp(
+        parsedConversation[0].maxTimeStamp,
+        // 0,
+        Math.floor(Date.now() / 1000),
+      );
     }
-    myClient?.updateTimeStamp(0, Math.floor(Date.now() / 1000));
   };
 
   useEffect(() => {

@@ -48,6 +48,7 @@ interface Props {
   inviteReceiver?: any;
   chatroomType: number;
   muteStatus: boolean;
+  updatedAt: number;
 }
 
 const HomeFeedItem: React.FC<Props> = ({
@@ -66,7 +67,9 @@ const HomeFeedItem: React.FC<Props> = ({
   inviteReceiver,
   chatroomType,
   muteStatus,
+  updatedAt,
 }) => {
+  console.log('updatedAtt -->', updatedAt);
   const dispatch = useAppDispatch();
 
   const showJoinAlert = () =>
@@ -298,6 +301,7 @@ const HomeFeedItem: React.FC<Props> = ({
         navigation.navigate(CHATROOM, {
           chatroomID: chatroomID,
           isInvited: !!inviteReceiver ? true : false,
+          updatedAt: updatedAt,
         });
       }}
       style={({pressed}) => [

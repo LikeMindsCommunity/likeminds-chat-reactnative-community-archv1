@@ -512,7 +512,7 @@ const InputBox = ({
         }
       }
     }
-    [];
+
     let conversationText = replaceMentionValues(message, ({id, name}) => {
       // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
       let PATH = extractPathfromRouteQuery(id);

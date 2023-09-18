@@ -59,6 +59,7 @@ import {
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_DB_SUCCESS,
   GET_CHATROOM_SUCCESS,
+  GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
@@ -147,7 +148,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const flatlistRef = useRef<any>(null);
   let refInput = useRef<any>();
 
-  // const db = myClient?.firebaseInstance();
+  const db = myClient?.firebaseInstance();
 
   const [replyChatID, setReplyChatID] = useState<number>();
   const [page, setPage] = useState(1);
@@ -183,8 +184,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     // handleOnDelete,
     previousChatroomID,
     navigationFromNotification,
+    updatedAt,
   } = route.params;
   const isFocused = useIsFocused();
+
+  console.log('lastUpdatedAt ==== lastUpdatedAt =', updatedAt);
 
   const dispatch = useAppDispatch();
   const {
@@ -203,6 +207,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const INITIAL_SYNC_PAGE = 1;
+  const PAGE_SIZE = 100;
 
   let chatroomType = chatroomDetails?.chatroom?.type;
   let chatroomFollowStatus = chatroomDetails?.chatroom?.followStatus;
@@ -404,7 +409,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
         if (selectedMessagesLength === 1) {
           if (
-            selectedMessages[0].member.id === user?.id &&
+            selectedMessages[0]?.member?.id === user?.id &&
             !!selectedMessages[0].answer
           ) {
             isSelectedMessageEditable = true;
@@ -600,53 +605,111 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   // Sync conversation API call
-  async function syncConversationAPI(page: number) {
+  async function syncConversationAPI(
+    page: number,
+    maxTimeStamp: number,
+    minTimeStamp: number,
+    conversationId?: string,
+  ) {
+    console.log('minTime ==', minTimeStamp);
     const res = await myClient?.syncConversation(
       SyncConversationRequest.builder()
         .setChatroomId(chatroomID)
         .setPage(page)
-        .setMinTimestamp(0)
-        .setMaxTimestamp(Math.floor(Date.now()))
-        .setPageSize(20)
+        .setMinTimestamp(minTimeStamp)
+        .setMaxTimestamp(maxTimeStamp)
+        .setPageSize(500)
+        .setIsLocalDb(!!conversationId ? false : true)
+        .setConversationId(conversationId)
         .build(),
     );
     return res;
   }
 
   // pagination call for sync conversation
-  const paginatedSyncAPI = async (page: number) => {
-    const val = await syncConversationAPI(page);
+  const paginatedSyncAPI = async (
+    page: number,
+    minTimeStamp: number,
+    maxTimeStamp: number,
+  ) => {
+    const val = await syncConversationAPI(page, maxTimeStamp, minTimeStamp);
 
     const DB_RESPONSE = val?.data;
 
     // TODO
-    // myClient.saveConversationData(
-    //   DB_RESPONSE,
-    //   DB_RESPONSE?.chatroomsData,
-    //   DB_RESPONSE?.conversationMeta,
-    //   community?.id,
-    // );
+    myClient.saveConversationData(
+      DB_RESPONSE,
+      DB_RESPONSE?.chatroomMeta,
+      DB_RESPONSE?.conversationsData,
+      community?.id,
+    );
+
+    if (page === 1) {
+      let conversationsFromRealm = await myClient.getConversationData(
+        chatroomID,
+        PAGE_SIZE,
+      );
+
+      conversationsFromRealm.sort(function (a: any, b: any) {
+        let keyA = a.createdEpoch;
+        let keyB = b.createdEpoch;
+        if (keyA > keyB) return -1;
+        if (keyA < keyB) return 1;
+        return 0;
+      });
+
+      dispatch({
+        type: GET_CONVERSATIONS_SUCCESS,
+        body: {conversations: conversationsFromRealm},
+      });
+    }
 
     if (DB_RESPONSE?.conversationsData?.length === 0) {
       return;
     } else {
-      paginatedSyncAPI(page + 1);
+      paginatedSyncAPI(page + 1, minTimeStamp, maxTimeStamp);
     }
   };
 
   // this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
-    let payload = {chatroomID: chatroomID, paginateBy: 100, topNavigate: false};
+    let chatroom = await myClient.getChatroomData(chatroomID);
+    console.log('chatroomID ==', chatroomID);
+    console.log('chatroom?.isChatroomVisited', chatroom[0]?.isChatroomVisited);
+    console.log('chatroom realm.close() ==', chatroom);
+    let maxTimeStamp = Math.floor(Date.now());
+    let conversationsFromRealm;
 
-    // TODO -- hide sync conversation API call
-    // paginatedSyncAPI(INITIAL_SYNC_PAGE);
+    // Warm start
+    if (chatroom[0]?.isChatroomVisited) {
+      conversationsFromRealm = await myClient.getConversationData(
+        chatroomID,
+        PAGE_SIZE,
+      );
+      console.log(
+        'conversationsFromRealm[0].createdEpoch length  ==',
+        conversationsFromRealm.length,
+      );
+      conversationsFromRealm.sort(function (a: any, b: any) {
+        let keyA = a.createdEpoch;
+        let keyB = b.createdEpoch;
+        if (keyA > keyB) return -1;
+        if (keyA < keyB) return 1;
+        return 0;
+      });
 
-    let response = await dispatch(
-      getConversations(
-        payload,
-        showLoaderVal != undefined && showLoaderVal == false ? false : true,
-      ) as any,
-    );
+      dispatch({
+        type: GET_CONVERSATIONS_SUCCESS,
+        body: {conversations: conversationsFromRealm},
+      });
+      let minTimeStamp = !!updatedAt ? updatedAt : 0;
+      await paginatedSyncAPI(INITIAL_SYNC_PAGE, minTimeStamp, maxTimeStamp);
+    } else {
+      // Cold start
+      await paginatedSyncAPI(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
+      await myClient.chatroomViewed(chatroomID);
+    }
+
     if (!isInvited) {
       const response = await myClient?.markReadChatroom({
         chatroomId: chatroomID,
@@ -662,13 +725,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
       //if isDM
       if (chatroomType === 10) {
-        dispatch(getDMFeedData({page: 1}, false) as any);
+        // dispatch(getDMFeedData({page: 1}, false) as any);
       } else {
         // TODO -- remove
         // await dispatch(getHomeFeedData({page: 1}, false) as any);
       }
     }
-    return response;
+    return conversationsFromRealm;
   }
 
   //this function fetchChatroomDetails when we first move inside Chatroom
@@ -695,7 +758,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let payload = {
       userUniqueId: UUID,
       // userUniqueId: '65632569-c8c9-4d20-b536-e23c86741787',
-      userName: 'Himanshu',
+      userName: userName,
     };
     let res = await dispatch(initAPI(payload) as any);
     return res;
@@ -734,6 +797,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
     invokeFunction();
   }, [navigation]);
+
+  // this useEffect set unseenCount to zero when leaving chatroom
+  useEffect(() => {
+    const leavingChatroom = async () => {
+      // if (chatroomType === 10) {
+      await myClient?.markReadChatroom({
+        chatroomId: chatroomID,
+      });
+      await myClient?.updateUnseenCount(chatroomID.toString());
+      // }
+    };
+    return () => {
+      console.log('hanji');
+      leavingChatroom();
+    };
+  }, [chatroomType]);
 
   //Logic for navigation backAction
   function backAction() {
@@ -863,25 +942,28 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }, [isLongPress, selectedMessages]);
 
   //useffect includes firebase realtime listener
-  // useEffect(() => {
-  //   const query = ref(db, `/collabcards/${chatroomID}`);
-  //   return onValue(query, async (snapshot: DataSnapshot) => {
-  //     if (snapshot.exists()) {
-  //       let firebaseData = snapshot.val();
-  //       let conversationID = firebaseData?.collabcard?.answerId;
+  useEffect(() => {
+    const query = ref(db, `/collabcards/${chatroomID}`);
+    return onValue(query, async (snapshot: DataSnapshot) => {
+      if (snapshot.exists()) {
+        let firebaseData = snapshot.val();
+        let conversationID = firebaseData?.collabcard?.answerId;
 
-  //       let payload = {
-  //         chatroomId: chatroomID,
-  //         conversationId: firebaseData?.collabcard?.answerId,
-  //       };
-  //       if (conversationID) {
-  //         const res = await dispatch(
-  //           firebaseConversation(payload, false) as any,
-  //         );
-  //       }
-  //     }
-  //   });
-  // }, []);
+        if (conversationID) {
+          console.log('firebase hitting');
+          if (!user?.sdkClientInfo?.community) return;
+          let minTimeStamp = !!updatedAt ? updatedAt : 0;
+          let maxTimeStamp = Math.floor(Date.now());
+          await syncConversationAPI(
+            INITIAL_SYNC_PAGE,
+            minTimeStamp,
+            maxTimeStamp,
+            conversationID,
+          );
+        }
+      }
+    });
+  }, []);
 
   // this useffect updates routes, previousRoute variables when we come to chatroom.
   useEffect(() => {
@@ -927,27 +1009,44 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
 
   // function shows loader in between calling the API and getting the response
-  const loadData = async (newPage: number) => {
+  const loadData = async (newPage?: number) => {
     setIsLoading(true);
-    const res = await paginatedData(newPage);
-    if (res.conversations.length == 0) {
-      setShouldLoadMoreChat(false);
-    }
-    if (!!res) {
+    // const res = await paginatedData(newPage);
+    // if (res.conversations.length == 0) {
+    //   setShouldLoadMoreChat(false);
+    // }
+    const newConversations = await myClient.paginateUp(
+      chatroomID,
+      conversations[conversations.length - 1].createdEpoch,
+      100,
+    );
+    dispatch({
+      type: GET_CONVERSATIONS_SUCCESS,
+      body: {conversations: [...conversations, ...newConversations]},
+    });
+    console.log('newConversations ==', newConversations);
+    if (!!newConversations) {
       setIsLoading(false);
     }
   };
 
   //function checks the pagination logic, if it verifies the condition then call loadData
   const handleLoadMore = () => {
-    if (!isLoading && conversations.length > 0) {
-      // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
-        const newPage = page + 1;
-        setPage(newPage);
-        loadData(newPage);
-      }
-    }
+    // if (!isLoading && conversations.length > 0) {
+    //   // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+    //   if (conversations.length > 15) {
+    //     const newPage = page + 1;
+    //     setPage(newPage);
+    //     loadData(newPage);
+    //   }
+    // }
+
+    console.log(
+      'conversations[conversations.length-1].createdEpoch) ==',
+      conversations[conversations.length - 1].createdEpoch,
+    );
+
+    loadData();
   };
 
   const renderFooter = () => {
@@ -1871,6 +1970,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }}
         estimatedItemSize={50}
         renderItem={({item: value, index}: any) => {
+          console.log('INDEX HI INDEX ==', index);
           let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
           let item = {...value};
           if (uploadingFilesMessagesIDArr.includes(value?.id?.toString())) {
@@ -1971,12 +2071,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           );
         }}
         onEndReached={async () => {
-          if (shouldLoadMoreChat) {
+          if (shouldLoadMoreChat && conversations.length > 0) {
             handleLoadMore();
           }
           return;
         }}
-        onEndReachedThreshold={0.1}
+        onEndReachedThreshold={10}
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
