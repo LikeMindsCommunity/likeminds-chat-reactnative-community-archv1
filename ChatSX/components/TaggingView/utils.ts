@@ -78,7 +78,7 @@ const getPartsInterval = (
   parts: Part[],
   cursor: number,
   count: number,
-  isFirst: boolean
+  isFirst: boolean,
 ): Part[] => {
   const newCursor = cursor + count;
 
@@ -102,14 +102,17 @@ const getPartsInterval = (
     partsInterval.push(currentPart);
   } else {
     // For case when tagged user is at the beginning
-    if(currentPart.text==parts[0].text && isFirst){
+    if (currentPart.text == parts[0].text && isFirst) {
       partsInterval.push(
         generatePlainTextPart(
-          currentPart.text.substr(0, currentPart.position.end-currentPart.position.start),
+          currentPart.text.substr(
+            0,
+            currentPart.position.end - currentPart.position.start,
+          ),
         ),
       );
-      currentPart.text='';
-    } else{
+      currentPart.text = '';
+    } else {
       partsInterval.push(
         generatePlainTextPart(
           currentPart.text.substr(cursor - currentPart.position.start, count),
@@ -246,7 +249,7 @@ const generateValueFromPartsAndChangedText = (
   parts: Part[],
   originalText: string,
   changedText: string,
-  isFirst: boolean
+  isFirst: boolean,
 ) => {
   const changes = diffChars(
     originalText,
@@ -285,7 +288,7 @@ const generateValueFromPartsAndChangedText = (
       default: {
         if (change.count !== 0) {
           newParts = newParts.concat(
-            getPartsInterval(parts, cursor, change.count,isFirst),
+            getPartsInterval(parts, cursor, change.count, isFirst),
           );
 
           cursor += change.count;
@@ -612,6 +615,35 @@ const convertToMentionValues = (
     }),
   );
 
+function removeDuplicates(arr: any) {
+  const uniqueObjects = new Set<string>(); // Use a Set to track unique objects
+  const result = [];
+
+  for (const obj of arr) {
+    // Convert the object to a string for easy comparison
+    const objString = JSON.stringify(obj);
+
+    if (!uniqueObjects.has(objString)) {
+      // If the object hasn't been seen before, add it to the result
+      result.push(obj);
+      uniqueObjects.add(objString); // Add the string representation to the Set
+    }
+  }
+
+  return result;
+}
+
+function sortChatrooms(chatroom: any) {
+  chatroom.sort(function (a: any, b: any) {
+    let keyA = a.updatedAt;
+    let keyB = b.updatedAt;
+    if (keyA > keyB) return -1;
+    if (keyA < keyB) return 1;
+    return 0;
+  });
+  return chatroom;
+}
+
 export {
   mentionRegEx,
   defaultMentionTextStyle,
@@ -626,4 +658,6 @@ export {
   getValueFromParts,
   replaceMentionValues,
   convertToMentionValues,
+  removeDuplicates,
+  sortChatrooms,
 };

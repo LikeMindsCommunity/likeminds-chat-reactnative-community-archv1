@@ -18,7 +18,7 @@ import {useQuery} from '@realm/react';
 const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
-  const users = useQuery('UserSchemaRO');
+  const users: any = useQuery('UserSchemaRO');
   const [userUniqueID, setUserUniqueID] = useState<any>(users[0]?.userUniqueID);
   const [userName, setUserName] = useState<any>(users[0]?.userName);
   const [isTrue, setIsTrue] = useState(true);

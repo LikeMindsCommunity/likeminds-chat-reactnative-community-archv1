@@ -25,14 +25,17 @@ import styles from './styles';
 import {
   GET_HOMEFEED_CHAT_SUCCESS,
   GET_SYNC_HOMEFEED_CHAT_SUCCESS,
+  SET_INITIAL_GROUPFEED_CHATROOM,
   SET_PAGE,
+  INSERT_GROUPFEED_CHATROOM,
+  UPDATE_GROUPFEED_CHATROOM,
 } from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import Realm from 'realm';
-import {Observable} from 'rxjs';
+import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 
 interface Props {
   navigation: any;
@@ -42,7 +45,6 @@ const GroupFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [invitePage, setInvitePage] = useState(1);
   const [FCMToken, setFCMToken] = useState('');
-  const [groupfeedChatrooms, setGroupfeedChatrooms] = useState([]);
   const isFocused = useIsFocused();
   const dispatch = useAppDispatch();
 
@@ -53,10 +55,10 @@ const GroupFeed = ({navigation}: Props) => {
     page,
     invitedChatrooms,
     community,
+    groupFeedChatrooms,
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient?.firebaseInstance();
-  const chatrooms = [...invitedChatrooms, ...myChatrooms];
 
   const INITIAL_SYNC_PAGE = 1;
 
@@ -70,59 +72,68 @@ const GroupFeed = ({navigation}: Props) => {
     getExploreTabCount();
   }, []);
 
-  // Fetching already existing chatrooms from Realm
+  // Fetching already existing groupfeed chatrooms from Realm
   const getExistingData = async () => {
-    const existingChatrooms: any = await myClient?.getChatrooms();
+    const existingChatrooms: any = await myClient?.getFilteredChatrooms(false);
     if (!!existingChatrooms && existingChatrooms.length != 0) {
-      const filteredChatroom: any = await myClient?.getFilteredChatrooms(false);
-      setGroupfeedChatrooms(filteredChatroom);
+      dispatch({
+        type: SET_INITIAL_GROUPFEED_CHATROOM,
+        body: existingChatrooms,
+      });
     }
   };
 
-  // This useEffect is used to firstly get the already existing chatroom from realm and then call the paginatedSyncAPI
-  useEffect(() => {
-    if (isFocused) {
-      getExistingData();
-    }
-  }, [isFocused, user]);
+  // Callback method for listener
+  const onGroupFeedChatroomChange = (chatrooms: any, changes: any) => {
+    // Handle deleted GroupFeed Chatroom objects
+    changes.deletions.forEach((index: any) => {});
 
-  // Listener for Realm which will be called with any kind of change in Realm
-  const listener = async () => {
-    const chatroomObservable = new Observable(observer => {
-      Realm.open(myClient?.getInstance())
-        .then(realm => {
-          const chatrooms = realm.objects('ChatroomRO');
-          const listener = async (newChatrooms: any, changes: any) => {
-            const sortedChatroom = await myClient?.getFilteredChatrooms(false);
-            observer.next(sortedChatroom);
-          };
-          chatrooms.addListener(listener);
-          return () => {
-            chatrooms.removeListener(listener);
-            realm.close();
-          };
-        })
-        .catch(error => {
-          observer.error(error);
-        });
+    // Handle newly added GroupFeed Chatroom objects
+    changes.insertions.forEach((index: any) => {
+      const insertedChatroom = chatrooms[index];
+      dispatch({
+        type: INSERT_GROUPFEED_CHATROOM,
+        body: insertedChatroom,
+      });
     });
-    const subscription = chatroomObservable.subscribe({
-      next: (sortedChatroom: any) => {
-        setGroupfeedChatrooms(sortedChatroom);
-      },
-      error: error => {
-        Alert.alert('Error observing chatrooms:', error);
-      },
+
+    // Handle GroupFeed Chatroom objects that were modified
+    changes.modifications.forEach((index: any) => {
+      const modifiedDog = chatrooms[index];
+      dispatch({
+        type: UPDATE_GROUPFEED_CHATROOM,
+        body: modifiedDog,
+      });
     });
-    return () => {
-      subscription.unsubscribe();
-    };
   };
 
   // This useEffect calls the listener which is attached to realm
   useEffect(() => {
-    listener();
+    const realm = new Realm(myClient?.getInstance());
+    const chatrooms = realm.objects('ChatroomRO');
+    chatrooms.addListener(onGroupFeedChatroomChange);
+    return () => {
+      chatrooms.removeListener(onGroupFeedChatroomChange);
+    };
   }, [isFocused]);
+
+  useEffect(() => {
+    const query = ref(db, `/community/${community?.id}`);
+    return onValue(query, snapshot => {
+      if (snapshot.exists()) {
+        if (!user?.sdkClientInfo?.community) return;
+        paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+      }
+    });
+  }, [user]);
+
+  useEffect(() => {
+    if (isFocused) {
+      getExistingData();
+      if (!user?.sdkClientInfo?.community) return;
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+    }
+  }, [isFocused, user]);
 
   async function fetchData() {
     const invitesRes = await dispatch(
@@ -217,7 +228,7 @@ const GroupFeed = ({navigation}: Props) => {
   return (
     <View style={styles.page}>
       <FlashList
-        data={groupfeedChatrooms}
+        data={groupFeedChatrooms}
         ListHeaderComponent={() => (
           <HomeFeedExplore
             newCount={unseenCount}
@@ -252,7 +263,7 @@ const GroupFeed = ({navigation}: Props) => {
           return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
         }}
         extraData={{
-          value: [groupfeedChatrooms, unseenCount, totalCount],
+          value: [groupFeedChatrooms, unseenCount, totalCount],
         }}
         estimatedItemSize={15}
         ListFooterComponent={renderFooter}

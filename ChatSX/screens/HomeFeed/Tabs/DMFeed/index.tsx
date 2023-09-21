@@ -27,7 +27,12 @@ import {
   updateInvites,
 } from '../../../../store/actions/homefeed';
 import styles from './styles';
-import {SET_DM_PAGE} from '../../../../store/types/types';
+import {
+  SET_DM_PAGE,
+  SET_INITIAL_DMFEED_CHATROOM,
+  INSERT_DMFEED_CHATROOM,
+  UPDATE_DMFEED_CHATROOM,
+} from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
 import {DM_ALL_MEMBERS} from '../../../../constants/Screens';
@@ -40,7 +45,7 @@ import {
 import {FlashList} from '@shopify/flash-list';
 import {useIsFocused} from '@react-navigation/native';
 import Realm from 'realm';
-import {Observable} from 'rxjs';
+import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 
 interface Props {
   navigation: any;
@@ -51,12 +56,17 @@ const DMFeed = ({navigation}: Props) => {
   const [showDM, setShowDM] = useState(false);
   const [showList, setShowList] = useState<any>(null);
   const [FCMToken, setFCMToken] = useState('');
-  const [dmChatrooms, setDMChatrooms] = useState([]);
   const dispatch = useAppDispatch();
   const isFocused = useIsFocused();
 
-  const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
-    useAppSelector(state => state.homefeed);
+  const {
+    myDMChatrooms,
+    unseenCount,
+    totalCount,
+    dmPage,
+    invitedChatrooms,
+    dmFeedChatrooms,
+  } = useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
 
   const db = myClient?.firebaseInstance();
@@ -103,57 +113,66 @@ const DMFeed = ({navigation}: Props) => {
 
   // Fetching already existing chatrooms from Realm
   const getExistingData = async () => {
-    const existingChatrooms: any = await myClient?.getChatrooms();
-    if (!!existingChatrooms && existingChatrooms.length != 0) {
-      const filteredChatrooms: any = await myClient?.getFilteredChatrooms(true);
-      setDMChatrooms(filteredChatrooms);
+    const existingChatrooms: any = await myClient?.getFilteredChatrooms(true);
+    if (!!existingChatrooms && existingChatrooms.length !== 0) {
+      dispatch({
+        type: SET_INITIAL_DMFEED_CHATROOM,
+        body: existingChatrooms,
+      });
     }
   };
 
-  // This useEffect is used to firstly get the already existing chatroom from realm and then call the paginatedSyncAPI
-  useEffect(() => {
-    if (isFocused) {
-      getExistingData();
-    }
-  }, [isFocused, user]);
+  // Callback for listener
+  const onDMChatroomChange = (chatrooms: any, changes: any) => {
+    // Handle deleted DM Chatroom objects
+    changes.deletions.forEach((index: any) => {});
 
-  // Listener for Realm which will be called with any kind of change in Realm
-  const listener = async () => {
-    const chatroomObservable = new Observable(observer => {
-      Realm.open(myClient?.getInstance())
-        .then(realm => {
-          const chatrooms = realm.objects('ChatroomRO');
-          const listener = async (newChatrooms: any, changes: any) => {
-            const sortedChatroom = await myClient?.getFilteredChatrooms(true);
-            observer.next(sortedChatroom);
-          };
-          chatrooms.addListener(listener);
-          return () => {
-            chatrooms.removeListener(listener);
-            realm.close();
-          };
-        })
-        .catch(error => {
-          observer.error(error);
-        });
+    // Handle newly added DM Chatroom objects
+    changes.insertions.forEach((index: any) => {
+      const insertedDMChatroom = chatrooms[index];
+      dispatch({
+        type: INSERT_DMFEED_CHATROOM,
+        body: insertedDMChatroom,
+      });
     });
-    const subscription = chatroomObservable.subscribe({
-      next: (sortedChatroom: any) => {
-        setDMChatrooms(sortedChatroom);
-      },
-      error: error => {
-        Alert.alert('Error observing chatrooms:', error);
-      },
+
+    // Handle DM Chatroom objects that were modified
+    changes.modifications.forEach((index: any) => {
+      const modifiedDMChatroom = chatrooms[index];
+      dispatch({
+        type: UPDATE_DMFEED_CHATROOM,
+        body: modifiedDMChatroom,
+      });
     });
-    return () => {
-      subscription.unsubscribe();
-    };
   };
 
   // This useEffect calls the listener which is attached to realm
   useEffect(() => {
-    listener();
+    const realm = new Realm(myClient?.getInstance());
+    const chatrooms: any = realm.objects('ChatroomRO');
+    chatrooms.addListener(onDMChatroomChange);
+    return () => {
+      chatrooms.removeListener(onDMChatroomChange);
+    };
   }, [isFocused]);
+
+  useEffect(() => {
+    const query = ref(db, `/community/${community?.id}`);
+    return onValue(query, snapshot => {
+      if (snapshot.exists()) {
+        if (!user?.sdkClientInfo?.community) return;
+        paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+      }
+    });
+  }, [user]);
+
+  useEffect(() => {
+    if (isFocused) {
+      getExistingData();
+      if (!user?.sdkClientInfo?.community) return;
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+    }
+  }, [isFocused, user]);
 
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {
@@ -200,7 +219,7 @@ const DMFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      {dmChatrooms?.length === 0 ? (
+      {dmFeedChatrooms?.length === 0 ? (
         <View style={styles.nothingDM}>
           <View style={[styles.justifyCenter]}>
             <Image
@@ -236,9 +255,9 @@ const DMFeed = ({navigation}: Props) => {
         </View>
       ) : (
         <FlashList
-          data={dmChatrooms}
+          data={dmFeedChatrooms}
           extraData={{
-            value: [user, dmChatrooms],
+            value: [user, dmFeedChatrooms],
           }}
           estimatedItemSize={15}
           renderItem={({item}: any) => {
@@ -263,7 +282,7 @@ const DMFeed = ({navigation}: Props) => {
           keyExtractor={(item: any) => item?.id.toString()}
         />
       )}
-      {showDM && dmChatrooms?.length > 0 ? (
+      {showDM && dmFeedChatrooms?.length > 0 ? (
         <Pressable
           onPress={() => {
             navigation.navigate(DM_ALL_MEMBERS, {showList: showList});

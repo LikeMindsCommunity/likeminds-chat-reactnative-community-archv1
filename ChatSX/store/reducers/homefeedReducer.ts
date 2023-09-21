@@ -1,3 +1,7 @@
+import {
+  removeDuplicates,
+  sortChatrooms,
+} from '../../components/TaggingView/utils';
 import Styles from '../../constants/Styles';
 import {
   ACCEPT_INVITE_SUCCESS,
@@ -17,6 +21,12 @@ import {
   UPDATE_INVITES_SUCCESS,
   UPDATE_LAST_CONVERSATION,
   TO_BE_DELETED,
+  SET_INITIAL_GROUPFEED_CHATROOM,
+  INSERT_GROUPFEED_CHATROOM,
+  INSERT_DMFEED_CHATROOM,
+  UPDATE_GROUPFEED_CHATROOM,
+  UPDATE_DMFEED_CHATROOM,
+  SET_INITIAL_DMFEED_CHATROOM,
 } from '../types/types';
 
 const initialState = {
@@ -33,6 +43,8 @@ const initialState = {
   isToast: false as boolean,
   toastMessage: '' as string,
   statusBarStyle: Styles.$STATUS_BAR_STYLE.default,
+  groupFeedChatrooms: [] as any,
+  dmFeedChatrooms: [] as any,
 };
 
 export function homefeedReducer(state = initialState, action: any) {
@@ -50,6 +62,104 @@ export function homefeedReducer(state = initialState, action: any) {
         ...state,
         dmPage: page,
       };
+    }
+    case SET_INITIAL_GROUPFEED_CHATROOM: {
+      const groupFeedChatrooms = action.body;
+      if (state.groupFeedChatrooms.length === 0) {
+        return {
+          ...state,
+          groupFeedChatrooms: groupFeedChatrooms,
+        };
+      }
+      return state;
+    }
+    case SET_INITIAL_DMFEED_CHATROOM: {
+      const dmFeedChatrooms = action.body;
+      if (state.dmFeedChatrooms.length === 0) {
+        return {
+          ...state,
+          dmFeedChatrooms: dmFeedChatrooms,
+        };
+      }
+      return state;
+    }
+    case UPDATE_GROUPFEED_CHATROOM: {
+      const insertedChatroom = action.body;
+      if (insertedChatroom.type !== 10) {
+        const groupFeedChatrooms = state.groupFeedChatrooms;
+        for (let i = 0; i < groupFeedChatrooms.length; i++) {
+          if (insertedChatroom.id == groupFeedChatrooms[i].id) {
+            groupFeedChatrooms.splice(i, 1);
+            groupFeedChatrooms.push(insertedChatroom);
+            break;
+          }
+        }
+        const updatedGroupFeedChatrooms = removeDuplicates(groupFeedChatrooms);
+        const sortedAndUpdatedGroupFeedChatrooms = sortChatrooms(
+          updatedGroupFeedChatrooms,
+        );
+        return {
+          ...state,
+          groupFeedChatrooms: sortedAndUpdatedGroupFeedChatrooms,
+        };
+      }
+      return state;
+    }
+    case UPDATE_DMFEED_CHATROOM: {
+      const insertedChatroom = action.body;
+      if (insertedChatroom.type === 10) {
+        const dmFeedChatrooms = state.dmFeedChatrooms;
+        for (let i = 0; i < dmFeedChatrooms.length; i++) {
+          if (insertedChatroom.id == dmFeedChatrooms[i].id) {
+            dmFeedChatrooms.splice(i, 1);
+            dmFeedChatrooms.push(insertedChatroom);
+            break;
+          }
+        }
+        const updatedDmFeedChatrooms = removeDuplicates(dmFeedChatrooms);
+        const sortedAndUpdatedDmFeedChatrooms = sortChatrooms(
+          updatedDmFeedChatrooms,
+        );
+        return {
+          ...state,
+          dmFeedChatrooms: sortedAndUpdatedDmFeedChatrooms,
+        };
+      }
+      return state;
+    }
+    case INSERT_GROUPFEED_CHATROOM: {
+      const insertedChatroom = action.body;
+      if (insertedChatroom.type !== 10) {
+        const updatedGroupFeedChatrooms = [
+          ...state.groupFeedChatrooms,
+          insertedChatroom,
+        ];
+        const sortedAndUpdatedGroupFeedChatrooms = sortChatrooms(
+          updatedGroupFeedChatrooms,
+        );
+        return {
+          ...state,
+          groupFeedChatrooms: sortedAndUpdatedGroupFeedChatrooms,
+        };
+      }
+      return state;
+    }
+    case INSERT_DMFEED_CHATROOM: {
+      const insertedChatroom = action.body;
+      if (insertedChatroom.type === 10) {
+        const updatedDmFeedChatrooms = [
+          ...state.dmFeedChatrooms,
+          insertedChatroom,
+        ];
+        const sortedAndUpdatedDmFeedChatrooms = sortChatrooms(
+          updatedDmFeedChatrooms,
+        );
+        return {
+          ...state,
+          dmFeedChatrooms: sortedAndUpdatedDmFeedChatrooms,
+        };
+      }
+      return state;
     }
     case GET_INVITES_SUCCESS: {
       const {userInvites = []} = action.body;
