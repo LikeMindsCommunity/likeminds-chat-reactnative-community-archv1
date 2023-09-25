@@ -111,7 +111,7 @@ const HomeFeed = ({navigation}: Props) => {
   // For cleanup of resources including realm.close()
   useEffect(() => {
     return () => {
-      myClient?.finalize();
+      myClient?.close();
     };
   }, []);
 

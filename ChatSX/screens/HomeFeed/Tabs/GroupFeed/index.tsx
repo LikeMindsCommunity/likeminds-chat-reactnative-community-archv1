@@ -16,7 +16,6 @@ import STYLES from '../../../../constants/Styles';
 import {onValue, ref} from '@firebase/database';
 import {useAppDispatch, useAppSelector} from '../../../../../store';
 import {
-  getHomeFeedData,
   getInvites,
   updateHomeFeedData,
   updateInvites,
@@ -99,10 +98,10 @@ const GroupFeed = ({navigation}: Props) => {
 
     // Handle GroupFeed Chatroom objects that were modified
     changes.modifications.forEach((index: any) => {
-      const modifiedDog = chatrooms[index];
+      const modifiedChatroom = chatrooms[index];
       dispatch({
         type: UPDATE_GROUPFEED_CHATROOM,
-        body: modifiedDog,
+        body: modifiedChatroom,
       });
     });
   };

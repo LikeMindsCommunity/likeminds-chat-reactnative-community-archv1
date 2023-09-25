@@ -19,7 +19,6 @@ import {onValue, ref} from '@firebase/database';
 import {useAppDispatch, useAppSelector} from '../../../../../store';
 import {
   getDMFeedData,
-  getHomeFeedData,
   getInvites,
   initAPI,
   updateDMFeedData,
@@ -149,7 +148,7 @@ const DMFeed = ({navigation}: Props) => {
   // This useEffect calls the listener which is attached to realm
   useEffect(() => {
     const realm = new Realm(myClient?.getInstance());
-    const chatrooms: any = realm.objects('ChatroomRO');
+    const chatrooms = realm.objects('ChatroomRO');
     chatrooms.addListener(onDMChatroomChange);
     return () => {
       chatrooms.removeListener(onDMChatroomChange);
