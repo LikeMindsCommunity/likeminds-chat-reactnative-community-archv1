@@ -1,5 +1,5 @@
 import Styles from '../../constants/Styles';
-import {removeDuplicates, sortChatrooms} from '../../utils/homeFeedUtils';
+import {sortChatrooms} from '../../utils/homeFeedUtils';
 import {
   ACCEPT_INVITE_SUCCESS,
   GET_DMFEED_CHAT_SUCCESS,

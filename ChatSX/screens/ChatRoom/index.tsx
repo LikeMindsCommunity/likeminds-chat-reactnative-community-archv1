@@ -175,13 +175,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
-  const users: any = useQuery('UserSchemaRO');
+  const users = useQuery('UserSchemaRO');
 
   const {
     chatroomID,
     isInvited,
     muteStatus,
-    // handleOnDelete,
     previousChatroomID,
     navigationFromNotification,
     updatedAt,
@@ -726,7 +725,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     let payload = {
       userUniqueId: UUID,
-      // userUniqueId: '65632569-c8c9-4d20-b536-e23c86741787',
       userName: userName,
     };
     let res = await dispatch(initAPI(payload) as any);
@@ -769,17 +767,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this useEffect set unseenCount to zero when leaving chatroom
   useEffect(() => {
-    const leavingChatroom = async () => {
-      // if (chatroomType === 10) {
+    const closingChatroom = async () => {
       await myClient?.markReadChatroom({
         chatroomId: chatroomID,
       });
       await myClient?.updateUnseenCount(chatroomID.toString());
     };
     return () => {
-      leavingChatroom();
+      if (previousRoute?.name !== EXPLORE_FEED) {
+        closingChatroom();
+      }
     };
-  }, [chatroomType]);
+  }, []);
 
   //Logic for navigation backAction
   function backAction() {

@@ -56,7 +56,7 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
-  const users: any = useQuery('UserSchemaRO');
+  const users = useQuery('UserSchemaRO');
 
   const INITIAL_SYNC_PAGE = 1;
 
