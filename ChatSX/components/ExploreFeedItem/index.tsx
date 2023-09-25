@@ -69,8 +69,8 @@ const ExploreFeedItem: React.FC<Props> = ({
         } else {
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
-          // Deleting chatroom from realm in case of leaving of chatroom
-          await myClient?.deleteChatroom(`${chatroomID}`);
+          // Making followStatus as false in case of leaving of chatroom
+          await myClient?.updateFollowStatus(`${chatroomID}`);
         }
         dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
         await dispatch(getExploreFeedData(payload) as any);

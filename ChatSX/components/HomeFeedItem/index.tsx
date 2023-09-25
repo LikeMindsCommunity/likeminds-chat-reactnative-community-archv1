@@ -356,7 +356,9 @@ const HomeFeedItem: React.FC<Props> = ({
                 width: '80%',
               },
             ]}>
-            {deletedBy !== 'null' && deletedBy !== null ? (
+            {deletedBy !== 'null' &&
+            deletedBy !== null &&
+            deletedBy !== undefined ? (
               <Text
                 style={
                   styles.deletedMessage

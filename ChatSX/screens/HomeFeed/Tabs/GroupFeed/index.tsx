@@ -35,6 +35,9 @@ import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import Realm from 'realm';
 import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
+import LinearGradient from 'react-native-linear-gradient';
+import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
 interface Props {
   navigation: any;
@@ -42,6 +45,7 @@ interface Props {
 
 const GroupFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [shimmerIsLoading, setShimmerIsLoading] = useState(true);
   const [invitePage, setInvitePage] = useState(1);
   const [FCMToken, setFCMToken] = useState('');
   const isFocused = useIsFocused();
@@ -75,6 +79,7 @@ const GroupFeed = ({navigation}: Props) => {
   const getExistingData = async () => {
     const existingChatrooms: any = await myClient?.getFilteredChatrooms(false);
     if (!!existingChatrooms && existingChatrooms.length != 0) {
+      setShimmerIsLoading(false);
       dispatch({
         type: SET_INITIAL_GROUPFEED_CHATROOM,
         body: existingChatrooms,
@@ -109,7 +114,9 @@ const GroupFeed = ({navigation}: Props) => {
   // This useEffect calls the listener which is attached to realm
   useEffect(() => {
     const realm = new Realm(myClient?.getInstance());
-    const chatrooms = realm.objects('ChatroomRO');
+    const chatrooms = realm
+      .objects('ChatroomRO')
+      .filtered(`type = 0 || type=7`);
     chatrooms.addListener(onGroupFeedChatroomChange);
     return () => {
       chatrooms.removeListener(onGroupFeedChatroomChange);
@@ -131,6 +138,7 @@ const GroupFeed = ({navigation}: Props) => {
       getExistingData();
       if (!user?.sdkClientInfo?.community) return;
       paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+      setShimmerIsLoading(false);
     }
   }, [isFocused, user]);
 
@@ -226,50 +234,142 @@ const GroupFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      <FlashList
-        data={groupFeedChatrooms}
-        ListHeaderComponent={() => (
-          <HomeFeedExplore
-            newCount={unseenCount}
-            totalCount={totalCount}
-            navigation={navigation}
-          />
-        )}
-        renderItem={({item}: any) => {
-          const homeFeedProps = {
-            title: item?.header!,
-            avatar: item?.chatroomImageUrl!,
-            lastMessage: item?.lastConversation?.answer!,
-            lastMessageUser: item?.lastConversation?.member?.name!,
-            time: item?.lastConversation?.createdAt!,
-            unreadCount: item?.unseenCount!,
-            pinned: false,
-            lastConversation: item?.lastConversation!,
-            lastConversationMember: item?.lastConversationRO?.member?.name!,
-            chatroomID: item?.id!,
-            isSecret: item?.isSecret,
-            deletedBy: item?.lastConversation?.deletedByUserId,
-            conversationDeletor:
-              item?.lastConversationRO?.deletedByMember?.sdkClientInfo?.uuid,
-            conversationCreator:
-              item?.lastConversationRO?.member?.sdkClientInfo?.uuid,
-            conversationDeletorName:
-              item?.lastConversationRO?.deletedByMember?.name,
-            inviteReceiver: item?.inviteReceiver,
-            chatroomType: item?.type,
-            muteStatus: item?.muteStatus,
-          };
-          return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
-        }}
-        extraData={{
-          value: [groupFeedChatrooms, unseenCount, totalCount],
-        }}
-        estimatedItemSize={15}
-        ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => {
-          return item?.id?.toString();
-        }}
-      />
+      {shimmerIsLoading ? (
+        <>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 50,
+            }}>
+            <View
+              style={{
+                width: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ShimmerPlaceHolder
+                style={{
+                  width: 50,
+                  alignItmes: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 50,
+                  height: 50,
+                }}
+              />
+            </View>
+            <View style={{width: '100%'}}>
+              <ShimmerPlaceHolder style={{width: '70%'}} />
+              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+            </View>
+          </View>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 50,
+            }}>
+            <View
+              style={{
+                width: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ShimmerPlaceHolder
+                style={{
+                  width: 50,
+                  alignItmes: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 50,
+                  height: 50,
+                }}
+              />
+            </View>
+            <View style={{width: '100%'}}>
+              <ShimmerPlaceHolder style={{width: '70%'}} />
+              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+            </View>
+          </View>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 50,
+            }}>
+            <View
+              style={{
+                width: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ShimmerPlaceHolder
+                style={{
+                  width: 50,
+                  alignItmes: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 50,
+                  height: 50,
+                }}
+              />
+            </View>
+            <View style={{width: '100%'}}>
+              <ShimmerPlaceHolder style={{width: '70%'}} />
+              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+            </View>
+          </View>
+        </>
+      ) : (
+        <FlashList
+          data={groupFeedChatrooms}
+          ListHeaderComponent={() => (
+            <HomeFeedExplore
+              newCount={unseenCount}
+              totalCount={totalCount}
+              navigation={navigation}
+            />
+          )}
+          renderItem={({item}: any) => {
+            const homeFeedProps = {
+              title: item?.header!,
+              avatar: item?.chatroomImageUrl!,
+              lastMessage: item?.lastConversationRO?.answer!,
+              lastMessageUser: item?.lastConversation?.member?.name!,
+              time: item?.lastConversationRO?.createdAt!,
+              unreadCount: item?.unseenCount!,
+              pinned: false,
+              lastConversation: item?.lastConversationRO!,
+              lastConversationMember: item?.lastConversationRO?.member?.name!,
+              chatroomID: item?.id!,
+              isSecret: item?.isSecret,
+              deletedBy: item?.lastConversation?.deletedByUserId,
+              conversationDeletor:
+                item?.lastConversationRO?.deletedByMember?.sdkClientInfo?.uuid,
+              conversationCreator:
+                item?.lastConversationRO?.member?.sdkClientInfo?.uuid,
+              conversationDeletorName:
+                item?.lastConversationRO?.deletedByMember?.name,
+              inviteReceiver: item?.inviteReceiver,
+              chatroomType: item?.type,
+              muteStatus: item?.muteStatus,
+            };
+            if (!item?.followStatus) {
+              return null;
+            }
+            return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
+          }}
+          extraData={{
+            value: [groupFeedChatrooms, unseenCount, totalCount],
+          }}
+          estimatedItemSize={15}
+          ListFooterComponent={renderFooter}
+          keyExtractor={(item: any) => {
+            return item?.id?.toString();
+          }}
+        />
+      )}
     </View>
   );
 };
