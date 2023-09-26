@@ -177,7 +177,7 @@ const Messages = ({
   const conversationDeletorName = item?.deletedByMember?.name;
   const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = user?.id;
-  const users = useQuery('UserSchemaRO');
+  const users: any = useQuery('UserSchemaRO');
   const currentUserUuid = users[0]?.userUniqueID;
 
   // Method to trim the initial DM connection message based on loggedInMember id

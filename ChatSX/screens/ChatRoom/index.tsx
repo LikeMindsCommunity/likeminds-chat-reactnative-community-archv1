@@ -175,7 +175,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
-  const users = useQuery('UserSchemaRO');
+  const users: any = useQuery('UserSchemaRO');
 
   const {
     chatroomID,
@@ -203,14 +203,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   );
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
-  const INITIAL_SYNC_PAGE = 1;
-  const PAGE_SIZE = 100;
+  // console.log('chatroomDetailsComp', chatroomDetails);
 
-  let chatroomType = chatroomDetails?.chatroom?.type;
-  let chatroomFollowStatus = chatroomDetails?.chatroom?.followStatus;
-  let memberCanMessage = chatroomDetails?.chatroom?.memberCanMessage;
-  let chatroomWithUser = chatroomDetails?.chatroom?.chatroomWithUser;
-  let chatRequestState = chatroomDetails?.chatroom?.chatRequestState;
+  // console.log('chatroomDBDetailsComp', chatroomDBDetails);
+
+  console.log('conversationsComp1234', conversations);
+
+  const INITIAL_SYNC_PAGE = 1;
+  const PAGE_SIZE = 10;
+
+  let chatroomType = chatroomDBDetails?.type;
+  let chatroomFollowStatus = chatroomDBDetails?.followStatus;
+  let memberCanMessage = chatroomDBDetails?.memberCanMessage;
+  let chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
+  let chatRequestState = chatroomDBDetails?.chatRequestState;
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -238,8 +244,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     chatroomType === 10
       ? user?.id !== chatroomWithUser?.id
         ? chatroomWithUser?.name
-        : chatroomDetails?.chatroom?.member?.name!
+        : chatroomDBDetails?.member?.name!
       : chatroomDBDetails?.header;
+
+  console.log('chatroomNameComp', chatroomName);
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -257,16 +265,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     chatroomType === 10
       ? user?.id !== chatroomWithUser?.id
         ? chatroomWithUser?.imageUrl
-        : chatroomDetails?.chatroom?.member?.imageUrl!
+        : chatroomDBDetails?.member?.imageUrl!
       : null;
 
   let routes = navigation.getState()?.routes;
   let previousRoute = routes[routes.length - 2];
 
-  let isSecret = chatroomDetails?.chatroom?.isSecret;
+  let isSecret = chatroomDBDetails?.isSecret;
 
   let notIncludedActionsID = [3];
-  let filteredChatroomActions = chatroomDetails?.chatroomActions?.filter(
+  //TODO1
+  let filteredChatroomActions = chatroomDBDetails?.chatroomActions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
 
@@ -285,7 +294,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               });
               dispatch({
                 type: CLEAR_CHATROOM_DETAILS,
-                body: {chatroomDetails: {}},
+                body: {chatroomDBDetails: {}},
               });
               dispatch({type: SET_IS_REPLY, body: {isReply: false}});
               dispatch({
@@ -300,7 +309,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               style={styles.backBtn}
             />
           </TouchableOpacity>
-          {!(Object.keys(chatroomDetails).length === 0) ? (
+          {!(Object.keys(chatroomDBDetails).length === 0) ? (
             <View style={styles.alignRow}>
               {chatroomType === 10 ? (
                 <View style={styles.profile}>
@@ -334,7 +343,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       fontSize: STYLES.$FONT_SIZES.SMALL,
                       fontFamily: STYLES.$FONT_TYPES.LIGHT,
                     }}>
-                    {`${chatroomDetails?.chatroom?.participantsCount} participants`}
+                    {
+                      //TODO1
+                      `${chatroomDBDetails?.participantsCount} participants`
+                    }
                   </Text>
                 ) : null}
               </View>
@@ -345,7 +357,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       headerRight: () =>
         filteredChatroomActions?.length > 0 && (
           <View style={styles.headerRight}>
-            {!!chatroomDetails ? (
+            {!!chatroomDBDetails ? (
               <TouchableOpacity
                 onPress={() => {
                   setModalVisible(!modalVisible);
@@ -632,8 +644,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     const DB_RESPONSE = val?.data;
 
+    // console.log('DB_RESPONSE', DB_RESPONSE);
+
     // TODO
-    myClient.saveConversationData(
+    await myClient?.saveConversationData(
       DB_RESPONSE,
       DB_RESPONSE?.chatroomMeta,
       DB_RESPONSE?.conversationsData,
@@ -641,10 +655,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     );
 
     if (page === 1) {
-      let conversationsFromRealm = await myClient.getConversationData(
+      let conversationsFromRealm = await myClient?.getConversationData(
         chatroomID,
         PAGE_SIZE,
       );
+
+      console.log('conversationsFromRealmPage1', conversationsFromRealm);
 
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
@@ -655,31 +671,36 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     if (DB_RESPONSE?.conversationsData?.length === 0) {
       return;
     } else {
-      paginatedSyncAPI(page + 1, minTimeStamp, maxTimeStamp);
+      // paginatedSyncAPI(page + 1, minTimeStamp, maxTimeStamp);
     }
   };
 
   // this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
-    let chatroom = await myClient.getChatroom(chatroomID);
+    let chatroom1 = await myClient?.getChatroom(chatroomID.toString());
+    const chatroom = JSON.parse(JSON.stringify(chatroom1));
+    console.log('chatroomCurrent', chatroom);
+
     let maxTimeStamp = Math.floor(Date.now());
     let conversationsFromRealm;
 
     // Warm start
     if (chatroom[0]?.isChatroomVisited) {
-      conversationsFromRealm = await myClient.getConversationData(
-        chatroomID,
+      conversationsFromRealm = await myClient?.getConversationData(
+        chatroomID.toString(),
         PAGE_SIZE,
       );
+      console.log('conversationsFromRealm1234', conversationsFromRealm);
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         body: {conversations: conversationsFromRealm},
       });
       // let minTimeStamp = !!updatedAt ? updatedAt : 0;
-      const currentChatroom = await myClient?.getChatroom(chatroomID);
-      let minTimeStamp =
-        currentChatroom.lastSeenConversation?.lastUpdatedAt ?? 0;
-      await paginatedSyncAPI(INITIAL_SYNC_PAGE, minTimeStamp, maxTimeStamp);
+      // const currentChatroom1 = await myClient?.getChatroom(chatroomID);
+      // const currentChatroom = JSON.parse(JSON.stringify(currentChatroom1));
+
+      let minTimeStamp = chatroom.lastSeenConversation?.lastUpdatedAt ?? 0;
+      // await paginatedSyncAPI(INITIAL_SYNC_PAGE, minTimeStamp, maxTimeStamp);
     } else {
       // Cold start
       await paginatedSyncAPI(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
@@ -704,8 +725,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   //this function fetchChatroomDetails when we first move inside Chatroom
   async function fetchChatroomDetails() {
-    let payload = {chatroomId: chatroomID};
-    let DB_DATA = await myClient.getChatroom(chatroomID?.toString());
+    // let payload = {chatroomId: chatroomID};
+    let DB_DATA1 = await myClient?.getChatroom(chatroomID?.toString());
+    let DB_DATA = JSON.parse(JSON.stringify(DB_DATA1));
+    console.log('DB_DATA', DB_DATA);
 
     if (DB_DATA.length > 0) {
       dispatch({
@@ -739,7 +762,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
     dispatch({
       type: CLEAR_CHATROOM_DETAILS,
-      body: {chatroomDetails: {}},
+      body: {chatroomDBDetails: {}},
     });
     dispatch({type: SELECTED_MESSAGES, body: []});
     dispatch({type: LONG_PRESSED, body: false});
@@ -839,7 +862,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this useEffect update initial header when we get chatroomDetails.
   useEffect(() => {
     setInitialHeader();
-  }, [chatroomDetails]);
+  }, [chatroomDBDetails]);
 
   // this useEffect call API to show InputBox based on showDM key.
   useEffect(() => {
@@ -859,35 +882,42 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           let payload = {
             page: 1,
           };
-          const res = await dispatch(getDMFeedData(payload, false) as any);
+          // const res = await dispatch(getDMFeedData(payload, false) as any);
 
-          if (!!res) {
-            let apiRes = await myClient?.checkDMStatus({
-              requestFrom: 'group_channel',
-            });
-            let response = apiRes?.data;
-            if (!!response) {
-              let routeURL = response?.cta;
-              const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-              if (hasShowList) {
-                const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-                setShowList(showListValue);
-              }
-              setShowDM(response?.showDm);
-            }
-          }
+          // if (!!res) {
+          //   let apiRes = await myClient?.checkDMStatus({
+          //     requestFrom: 'group_channel',
+          //   });
+          //   let response = apiRes?.data;
+          //   if (!!response) {
+          //     let routeURL = response?.cta;
+          //     const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+          //     if (hasShowList) {
+          //       const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+          //       setShowList(showListValue);
+          //     }
+          //     setShowDM(response?.showDm);
+          //   }
+          // }
         }
       }
-      let res = await fetchData(false);
-      if (!!res) {
-        // dispatch({type: STOP_CHATROOM_LOADING});
-      }
+      // let res = await fetchData(false);
+      // if (!!res) {
+      //   // dispatch({type: STOP_CHATROOM_LOADING});
+      // }
     }
 
-    if (!!chatroomDetails?.chatroom) {
+    if (!!chatroomDBDetails) {
       callApi();
     }
-  }, [chatroomDetails]);
+  }, [chatroomDBDetails]);
+
+  useEffect(() => {
+    async function callFetchData() {
+      await fetchData(false);
+    }
+    callFetchData();
+  }, []);
 
   // this useEffect scroll to Index of latest message when we send the message.
   useEffect(() => {
@@ -1034,7 +1064,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           dispatch({
             type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
+            body: {chatroomDBDetails: {}},
           });
           navigation.goBack();
         } else {
@@ -1079,7 +1109,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           dispatch({
             type: CLEAR_CHATROOM_DETAILS,
-            body: {chatroomDetails: {}},
+            body: {chatroomDBDetails: {}},
           });
           navigation.goBack();
         } else {
@@ -1268,7 +1298,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             });
             dispatch({
               type: CLEAR_CHATROOM_DETAILS,
-              body: {chatroomDetails: {}},
+              body: {chatroomDBDetails: {}},
             });
             dispatch({type: REJECT_INVITE_SUCCESS, body: chatroomID});
             navigation.goBack();
@@ -2026,7 +2056,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
       {chatroomType !== 10 ? (
         <View>
-          {!(Object.keys(chatroomDetails).length === 0) &&
+          {!(Object.keys(chatroomDBDetails).length === 0) &&
           previousRoute?.name === EXPLORE_FEED
             ? !!!chatroomFollowStatus && (
                 <TouchableOpacity
@@ -2042,17 +2072,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </TouchableOpacity>
               )
             : null}
-          {!(Object.keys(chatroomDetails).length === 0) ? (
+          {!(Object.keys(chatroomDBDetails).length === 0) ? (
             //case to block normal user from messaging in a chatroom where only CMs can message
             user.state !== 1 &&
-            chatroomDetails?.chatroom?.memberCanMessage === false ? (
+            chatroomDBDetails?.memberCanMessage === false ? (
               <View style={styles.disabledInput}>
                 <Text style={styles.disabledInputText}>
                   Only Community Manager can message here.
                 </Text>
               </View>
             ) : //case to allow CM for messaging in an Announcement Room
-            !(user.state !== 1 && chatroomDetails?.chatroom?.type === 7) &&
+            !(user.state !== 1 && chatroomDBDetails?.type === 7) &&
               chatroomFollowStatus &&
               memberRights[3]?.isSelected === true ? (
               <InputBox
@@ -2069,7 +2099,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 isSecret={isSecret}
               />
             ) : //case to block normal users from messaging in an Announcement Room
-            user.state !== 1 && chatroomDetails?.chatroom?.type === 7 ? (
+            user.state !== 1 && chatroomDBDetails?.type === 7 ? (
               <View style={styles.disabledInput}>
                 <Text style={styles.disabledInputText}>
                   Only Community Manager can message here.
@@ -2082,14 +2112,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   here.
                 </Text>
               </View>
-            ) : !(Object.keys(chatroomDetails).length === 0) &&
+            ) : !(Object.keys(chatroomDBDetails).length === 0) &&
               previousRoute?.name === HOMEFEED ? (
               <View
                 style={{padding: 20, backgroundColor: STYLES.$COLORS.TERTIARY}}>
                 <Text
                   style={
                     styles.inviteText
-                  }>{`${chatroomDetails?.chatroom?.header} invited you to join this secret group.`}</Text>
+                  }>{`${chatroomDBDetails?.header} invited you to join this secret group.`}</Text>
                 <View style={{marginTop: 10}}>
                   <TouchableOpacity
                     onPress={() => {
@@ -2145,8 +2175,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       ) : chatroomType === 10 ? (
         <View>
           {chatRequestState === 0 &&
-          (!!chatroomDetails?.chatroom?.chatRequestedBy
-            ? chatroomDetails?.chatroom?.chatRequestedBy[0]?.id !== user?.id
+          //TODO1
+          (!!chatroomDBDetails?.chatRequestedBy
+            ? chatroomDBDetails?.chatRequestedBy[0]?.id !== user?.id
             : null) ? (
             <View style={styles.dmRequestView}>
               <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>
@@ -2196,7 +2227,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               chatroomType={chatroomType}
               navigation={navigation}
               isUploadScreen={false}
-              isPrivateMember={chatroomDetails?.chatroom?.isPrivateMember}
+              isPrivateMember={
+                //TODO1
+                chatroomDBDetails?.isPrivateMember
+              }
               myRef={refInput}
               handleFileUpload={handleFileUpload}
               isEditable={isEditable}

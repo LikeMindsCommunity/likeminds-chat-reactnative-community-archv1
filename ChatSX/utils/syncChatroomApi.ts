@@ -68,7 +68,7 @@ export const paginatedSyncAPI = async (
     );
   }
 
-  myClient?.updateTimeStamp(timeStampStored[0].maxTimeStamp, maxTimeStampNow);
+  // myClient?.updateTimeStamp(timeStampStored[0].maxTimeStamp, maxTimeStampNow);
 
   if (DB_RESPONSE?.chatroomsData?.length === 0) {
     return;

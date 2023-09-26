@@ -28,6 +28,7 @@ import {
   EMPTY_BLOCK_DELETION,
   UPDATE_MULTIMEDIA_CONVERSATIONS,
   PAGINATED_CONVERSATIONS_START_SUCCESS,
+  GET_CHATROOM_DB_SUCCESS,
 } from '../types/types';
 
 const initialState = {
@@ -45,6 +46,7 @@ const initialState = {
   replyMessage: '',
   editConversation: '',
   fileSent: 0,
+  chatroomDBDetails: {},
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -69,6 +71,11 @@ export function chatroomReducer(state = initialState, action: any) {
         ...state,
         selectedMessages: selectedMessages,
       };
+    }
+    case GET_CHATROOM_DB_SUCCESS: {
+      console.log('chatroomDBDetails', action.body);
+      const {chatroomDBDetails = {}} = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
     }
     case GET_CONVERSATIONS_SUCCESS: {
       const {conversations = []} = action.body;
@@ -159,19 +166,19 @@ export function chatroomReducer(state = initialState, action: any) {
       return {...state, conversations: conversations};
     }
     case GET_CHATROOM_SUCCESS: {
-      const chatroomDetails = action.body;
-      return {...state, chatroomDetails: chatroomDetails};
+      const chatroomDBDetails = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
     }
     case CLEAR_CHATROOM_DETAILS: {
-      const {chatroomDetails} = action.body;
-      return {...state, chatroomDetails: chatroomDetails};
+      const {chatroomDBDetails} = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
     }
     case UPDATE_CHAT_REQUEST_STATE: {
       const {chatRequestState} = action.body;
       return {
         ...state,
-        chatroomDetails: {
-          ...state.chatroomDetails,
+        chatroomDBDetails: {
+          ...state.chatroomDBDetails,
           chatroom: {
             ...state.chatroomDetails.chatroom,
             chatRequestState: chatRequestState,
