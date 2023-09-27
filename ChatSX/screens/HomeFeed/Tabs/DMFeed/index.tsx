@@ -31,6 +31,7 @@ import {
   SET_INITIAL_DMFEED_CHATROOM,
   INSERT_DMFEED_CHATROOM,
   UPDATE_DMFEED_CHATROOM,
+  DELETE_CHATROOM,
 } from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
@@ -124,14 +125,19 @@ const DMFeed = ({navigation}: Props) => {
   // Callback for listener
   const onDMChatroomChange = (chatrooms: any, changes: any) => {
     // Handle deleted DM Chatroom objects
-    changes.deletions.forEach((index: any) => {});
+    changes.deletions.forEach((index: any) => {
+      dispatch({
+        type: DELETE_CHATROOM,
+        body: index,
+      });
+    });
 
     // Handle newly added DM Chatroom objects
     changes.insertions.forEach((index: any) => {
       const insertedDMChatroom = chatrooms[index];
       dispatch({
         type: INSERT_DMFEED_CHATROOM,
-        body: insertedDMChatroom,
+        body: {insertedDMChatroom, index},
       });
     });
 
@@ -140,7 +146,7 @@ const DMFeed = ({navigation}: Props) => {
       const modifiedDMChatroom = chatrooms[index];
       dispatch({
         type: UPDATE_DMFEED_CHATROOM,
-        body: modifiedDMChatroom,
+        body: {modifiedDMChatroom, index},
       });
     });
   };
@@ -148,7 +154,10 @@ const DMFeed = ({navigation}: Props) => {
   // This useEffect calls the listener which is attached to realm
   useEffect(() => {
     const realm = new Realm(myClient?.getInstance());
-    const chatrooms = realm.objects('ChatroomRO');
+    const chatrooms = realm
+      .objects('ChatroomRO')
+      .filtered(`(type = 10) && (followStatus=true) && (deletedBy = null)`)
+      .sorted('updatedAt', true);
     chatrooms.addListener(onDMChatroomChange);
     return () => {
       chatrooms.removeListener(onDMChatroomChange);

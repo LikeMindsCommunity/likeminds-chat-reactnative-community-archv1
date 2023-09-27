@@ -28,6 +28,7 @@ import {
   SET_PAGE,
   INSERT_GROUPFEED_CHATROOM,
   UPDATE_GROUPFEED_CHATROOM,
+  DELETE_CHATROOM,
 } from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
@@ -85,14 +86,19 @@ const GroupFeed = ({navigation}: Props) => {
   // Callback method for listener
   const onGroupFeedChatroomChange = (chatrooms: any, changes: any) => {
     // Handle deleted GroupFeed Chatroom objects
-    changes.deletions.forEach((index: any) => {});
+    changes.deletions.forEach((index: any) => {
+      dispatch({
+        type: DELETE_CHATROOM,
+        body: index,
+      });
+    });
 
     // Handle newly added GroupFeed Chatroom objects
     changes.insertions.forEach((index: any) => {
       const insertedChatroom = chatrooms[index];
       dispatch({
         type: INSERT_GROUPFEED_CHATROOM,
-        body: insertedChatroom,
+        body: {insertedChatroom, index},
       });
     });
 
@@ -101,7 +107,7 @@ const GroupFeed = ({navigation}: Props) => {
       const modifiedChatroom = chatrooms[index];
       dispatch({
         type: UPDATE_GROUPFEED_CHATROOM,
-        body: modifiedChatroom,
+        body: {modifiedChatroom, index},
       });
     });
   };
@@ -109,7 +115,12 @@ const GroupFeed = ({navigation}: Props) => {
   // This useEffect calls the listener which is attached to realm
   useEffect(() => {
     const realm = new Realm(myClient?.getInstance());
-    const chatrooms = realm.objects('ChatroomRO');
+    const chatrooms = realm
+      .objects('ChatroomRO')
+      .filtered(
+        `(type = 0 || type=7) && (followStatus = true) && (deletedBy = null)`,
+      )
+      .sorted('updatedAt', true);
     chatrooms.addListener(onGroupFeedChatroomChange);
     return () => {
       chatrooms.removeListener(onGroupFeedChatroomChange);

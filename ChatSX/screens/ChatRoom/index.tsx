@@ -1127,8 +1127,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           navigation.goBack();
         } else {
           navigation.goBack();
-          // Deleting the chatroom from realm in case of leaving the chatroom
-          await myClient?.deleteChatroom(chatroomID);
+          // Updating the followStatus of chatroom to false in case of leaving the chatroom
+          await myClient?.setFollowStatus(chatroomID);
         }
       })
       .catch(() => {
@@ -1173,8 +1173,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           navigation.goBack();
         } else {
           navigation.goBack();
-          // Deleting the chatroom from realm in case of leaving the chatroom
-          await myClient?.deleteChatroom(chatroomID);
+          // Updating the followStatus of chatroom to false in case of leaving the chatroom
+          await myClient?.setFollowStatus(chatroomID);
         }
       })
       .catch(() => {
