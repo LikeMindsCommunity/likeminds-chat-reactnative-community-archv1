@@ -56,7 +56,7 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
-  const users = useQuery('UserSchemaRO');
+  const users: any = useQuery('UserSchemaRO');
 
   const INITIAL_SYNC_PAGE = 1;
 
@@ -108,6 +108,13 @@ const HomeFeed = ({navigation}: Props) => {
     });
   };
 
+  // For cleanup of resources including realm.close()
+  useEffect(() => {
+    return () => {
+      myClient?.close();
+    };
+  }, []);
+
   //push API to receive firebase notifications
   const pushAPI = async (fcmToken: any, accessToken: any) => {
     const deviceID = await getUniqueId();
@@ -138,10 +145,9 @@ const HomeFeed = ({navigation}: Props) => {
     let res = await dispatch(initAPI(payload) as any);
 
     if (!!res) {
-      await dispatch(getMemberState() as any);
-
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
+      await dispatch(getMemberState() as any);
     }
 
     return res;
@@ -149,16 +155,14 @@ const HomeFeed = ({navigation}: Props) => {
 
   const timeSetter = async () => {
     const timeStampStored = await myClient?.getTimeStamp();
-    if (timeStampStored.length == 0) {
-      // Setting the initial timeStamp for the first time
+    if (timeStampStored.length === 0) {
       const maxTimeStamp = Math.floor(Date.now() / 1000);
       const minTimeStamp = 0;
-      myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
+      await myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
     } else {
-      const temp = JSON.stringify(timeStampStored);
-      let parsedTimeStamp = JSON.parse(temp);
-      myClient?.updateTimeStamp(
-        parsedTimeStamp[0].maxTimeStamp,
+      // Updating the timeStamp incase of reopening of App
+      myClient.updateTimeStamp(
+        timeStampStored[0].maxTimeStamp,
         Math.floor(Date.now() / 1000),
       );
     }
@@ -171,23 +175,6 @@ const HomeFeed = ({navigation}: Props) => {
   useLayoutEffect(() => {
     fetchData();
   }, [navigation, myClient]);
-
-  useEffect(() => {
-    const query = ref(db, `/community/${community?.id}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user);
-      }
-    });
-  }, [user]);
-
-  useEffect(() => {
-    if (isFocused) {
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user);
-    }
-  }, [isFocused, user]);
 
   useEffect(() => {
     const token = async () => {

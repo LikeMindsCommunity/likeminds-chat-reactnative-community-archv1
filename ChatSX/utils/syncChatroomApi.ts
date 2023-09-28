@@ -6,12 +6,14 @@ async function syncChatroomAPI(
   page: number,
   minTimeStamp: number,
   maxTimeStamp: number,
+  isDm: boolean,
 ) {
+  const chatroomTypes = isDm ? [10] : [0, 7];
   const res = await myClient?.syncChatroom(
     SyncChatroomRequest.builder()
       .setPage(page)
       .setPageSize(50)
-      .setChatroomTypes([0, 7, 10])
+      .setChatroomTypes(chatroomTypes)
       .setMaxTimestamp(maxTimeStamp)
       .setMinTimestamp(minTimeStamp)
       .build(),
@@ -22,17 +24,24 @@ async function syncChatroomAPI(
 const INITIAL_SYNC_PAGE = 1;
 
 // Pagination call for sync chatroom
-export const paginatedSyncAPI = async (page: number, user: any) => {
+export const paginatedSyncAPI = async (
+  page: number,
+  user: any,
+  isDm: boolean,
+) => {
   const timeStampStored = await myClient?.getTimeStamp();
-  const temp = JSON.stringify(timeStampStored);
-  let parsedTimeStamp = JSON.parse(temp);
   let maxTimeStampNow = Math.floor(Date.now() / 1000);
 
   // Taking minTimeStamp as 0 for the first time else last maxTimeStamp will become current minTimeStamp
   let minTimeStampNow =
-    parsedTimeStamp[0].minTimeStamp === 0 ? 0 : parsedTimeStamp[0].maxTimeStamp;
+    timeStampStored[0].minTimeStamp === 0 ? 0 : timeStampStored[0].maxTimeStamp;
 
-  const val = await syncChatroomAPI(page, minTimeStampNow, maxTimeStampNow);
+  const val = await syncChatroomAPI(
+    page,
+    minTimeStampNow,
+    maxTimeStampNow,
+    isDm,
+  );
 
   const DB_RESPONSE = val?.data;
 
@@ -59,11 +68,9 @@ export const paginatedSyncAPI = async (page: number, user: any) => {
     );
   }
 
-  myClient?.updateTimeStamp(parsedTimeStamp[0].maxTimeStamp, maxTimeStampNow);
-
   if (DB_RESPONSE?.chatroomsData?.length === 0) {
     return;
   } else {
-    await paginatedSyncAPI(page + 1, user?.sdkClientInfo?.community);
+    await paginatedSyncAPI(page + 1, user?.sdkClientInfo?.community, isDm);
   }
 };
