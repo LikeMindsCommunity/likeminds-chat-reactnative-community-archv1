@@ -1039,7 +1039,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           navigation.goBack();
         } else {
           navigation.goBack();
-          await myClient?.updateFollowStatus(`${chatroomID}`);
+          // Updating the followStatus of chatroom to false in case of leaving the chatroom
+          await myClient?.setFollowStatus(chatroomID.toString());
         }
       })
       .catch(() => {
@@ -1084,7 +1085,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           navigation.goBack();
         } else {
           navigation.goBack();
-          await myClient?.updateFollowStatus(`${chatroomID}`);
+          // Updating the followStatus of chatroom to false in case of leaving the chatroom
+          await myClient?.setFollowStatus(chatroomID.toString());
         }
       })
       .catch(() => {

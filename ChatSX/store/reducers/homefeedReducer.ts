@@ -1,5 +1,4 @@
 import Styles from '../../constants/Styles';
-import {sortChatrooms} from '../../utils/homeFeedUtils';
 import {
   ACCEPT_INVITE_SUCCESS,
   GET_DMFEED_CHAT_SUCCESS,
@@ -24,6 +23,7 @@ import {
   UPDATE_GROUPFEED_CHATROOM,
   UPDATE_DMFEED_CHATROOM,
   SET_INITIAL_DMFEED_CHATROOM,
+  DELETE_CHATROOM,
 } from '../types/types';
 
 const initialState = {
@@ -81,79 +81,81 @@ export function homefeedReducer(state = initialState, action: any) {
       return state;
     }
     case UPDATE_GROUPFEED_CHATROOM: {
-      const insertedChatroom = action.body;
-      if (insertedChatroom.type !== 10) {
+      const modifiedChatroom = action.body.modifiedChatroom;
+      const index = action.body.index;
+      if (modifiedChatroom.type !== 10) {
         let groupFeedChatrooms = state.groupFeedChatrooms;
-        for (let i = 0; i < groupFeedChatrooms.length; i++) {
-          if (insertedChatroom.id == groupFeedChatrooms[i].id) {
-            groupFeedChatrooms = [
-              ...groupFeedChatrooms.slice(0, i),
-              ...groupFeedChatrooms.slice(i + 1),
-            ];
-            groupFeedChatrooms.push(insertedChatroom);
-            break;
-          }
-        }
-        const sortedGroupFeedChatrooms = sortChatrooms(groupFeedChatrooms);
+        groupFeedChatrooms[index] = modifiedChatroom;
         return {
           ...state,
-          groupFeedChatrooms: sortedGroupFeedChatrooms,
+          groupFeedChatrooms: groupFeedChatrooms,
         };
       }
       return state;
     }
+    case DELETE_CHATROOM: {
+      const index = action.body;
+      let groupFeedChatrooms = state.groupFeedChatrooms;
+      groupFeedChatrooms = [
+        ...groupFeedChatrooms.slice(0, index),
+        ...groupFeedChatrooms.slice(index + 1),
+      ];
+      return {
+        ...state,
+        groupFeedChatrooms: groupFeedChatrooms,
+      };
+    }
     case UPDATE_DMFEED_CHATROOM: {
-      const insertedChatroom = action.body;
-      if (insertedChatroom.type === 10) {
+      const modifiedDMChatroom = action.body.modifiedDMChatroom;
+      const index = action.body.index;
+      if (modifiedDMChatroom.type === 10) {
         let dmFeedChatrooms = state.dmFeedChatrooms;
-        for (let i = 0; i < dmFeedChatrooms.length; i++) {
-          if (insertedChatroom.id == dmFeedChatrooms[i].id) {
-            dmFeedChatrooms = [
-              ...dmFeedChatrooms.slice(0, i),
-              ...dmFeedChatrooms.slice(i + 1),
-            ];
-            dmFeedChatrooms.push(insertedChatroom);
-            break;
-          }
-        }
-        const sortedDmFeedChatrooms = sortChatrooms(dmFeedChatrooms);
+        dmFeedChatrooms[index] = modifiedDMChatroom;
         return {
           ...state,
-          dmFeedChatrooms: sortedDmFeedChatrooms,
+          dmFeedChatrooms: dmFeedChatrooms,
         };
       }
       return state;
     }
     case INSERT_GROUPFEED_CHATROOM: {
-      const insertedChatroom = action.body;
+      const insertedChatroom = action.body.insertedChatroom;
+      const index = action.body.index;
       if (insertedChatroom.type !== 10) {
-        const updatedGroupFeedChatrooms = [
-          ...state.groupFeedChatrooms,
-          insertedChatroom,
-        ];
-        const sortedAndUpdatedGroupFeedChatrooms = sortChatrooms(
-          updatedGroupFeedChatrooms,
-        );
+        let currentChatrooms = state.groupFeedChatrooms;
+        if (currentChatrooms.length !== 0)
+          currentChatrooms = [
+            ...currentChatrooms.slice(0, index),
+            insertedChatroom,
+            ...currentChatrooms.slice(index),
+          ];
+        else {
+          currentChatrooms = [...state.groupFeedChatrooms, insertedChatroom];
+        }
         return {
           ...state,
-          groupFeedChatrooms: sortedAndUpdatedGroupFeedChatrooms,
+          groupFeedChatrooms: currentChatrooms,
         };
       }
       return state;
     }
     case INSERT_DMFEED_CHATROOM: {
-      const insertedChatroom = action.body;
-      if (insertedChatroom.type === 10) {
-        const updatedDmFeedChatrooms = [
-          ...state.dmFeedChatrooms,
-          insertedChatroom,
-        ];
-        const sortedAndUpdatedDmFeedChatrooms = sortChatrooms(
-          updatedDmFeedChatrooms,
-        );
+      const insertedChatroom = action.body.insertedDMChatroom;
+      const index = action.body.index;
+      if (insertedChatroom.type !== 10) {
+        let currentChatrooms = state.dmFeedChatrooms;
+        if (currentChatrooms.length !== 0)
+          currentChatrooms = [
+            ...currentChatrooms.slice(0, index),
+            insertedChatroom,
+            ...currentChatrooms.slice(index),
+          ];
+        else {
+          currentChatrooms = [...state.dmFeedChatrooms, insertedChatroom];
+        }
         return {
           ...state,
-          dmFeedChatrooms: sortedAndUpdatedDmFeedChatrooms,
+          dmFeedChatrooms: currentChatrooms,
         };
       }
       return state;
