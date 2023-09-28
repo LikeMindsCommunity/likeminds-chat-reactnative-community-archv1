@@ -308,6 +308,7 @@ const HomeFeedItem: React.FC<Props> = ({
         navigation.navigate(CHATROOM, {
           chatroomID: chatroomID,
           isInvited: !!inviteReceiver ? true : false,
+          muteStatus: muteStatus,
         });
       }}
       style={({pressed}) => [

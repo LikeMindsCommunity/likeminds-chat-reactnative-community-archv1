@@ -21,6 +21,7 @@ import {
   ScrollView,
   Platform,
   LogBox,
+  FlatList,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
 import {myClient} from '../../..';
@@ -51,12 +52,14 @@ import {
 } from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
+  ADD_STATE_MESSAGE,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
   CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
+  GET_CHATROOMACTIONS_SUCCESS,
   GET_CHATROOM_DB_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
@@ -124,6 +127,9 @@ import WarningMessageModal from '../../customModals/WarningMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
 import {useQuery} from '@realm/react';
+import LinearGradient from 'react-native-linear-gradient';
+import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
 interface Data {
   id: string;
@@ -173,6 +179,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [isEditable, setIsEditable] = useState<any>(false);
   const [isWarningMessageModalState, setIsWarningMessageModalState] =
     useState(false);
+  const [shimmerIsLoading, setShimmerIsLoading] = useState(true);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
   const users: any = useQuery('UserSchemaRO');
@@ -205,12 +212,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // console.log('chatroomDetailsComp', chatroomDetails);
 
-  // console.log('chatroomDBDetailsComp', chatroomDBDetails);
-
-  console.log('conversationsComp1234', conversations);
+  console.log('chatroomDBDetailsComp', chatroomDBDetails);
 
   const INITIAL_SYNC_PAGE = 1;
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 50;
 
   let chatroomType = chatroomDBDetails?.type;
   let chatroomFollowStatus = chatroomDBDetails?.followStatus;
@@ -240,14 +245,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   */
   }
 
+  console.log('user?.id', user?.id);
+  console.log('chatroomWithUser?.id', chatroomWithUser?.id);
+
   let chatroomName =
     chatroomType === 10
-      ? user?.id !== chatroomWithUser?.id
+      ? user?.id != chatroomWithUser?.id
         ? chatroomWithUser?.name
         : chatroomDBDetails?.member?.name!
       : chatroomDBDetails?.header;
 
-  console.log('chatroomNameComp', chatroomName);
+  // console.log('chatroomNameComp', chatroomName);
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -268,16 +276,24 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         : chatroomDBDetails?.member?.imageUrl!
       : null;
 
+  console.log('chatroomProfile', chatroomProfile);
+
   let routes = navigation.getState()?.routes;
+  console.log('routes', routes);
+
   let previousRoute = routes[routes.length - 2];
+  console.log('previousRoute', previousRoute);
 
   let isSecret = chatroomDBDetails?.isSecret;
+  console.log('isSecret', isSecret);
 
   let notIncludedActionsID = [3];
-  //TODO1
-  let filteredChatroomActions = chatroomDBDetails?.chatroomActions?.filter(
+
+  let filteredChatroomActions = chatroomDetails?.chatroomActions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
+
+  console.log('filteredChatroomActions', filteredChatroomActions);
 
   // Initial header of chatroom screen
   const setInitialHeader = () => {
@@ -343,10 +359,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       fontSize: STYLES.$FONT_SIZES.SMALL,
                       fontFamily: STYLES.$FONT_TYPES.LIGHT,
                     }}>
-                    {
-                      //TODO1
-                      `${chatroomDBDetails?.participantsCount} participants`
-                    }
+                    {`${chatroomDetails?.participantCount} participants`}
                   </Text>
                 ) : null}
               </View>
@@ -357,7 +370,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       headerRight: () =>
         filteredChatroomActions?.length > 0 && (
           <View style={styles.headerRight}>
-            {!!chatroomDBDetails ? (
+            {!!chatroomDetails ? (
               <TouchableOpacity
                 onPress={() => {
                   setModalVisible(!modalVisible);
@@ -419,7 +432,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         if (selectedMessagesLength === 1) {
           if (
             selectedMessages[0]?.member?.id === user?.id &&
-            !!selectedMessages[0].answer
+            !!selectedMessages[0]?.answer
           ) {
             isSelectedMessageEditable = true;
           } else {
@@ -431,7 +444,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
         //Logic to set isCopy, showCopyIcon, isDelete true/false, based on that we will show respective icons.
         for (let i = 0; i < selectedMessagesLength; i++) {
-          if (selectedMessages[i].attachmentCount > 0) {
+          if (selectedMessages[i]?.attachmentCount > 0) {
             showCopyIcon = false;
           }
 
@@ -620,7 +633,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     minTimeStamp: number,
     conversationId?: string,
   ) {
-    const res = await myClient?.syncConversation(
+    const res = myClient?.syncConversation(
       SyncConversationRequest.builder()
         .setChatroomId(chatroomID)
         .setPage(page)
@@ -644,16 +657,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     const DB_RESPONSE = val?.data;
 
-    // console.log('DB_RESPONSE', DB_RESPONSE);
+    console.log('DB_RESPONSE', DB_RESPONSE);
 
-    // TODO
-    await myClient?.saveConversationData(
+    myClient?.saveConversationData(
       DB_RESPONSE,
       DB_RESPONSE?.chatroomMeta,
       DB_RESPONSE?.conversationsData,
       community?.id,
     );
 
+    console.log('pagePaginated', page);
     if (page === 1) {
       let conversationsFromRealm = await myClient?.getConversationData(
         chatroomID,
@@ -671,7 +684,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     if (DB_RESPONSE?.conversationsData?.length === 0) {
       return;
     } else {
-      // paginatedSyncAPI(page + 1, minTimeStamp, maxTimeStamp);
+      paginatedSyncAPI(page + 1, minTimeStamp, maxTimeStamp);
     }
   };
 
@@ -679,18 +692,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchData(showLoaderVal?: boolean) {
     let chatroom1 = await myClient?.getChatroom(chatroomID.toString());
     const chatroom = JSON.parse(JSON.stringify(chatroom1));
-    console.log('chatroomCurrent', chatroom);
+    // console.log('chatroomCurrent', chatroom);
+    console.log('chatroomCurrentALREADYVISITED', chatroom?.isChatroomVisited);
 
     let maxTimeStamp = Math.floor(Date.now());
     let conversationsFromRealm;
 
+    console.log('maxTimeStampREalm', maxTimeStamp);
+
     // Warm start
-    if (chatroom[0]?.isChatroomVisited) {
+    if (chatroom?.isChatroomVisited) {
+      setShimmerIsLoading(false);
       conversationsFromRealm = await myClient?.getConversationData(
         chatroomID.toString(),
         PAGE_SIZE,
       );
-      console.log('conversationsFromRealm1234', conversationsFromRealm);
+      // console.log('conversationsFromRealm1234', conversationsFromRealm);
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         body: {conversations: conversationsFromRealm},
@@ -699,45 +716,54 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       // const currentChatroom1 = await myClient?.getChatroom(chatroomID);
       // const currentChatroom = JSON.parse(JSON.stringify(currentChatroom1));
 
-      let minTimeStamp = chatroom.lastSeenConversation?.lastUpdatedAt ?? 0;
-      // await paginatedSyncAPI(INITIAL_SYNC_PAGE, minTimeStamp, maxTimeStamp);
+      let minTimeStamp = chatroom?.lastSeenConversation?.lastUpdatedAt ?? 0;
+      console.log('minTimeStampREalmm', minTimeStamp);
+
+      await paginatedSyncAPI(INITIAL_SYNC_PAGE, minTimeStamp, maxTimeStamp);
     } else {
       // Cold start
       await paginatedSyncAPI(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
       await myClient.chatroomViewed(chatroomID);
+      setShimmerIsLoading(false);
     }
 
-    if (!isInvited) {
-      const response = await myClient?.markReadChatroom({
-        chatroomId: chatroomID,
-      });
+    // if (!isInvited) {
+    //   const response = await myClient?.markReadChatroom({
+    //     chatroomId: chatroomID,
+    //   });
 
-      const res = await myClient?.chatroomSeen({
-        collabcardId: chatroomID,
-        uuid: user?.sdkClientInfo?.uuid,
-        collabcardType: chatroomType,
-      });
+    //   const res = await myClient?.chatroomSeen({
+    //     collabcardId: chatroomID,
+    //     uuid: user?.sdkClientInfo?.uuid,
+    //     collabcardType: chatroomType,
+    //   });
 
-      updatePageInRedux();
-    }
+    //   updatePageInRedux();
+    // }
     return conversationsFromRealm;
   }
 
   //this function fetchChatroomDetails when we first move inside Chatroom
   async function fetchChatroomDetails() {
-    // let payload = {chatroomId: chatroomID};
+    let payload = {chatroomId: chatroomID};
     let DB_DATA1 = await myClient?.getChatroom(chatroomID?.toString());
     let DB_DATA = JSON.parse(JSON.stringify(DB_DATA1));
-    console.log('DB_DATA', DB_DATA);
+    // console.log('DB_DATA', DB_DATA);
+    // console.log('DB_DATA[0]', DB_DATA[0]);
+    // console.log('DB_DATA.length', DB_DATA?.length);
 
-    if (DB_DATA.length > 0) {
+    if (DB_DATA) {
       dispatch({
         type: GET_CHATROOM_DB_SUCCESS,
-        body: {chatroomDBDetails: DB_DATA[0]},
+        body: {chatroomDBDetails: DB_DATA},
       });
     }
-    // let response = await dispatch(getChatroom(payload) as any);
-    // return response;
+    let response = await myClient?.getChatroomV2(payload);
+    dispatch({
+      type: GET_CHATROOMACTIONS_SUCCESS,
+      body: response?.data,
+    });
+    // console.log('responseCompo', response?.data);
   }
 
   // this function fetch initiate API
@@ -862,7 +888,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this useEffect update initial header when we get chatroomDetails.
   useEffect(() => {
     setInitialHeader();
-  }, [chatroomDBDetails]);
+  }, [chatroomDBDetails, chatroomDetails]);
 
   // this useEffect call API to show InputBox based on showDM key.
   useEffect(() => {
@@ -914,10 +940,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   useEffect(() => {
     async function callFetchData() {
+      console.log('callingg123');
       await fetchData(false);
+      console.log('callingg1234567');
     }
     callFetchData();
-  }, []);
+  }, [isFocused]);
 
   // this useEffect scroll to Index of latest message when we send the message.
   useEffect(() => {
@@ -943,18 +971,27 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return onValue(query, async (snapshot: DataSnapshot) => {
       if (snapshot.exists()) {
         let firebaseData = snapshot.val();
-        let conversationID = firebaseData?.collabcard?.answerId;
+        console.log('firebaseData', firebaseData);
+
+        let conversationID = firebaseData?.collabcard?.answer_id;
+
+        console.log('conversationIDFirebase', conversationID);
 
         if (conversationID) {
           if (!user?.sdkClientInfo?.community) return;
-          let minTimeStamp = !!updatedAt ? updatedAt : 0;
+          let chatroom1 = await myClient?.getChatroom(chatroomID.toString());
+          const chatroom = JSON.parse(JSON.stringify(chatroom1));
+          console.log('chatroomFirebase', chatroom);
+          let minTimeStamp = chatroom?.lastSeenConversation?.lastUpdatedAt ?? 0;
+          console.log('minTimeStampFirebase', minTimeStamp);
           let maxTimeStamp = Math.floor(Date.now());
-          await syncConversationAPI(
-            INITIAL_SYNC_PAGE,
-            minTimeStamp,
-            maxTimeStamp,
-            conversationID,
-          );
+          await paginatedSyncAPI(INITIAL_SYNC_PAGE, minTimeStamp, maxTimeStamp);
+          // await syncConversationAPI(
+          //   INITIAL_SYNC_PAGE,
+          //   minTimeStamp,
+          //   maxTimeStamp,
+          //   conversationID,
+          // );
         }
       }
     });
@@ -1213,6 +1250,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then((res: any) => {
         fetchChatroomDetails();
+        console.log('muteStatusMUtingggg', muteStatus);
+
         myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
@@ -1231,6 +1270,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then(() => {
         fetchChatroomDetails();
+        console.log('muteStatusUNMUtingggg', muteStatus);
         myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications unmuted for this chatroom');
         setIsToast(true);
@@ -1588,14 +1628,32 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroomId: chatroomID,
       chatRequestState: 1,
     });
-    fetchData();
-    fetchChatroomDetails();
+    // fetchData();
+    // fetchChatroomDetails();
 
     //dispatching redux action for local handling of chatRequestState
     dispatch({
       type: UPDATE_CHAT_REQUEST_STATE,
       body: {chatRequestState: 1},
     });
+    // console.log('responseOnApprove', response);
+
+    // console.log('community?.id', community?.id);
+
+    dispatch({
+      type: ADD_STATE_MESSAGE,
+      body: {conversation: response?.data?.conversation},
+    });
+
+    // await paginatedSyncAPI(INITIAL_SYNC_PAGE, 0, Date.now());
+
+    // await myClient?.saveSingleConversation(
+    //   response?.data?.conversation,
+    //   community?.id,
+    // );
+
+    await myClient?.updateChatRequestState(chatroomID.toString(), 1);
+    fetchChatroomDetails();
   };
 
   // this function calls API to reject DM request
@@ -1604,14 +1662,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       chatroomId: chatroomID,
       chatRequestState: 2,
     });
-    fetchData();
-    fetchChatroomDetails();
+    // fetchData();
+    // fetchChatroomDetails();
 
     //dispatching redux action for local handling of chatRequestState
     dispatch({
       type: UPDATE_CHAT_REQUEST_STATE,
       body: {chatRequestState: 2},
     });
+    dispatch({
+      type: ADD_STATE_MESSAGE,
+      body: {conversation: response?.data?.conversation},
+    });
+
+    await myClient?.updateChatRequestState(chatroomID.toString(), 2);
+    fetchChatroomDetails();
   };
 
   // this function calls API to approve DM request on click TapToUndo
@@ -1621,44 +1686,59 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       status: 1,
     });
 
-    await fetchData();
-    await fetchChatroomDetails();
+    // await fetchData();
+    // await fetchChatroomDetails();
 
     //dispatching redux action for local handling of chatRequestState
     dispatch({
       type: UPDATE_CHAT_REQUEST_STATE,
       body: {chatRequestState: 1},
     });
+    dispatch({
+      type: ADD_STATE_MESSAGE,
+      body: {conversation: response?.data?.conversation},
+    });
+    await myClient?.updateChatRequestState(chatroomID.toString(), 1);
+    fetchChatroomDetails();
   };
 
   // this function calls API to block a member
-  const blockMember = () => {
+  const blockMember = async () => {
     let payload = {
       chatroomId: chatroomID,
       status: 0,
     };
-    myClient?.blockMember(payload).then((res: any) => {
-      fetchChatroomDetails();
-      dispatch({
-        type: SHOW_TOAST,
-        body: {isToast: true, msg: 'Member blocked'},
-      });
+    const response = await myClient?.blockMember(payload);
+    // console.log('responseBlockedMember', response);
+    dispatch({
+      type: SHOW_TOAST,
+      body: {isToast: true, msg: 'Member blocked'},
     });
+    dispatch({
+      type: ADD_STATE_MESSAGE,
+      body: {conversation: response?.data?.conversation},
+    });
+    await myClient?.updateChatRequestState(chatroomID.toString(), 2);
+    fetchChatroomDetails();
   };
 
   // this function calls API to unblock a member
-  const unblockMember = () => {
+  const unblockMember = async () => {
     let payload = {
       chatroomId: chatroomID,
       status: 1,
     };
-    myClient?.blockMember(payload).then((res: any) => {
-      fetchChatroomDetails();
-      dispatch({
-        type: SHOW_TOAST,
-        body: {isToast: true, msg: 'Member unblocked'},
-      });
+    const response = await myClient?.blockMember(payload);
+    dispatch({
+      type: SHOW_TOAST,
+      body: {isToast: true, msg: 'Member blocked'},
     });
+    dispatch({
+      type: ADD_STATE_MESSAGE,
+      body: {conversation: response?.data?.conversation},
+    });
+    await myClient?.updateChatRequestState(chatroomID.toString(), 1);
+    fetchChatroomDetails();
   };
 
   // this function shows confirm alert popup to approve DM request
@@ -1886,6 +1966,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             uuid: uuid,
           };
           const apiResponse = await myClient?.createDMChatroom(payload);
+          console.log('apiResponse', apiResponse);
+          setShimmerIsLoading(false);
           const response = apiResponse?.data;
           if (apiResponse?.success === false) {
             dispatch({
@@ -1922,237 +2004,377 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
+  // console.log(
+  //   'Object.keys(chatroomDBDetails).length',
+  //   Object.keys(chatroomDBDetails).length,
+  // );
+
+  // console.log('chatRequestState', chatRequestState);
+  // console.log(
+  //   'chatroomDBDetails?.chatRequestState',
+  //   chatroomDBDetails?.chatRequestState,
+  // );
+  // console.log(
+  //   'chatroomDBDetails?.chatRequestedBy',
+  //   chatroomDBDetails?.chatRequestedBy,
+  // );
+
+  // console.log('showDMComppp', showDM);
+
   return (
     <View style={styles.container}>
-      <FlashList
-        ref={flatlistRef}
-        data={conversations}
-        keyExtractor={(item: any, index) => {
-          let isArray = Array.isArray(item);
-          return isArray ? `${index}` : `${item?.id}`;
-        }}
-        extraData={{
-          value: [
-            selectedMessages,
-            uploadingFilesMessages,
-            stateArr,
-            conversations,
-          ],
-        }}
-        estimatedItemSize={50}
-        renderItem={({item: value, index}: any) => {
-          let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
-          let item = {...value};
-          if (uploadingFilesMessagesIDArr.includes(value?.id?.toString())) {
-            item = uploadingFilesMessages[value?.id];
-          }
-
-          let isStateIncluded = stateArr.includes(item?.state);
-
-          let isIncluded = selectedMessages.some(
-            (val: any) => val?.id === item?.id && !isStateIncluded,
-          );
-
-          return (
-            <View>
-              {index < conversations.length &&
-              conversations[index]?.date !== conversations[index + 1]?.date ? (
-                <View style={[styles.statusMessage]}>
-                  <Text
-                    style={{
-                      color: STYLES.$COLORS.PRIMARY,
-                      fontSize: STYLES.$FONT_SIZES.SMALL,
-                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                    }}>
-                    {item?.date}
-                  </Text>
-                </View>
-              ) : null}
-              <Pressable
-                onLongPress={event => {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  handleLongPress(
-                    isStateIncluded,
-                    isIncluded,
-                    item,
-                    selectedMessages,
-                  );
-                }}
-                delayLongPress={200}
-                onPress={function (event) {
-                  const {pageX, pageY} = event.nativeEvent;
-                  dispatch({
-                    type: SET_POSITION,
-                    body: {pageX: pageX, pageY: pageY},
-                  });
-                  handleClick(
-                    isStateIncluded,
-                    isIncluded,
-                    item,
-                    false,
-                    selectedMessages,
-                  );
-                }}
-                style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
-                <Messages
-                  chatroomType={chatroomType}
-                  onScrollToIndex={(index: any) => {
-                    flatlistRef.current?.scrollToIndex({animated: true, index});
-                  }}
-                  isIncluded={isIncluded}
-                  item={item}
-                  navigation={navigation}
-                  openKeyboard={() => {
-                    handleClick(
-                      isStateIncluded,
-                      isIncluded,
-                      item,
-                      true,
-                      selectedMessages,
-                    );
-                  }}
-                  longPressOpenKeyboard={() => {
-                    handleLongPress(
-                      isStateIncluded,
-                      isIncluded,
-                      item,
-                      selectedMessages,
-                    );
-                  }}
-                  removeReaction={(
-                    item: any,
-                    reactionArr: any,
-                    removeFromList?: any,
-                  ) => {
-                    removeReaction(item, reactionArr, removeFromList);
-                  }}
-                  handleTapToUndo={() => {
-                    onTapToUndo();
-                  }}
-                  handleFileUpload={handleFileUpload}
-                />
-              </Pressable>
+      {shimmerIsLoading ? (
+        <>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 50,
+            }}>
+            <View
+              style={{
+                width: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}></View>
+            <View style={{width: '100%'}}>
+              <ShimmerPlaceHolder style={{width: '70%'}} />
+              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
             </View>
-          );
-        }}
-        onEndReached={async () => {
-          if (shouldLoadMoreChat && conversations.length > 0) {
-            handleLoadMore();
-          }
-          return;
-        }}
-        onEndReachedThreshold={10}
-        ListFooterComponent={renderFooter}
-        keyboardShouldPersistTaps={'handled'}
-        inverted
-        // maintainVisibleContentPosition={{
-        //   autoscrollToTopThreshold: undefined,
-        //   minIndexForVisible: 1,
-        // }}
-      />
+          </View>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 50,
+            }}>
+            <View
+              style={{
+                width: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}></View>
+            <View style={{width: '100%'}}>
+              <ShimmerPlaceHolder style={{width: '70%'}} />
+              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+            </View>
+          </View>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 50,
+            }}>
+            <View
+              style={{
+                width: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}></View>
+            <View style={{width: '100%'}}>
+              <ShimmerPlaceHolder style={{width: '70%'}} />
+              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+            </View>
+          </View>
+        </>
+      ) : (
+        <>
+          <FlashList
+            ref={flatlistRef}
+            data={conversations}
+            // removeClippedSubviews={true}
+            keyExtractor={(item: any, index) => {
+              let isArray = Array.isArray(item);
+              return isArray ? `${index}` : `${item?.id}`;
+            }}
+            extraData={{
+              value: [
+                selectedMessages,
+                uploadingFilesMessages,
+                stateArr,
+                conversations,
+              ],
+            }}
+            // initialNumToRender={50} // Number of items to render initially
+            // maxToRenderPerBatch={50} // Number of items to render in each batch
+            // windowSize={50}
+            estimatedItemSize={50}
+            renderItem={({item: value, index}: any) => {
+              let uploadingFilesMessagesIDArr = Object.keys(
+                uploadingFilesMessages,
+              );
+              let item = {...value};
+              if (uploadingFilesMessagesIDArr.includes(value?.id?.toString())) {
+                item = uploadingFilesMessages[value?.id];
+              }
 
-      {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
-      {chatroomType !== 10 ? (
-        <View>
-          {!(Object.keys(chatroomDBDetails).length === 0) &&
-          previousRoute?.name === EXPLORE_FEED
-            ? !!!chatroomFollowStatus && (
-                <TouchableOpacity
-                  onPress={() => {
-                    joinSecretChatroom();
-                  }}
-                  style={[styles.joinBtnContainer, {alignSelf: 'center'}]}>
-                  <Image
-                    source={require('../../assets/images/join_group3x.png')}
-                    style={styles.icon}
-                  />
-                  <Text style={styles.join}>{'Join'}</Text>
-                </TouchableOpacity>
-              )
-            : null}
-          {!(Object.keys(chatroomDBDetails).length === 0) ? (
-            //case to block normal user from messaging in a chatroom where only CMs can message
-            user.state !== 1 &&
-            chatroomDBDetails?.memberCanMessage === false ? (
-              <View style={styles.disabledInput}>
-                <Text style={styles.disabledInputText}>
-                  Only Community Manager can message here.
-                </Text>
-              </View>
-            ) : //case to allow CM for messaging in an Announcement Room
-            !(user.state !== 1 && chatroomDBDetails?.type === 7) &&
-              chatroomFollowStatus &&
-              memberRights[3]?.isSelected === true ? (
-              <InputBox
-                replyChatID={replyChatID}
-                chatroomID={chatroomID}
-                navigation={navigation}
-                isUploadScreen={false}
-                myRef={refInput}
-                handleFileUpload={handleFileUpload}
-                isEditable={isEditable}
-                setIsEditable={(value: boolean) => {
-                  setIsEditable(value);
-                }}
-                isSecret={isSecret}
-              />
-            ) : //case to block normal users from messaging in an Announcement Room
-            user.state !== 1 && chatroomDBDetails?.type === 7 ? (
-              <View style={styles.disabledInput}>
-                <Text style={styles.disabledInputText}>
-                  Only Community Manager can message here.
-                </Text>
-              </View>
-            ) : memberRights[3]?.isSelected === false ? (
-              <View style={styles.disabledInput}>
-                <Text style={styles.disabledInputText}>
-                  The community managers have restricted you from responding
-                  here.
-                </Text>
-              </View>
-            ) : !(Object.keys(chatroomDBDetails).length === 0) &&
-              previousRoute?.name === HOMEFEED ? (
-              <View
-                style={{padding: 20, backgroundColor: STYLES.$COLORS.TERTIARY}}>
-                <Text
-                  style={
-                    styles.inviteText
-                  }>{`${chatroomDBDetails?.header} invited you to join this secret group.`}</Text>
-                <View style={{marginTop: 10}}>
+              let isStateIncluded = stateArr.includes(item?.state);
+
+              let isIncluded = selectedMessages.some(
+                (val: any) => val?.id === item?.id && !isStateIncluded,
+              );
+
+              return (
+                <View>
+                  {index < conversations.length &&
+                  conversations[index]?.date !==
+                    conversations[index + 1]?.date ? (
+                    <View style={[styles.statusMessage]}>
+                      <Text
+                        style={{
+                          color: STYLES.$COLORS.PRIMARY,
+                          fontSize: STYLES.$FONT_SIZES.SMALL,
+                          fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                        }}>
+                        {item?.date}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <Pressable
+                    onLongPress={event => {
+                      const {pageX, pageY} = event.nativeEvent;
+                      dispatch({
+                        type: SET_POSITION,
+                        body: {pageX: pageX, pageY: pageY},
+                      });
+                      handleLongPress(
+                        isStateIncluded,
+                        isIncluded,
+                        item,
+                        selectedMessages,
+                      );
+                    }}
+                    delayLongPress={200}
+                    onPress={function (event) {
+                      const {pageX, pageY} = event.nativeEvent;
+                      dispatch({
+                        type: SET_POSITION,
+                        body: {pageX: pageX, pageY: pageY},
+                      });
+                      handleClick(
+                        isStateIncluded,
+                        isIncluded,
+                        item,
+                        false,
+                        selectedMessages,
+                      );
+                    }}
+                    style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
+                    {/* <View>
+                  <Text>{item?.date}</Text>
+                </View> */}
+                    <Messages
+                      chatroomType={chatroomType}
+                      onScrollToIndex={(index: any) => {
+                        flatlistRef.current?.scrollToIndex({
+                          animated: true,
+                          index,
+                        });
+                      }}
+                      isIncluded={isIncluded}
+                      item={item}
+                      navigation={navigation}
+                      openKeyboard={() => {
+                        handleClick(
+                          isStateIncluded,
+                          isIncluded,
+                          item,
+                          true,
+                          selectedMessages,
+                        );
+                      }}
+                      longPressOpenKeyboard={() => {
+                        handleLongPress(
+                          isStateIncluded,
+                          isIncluded,
+                          item,
+                          selectedMessages,
+                        );
+                      }}
+                      removeReaction={(
+                        item: any,
+                        reactionArr: any,
+                        removeFromList?: any,
+                      ) => {
+                        removeReaction(item, reactionArr, removeFromList);
+                      }}
+                      handleTapToUndo={() => {
+                        onTapToUndo();
+                      }}
+                      handleFileUpload={handleFileUpload}
+                    />
+                  </Pressable>
+                </View>
+              );
+            }}
+            onEndReached={async () => {
+              if (shouldLoadMoreChat && conversations.length > 0) {
+                handleLoadMore();
+              }
+              return;
+            }}
+            onEndReachedThreshold={10}
+            ListFooterComponent={renderFooter}
+            keyboardShouldPersistTaps={'handled'}
+            inverted
+          />
+        </>
+      )}
+
+      <View
+        style={{
+          marginTop: 'auto',
+        }}>
+        {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
+        {chatroomType !== 10 ? (
+          <View>
+            {!(Object.keys(chatroomDBDetails).length === 0) &&
+            previousRoute?.name === EXPLORE_FEED
+              ? !!!chatroomFollowStatus && (
                   <TouchableOpacity
                     onPress={() => {
-                      showJoinAlert();
+                      joinSecretChatroom();
                     }}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 10,
-                      flexGrow: 1,
-                      paddingVertical: 10,
-                    }}>
+                    style={[styles.joinBtnContainer, {alignSelf: 'center'}]}>
+                    <Image
+                      source={require('../../assets/images/join_group3x.png')}
+                      style={styles.icon}
+                    />
+                    <Text style={styles.join}>{'Join'}</Text>
+                  </TouchableOpacity>
+                )
+              : null}
+            {!(Object.keys(chatroomDBDetails).length === 0) ? (
+              //case to block normal user from messaging in a chatroom where only CMs can message
+              user.state !== 1 &&
+              chatroomDBDetails?.memberCanMessage === false ? (
+                <View style={styles.disabledInput}>
+                  <Text style={styles.disabledInputText}>
+                    Only Community Manager can message here.
+                  </Text>
+                </View>
+              ) : //case to allow CM for messaging in an Announcement Room
+              !(user.state !== 1 && chatroomDBDetails?.type === 7) &&
+                chatroomFollowStatus &&
+                memberRights[3]?.isSelected === true ? (
+                <InputBox
+                  replyChatID={replyChatID}
+                  chatroomID={chatroomID}
+                  navigation={navigation}
+                  isUploadScreen={false}
+                  myRef={refInput}
+                  handleFileUpload={handleFileUpload}
+                  isEditable={isEditable}
+                  setIsEditable={(value: boolean) => {
+                    setIsEditable(value);
+                  }}
+                  isSecret={isSecret}
+                />
+              ) : //case to block normal users from messaging in an Announcement Room
+              user.state !== 1 && chatroomDBDetails?.type === 7 ? (
+                <View style={styles.disabledInput}>
+                  <Text style={styles.disabledInputText}>
+                    Only Community Manager can message here.
+                  </Text>
+                </View>
+              ) : memberRights[3]?.isSelected === false ? (
+                <View style={styles.disabledInput}>
+                  <Text style={styles.disabledInputText}>
+                    The community managers have restricted you from responding
+                    here.
+                  </Text>
+                </View>
+              ) : !(Object.keys(chatroomDBDetails).length === 0) &&
+                previousRoute?.name === HOMEFEED ? (
+                <View
+                  style={{
+                    padding: 20,
+                    backgroundColor: STYLES.$COLORS.TERTIARY,
+                  }}>
+                  <Text
+                    style={
+                      styles.inviteText
+                    }>{`${chatroomDBDetails?.header} invited you to join this secret group.`}</Text>
+                  <View style={{marginTop: 10}}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        showJoinAlert();
+                      }}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 10,
+                        flexGrow: 1,
+                        paddingVertical: 10,
+                      }}>
+                      <Image
+                        style={styles.emoji}
+                        source={require('../../assets/images/like_icon3x.png')}
+                      />
+                      <Text style={styles.inviteBtnText}>Accept</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        showRejectAlert();
+                      }}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 10,
+                        flexGrow: 1,
+                        paddingVertical: 10,
+                      }}>
+                      <Image
+                        style={styles.emoji}
+                        source={require('../../assets/images/ban_icon3x.png')}
+                      />
+                      <Text style={styles.inviteBtnText}>{REJECT_BUTTON}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.disabledInput}>
+                  <Text style={styles.disabledInputText}>
+                    Responding is disabled
+                  </Text>
+                </View>
+              )
+            ) : (
+              <View style={styles.disabledInput}>
+                <Text style={styles.disabledInputText}>Loading...</Text>
+              </View>
+            )}
+          </View>
+        ) : chatroomType === 10 ? (
+          <View>
+            {chatRequestState === 0 &&
+            (!!chatroomDBDetails?.chatRequestedBy
+              ? chatroomDBDetails?.chatRequestedBy[0]?.id !== user?.id
+              : null) ? (
+              <View style={styles.dmRequestView}>
+                <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>
+                <View style={styles.dmRequestButtonBox}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      handleDMApproveClick();
+                    }}
+                    style={styles.requestMessageTextButton}>
                     <Image
                       style={styles.emoji}
                       source={require('../../assets/images/like_icon3x.png')}
                     />
-                    <Text style={styles.inviteBtnText}>Accept</Text>
+                    <Text style={styles.inviteBtnText}>{APPROVE_BUTTON}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => {
-                      showRejectAlert();
+                      handleDMRejectClick();
                     }}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 10,
-                      flexGrow: 1,
-                      paddingVertical: 10,
-                    }}>
+                    style={styles.requestMessageTextButton}>
                     <Image
                       style={styles.emoji}
                       source={require('../../assets/images/ban_icon3x.png')}
@@ -2161,92 +2383,46 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </TouchableOpacity>
                 </View>
               </View>
-            ) : (
+            ) : null}
+            {showDM === false ? (
               <View style={styles.disabledInput}>
                 <Text style={styles.disabledInputText}>
-                  Responding is disabled
+                  {COMMUNITY_MANAGER_DISABLED_CHAT}
                 </Text>
               </View>
-            )
-          ) : (
-            <View style={styles.disabledInput}>
-              <Text style={styles.disabledInputText}>Loading...</Text>
-            </View>
-          )}
-        </View>
-      ) : chatroomType === 10 ? (
-        <View>
-          {chatRequestState === 0 &&
-          //TODO1
-          (!!chatroomDBDetails?.chatRequestedBy
-            ? chatroomDBDetails?.chatRequestedBy[0]?.id !== user?.id
-            : null) ? (
-            <View style={styles.dmRequestView}>
-              <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>
-              <View style={styles.dmRequestButtonBox}>
-                <TouchableOpacity
-                  onPress={() => {
-                    handleDMApproveClick();
-                  }}
-                  style={styles.requestMessageTextButton}>
-                  <Image
-                    style={styles.emoji}
-                    source={require('../../assets/images/like_icon3x.png')}
-                  />
-                  <Text style={styles.inviteBtnText}>{APPROVE_BUTTON}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    handleDMRejectClick();
-                  }}
-                  style={styles.requestMessageTextButton}>
-                  <Image
-                    style={styles.emoji}
-                    source={require('../../assets/images/ban_icon3x.png')}
-                  />
-                  <Text style={styles.inviteBtnText}>{REJECT_BUTTON}</Text>
-                </TouchableOpacity>
+            ) : showDM === true &&
+              (chatRequestState === 0 || chatRequestState === 2) ? (
+              <View style={styles.disabledInput}>
+                <Text style={styles.disabledInputText}>{REQUEST_SENT}</Text>
               </View>
-            </View>
-          ) : null}
-          {showDM === false ? (
-            <View style={styles.disabledInput}>
-              <Text style={styles.disabledInputText}>
-                {COMMUNITY_MANAGER_DISABLED_CHAT}
-              </Text>
-            </View>
-          ) : showDM === true &&
-            (chatRequestState === 0 || chatRequestState === 2) ? (
-            <View style={styles.disabledInput}>
-              <Text style={styles.disabledInputText}>{REQUEST_SENT}</Text>
-            </View>
-          ) : (showDM === true && chatRequestState === 1) ||
-            chatRequestState === null ? (
-            <InputBox
-              replyChatID={replyChatID}
-              chatroomID={chatroomID}
-              chatRequestState={chatRequestState}
-              chatroomType={chatroomType}
-              navigation={navigation}
-              isUploadScreen={false}
-              isPrivateMember={
-                //TODO1
-                chatroomDBDetails?.isPrivateMember
-              }
-              myRef={refInput}
-              handleFileUpload={handleFileUpload}
-              isEditable={isEditable}
-              setIsEditable={(value: boolean) => {
-                setIsEditable(value);
-              }}
-            />
-          ) : (
-            <View style={styles.disabledInput}>
-              <Text style={styles.disabledInputText}>Loading...</Text>
-            </View>
-          )}
-        </View>
-      ) : null}
+            ) : (showDM === true && chatRequestState === 1) ||
+              chatRequestState === null ? (
+              <InputBox
+                replyChatID={replyChatID}
+                chatroomID={chatroomID}
+                chatRequestState={chatRequestState}
+                chatroomType={chatroomType}
+                navigation={navigation}
+                isUploadScreen={false}
+                isPrivateMember={
+                  //TODO1
+                  chatroomDBDetails?.isPrivateMember
+                }
+                myRef={refInput}
+                handleFileUpload={handleFileUpload}
+                isEditable={isEditable}
+                setIsEditable={(value: boolean) => {
+                  setIsEditable(value);
+                }}
+              />
+            ) : (
+              <View style={styles.disabledInput}>
+                <Text style={styles.disabledInputText}>Loading...</Text>
+              </View>
+            )}
+          </View>
+        ) : null}
+      </View>
 
       {/* Chatroom Action Modal */}
       <Modal
@@ -2331,7 +2507,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate(REPORT, {
-                    conversationID: selectedMessages[0].id,
+                    conversationID: selectedMessages[0]?.id,
                   });
                   dispatch({type: SELECTED_MESSAGES, body: []});
                   setReportModalVisible(false);

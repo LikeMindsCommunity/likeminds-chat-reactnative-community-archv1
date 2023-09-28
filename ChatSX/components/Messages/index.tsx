@@ -45,12 +45,32 @@ const Messages = ({
 
   const [conversationCreator, setConversationCreator] = useState();
 
+  const {
+    selectedMessages,
+    isLongPress,
+    stateArr,
+    conversations,
+    chatroomDetails,
+    chatroomDBDetails,
+  }: any = useAppSelector(state => state.chatroom);
+
+  const [selectedReaction, setSelectedReaction] = useState();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [reactionArr, setReactionArr] = useState([] as any);
+  const userIdStringified = user?.id?.toString();
+  const isTypeSent = item?.member?.id == userIdStringified ? true : false;
+  const chatRequestedBy = chatroomDBDetails?.chatRequestedBy;
+  const chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
+  const isItemIncludedInStateArr = stateArr.includes(item?.state);
+
+  // This method will be trigerred in case of DM only and is to get the second user name from the answer text
   const getConversationCreator = async () => {
     const conversation = await myClient?.getConversations(item?.chatroomId);
-    const answer = conversation[0].answer;
-    const startingIndex = answer.lastIndexOf('<');
-    const endingIndex = answer.lastIndexOf('|');
-    const trimmedAnswer = answer.substring(startingIndex + 1, endingIndex);
+    // console.log('conversationGetConversationCreator', conversation);
+    const answer = conversation[0]?.answer;
+    const startingIndex = answer?.lastIndexOf('<');
+    const endingIndex = answer?.lastIndexOf('|');
+    const trimmedAnswer = answer?.substring(startingIndex + 1, endingIndex);
     if (trimmedAnswer !== undefined) {
       setConversationCreator(trimmedAnswer);
     } else {
@@ -58,24 +78,8 @@ const Messages = ({
     }
   };
 
-  // This is to get the second user from the answer key
-  getConversationCreator();
-
-  const {
-    selectedMessages,
-    isLongPress,
-    stateArr,
-    conversations,
-    chatroomDetails,
-  }: any = useAppSelector(state => state.chatroom);
-
-  const [selectedReaction, setSelectedReaction] = useState();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [reactionArr, setReactionArr] = useState([] as any);
-  const userIdStringified = user?.id.toString();
-  const isTypeSent = item?.member?.id == userIdStringified ? true : false;
-  const chatRequestedBy = chatroomDetails?.chatroom?.chatRequestedBy;
-  const isItemIncludedInStateArr = stateArr.includes(item?.state);
+  // This is to get the second user from the answer key in case of DM with state included in stateArr
+  if (chatroomType === 10 && isItemIncludedInStateArr) getConversationCreator();
 
   const dispatch = useAppDispatch();
   let defaultReactionArrLen = item?.reactions?.length;
@@ -184,7 +188,7 @@ const Messages = ({
   const answerTrimming = (answer: string) => {
     const loggedInMember = currentUserUuid;
     const chatroomWithUser =
-      chatroomDetails?.chatroom?.member?.sdkClientInfo?.uuid;
+      chatroomDBDetails?.chatroomWithUser?.member?.sdkClientInfo?.uuid;
 
     if (loggedInMember !== chatroomWithUser) {
       const startingIndex = answer.lastIndexOf('<');
@@ -201,6 +205,22 @@ const Messages = ({
       return sendingUser;
     }
   };
+
+  // item?.state === 19 &&
+  //               conversations[0]?.state === 19 &&
+  //               conversations[0]?.id === item?.id &&
+  //               (!!chatRequestedBy
+  //                 ? chatRequestedBy?.id == userIdStringified
+  //                 : null
+
+  // console.log('item?.stateMessages', item?.state);
+  // console.log('conversations[0]?.stateMessages', conversations[0]?.state);
+  // console.log('conversations[0]?.idMessages', conversations[0]?.id);
+  // console.log('item?.idMessages', item?.id);
+  // console.log('chatRequestedByMessages', chatRequestedBy);
+  // console.log('chatRequestedBy[0]?.idMessages', chatRequestedBy?.id);
+  // console.log('userIdStringifiedMessages', userIdStringified);
+  // console.log('chatroomDBDEtailsMessages', chatroomDBDetails);
 
   return (
     <View style={styles.messageParent}>
@@ -332,11 +352,11 @@ const Messages = ({
                       conversations[0]?.id == item?.id && 
                       chatRequestBy user should be same as user (when we reject DM chat request by changes to the person who rejected the request)
                 */}
-                {item.state === 19 &&
-                conversations[0].state === 19 &&
+                {item?.state === 19 &&
+                conversations[0]?.state === 19 &&
                 conversations[0]?.id === item?.id &&
-                (!!chatRequestedBy
-                  ? chatRequestedBy[0]?.id == userIdStringified
+                (!!chatroomWithUser
+                  ? chatroomWithUser?.id == userIdStringified
                   : null) ? (
                   <Pressable
                     onPress={() => {

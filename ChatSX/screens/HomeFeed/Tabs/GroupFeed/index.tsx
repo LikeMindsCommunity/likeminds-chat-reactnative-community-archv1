@@ -133,6 +133,15 @@ const GroupFeed = ({navigation}: Props) => {
   }, [isFocused]);
 
   useEffect(() => {
+    if (isFocused) {
+      getExistingData();
+      if (!user?.sdkClientInfo?.community) return;
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+      setShimmerIsLoading(false);
+    }
+  }, [isFocused, user]);
+
+  useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
@@ -141,15 +150,6 @@ const GroupFeed = ({navigation}: Props) => {
       }
     });
   }, [user]);
-
-  useEffect(() => {
-    if (isFocused) {
-      getExistingData();
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
-      setShimmerIsLoading(false);
-    }
-  }, [isFocused, user]);
 
   async function fetchData() {
     const invitesRes = await dispatch(
@@ -341,6 +341,7 @@ const GroupFeed = ({navigation}: Props) => {
             />
           )}
           renderItem={({item}: any) => {
+            console.log('item?.muteStatus', item?.muteStatus);
             const homeFeedProps = {
               title: item?.header!,
               avatar: item?.chatroomImageUrl!,

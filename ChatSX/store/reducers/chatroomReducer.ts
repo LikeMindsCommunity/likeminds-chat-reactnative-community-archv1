@@ -29,6 +29,8 @@ import {
   UPDATE_MULTIMEDIA_CONVERSATIONS,
   PAGINATED_CONVERSATIONS_START_SUCCESS,
   GET_CHATROOM_DB_SUCCESS,
+  GET_CHATROOMACTIONS_SUCCESS,
+  ADD_STATE_MESSAGE,
 } from '../types/types';
 
 const initialState = {
@@ -58,6 +60,14 @@ export function chatroomReducer(state = initialState, action: any) {
         conversations: newArr,
       };
     }
+    case ADD_STATE_MESSAGE: {
+      const {conversation = {}} = action.body;
+      // console.log('conversationReducer', conversation);
+      return {
+        ...state,
+        conversations: [conversation, ...state.conversations],
+      };
+    }
     case LONG_PRESSED: {
       const isLongPressed = action.body;
       return {
@@ -73,7 +83,7 @@ export function chatroomReducer(state = initialState, action: any) {
       };
     }
     case GET_CHATROOM_DB_SUCCESS: {
-      console.log('chatroomDBDetails', action.body);
+      // console.log('chatroomDBDetailsReducerrrrrr', action.body);
       const {chatroomDBDetails = {}} = action.body;
       return {...state, chatroomDBDetails: chatroomDBDetails};
     }
@@ -165,6 +175,11 @@ export function chatroomReducer(state = initialState, action: any) {
       const {conversations = []} = action.body;
       return {...state, conversations: conversations};
     }
+    case GET_CHATROOMACTIONS_SUCCESS: {
+      const chatroomDetails = action.body;
+      // console.log('chatroomDetailsReducer', chatroomDetails);
+      return {...state, chatroomDetails: chatroomDetails};
+    }
     case GET_CHATROOM_SUCCESS: {
       const chatroomDBDetails = action.body;
       return {...state, chatroomDBDetails: chatroomDBDetails};
@@ -175,14 +190,12 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case UPDATE_CHAT_REQUEST_STATE: {
       const {chatRequestState} = action.body;
+      // console.log('chatRequestStateReducer', chatRequestState);
       return {
         ...state,
         chatroomDBDetails: {
           ...state.chatroomDBDetails,
-          chatroom: {
-            ...state.chatroomDetails.chatroom,
-            chatRequestState: chatRequestState,
-          },
+          chatRequestState: chatRequestState,
         },
       };
     }
