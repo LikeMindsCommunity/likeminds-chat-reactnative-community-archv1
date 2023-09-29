@@ -122,6 +122,7 @@ import {SyncConversationRequest} from 'reactnative-chat-data';
 import {useQuery} from '@realm/react';
 import Realm from 'realm';
 import {Observable} from 'rxjs';
+import {Share} from 'react-native';
 
 interface Data {
   id: string;
@@ -723,6 +724,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let payload = {
       userUniqueId: UUID,
       userName: userName,
+      isGuest: false,
     };
 
     let res = await dispatch(initAPI(payload) as any);
@@ -1982,6 +1984,27 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
+  // this function helps to share chatroom url
+  const onShare = async () => {
+    try {
+      const result = await Share.share({
+        message:
+          'React Native | A framework for building native apps using React',
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error: any) {
+      Alert.alert(error.message);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <FlashList
@@ -2357,6 +2380,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </TouchableOpacity>
                 );
               })}
+              {
+                <TouchableOpacity onPress={onShare} style={styles.filtersView}>
+                  <Text style={styles.filterText}>{'Share'}</Text>
+                </TouchableOpacity>
+              }
             </Pressable>
           </View>
         </Pressable>

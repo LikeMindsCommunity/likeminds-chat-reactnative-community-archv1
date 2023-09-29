@@ -131,7 +131,7 @@ export const getChatroom = (payload: any) => async (dispatch: Dispatch) => {
     return await dispatch({
       type: GET_CHATROOM_SUCCESS,
       [CALL_API]: {
-        func: myClient?.getChatroom(payload),
+        func: myClient?.getChatroomV2(payload),
         body: payload,
         types: [GET_CHATROOM, GET_CHATROOM_SUCCESS, GET_CHATROOM_FAILED],
         showLoader: false,
