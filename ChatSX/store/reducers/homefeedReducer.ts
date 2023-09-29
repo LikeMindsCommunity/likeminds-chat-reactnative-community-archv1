@@ -71,7 +71,9 @@ export function homefeedReducer(state = initialState, action: any) {
       return state;
     }
     case SET_INITIAL_DMFEED_CHATROOM: {
-      const dmFeedChatrooms = action.body;
+      const {dmFeedChatrooms = {}} = action.body;
+      console.log('dmFeedChatroomssdf', dmFeedChatrooms);
+
       if (state.dmFeedChatrooms.length === 0) {
         return {
           ...state,
@@ -95,6 +97,8 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case DELETE_CHATROOM: {
       const index = action.body;
+      console.log('kujyhtgbfvds', index);
+
       let groupFeedChatrooms = state.groupFeedChatrooms;
       groupFeedChatrooms = [
         ...groupFeedChatrooms.slice(0, index),
@@ -106,11 +110,17 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case UPDATE_DMFEED_CHATROOM: {
-      const modifiedDMChatroom = action.body.modifiedDMChatroom;
-      const index = action.body.index;
+      const {modifiedDMChatroom = {}, index} = action.body;
+      console.log('modifiedDMChatroomREducer', modifiedDMChatroom);
+      console.log('indexReducer', index);
+
       if (modifiedDMChatroom.type === 10) {
         let dmFeedChatrooms = state.dmFeedChatrooms;
+        console.log('dmFeedChatroomsOld', dmFeedChatrooms);
+
         dmFeedChatrooms[index] = modifiedDMChatroom;
+        console.log('dmFeedChatroomsNew', dmFeedChatrooms);
+
         return {
           ...state,
           dmFeedChatrooms: dmFeedChatrooms,
@@ -119,8 +129,8 @@ export function homefeedReducer(state = initialState, action: any) {
       return state;
     }
     case INSERT_GROUPFEED_CHATROOM: {
-      const insertedChatroom = action.body.insertedChatroom;
-      const index = action.body.index;
+      const {insertedChatroom = {}, index} = action.body;
+
       if (insertedChatroom.type !== 10) {
         let currentChatrooms = state.groupFeedChatrooms;
         if (currentChatrooms.length !== 0)
@@ -140,9 +150,10 @@ export function homefeedReducer(state = initialState, action: any) {
       return state;
     }
     case INSERT_DMFEED_CHATROOM: {
-      const insertedChatroom = action.body.insertedDMChatroom;
-      const index = action.body.index;
-      if (insertedChatroom.type !== 10) {
+      const {insertedChatroom = {}, index} = action.body;
+      console.log('insertedChatroomREducer', insertedChatroom);
+      console.log('indexinsertedChatroomReducer', index);
+      if (insertedChatroom.type === 10) {
         let currentChatrooms = state.dmFeedChatrooms;
         if (currentChatrooms.length !== 0)
           currentChatrooms = [

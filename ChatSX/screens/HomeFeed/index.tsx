@@ -153,7 +153,7 @@ const HomeFeed = ({navigation}: Props) => {
   useEffect(() => {
     const timeSetter = async () => {
       const timeStampStored = await myClient?.getTimeStamp();
-      console.log('timeStampStoredTimeSetter', timeStampStored);
+      // console.log('timeStampStoredTimeSetter', timeStampStored);
 
       if (timeStampStored.length === 0) {
         const maxTimeStamp = Math.floor(Date.now() / 1000);
@@ -161,10 +161,10 @@ const HomeFeed = ({navigation}: Props) => {
         await myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
       } else {
         // Updating the timeStamp incase of reopening of App
-        console.log(
-          'timeStampStored[0].maxTimeStamp',
-          timeStampStored[0].maxTimeStamp,
-        );
+        // console.log(
+        //   'timeStampStored[0].maxTimeStamp',
+        //   timeStampStored[0].maxTimeStamp,
+        // );
 
         await myClient.updateTimeStamp(
           timeStampStored[0].maxTimeStamp,

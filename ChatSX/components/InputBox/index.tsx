@@ -646,6 +646,8 @@ const InputBox = ({
         dispatch({type: SET_REPLY_MESSAGE, body: {replyMessage: ''}});
       }
 
+      console.log('isPrivateMember', isPrivateMember);
+
       // -- Code for local message handling ended
 
       // condition for request DM for the first time
@@ -670,6 +672,7 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 0},
         });
+        await myClient?.updateChatRequestState(chatroomID.toString(), 0);
       } else if (
         chatroomType === 10 && // if DM
         chatRequestState === null &&
@@ -681,10 +684,13 @@ const InputBox = ({
           text: message.trim(),
         });
 
+        console.log('responseadasd', response);
+
         dispatch({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 1},
         });
+        await myClient?.updateChatRequestState(chatroomID.toString(), 1);
       } else {
         if (!isUploadScreen) {
           let payload = {

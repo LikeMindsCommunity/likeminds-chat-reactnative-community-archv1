@@ -118,11 +118,13 @@ const DMFeed = ({navigation}: Props) => {
   // Fetching already existing chatrooms from Realm
   const getExistingData = async () => {
     const existingChatrooms: any = await myClient?.getFilteredChatrooms(true);
+    console.log('existingChatroomsDMFEED', existingChatrooms);
+
     if (!!existingChatrooms && existingChatrooms.length !== 0) {
       setShimmerIsLoading(false);
       dispatch({
         type: SET_INITIAL_DMFEED_CHATROOM,
-        body: existingChatrooms,
+        body: {dmFeedChatrooms: existingChatrooms},
       });
     }
   };
@@ -130,28 +132,31 @@ const DMFeed = ({navigation}: Props) => {
   // Callback for listener
   const onDMChatroomChange = (chatrooms: any, changes: any) => {
     // Handle deleted DM Chatroom objects
-    changes.deletions.forEach((index: any) => {
-      dispatch({
-        type: DELETE_CHATROOM,
-        body: index,
-      });
-    });
+    // changes.deletions.forEach((index: any) => {
+    //   console.log('123421');
+    //   dispatch({
+    //     type: DELETE_CHATROOM,
+    //     body: index,
+    //   });
+    // });
 
     // Handle newly added DM Chatroom objects
     changes.insertions.forEach((index: any) => {
       const insertedDMChatroom = chatrooms[index];
+      console.log('insertedDMChatroom', insertedDMChatroom);
       dispatch({
         type: INSERT_DMFEED_CHATROOM,
-        body: {insertedDMChatroom, index},
+        body: {insertedDMChatroom: insertedDMChatroom, index: index},
       });
     });
 
     // Handle DM Chatroom objects that were modified
     changes.modifications.forEach((index: any) => {
       const modifiedDMChatroom = chatrooms[index];
+      console.log('modifiedDMChatroom', modifiedDMChatroom);
       dispatch({
         type: UPDATE_DMFEED_CHATROOM,
-        body: {modifiedDMChatroom, index},
+        body: {modifiedDMChatroom: modifiedDMChatroom, index: index},
       });
     });
   };
@@ -361,7 +366,9 @@ const DMFeed = ({navigation}: Props) => {
             value: [user, dmFeedChatrooms],
           }}
           estimatedItemSize={15}
-          renderItem={({item}: any) => {
+          renderItem={({item, index}: any) => {
+            console.log(index, 'itemDMGeed', item);
+
             const homeFeedProps = {
               title: item?.chatroomWithUserName,
               avatar: item?.chatroomImageUrl!,

@@ -341,7 +341,7 @@ const GroupFeed = ({navigation}: Props) => {
             />
           )}
           renderItem={({item}: any) => {
-            console.log('item?.muteStatus', item?.muteStatus);
+            // console.log('item?.muteStatus', item?.muteStatus);
             const homeFeedProps = {
               title: item?.header!,
               avatar: item?.chatroomImageUrl!,
