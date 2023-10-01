@@ -445,7 +445,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
         if (selectedMessagesLength === 1) {
           if (
-            selectedMessages[0]?.member?.id === user?.id &&
+            selectedMessages[0]?.member?.id == user?.id &&
             !!selectedMessages[0]?.answer
           ) {
             isSelectedMessageEditable = true;
@@ -469,7 +469,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           }
 
           if (
-            selectedMessages[i]?.member?.id === user?.id &&
+            selectedMessages[i]?.member?.id == user?.id &&
             !!!selectedMessages[i]?.deletedBy
           ) {
             userCanDeleteParticularMessageArr = [
@@ -592,13 +592,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     .then(async () => {
                       dispatch({type: SELECTED_MESSAGES, body: []});
                       dispatch({type: LONG_PRESSED, body: false});
+                      let updatedConversations;
+                      for (let i = 0; i < selectedMessagesIDArr.length; i++) {
+                        updatedConversations =
+                          await myClient?.deleteConversation(
+                            selectedMessagesIDArr[i],
+                            user,
+                            conversations,
+                          );
+                      }
+                      dispatch({
+                        type: GET_CONVERSATIONS_SUCCESS,
+                        body: {conversations: updatedConversations},
+                      });
                       setInitialHeader();
-                      let payload = {
-                        chatroomID: chatroomID,
-                        paginateBy: conversations.length * 2,
-                        topNavigate: false,
-                      };
-                      await dispatch(getConversations(payload, false) as any);
                     })
                     .catch(() => {
                       Alert.alert('Delete message failed');
@@ -750,6 +757,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       // Warm start
       if (chatroom?.isChatroomVisited) {
         setShimmerIsLoading(false);
+        await myClient?.updateChatRequestState(chatroomID?.toString(), 1);
         conversationsFromRealm = await myClient?.getConversationData(
           chatroomID?.toString(),
           PAGE_SIZE,
@@ -1477,13 +1485,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let changedMsg;
     if (selectedMessages[0]?.reactions.length > 0) {
       let isReactedArr = selectedMessages[0]?.reactions.filter(
-        (val: any) => val?.member?.id === user?.id,
+        (val: any) => val?.member?.id == user?.id,
       );
       if (isReactedArr.length > 0) {
         // Reacted different emoji
         if (isReactedArr[0].reaction !== val) {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
-            element?.member?.id === user?.id
+            element?.member?.id == user?.id
               ? {
                   member: {
                     id: user?.id,
@@ -1503,7 +1511,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else if (isReactedArr[0].reaction === val) {
           // Reacted same emoji
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
-            element?.member?.id === user?.id
+            element?.member?.id == user?.id
               ? {
                   member: {
                     id: user?.id,
@@ -1582,7 +1590,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     if (item?.reactions?.length > 0) {
       let index = item?.reactions.findIndex(
-        (val: any) => val?.member?.id === user?.id,
+        (val: any) => val?.member?.id == user?.id,
       );
 
       // this condition checks if clicked reaction ID matches the findIndex ID
@@ -2129,63 +2137,101 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   return (
     <View style={styles.container}>
       {shimmerIsLoading ? (
-        <>
+        <View style={{marginTop: 'auto'}}>
           <View
             style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: 50,
+              backgroundColor: '#e8e8e877',
+              width: 200,
+              paddingLeft: 8,
+              paddingVertical: 15,
+              borderTopRightRadius: 12,
+              borderTopLeftRadius: 12,
+              borderBottomRightRadius: 12,
             }}>
-            <View
-              style={{
-                width: '20%',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}></View>
-            <View style={{width: '100%'}}>
-              <ShimmerPlaceHolder style={{width: '70%'}} />
-              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
-            </View>
+            <ShimmerPlaceHolder
+              style={{width: 150, height: 10, borderRadius: 5}}
+            />
+            <ShimmerPlaceHolder
+              style={{width: 120, height: 10, marginTop: 10, borderRadius: 5}}
+            />
           </View>
+
           <View
             style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: 50,
+              backgroundColor: '#e8e8e877',
+              alignSelf: 'flex-end',
+              width: 200,
+              paddingLeft: 8,
+              paddingVertical: 15,
+              borderTopRightRadius: 12,
+              borderTopLeftRadius: 12,
+              borderBottomLeftRadius: 12,
             }}>
-            <View
-              style={{
-                width: '20%',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}></View>
-            <View style={{width: '100%'}}>
-              <ShimmerPlaceHolder style={{width: '70%'}} />
-              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
-            </View>
+            <ShimmerPlaceHolder
+              style={{width: 150, height: 10, borderRadius: 5}}
+            />
+            <ShimmerPlaceHolder
+              style={{width: 120, height: 10, marginTop: 10, borderRadius: 5}}
+            />
           </View>
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: 50,
-            }}>
-            <View
-              style={{
-                width: '20%',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}></View>
-            <View style={{width: '100%'}}>
-              <ShimmerPlaceHolder style={{width: '70%'}} />
-              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
-            </View>
-          </View>
-        </>
+        </View>
       ) : (
+        // <>
+        //   <View
+        //     style={{
+        //       display: 'flex',
+        //       flexDirection: 'row',
+        //       alignItems: 'center',
+        //       marginTop: 50,
+        //     }}>
+        //     <View
+        //       style={{
+        //         width: '20%',
+        //         justifyContent: 'center',
+        //         alignItems: 'center',
+        //       }}></View>
+        //     <View style={{width: '100%'}}>
+        //       <ShimmerPlaceHolder style={{width: '70%'}} />
+        //       <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+        //     </View>
+        //   </View>
+        //   <View
+        //     style={{
+        //       display: 'flex',
+        //       flexDirection: 'row',
+        //       alignItems: 'center',
+        //       marginTop: 50,
+        //     }}>
+        //     <View
+        //       style={{
+        //         width: '20%',
+        //         justifyContent: 'center',
+        //         alignItems: 'center',
+        //       }}></View>
+        //     <View style={{width: '100%'}}>
+        //       <ShimmerPlaceHolder style={{width: '70%'}} />
+        //       <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+        //     </View>
+        //   </View>
+        //   <View
+        //     style={{
+        //       display: 'flex',
+        //       flexDirection: 'row',
+        //       alignItems: 'center',
+        //       marginTop: 50,
+        //     }}>
+        //     <View
+        //       style={{
+        //         width: '20%',
+        //         justifyContent: 'center',
+        //         alignItems: 'center',
+        //       }}></View>
+        //     <View style={{width: '100%'}}>
+        //       <ShimmerPlaceHolder style={{width: '70%'}} />
+        //       <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+        //     </View>
+        //   </View>
+        // </>
         <>
           <FlashList
             ref={flatlistRef}

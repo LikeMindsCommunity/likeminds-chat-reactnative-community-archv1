@@ -68,6 +68,7 @@ const HomeFeedItem: React.FC<Props> = ({
   muteStatus,
 }) => {
   const dispatch = useAppDispatch();
+  console.log('deletedByadsadsa', deletedBy);
 
   const showJoinAlert = () =>
     Alert.alert(
@@ -357,9 +358,7 @@ const HomeFeedItem: React.FC<Props> = ({
                 width: '80%',
               },
             ]}>
-            {deletedBy !== 'null' &&
-            deletedBy !== null &&
-            deletedBy !== undefined ? (
+            {deletedBy !== 'null' && deletedBy !== null ? (
               <Text
                 style={
                   styles.deletedMessage

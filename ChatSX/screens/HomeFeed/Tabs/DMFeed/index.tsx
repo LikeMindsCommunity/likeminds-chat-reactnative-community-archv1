@@ -367,6 +367,8 @@ const DMFeed = ({navigation}: Props) => {
           }}
           estimatedItemSize={15}
           renderItem={({item}: any) => {
+            console.log('itemDMadasda', item);
+
             const userTitle =
               user?.id == item?.chatroomWithUserId
                 ? item?.chatRequestedBy?.name
@@ -382,25 +384,29 @@ const DMFeed = ({navigation}: Props) => {
               item?.chatroomWithUser?.name,
             );
             console.log('userTitle', userTitle);
+            const deletedBy =
+              item?.lastConversation?.deletedByUserId !== null
+                ? item?.lastConversation?.deletedByUserId
+                : item?.lastConversation?.deletedBy;
             const homeFeedProps = {
               title: userTitle,
               avatar: item?.chatroomImageUrl!,
-              lastMessage: item?.lastConversationRO?.answer!,
+              lastMessage: item?.lastConversation?.answer!,
               lastMessageUser: item?.lastConversation?.member?.name!,
-              time: item?.lastConversationRO?.createdAt!,
+              time: item?.lastConversation?.createdAt!,
               unreadCount: item?.unseenCount!,
               pinned: false,
-              lastConversation: item?.lastConversationRO!,
-              lastConversationMember: item?.lastConversationRO?.member?.name!,
+              lastConversation: item?.lastConversation!,
+              lastConversationMember: item?.lastConversation?.member?.name!,
               chatroomID: item?.id!,
               isSecret: item?.isSecret,
-              deletedBy: item?.lastConversation?.deletedByUserId,
+              deletedBy: deletedBy,
               conversationDeletor:
-                item?.lastConversationRO?.deletedByMember?.sdkClientInfo?.uuid,
+                item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
               conversationCreator:
-                item?.lastConversationRO?.member?.sdkClientInfo?.uuid,
+                item?.lastConversation?.member?.sdkClientInfo?.uuid,
               conversationDeletorName:
-                item?.lastConversationRO?.deletedByMember?.name,
+                item?.lastConversation?.deletedByMember?.name,
               inviteReceiver: item?.inviteReceiver,
               chatroomType: item?.type,
               muteStatus: item?.muteStatus,

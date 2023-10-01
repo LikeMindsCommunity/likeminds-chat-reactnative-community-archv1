@@ -341,26 +341,31 @@ const GroupFeed = ({navigation}: Props) => {
             />
           )}
           renderItem={({item}: any) => {
-            // console.log('item?.muteStatus', item?.muteStatus);
+            // console.log('itemskdfasdf', item);
+
+            const deletedBy =
+              item?.lastConversation?.deletedByUserId !== null
+                ? item?.lastConversation?.deletedByUserId
+                : item?.lastConversation?.deletedBy;
             const homeFeedProps = {
               title: item?.header!,
               avatar: item?.chatroomImageUrl!,
-              lastMessage: item?.lastConversationRO?.answer!,
+              lastMessage: item?.lastConversation?.answer!,
               lastMessageUser: item?.lastConversation?.member?.name!,
-              time: item?.lastConversationRO?.createdAt!,
+              time: item?.lastConversation?.createdAt!,
               unreadCount: item?.unseenCount!,
               pinned: false,
-              lastConversation: item?.lastConversationRO!,
-              lastConversationMember: item?.lastConversationRO?.member?.name!,
+              lastConversation: item?.lastConversation!,
+              lastConversationMember: item?.lastConversation?.member?.name!,
               chatroomID: item?.id!,
               isSecret: item?.isSecret,
-              deletedBy: item?.lastConversation?.deletedByUserId,
+              deletedBy: deletedBy,
               conversationDeletor:
-                item?.lastConversationRO?.deletedByMember?.sdkClientInfo?.uuid,
+                item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
               conversationCreator:
-                item?.lastConversationRO?.member?.sdkClientInfo?.uuid,
+                item?.lastConversation?.member?.sdkClientInfo?.uuid,
               conversationDeletorName:
-                item?.lastConversationRO?.deletedByMember?.name,
+                item?.lastConversation?.deletedByMember?.name,
               inviteReceiver: item?.inviteReceiver,
               chatroomType: item?.type,
               muteStatus: item?.muteStatus,

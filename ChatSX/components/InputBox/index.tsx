@@ -1005,7 +1005,7 @@ const InputBox = ({
     });
     await myClient?.updateConversation(
       conversationId.toString(),
-      editConversationResponse?.data,
+      editConversationResponse?.data?.conversation,
     );
   };
 

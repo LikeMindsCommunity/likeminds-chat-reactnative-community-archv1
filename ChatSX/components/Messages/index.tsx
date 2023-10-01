@@ -65,21 +65,27 @@ const Messages = ({
 
   // This method will be trigerred in case of DM only and is to get the second user name from the answer text
   const getConversationCreator = async () => {
-    const conversation = await myClient?.getConversations(item?.chatroomId);
-    // console.log('conversationGetConversationCreator', conversation);
-    const answer = conversation[0]?.answer;
-    const startingIndex = answer?.lastIndexOf('<');
-    const endingIndex = answer?.lastIndexOf('|');
-    const trimmedAnswer = answer?.substring(startingIndex + 1, endingIndex);
-    if (trimmedAnswer !== undefined) {
-      setConversationCreator(trimmedAnswer);
-    } else {
-      setConversationCreator(item?.member?.sdkClientInfo?.uuid);
-    }
+    // const conversation = await myClient?.getConversations(item?.chatroomId);
+    // // console.log('conversationGetConversationCreator', conversation);
+    // const answer = conversation[0]?.answer;
+    // console.log('jghfds', answer);
+
+    // const startingIndex = answer?.lastIndexOf('<');
+    // const endingIndex = answer?.lastIndexOf('|');
+    // const trimmedAnswer = answer?.substring(startingIndex + 1, endingIndex);
+
+    // if (trimmedAnswer !== undefined) {
+    //   setConversationCreator(trimmedAnswer);
+    // } else {
+    setConversationCreator(item?.member?.sdkClientInfo?.uuid);
+    // }
+    // console.log('converasdasda', conversationCreator);
   };
 
   // This is to get the second user from the answer key in case of DM with state included in stateArr
-  if (chatroomType === 10 && isItemIncludedInStateArr) getConversationCreator();
+  useEffect(() => {
+    getConversationCreator();
+  }, []);
 
   const dispatch = useAppDispatch();
   let defaultReactionArrLen = item?.reactions?.length;
@@ -178,7 +184,12 @@ const Messages = ({
   };
 
   const conversationDeletor = item?.deletedByMember?.sdkClientInfo?.uuid;
+  // console.log('conversationDeletor', conversationDeletor);
+
   const conversationDeletorName = item?.deletedByMember?.name;
+  // console.log('conversationDeletorName', conversationDeletorName);
+  // console.log('iasdasdasdasd', item?.member);
+
   const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = user?.id;
   const users: any = useQuery('UserSchemaRO');
@@ -186,15 +197,15 @@ const Messages = ({
 
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {
-    console.log('answerTrimming', answer);
-    console.log('chatroomDBDetailsTrimming', chatroomDBDetails);
+    // console.log('answerTrimming', answer);
+    // console.log('chatroomDBDetailsTrimming', chatroomDBDetails);
 
     const loggedInMember = currentUserUuid;
-    console.log('loggedInMemberTrimming', loggedInMember);
+    // console.log('loggedInMemberTrimming', loggedInMember);
 
     const chatroomWithUser =
       chatroomDBDetails?.chatroomWithUser?.sdkClientInfo?.uuid;
-    console.log('chatroomWithUserTrimming', chatroomWithUser);
+    // console.log('chatroomWithUserTrimming', chatroomWithUser);
 
     if (loggedInMember === chatroomWithUser) {
       const startingIndex = answer.lastIndexOf('<');
