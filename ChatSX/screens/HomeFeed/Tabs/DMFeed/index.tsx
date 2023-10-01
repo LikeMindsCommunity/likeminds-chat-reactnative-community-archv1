@@ -408,7 +408,7 @@ const DMFeed = ({navigation}: Props) => {
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
           ListFooterComponent={renderFooter}
-          // keyExtractor={(item: any) => item?.id.toString()}
+          keyExtractor={(item: any) => item?.id.toString()}
         />
       )}
       {showDM && dmFeedChatrooms?.length > 0 ? (

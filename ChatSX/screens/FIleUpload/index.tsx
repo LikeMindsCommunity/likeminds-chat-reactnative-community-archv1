@@ -118,14 +118,21 @@ const FileUpload = ({navigation, route}: any) => {
   }: UploadResource) => {
     LogBox.ignoreLogs(['new NativeEventEmitter']);
     const s3 = new S3();
+    console.log('s3333', s3);
 
     for (let i = 0; i < selectedImages?.length; i++) {
       let item = selectedImages[i];
+      console.log('itemImage', item);
 
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
+      console.log('attachmentType', attachmentType);
+
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
+      console.log('docAttachmentType', docAttachmentType);
 
       let thumbnailURL = item?.thumbnailUrl;
+      console.log('thumbnailURL', thumbnailURL);
+
       let name =
         attachmentType === IMAGE_TEXT
           ? item.fileName
@@ -136,6 +143,7 @@ const FileUpload = ({navigation, route}: any) => {
           : null;
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
+      console.log('alskfjdhbsdakl', name, path, thumbnailUrlPath);
 
       let uriFinal: any;
 
@@ -150,9 +158,13 @@ const FileUpload = ({navigation, route}: any) => {
         uriFinal = img;
       }
 
+      console.log('uriFinal', uriFinal);
+
       //for video thumbnail
       let thumbnailUrlImg: any;
       if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+        console.log('sadfda');
+
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
       }
 
@@ -164,6 +176,12 @@ const FileUpload = ({navigation, route}: any) => {
         ContentType: item?.type, // Replace with the appropriate content type for your file
       };
 
+      console.log('BUCKET', BUCKET);
+      console.log('path', path);
+      console.log('uriFinal', uriFinal);
+
+      console.log('item?.type', item?.type);
+
       //for video thumbnail
       const thumnnailUrlParams: any = {
         Bucket: BUCKET,
@@ -172,15 +190,24 @@ const FileUpload = ({navigation, route}: any) => {
         ACL: 'public-read-write',
         ContentType: 'image/jpeg', // Replace with the appropriate content type for your file
       };
+      console.log('thumnnailUrlParams', thumnnailUrlParams);
 
       try {
         let getVideoThumbnailData = null;
+        console.log('asdasdasd');
 
         if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+          console.log('sadasdasd');
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
+          console.log('vsdasdd');
         }
+        console.log('dfsdkfjas');
+
         const data = await s3.upload(params).promise();
+        console.log('dataaaaa', data);
+
         let awsResponse = data.Location;
+        console.log('awsResponse', awsResponse);
 
         if (awsResponse) {
           let fileType = '';
@@ -219,10 +246,14 @@ const FileUpload = ({navigation, route}: any) => {
             thumbnailUrl:
               fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
           };
+          console.log('payloaddd', payload);
 
           const uploadRes = await myClient?.putMultimedia(payload as any);
+          console.log('asd.kfj,das');
         }
       } catch (error) {
+        console.log('dfssffdsf');
+
         dispatch({
           type: SET_FILE_UPLOADING_MESSAGES,
           body: {
@@ -233,15 +264,23 @@ const FileUpload = ({navigation, route}: any) => {
             ID: conversationID,
           },
         });
+        console.log('dsvsdfbvf');
+
         return error;
       }
+      console.log(',l,lml');
+
       dispatch({
         type: CLEAR_SELECTED_FILES_TO_UPLOAD,
       });
+      console.log('bfvdcs');
+
       dispatch({
         type: CLEAR_SELECTED_FILE_TO_VIEW,
       });
+      console.log('vsdvdsv');
     }
+    console.log('vsdvsdvds');
 
     dispatch({
       type: CLEAR_FILE_UPLOADING_MESSAGES,
@@ -249,6 +288,7 @@ const FileUpload = ({navigation, route}: any) => {
         ID: conversationID,
       },
     });
+    console.log('vsafasd');
   };
 
   const handleFileUpload = async (conversationID: any, isRetry: any) => {

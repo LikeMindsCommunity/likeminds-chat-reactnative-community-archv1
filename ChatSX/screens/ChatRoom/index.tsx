@@ -1750,10 +1750,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     await myClient?.updateChatRequestState(chatroomID?.toString(), 1);
     fetchChatroomDetails();
+
     dispatch({
       type: ADD_STATE_MESSAGE,
       body: {conversation: response?.data?.conversation},
     });
+    await myClient?.saveNewConversation(
+      chatroomID.toString(),
+      response?.data?.conversation,
+    );
   };
 
   // this function calls API to reject DM request

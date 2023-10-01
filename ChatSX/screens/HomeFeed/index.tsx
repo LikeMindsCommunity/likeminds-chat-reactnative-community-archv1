@@ -197,6 +197,7 @@ const HomeFeed = ({navigation}: Props) => {
     const func = async () => {
       // const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
       const res: any = await myClient?.getAllAttachmentUploadConversations();
+      console.log('resAttachment', res);
 
       if (res) {
         let len = res.length;
