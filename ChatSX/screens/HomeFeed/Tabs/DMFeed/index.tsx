@@ -31,7 +31,7 @@ import {
   SET_INITIAL_DMFEED_CHATROOM,
   INSERT_DMFEED_CHATROOM,
   UPDATE_DMFEED_CHATROOM,
-  DELETE_CHATROOM,
+  DELETE_DMFEED_CHATROOM,
 } from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
@@ -132,13 +132,13 @@ const DMFeed = ({navigation}: Props) => {
   // Callback for listener
   const onDMChatroomChange = (chatrooms: any, changes: any) => {
     // Handle deleted DM Chatroom objects
-    // changes.deletions.forEach((index: any) => {
-    //   console.log('123421');
-    //   dispatch({
-    //     type: DELETE_CHATROOM,
-    //     body: index,
-    //   });
-    // });
+    changes.deletions.forEach((index: any) => {
+      console.log('123421');
+      dispatch({
+        type: DELETE_DMFEED_CHATROOM,
+        body: index,
+      });
+    });
 
     // Handle newly added DM Chatroom objects
     changes.insertions.forEach((index: any) => {
@@ -146,7 +146,7 @@ const DMFeed = ({navigation}: Props) => {
       console.log('insertedDMChatroom', insertedDMChatroom);
       dispatch({
         type: INSERT_DMFEED_CHATROOM,
-        body: {insertedDMChatroom: insertedDMChatroom, index: index},
+        body: {insertedDMChatroom, index},
       });
     });
 
@@ -156,7 +156,7 @@ const DMFeed = ({navigation}: Props) => {
       console.log('modifiedDMChatroom', modifiedDMChatroom);
       dispatch({
         type: UPDATE_DMFEED_CHATROOM,
-        body: {modifiedDMChatroom: modifiedDMChatroom, index: index},
+        body: {modifiedDMChatroom, index},
       });
     });
   };
@@ -366,11 +366,24 @@ const DMFeed = ({navigation}: Props) => {
             value: [user, dmFeedChatrooms],
           }}
           estimatedItemSize={15}
-          renderItem={({item, index}: any) => {
-            console.log(index, 'itemDMGeed', item);
-
+          renderItem={({item}: any) => {
+            const userTitle =
+              user?.id == item?.chatroomWithUserId
+                ? item?.chatRequestedBy?.name
+                : item?.chatroomWithUser?.name;
+            console.log('user?.idDMFEED', user?.id);
+            console.log('item?.chatroomWithUserId', item?.chatroomWithUserId);
+            console.log(
+              'item?.chatRequestedBy?.name',
+              item?.chatRequestedBy?.name,
+            );
+            console.log(
+              'item?.chatroomWithUser?.name',
+              item?.chatroomWithUser?.name,
+            );
+            console.log('userTitle', userTitle);
             const homeFeedProps = {
-              title: item?.chatroomWithUserName,
+              title: userTitle,
               avatar: item?.chatroomImageUrl!,
               lastMessage: item?.lastConversationRO?.answer!,
               lastMessageUser: item?.lastConversation?.member?.name!,
@@ -395,7 +408,7 @@ const DMFeed = ({navigation}: Props) => {
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
           ListFooterComponent={renderFooter}
-          keyExtractor={(item: any) => item?.id.toString()}
+          // keyExtractor={(item: any) => item?.id.toString()}
         />
       )}
       {showDM && dmFeedChatrooms?.length > 0 ? (

@@ -432,20 +432,23 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
               body: {isToast: true, msg: `${apiResponse?.errorMessage}`},
             });
           } else {
-            await myClient?.saveDMChatroom(
-              response?.chatroom,
-              response?.chatroom?.communityId,
-              user,
-            );
-            const currentChatroom = await myClient?.getChatroom(
-              response?.chatroom?.id,
-            );
-            console.log('currentChatroomCommonAllMembers', currentChatroom);
+            const chatroomWithUser = response?.chatroom?.chatroomWithUser;
+            console.log('dafsdbfdgsa', chatroomWithUser);
+            // await myClient?.saveDMChatroom(
+            //   response?.chatroom,
+            //   response?.chatroom?.communityId,
+            //   user,
+            // );
+            // const currentChatroom = await myClient?.getChatroom(
+            //   response?.chatroom?.id,
+            // );
+            // console.log('currentChatroomCommonAllMembers', currentChatroom);
 
             let createdChatroomID = response?.chatroom?.id;
             if (!!createdChatroomID) {
               navigation.navigate(CHATROOM, {
                 chatroomID: createdChatroomID,
+                chatroomWithUserParam: chatroomWithUser,
               });
             }
           }

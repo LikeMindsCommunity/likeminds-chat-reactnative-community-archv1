@@ -103,6 +103,7 @@ interface InputBox {
   isEditable?: boolean;
   setIsEditable?: any;
   isSecret?: any;
+  chatroomWithUser?: any;
 }
 
 const InputBox = ({
@@ -120,6 +121,7 @@ const InputBox = ({
   isEditable,
   setIsEditable,
   isSecret,
+  chatroomWithUser,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -560,6 +562,7 @@ const InputBox = ({
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
+        replyObj.chatroomWithUser = chatroomWithUser;
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
@@ -587,6 +590,7 @@ const InputBox = ({
       obj.images = dummySelectedFileArr;
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
+      obj.chatroomWithUser = chatroomWithUser;
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
@@ -611,6 +615,10 @@ const InputBox = ({
               editedReplyObj,
             );
           } else {
+            console.log(
+              'replyObj?.chatroomWithUser',
+              replyObj?.chatroomWithUser,
+            );
             await myClient?.saveNewConversation(
               chatroomID.toString(),
               replyObj,
@@ -624,6 +632,7 @@ const InputBox = ({
               editedObj,
             );
           } else {
+            console.log('replyObj?.chatroomWithUser', obj?.chatroomWithUser);
             await myClient?.saveNewConversation(chatroomID.toString(), obj);
           }
         }
@@ -646,7 +655,7 @@ const InputBox = ({
         dispatch({type: SET_REPLY_MESSAGE, body: {replyMessage: ''}});
       }
 
-      console.log('isPrivateMember', isPrivateMember);
+      console.log('isPrivateMemberHUNaMAi', isPrivateMember);
 
       // -- Code for local message handling ended
 

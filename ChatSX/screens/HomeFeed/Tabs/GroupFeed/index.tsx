@@ -28,7 +28,7 @@ import {
   SET_PAGE,
   INSERT_GROUPFEED_CHATROOM,
   UPDATE_GROUPFEED_CHATROOM,
-  DELETE_CHATROOM,
+  DELETE_GROUPFEED_CHATROOM,
 } from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
@@ -93,7 +93,7 @@ const GroupFeed = ({navigation}: Props) => {
     // Handle deleted GroupFeed Chatroom objects
     changes.deletions.forEach((index: any) => {
       dispatch({
-        type: DELETE_CHATROOM,
+        type: DELETE_GROUPFEED_CHATROOM,
         body: index,
       });
     });

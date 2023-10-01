@@ -1,3 +1,4 @@
+import {current} from '@reduxjs/toolkit';
 import Styles from '../../constants/Styles';
 import {
   ACCEPT_INVITE_SUCCESS,
@@ -23,7 +24,8 @@ import {
   UPDATE_GROUPFEED_CHATROOM,
   UPDATE_DMFEED_CHATROOM,
   SET_INITIAL_DMFEED_CHATROOM,
-  DELETE_CHATROOM,
+  DELETE_GROUPFEED_CHATROOM,
+  DELETE_DMFEED_CHATROOM,
 } from '../types/types';
 
 const initialState = {
@@ -45,7 +47,7 @@ const initialState = {
 };
 
 export function homefeedReducer(state = initialState, action: any) {
-  switch (action.type) {
+  switch (action?.type) {
     case SET_PAGE: {
       const page = action.body;
       return {
@@ -82,20 +84,7 @@ export function homefeedReducer(state = initialState, action: any) {
       }
       return state;
     }
-    case UPDATE_GROUPFEED_CHATROOM: {
-      const modifiedChatroom = action.body.modifiedChatroom;
-      const index = action.body.index;
-      if (modifiedChatroom.type !== 10) {
-        let groupFeedChatrooms = state.groupFeedChatrooms;
-        groupFeedChatrooms[index] = modifiedChatroom;
-        return {
-          ...state,
-          groupFeedChatrooms: groupFeedChatrooms,
-        };
-      }
-      return state;
-    }
-    case DELETE_CHATROOM: {
+    case DELETE_GROUPFEED_CHATROOM: {
       const index = action.body;
       console.log('kujyhtgbfvds', index);
 
@@ -109,37 +98,100 @@ export function homefeedReducer(state = initialState, action: any) {
         groupFeedChatrooms: groupFeedChatrooms,
       };
     }
+    case DELETE_DMFEED_CHATROOM: {
+      const index = action.body;
+
+      let dmFeedChatrooms = state.dmFeedChatrooms;
+      dmFeedChatrooms = [
+        ...dmFeedChatrooms.slice(0, index),
+        ...dmFeedChatrooms.slice(index + 1),
+      ];
+      return {
+        ...state,
+        dmFeedChatrooms: dmFeedChatrooms,
+      };
+    }
+    case UPDATE_GROUPFEED_CHATROOM: {
+      const modifiedChatroom = action.body.modifiedChatroom;
+      const index = action.body.index;
+      if (modifiedChatroom?.type !== 10) {
+        let groupFeedChatrooms = state.groupFeedChatrooms;
+        groupFeedChatrooms[index] = modifiedChatroom;
+        return {
+          ...state,
+          groupFeedChatrooms: groupFeedChatrooms,
+        };
+      }
+      return state;
+    }
     case UPDATE_DMFEED_CHATROOM: {
-      const {modifiedDMChatroom = {}, index} = action.body;
+      const modifiedDMChatroom = action.body.modifiedDMChatroom;
+      const index = action.body.index;
       console.log('modifiedDMChatroomREducer', modifiedDMChatroom);
       console.log('indexReducer', index);
-
-      if (modifiedDMChatroom.type === 10) {
+      if (modifiedDMChatroom?.type === 10) {
         let dmFeedChatrooms = state.dmFeedChatrooms;
-        console.log('dmFeedChatroomsOld', dmFeedChatrooms);
-
         dmFeedChatrooms[index] = modifiedDMChatroom;
-        console.log('dmFeedChatroomsNew', dmFeedChatrooms);
-
         return {
           ...state,
           dmFeedChatrooms: dmFeedChatrooms,
         };
       }
+
+      // if (modifiedDMChatroom?.type === 10) {
+      //   let dmFeedChatrooms = state.dmFeedChatrooms;
+      //   console.log('dmFeedChatrooms', dmFeedChatrooms);
+      //   let currentIndex = 0;
+      //   for (let i = 0; i < dmFeedChatrooms.length; i++) {
+      //     if (dmFeedChatrooms[i]?.id === modifiedDMChatroom?.id) {
+      //       currentIndex = i;
+      //       console.log('currentIndex', currentIndex);
+      //       break;
+      //     }
+      //   }
+
+      //   console.log('dmFeedChatroomsOld', dmFeedChatrooms);
+
+      //   const updatedDMChatrooms = removeAndShift(
+      //     dmFeedChatrooms,
+      //     currentIndex,
+      //     modifiedDMChatroom,
+      //   );
+
+      //   // console.log('dmFeedChatroomsOld', dmFeedChatrooms);
+
+      //   // dmFeedChatrooms[index] = modifiedDMChatroom;
+      //   console.log('dmFeedChatroomsNew', updatedDMChatrooms);
+
+      //   // console.log('oldDMFeedChatrooms', state.dmFeedChatrooms);
+
+      //   // const dmFeedChatrooms = removeAndShift(
+      //   //   state.dmFeedChatrooms,
+      //   //   index,
+      //   //   modifiedDMChatroom,
+      //   // );
+
+      //   // console.log('updatedDMFEEdChatrooms', dmFeedChatrooms);
+
+      //   return {
+      //     ...state,
+      //     dmFeedChatrooms: updatedDMChatrooms,
+      //   };
+      // }
       return state;
     }
     case INSERT_GROUPFEED_CHATROOM: {
-      const {insertedChatroom = {}, index} = action.body;
-
-      if (insertedChatroom.type !== 10) {
+      const insertedChatroom = action.body.insertedChatroom;
+      const index = action.body.index;
+      if (insertedChatroom?.type !== 10) {
         let currentChatrooms = state.groupFeedChatrooms;
-        if (currentChatrooms.length !== 0)
+        if (currentChatrooms.length !== 0) {
           currentChatrooms = [
             ...currentChatrooms.slice(0, index),
             insertedChatroom,
             ...currentChatrooms.slice(index),
           ];
-        else {
+        } else {
           currentChatrooms = [...state.groupFeedChatrooms, insertedChatroom];
         }
         return {
@@ -150,19 +202,24 @@ export function homefeedReducer(state = initialState, action: any) {
       return state;
     }
     case INSERT_DMFEED_CHATROOM: {
-      const {insertedChatroom = {}, index} = action.body;
-      console.log('insertedChatroomREducer', insertedChatroom);
+      const insertedDMChatroom = action.body.insertedDMChatroom;
+      const index = action.body.index;
+      console.log('insertedChatroomREducer', insertedDMChatroom);
       console.log('indexinsertedChatroomReducer', index);
-      if (insertedChatroom.type === 10) {
+      if (insertedDMChatroom?.type === 10) {
         let currentChatrooms = state.dmFeedChatrooms;
-        if (currentChatrooms.length !== 0)
+        console.log('currentDMCHatroms', currentChatrooms);
+
+        if (currentChatrooms.length !== 0) {
           currentChatrooms = [
             ...currentChatrooms.slice(0, index),
-            insertedChatroom,
+            insertedDMChatroom,
             ...currentChatrooms.slice(index),
           ];
-        else {
-          currentChatrooms = [...state.dmFeedChatrooms, insertedChatroom];
+          console.log('modifiedDMCHaroapdkl', currentChatrooms);
+        } else {
+          currentChatrooms = [...state.dmFeedChatrooms, insertedDMChatroom];
+          console.log('modifiedFirealkrfj', currentChatrooms);
         }
         return {
           ...state,

@@ -187,6 +187,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const {
     chatroomID,
+    chatroomWithUserParam,
     isInvited,
     muteStatus,
     previousChatroomID,
@@ -226,6 +227,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let chatroomFollowStatus = chatroomDBDetails?.followStatus;
   let memberCanMessage = chatroomDBDetails?.memberCanMessage;
   let chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
+  if (chatroomWithUser == undefined) {
+    chatroomWithUser = chatroomWithUserParam;
+  }
   let chatRequestState = chatroomDBDetails?.chatRequestState;
 
   console.log('chatroomFollowStatussad', chatroomFollowStatus);
@@ -253,7 +257,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
 
   console.log('user?.id', user?.id);
-  console.log('chatroomWithUser?.id', chatroomWithUser?.id);
+  console.log('chatroomWithUser?.id', chatroomWithUser);
 
   let chatroomName =
     chatroomType === 10
@@ -302,6 +306,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // Initial header of chatroom screen
   const setInitialHeader = () => {
+    console.log('chatroomNamekljhb', chatroomName);
+    console.log(
+      '{chatroomDetails?.participantCount}',
+      chatroomDetails?.participantCount,
+    );
     navigation.setOptions({
       title: '',
       headerShadowVisible: false,
@@ -674,12 +683,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     console.log('98765');
 
-    await myClient?.saveConversationData(
-      DB_RESPONSE,
-      DB_RESPONSE?.chatroomMeta,
-      DB_RESPONSE?.conversationsData,
-      community?.id,
-    );
+    if (DB_RESPONSE?.conversationsData.length !== 0) {
+      await myClient?.saveConversationData(
+        DB_RESPONSE,
+        DB_RESPONSE?.chatroomMeta,
+        DB_RESPONSE?.conversationsData,
+        community?.id,
+      );
+    }
 
     console.log('456789');
 
@@ -714,8 +725,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
-    console.log('chatroomID.toString()', chatroomID.toString());
-    let chatroomDetails = await myClient?.getChatroom(chatroomID.toString());
+    console.log('chatroomID.toString()', chatroomID?.toString());
+    let chatroomDetails = await myClient?.getChatroom(chatroomID?.toString());
     console.log('chatroom1', chatroomDetails);
     let maxTimeStamp = Math.floor(Date.now() * 1000);
     if (chatroomDetails === undefined) {
@@ -740,7 +751,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       if (chatroom?.isChatroomVisited) {
         setShimmerIsLoading(false);
         conversationsFromRealm = await myClient?.getConversationData(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           PAGE_SIZE,
         );
         // console.log('conversationsFromRealm1234', conversationsFromRealm);
@@ -852,23 +863,37 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         await fetchInitAPI();
         await fetchData(false);
         await fetchChatroomDetails();
-        setInitialHeader();
+        if (chatroomWithUserParam !== undefined) {
+          await myClient?.editChatroomDetails(
+            chatroomWithUserParam,
+            chatroomID.toString(),
+            user?.sdkClientInfo?.community,
+          );
+        }
+        // setInitialHeader();
       } else {
         await fetchData(false);
         await fetchChatroomDetails();
-        setInitialHeader();
+        if (chatroomWithUserParam !== undefined) {
+          await myClient?.editChatroomDetails(
+            chatroomWithUserParam,
+            chatroomID.toString(),
+            user?.sdkClientInfo?.community,
+          );
+        }
+        // setInitialHeader();
       }
     };
     invokeFunction();
   }, [navigation]);
 
-  // this useEffect set unseenCount to zero when leaving chatroom
+  // this useEffect set unseenCount to zero when closing the chatroom
   useEffect(() => {
     const closingChatroom = async () => {
       await myClient?.markReadChatroom({
         chatroomId: chatroomID,
       });
-      await myClient?.updateUnseenCount(chatroomID.toString());
+      await myClient?.updateUnseenCount(chatroomID?.toString());
     };
     return () => {
       if (previousRoute?.name !== EXPLORE_FEED) {
@@ -938,7 +963,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     console.log('chatroomDBDetailsUseEffect', chatroomDBDetails);
     console.log('chatroomDetailsUseEffect', chatroomDetails);
     setInitialHeader();
-  }, [chatroomDBDetails]);
+  }, [chatroomDBDetails, chatroomDetails]);
 
   // this useEffect call API to show InputBox based on showDM key.
   useEffect(() => {
@@ -1051,6 +1076,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             maxTimeStamp,
             conversationID,
           );
+          await myClient?.updateChatRequestState(chatroomID?.toString(), 1);
+          fetchChatroomDetails();
           // await syncConversationAPI(
           //   INITIAL_SYNC_PAGE,
           //   minTimeStamp,
@@ -1172,7 +1199,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else {
           navigation.goBack();
           // Updating the followStatus of chatroom to false in case of leaving the chatroom
-          await myClient?.setFollowStatus(chatroomID.toString());
+          await myClient?.setFollowStatus(chatroomID?.toString());
         }
       })
       .catch(() => {
@@ -1218,7 +1245,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else {
           navigation.goBack();
           // Updating the followStatus of chatroom to false in case of leaving the chatroom
-          await myClient?.setFollowStatus(chatroomID.toString());
+          await myClient?.setFollowStatus(chatroomID?.toString());
         }
       })
       .catch(() => {
@@ -1714,11 +1741,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     // console.log('community?.id', community?.id);
 
-    dispatch({
-      type: ADD_STATE_MESSAGE,
-      body: {conversation: response?.data?.conversation},
-    });
-
     // await paginatedSyncAPI(INITIAL_SYNC_PAGE, 0, Date.now());
 
     // await myClient?.saveSingleConversation(
@@ -1726,8 +1748,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     //   community?.id,
     // );
 
-    await myClient?.updateChatRequestState(chatroomID.toString(), 1);
+    await myClient?.updateChatRequestState(chatroomID?.toString(), 1);
     fetchChatroomDetails();
+    dispatch({
+      type: ADD_STATE_MESSAGE,
+      body: {conversation: response?.data?.conversation},
+    });
   };
 
   // this function calls API to reject DM request
@@ -1749,7 +1775,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       body: {conversation: response?.data?.conversation},
     });
 
-    await myClient?.updateChatRequestState(chatroomID.toString(), 2);
+    await myClient?.updateChatRequestState(chatroomID?.toString(), 2);
     fetchChatroomDetails();
   };
 
@@ -1772,7 +1798,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       type: ADD_STATE_MESSAGE,
       body: {conversation: response?.data?.conversation},
     });
-    await myClient?.updateChatRequestState(chatroomID.toString(), 1);
+    await myClient?.updateChatRequestState(chatroomID?.toString(), 1);
     fetchChatroomDetails();
   };
 
@@ -1792,7 +1818,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       type: ADD_STATE_MESSAGE,
       body: {conversation: response?.data?.conversation},
     });
-    await myClient?.updateChatRequestState(chatroomID.toString(), 2);
+    await myClient?.updateChatRequestState(chatroomID?.toString(), 2);
     fetchChatroomDetails();
   };
 
@@ -1811,7 +1837,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       type: ADD_STATE_MESSAGE,
       body: {conversation: response?.data?.conversation},
     });
-    await myClient?.updateChatRequestState(chatroomID.toString(), 1);
+    await myClient?.updateChatRequestState(chatroomID?.toString(), 1);
     fetchChatroomDetails();
   };
 
@@ -2335,6 +2361,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 chatroomFollowStatus &&
                 memberRights[3]?.isSelected === true ? (
                 <InputBox
+                  chatroomWithUser={chatroomWithUser}
                   replyChatID={replyChatID}
                   chatroomID={chatroomID}
                   navigation={navigation}

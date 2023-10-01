@@ -186,11 +186,17 @@ const Messages = ({
 
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {
-    const loggedInMember = currentUserUuid;
-    const chatroomWithUser =
-      chatroomDBDetails?.chatroomWithUser?.member?.sdkClientInfo?.uuid;
+    console.log('answerTrimming', answer);
+    console.log('chatroomDBDetailsTrimming', chatroomDBDetails);
 
-    if (loggedInMember !== chatroomWithUser) {
+    const loggedInMember = currentUserUuid;
+    console.log('loggedInMemberTrimming', loggedInMember);
+
+    const chatroomWithUser =
+      chatroomDBDetails?.chatroomWithUser?.sdkClientInfo?.uuid;
+    console.log('chatroomWithUserTrimming', chatroomWithUser);
+
+    if (loggedInMember === chatroomWithUser) {
       const startingIndex = answer.lastIndexOf('<');
       const receivingUser = answer.substring(0, startingIndex - 2);
 

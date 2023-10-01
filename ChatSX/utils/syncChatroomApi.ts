@@ -32,7 +32,7 @@ export const paginatedSyncAPI = async (
   const timeStampStored = await myClient?.getTimeStamp();
   console.log('timeStampStored', timeStampStored);
 
-  let maxTimeStampNow = Math.floor(Date.now() / 1000);
+  let maxTimeStampNow = Math.floor(Date.now());
 
   // Taking minTimeStamp as 0 for the first time else last maxTimeStamp will become current minTimeStamp
   let minTimeStampNow =
@@ -57,21 +57,16 @@ export const paginatedSyncAPI = async (
   }
 
   if (DB_RESPONSE?.chatroomsData.length !== 0) {
-    const totalChatrooms = DB_RESPONSE?.chatroomsData;
-    const chatroom = totalChatrooms[0];
-    const userData =
-      user?.id !== chatroom?.chatroomWithUserId
-        ? DB_RESPONSE?.userMeta[chatroom?.chatroomWithUserId]?.name
-        : DB_RESPONSE?.userMeta[chatroom?.userId]?.name;
-
-    DB_RESPONSE.chatroomsData[0].chatroomWithUserName = userData;
-
     myClient?.saveChatroomResponse(
       DB_RESPONSE,
       DB_RESPONSE?.chatroomsData,
       user?.sdkClientInfo?.community,
     );
   }
+  await myClient.updateTimeStamp(
+    maxTimeStampNow,
+    Math.floor(Date.now() / 1000),
+  );
 
   if (DB_RESPONSE?.chatroomsData?.length === 0) {
     return;
