@@ -118,8 +118,6 @@ const DMFeed = ({navigation}: Props) => {
   // Fetching already existing chatrooms from Realm
   const getExistingData = async () => {
     const existingChatrooms: any = await myClient?.getFilteredChatrooms(true);
-    // console.log('existingChatroomsDMFEED', existingChatrooms);
-
     if (!!existingChatrooms && existingChatrooms.length !== 0) {
       setShimmerIsLoading(false);
       dispatch({
@@ -133,7 +131,6 @@ const DMFeed = ({navigation}: Props) => {
   const onDMChatroomChange = (chatrooms: any, changes: any) => {
     // Handle deleted DM Chatroom objects
     changes.deletions.forEach((index: any) => {
-      // console.log('123421');
       dispatch({
         type: DELETE_DMFEED_CHATROOM,
         body: index,
@@ -143,7 +140,6 @@ const DMFeed = ({navigation}: Props) => {
     // Handle newly added DM Chatroom objects
     changes.insertions.forEach((index: any) => {
       const insertedDMChatroom = chatrooms[index];
-      // console.log('insertedDMChatroom', insertedDMChatroom);
       dispatch({
         type: INSERT_DMFEED_CHATROOM,
         body: {insertedDMChatroom, index},
@@ -153,7 +149,6 @@ const DMFeed = ({navigation}: Props) => {
     // Handle DM Chatroom objects that were modified
     changes.modifications.forEach((index: any) => {
       const modifiedDMChatroom = chatrooms[index];
-      // console.log('modifiedDMChatroom', modifiedDMChatroom);
       dispatch({
         type: UPDATE_DMFEED_CHATROOM,
         body: {modifiedDMChatroom, index},

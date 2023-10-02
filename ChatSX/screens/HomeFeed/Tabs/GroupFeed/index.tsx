@@ -52,7 +52,7 @@ const GroupFeed = ({navigation}: Props) => {
   const isFocused = useIsFocused();
   const dispatch = useAppDispatch();
 
-  const {
+  let {
     myChatrooms,
     unseenCount,
     totalCount,
@@ -63,6 +63,8 @@ const GroupFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient?.firebaseInstance();
+
+  groupFeedChatrooms = [...invitedChatrooms, ...groupFeedChatrooms];
 
   const INITIAL_SYNC_PAGE = 1;
 
@@ -209,7 +211,10 @@ const GroupFeed = ({navigation}: Props) => {
 
   const handleLoadMore = async () => {
     if (!isLoading) {
-      if (myChatrooms?.length === 0 && invitedChatrooms === 10 * invitePage) {
+      if (
+        groupFeedChatrooms?.length === 0 &&
+        invitedChatrooms === 10 * invitePage
+      ) {
         setIsLoading(true);
         await dispatch(
           updateInvites(
@@ -222,9 +227,9 @@ const GroupFeed = ({navigation}: Props) => {
         });
         setIsLoading(false);
       } else if (
-        myChatrooms?.length > 0 &&
-        myChatrooms?.length % 10 === 0 &&
-        myChatrooms?.length === 10 * page
+        groupFeedChatrooms?.length > 0 &&
+        groupFeedChatrooms?.length % 10 === 0 &&
+        groupFeedChatrooms?.length === 10 * page
       ) {
         const newPage = page + 1;
         dispatch({type: SET_PAGE, body: newPage});
@@ -341,8 +346,6 @@ const GroupFeed = ({navigation}: Props) => {
             />
           )}
           renderItem={({item}: any) => {
-            // console.log('itemskdfasdf', item);
-
             const deletedBy =
               item?.lastConversation?.deletedByUserId !== null
                 ? item?.lastConversation?.deletedByUserId
@@ -370,9 +373,9 @@ const GroupFeed = ({navigation}: Props) => {
               chatroomType: item?.type,
               muteStatus: item?.muteStatus,
             };
-            if (!item?.followStatus) {
-              return null;
-            }
+            // if (!item?.followStatus) {
+            //   return null;
+            // }
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
           extraData={{
@@ -380,8 +383,8 @@ const GroupFeed = ({navigation}: Props) => {
           }}
           estimatedItemSize={15}
           ListFooterComponent={renderFooter}
+          onLoad={handleLoadMore}
           keyExtractor={(item: any) => {
-            console.log('itemsdfsdfs', item);
             return item?.id?.toString();
           }}
         />

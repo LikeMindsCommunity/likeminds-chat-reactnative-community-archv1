@@ -153,20 +153,12 @@ const HomeFeed = ({navigation}: Props) => {
   useEffect(() => {
     const timeSetter = async () => {
       const timeStampStored = await myClient?.getTimeStamp();
-      // console.log('timeStampStoredTimeSetter', timeStampStored);
-
       if (timeStampStored.length === 0) {
-        // console.log('2345453343');
         const maxTimeStamp = Math.floor(Date.now() / 1000);
         const minTimeStamp = 0;
         await myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
       } else {
         // Updating the timeStamp incase of reopening of App
-        // console.log(
-        //   'timeStampStored[0].maxTimeStamp',
-        //   timeStampStored[0].maxTimeStamp,
-        // );
-        // console.log('updatingggggg');
         await myClient.updateTimeStamp(
           timeStampStored[0].maxTimeStamp,
           Math.floor(Date.now() / 1000),
@@ -195,10 +187,7 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const func = async () => {
-      // const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
       const res: any = await myClient?.getAllAttachmentUploadConversations();
-      // console.log('resAttachment', res);
-
       if (res) {
         let len = res.length;
         if (len > 0) {

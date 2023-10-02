@@ -71,7 +71,6 @@ export const PeopleWhoReacted = ({
   removeReaction,
   user,
 }: PeopleWhoReacted) => {
-  // console.log('itemPeopleReactedasdsa', item);
   return (
     <View style={{height: '100%'}}>
       <ScrollView>
@@ -174,7 +173,6 @@ export default function MyTabs({
       navigationState={state}
       renderTabBar={renderTabBar}
       renderScene={({route}) => {
-        // console.log('routeReaciaof', route);
         switch (route.key) {
           case 'all':
             return (

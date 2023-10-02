@@ -75,8 +75,6 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case SET_INITIAL_DMFEED_CHATROOM: {
       const {dmFeedChatrooms = {}} = action.body;
-      // console.log('dmFeedChatroomssdf', dmFeedChatrooms);
-
       if (state.dmFeedChatrooms.length === 0) {
         return {
           ...state,
@@ -87,8 +85,6 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case DELETE_GROUPFEED_CHATROOM: {
       const index = action.body;
-      // console.log('kujyhtgbfvds', index);
-
       let groupFeedChatrooms = state.groupFeedChatrooms;
       groupFeedChatrooms = [
         ...groupFeedChatrooms.slice(0, index),
@@ -130,8 +126,6 @@ export function homefeedReducer(state = initialState, action: any) {
     case UPDATE_DMFEED_CHATROOM: {
       const modifiedDMChatroom = action.body.modifiedDMChatroom;
       const index = action.body.index;
-      // console.log('modifiedDMChatroomREducer', modifiedDMChatroom);
-      // console.log('indexReducer', index);
       if (modifiedDMChatroom?.type === 10) {
         let dmFeedChatrooms = state.dmFeedChatrooms;
         dmFeedChatrooms[index] = modifiedDMChatroom;
@@ -141,47 +135,6 @@ export function homefeedReducer(state = initialState, action: any) {
           dmFeedChatrooms: updatedDmFeedChatrooms,
         };
       }
-
-      // if (modifiedDMChatroom?.type === 10) {
-      //   let dmFeedChatrooms = state.dmFeedChatrooms;
-      //   console.log('dmFeedChatrooms', dmFeedChatrooms);
-      //   let currentIndex = 0;
-      //   for (let i = 0; i < dmFeedChatrooms.length; i++) {
-      //     if (dmFeedChatrooms[i]?.id === modifiedDMChatroom?.id) {
-      //       currentIndex = i;
-      //       console.log('currentIndex', currentIndex);
-      //       break;
-      //     }
-      //   }
-
-      //   console.log('dmFeedChatroomsOld', dmFeedChatrooms);
-
-      //   const updatedDMChatrooms = removeAndShift(
-      //     dmFeedChatrooms,
-      //     currentIndex,
-      //     modifiedDMChatroom,
-      //   );
-
-      //   // console.log('dmFeedChatroomsOld', dmFeedChatrooms);
-
-      //   // dmFeedChatrooms[index] = modifiedDMChatroom;
-      //   console.log('dmFeedChatroomsNew', updatedDMChatrooms);
-
-      //   // console.log('oldDMFeedChatrooms', state.dmFeedChatrooms);
-
-      //   // const dmFeedChatrooms = removeAndShift(
-      //   //   state.dmFeedChatrooms,
-      //   //   index,
-      //   //   modifiedDMChatroom,
-      //   // );
-
-      //   // console.log('updatedDMFEEdChatrooms', dmFeedChatrooms);
-
-      //   return {
-      //     ...state,
-      //     dmFeedChatrooms: updatedDMChatrooms,
-      //   };
-      // }
       return state;
     }
     case INSERT_GROUPFEED_CHATROOM: {
@@ -210,22 +163,16 @@ export function homefeedReducer(state = initialState, action: any) {
     case INSERT_DMFEED_CHATROOM: {
       const insertedDMChatroom = action.body.insertedDMChatroom;
       const index = action.body.index;
-      // console.log('insertedChatroomREducer', insertedDMChatroom);
-      // console.log('indexinsertedChatroomReducer', index);
       if (insertedDMChatroom?.type === 10) {
         let currentChatrooms = state.dmFeedChatrooms;
-        // console.log('currentDMCHatroms', currentChatrooms);
-
         if (currentChatrooms.length !== 0) {
           currentChatrooms = [
             ...currentChatrooms.slice(0, index),
             insertedDMChatroom,
             ...currentChatrooms.slice(index),
           ];
-          // console.log('modifiedDMCHaroapdkl', currentChatrooms);
         } else {
           currentChatrooms = [...state.dmFeedChatrooms, insertedDMChatroom];
-          // console.log('modifiedFirealkrfj', currentChatrooms);
         }
         const updatedDmFeedChatrooms = removeDuplicateObjects(currentChatrooms);
         return {
@@ -237,9 +184,20 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case GET_INVITES_SUCCESS: {
       const {userInvites = []} = action.body;
+      let updatedUserInvites = [];
+      for (let i = 0; i < userInvites.length; i++) {
+        let newObject = {
+          ...userInvites[i],
+          ...userInvites[i]?.chatroom,
+        };
+        //TODO - backend  -> mute/unmute, unseenCount, state, followStatus
+        newObject.state = 0;
+        newObject.followStatus = true;
+        updatedUserInvites.push(newObject);
+      }
       return {
         ...state,
-        invitedChatrooms: userInvites,
+        invitedChatrooms: updatedUserInvites,
       };
     }
     case ACCEPT_INVITE_SUCCESS: {

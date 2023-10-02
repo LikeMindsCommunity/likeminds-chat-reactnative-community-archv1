@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import {myClient} from '../../..';
 import {decode, getFullDate} from '../../commonFuctions';
-import {useAppDispatch} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../../store';
 import {getHomeFeedData} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE,
@@ -68,7 +68,7 @@ const HomeFeedItem: React.FC<Props> = ({
   muteStatus,
 }) => {
   const dispatch = useAppDispatch();
-  // console.log('deletedByadsadsa', deletedBy);
+  let {invitedChatrooms, user} = useAppSelector(state => state.homefeed);
 
   const showJoinAlert = () =>
     Alert.alert(
@@ -86,6 +86,19 @@ const HomeFeedItem: React.FC<Props> = ({
               channelId: `${chatroomID}`,
               inviteStatus: 1,
             });
+            //TODO - secret invitation acceptance flow
+            // if (res?.success === true) {
+            //   for (let i = 0; i < invitedChatrooms.length; i++) {
+            //     await myClient?.saveDMChatroom(
+            //       invitedChatrooms[i],
+            //       user?.sdkClientInfo?.community,
+            //       user,
+            //     );
+            //     const getChatroom = await myClient?.getChatroom(
+            //       chatroomID.toString(),
+            //     );
+            //   }
+            // }
             dispatch({
               type: SHOW_TOAST,
               body: {isToast: true, msg: 'Invitation accepted'},
@@ -339,7 +352,6 @@ const HomeFeedItem: React.FC<Props> = ({
         <View style={styles.headerContainer}>
           <Text style={styles.title} numberOfLines={1}>
             {title}
-
             {isSecret ? (
               <Image
                 source={require('../../assets/images/lock_icon3x.png')}

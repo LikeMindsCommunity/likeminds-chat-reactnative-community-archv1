@@ -590,22 +590,17 @@ const InputBox = ({
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
 
-      // console.log('53421');
-
       dispatch({
         type: UPDATE_CONVERSATIONS,
         body: isReply
           ? {obj: {...replyObj, isInProgress: SUCCESS}}
           : {obj: {...obj, isInProgress: SUCCESS}},
       });
-      // console.log('3245');
 
       dispatch({
         type: MESSAGE_SENT,
         body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
-
-      // console.log('34354532');
 
       if (
         chatroomType !== 10 && // if not DM
@@ -626,47 +621,33 @@ const InputBox = ({
           }
         } else {
           if (attachmentsCount > 0) {
-            // console.log('sadf');
             const editedObj = {...obj, isInProgress: SUCCESS};
             await myClient?.saveNewConversation(
               chatroomID.toString(),
               editedObj,
             );
           } else {
-            // console.log('kljmn');
             await myClient?.saveNewConversation(chatroomID.toString(), obj);
           }
         }
       }
 
       if (isUploadScreen) {
-        // console.log('assda');
-
         dispatch({
           type: CLEAR_SELECTED_FILES_TO_UPLOAD,
         });
-        // console.log('csadc');
-
         dispatch({
           type: CLEAR_SELECTED_FILE_TO_VIEW,
         });
-        // console.log('aSADSSA');
       }
       setMessage('');
       setFormattedConversation('');
       setInputHeight(25);
 
       if (isReply) {
-        // console.log('dsfdasfasd');
-
         dispatch({type: SET_IS_REPLY, body: {isReply: false}});
-        // console.log('sadasds');
-
         dispatch({type: SET_REPLY_MESSAGE, body: {replyMessage: ''}});
-        // console.log('sdasD');
       }
-
-      // console.log('isPrivateMemberHUNaMAi', isPrivateMember);
 
       // -- Code for local message handling ended
 
@@ -703,8 +684,6 @@ const InputBox = ({
           chatRequestState: 1,
           text: message.trim(),
         });
-
-        // console.log('responseadasd', response);
 
         dispatch({
           type: UPDATE_CHAT_REQUEST_STATE,
@@ -743,14 +722,10 @@ const InputBox = ({
             });
           }
         } else {
-          // console.log('adsfadsfasdd');
-
           dispatch({
             type: FILE_SENT,
             body: {status: !fileSent},
           });
-          // console.log('oikj');
-
           navigation.goBack();
           let payload = {
             chatroomId: chatroomID,
@@ -760,22 +735,9 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
-          // console.log('paramasdsd', payload);
 
           let response = await dispatch(onConversationsCreate(payload) as any);
-          // console.log('kljnvsl', response);
-
           await myClient?.replaceSavedConversation(response?.conversation);
-          // console.log('adassdada');
-
-          // const conversationGet = await myClient?.getConversations(chatroomID);
-          // console.log('vdsvsdvs');
-
-          // dispatch({
-          //   type: GET_CONVERSATIONS_SUCCESS,
-          //   body: {conversations: conversationGet},
-          // });
-          // console.log('ewrtr');
 
           if (response === undefined) {
             dispatch({
@@ -787,8 +749,6 @@ const InputBox = ({
             });
           } else if (response) {
             // start uploading
-            // console.log('dasddsv');
-
             dispatch({
               type: SET_FILE_UPLOADING_MESSAGES,
               body: {
@@ -809,8 +769,8 @@ const InputBox = ({
               },
             });
 
-            let idd = response?.id;
-            let msg = isReply
+            let id = response?.id;
+            let message = isReply
               ? {
                   ...replyObj,
                   id: response?.id,
@@ -825,23 +785,16 @@ const InputBox = ({
                 };
 
             await myClient?.saveAttachmentUploadConversation(
-              idd.toString(),
-              JSON.stringify(msg),
+              id.toString(),
+              JSON.stringify(message),
             );
-
-            // console.log('dafasdasd');
-
-            // console.log('adsfdsfd');
 
             await handleFileUpload(response?.id, false);
           }
-          // console.log('gbgbdfbd');
-
           dispatch({
             type: STATUS_BAR_STYLE,
             body: {color: STYLES.$STATUS_BAR_STYLE.default},
           });
-          // console.log('vfvsd');
         }
       }
     }
