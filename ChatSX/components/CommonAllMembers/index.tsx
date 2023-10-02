@@ -424,7 +424,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             uuid: uuid,
           };
           const apiResponse = await myClient?.createDMChatroom(payload);
-          console.log('apiResponseCommon', apiResponse);
+          // console.log('apiResponseCommon', apiResponse);
           const response = apiResponse?.data;
           if (apiResponse?.success === false) {
             dispatch({
@@ -433,7 +433,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             });
           } else {
             const chatroomWithUser = response?.chatroom?.chatroomWithUser;
-            console.log('dafsdbfdgsa', chatroomWithUser);
+            // console.log('dafsdbfdgsa', chatroomWithUser);
             // await myClient?.saveDMChatroom(
             //   response?.chatroom,
             //   response?.chatroom?.communityId,

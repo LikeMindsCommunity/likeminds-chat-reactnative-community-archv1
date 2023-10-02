@@ -156,7 +156,7 @@ const HomeFeed = ({navigation}: Props) => {
       // console.log('timeStampStoredTimeSetter', timeStampStored);
 
       if (timeStampStored.length === 0) {
-        console.log('2345453343');
+        // console.log('2345453343');
         const maxTimeStamp = Math.floor(Date.now() / 1000);
         const minTimeStamp = 0;
         await myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
@@ -166,7 +166,7 @@ const HomeFeed = ({navigation}: Props) => {
         //   'timeStampStored[0].maxTimeStamp',
         //   timeStampStored[0].maxTimeStamp,
         // );
-        console.log('updatingggggg');
+        // console.log('updatingggggg');
         await myClient.updateTimeStamp(
           timeStampStored[0].maxTimeStamp,
           Math.floor(Date.now() / 1000),
@@ -197,7 +197,7 @@ const HomeFeed = ({navigation}: Props) => {
     const func = async () => {
       // const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
       const res: any = await myClient?.getAllAttachmentUploadConversations();
-      console.log('resAttachment', res);
+      // console.log('resAttachment', res);
 
       if (res) {
         let len = res.length;

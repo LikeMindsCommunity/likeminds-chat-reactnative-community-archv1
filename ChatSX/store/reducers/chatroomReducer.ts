@@ -108,8 +108,8 @@ export function chatroomReducer(state = initialState, action: any) {
       const {conversations = []} = data;
       let ID = conversations[0]?.id;
       let temporaryID = conversations[0]?.temporaryId;
-      console.log('IDDDD', ID);
-      console.log('temporaryID', temporaryID);
+      // console.log('IDDDD', ID);
+      // console.log('temporaryID', temporaryID);
 
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
@@ -121,7 +121,7 @@ export function chatroomReducer(state = initialState, action: any) {
           element?.id?.toString() === temporaryID?.toString() // to replace the messsage if message is already there by verifying message's ID with conversationMeta ID;
         );
       });
-      console.log('indexReducer', index);
+      // console.log('indexReducer', index);
 
       //replacing the value from the index that matches ID
       if (conversations.length > 0 && index !== -1) {
@@ -137,33 +137,38 @@ export function chatroomReducer(state = initialState, action: any) {
       };
     }
     case ON_CONVERSATIONS_CREATE_SUCCESS: {
+      // console.log('action.body', action.body);
+
       const data = action.body;
+      // console.log('dataatysa', data);
+
       const {conversation = []} = data;
+      // console.log('conversationasda', conversation);
 
       if (conversation?.hasFiles || !!conversation?.replyConversation) {
         return {...state};
       }
       let temporaryID = conversation?.temporaryId;
-      console.log('temporaryID', temporaryID);
+      // console.log('temporaryID', temporaryID);
 
       let conversationsList = [...state.conversations];
-      console.log('conversationsListLength', conversationsList.length);
+      // console.log('conversationsListLength', conversationsList.length);
 
-      console.log('conversationsList', conversationsList);
+      // console.log('conversationsList', conversationsList);
 
       let conversationArr: any = [...conversationsList];
 
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
       let index = conversationsList.findIndex((element: any) => {
-        console.log('dafasdsdasfad', element?.answer);
-        console.log('elementadas', element?.id);
-        console.log('elementTEmpemadas', element?.temporaryId);
+        // console.log('dafasdsdasfad', element?.answer);
+        // console.log('elementadas', element?.id);
+        // console.log('elementTEmpemadas', element?.temporaryId);
         return (
           element?.id?.toString() === temporaryID || // to check locally handled item id with temporaryID
           element?.temporaryId?.toString() === temporaryID // to replace the messsage if message is already there by verifying message's temporaryID with conversationMeta temporaryID;
         );
       });
-      console.log('indexOnCreateSuccess', index);
+      // console.log('indexOnCreateSuccess', index);
 
       //replacing the value from the index that matches temporaryID
       if (index !== -1) {

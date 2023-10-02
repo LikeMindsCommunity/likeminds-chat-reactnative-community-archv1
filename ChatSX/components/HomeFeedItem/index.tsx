@@ -68,7 +68,7 @@ const HomeFeedItem: React.FC<Props> = ({
   muteStatus,
 }) => {
   const dispatch = useAppDispatch();
-  console.log('deletedByadsadsa', deletedBy);
+  // console.log('deletedByadsadsa', deletedBy);
 
   const showJoinAlert = () =>
     Alert.alert(

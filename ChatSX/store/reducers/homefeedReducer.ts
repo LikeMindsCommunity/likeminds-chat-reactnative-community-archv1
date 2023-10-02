@@ -27,6 +27,7 @@ import {
   DELETE_GROUPFEED_CHATROOM,
   DELETE_DMFEED_CHATROOM,
 } from '../types/types';
+import {removeDuplicateObjects} from '../../utils/homeFeedUtils';
 
 const initialState = {
   myChatrooms: [] as any,
@@ -74,7 +75,7 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case SET_INITIAL_DMFEED_CHATROOM: {
       const {dmFeedChatrooms = {}} = action.body;
-      console.log('dmFeedChatroomssdf', dmFeedChatrooms);
+      // console.log('dmFeedChatroomssdf', dmFeedChatrooms);
 
       if (state.dmFeedChatrooms.length === 0) {
         return {
@@ -86,7 +87,7 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case DELETE_GROUPFEED_CHATROOM: {
       const index = action.body;
-      console.log('kujyhtgbfvds', index);
+      // console.log('kujyhtgbfvds', index);
 
       let groupFeedChatrooms = state.groupFeedChatrooms;
       groupFeedChatrooms = [
@@ -117,9 +118,11 @@ export function homefeedReducer(state = initialState, action: any) {
       if (modifiedChatroom?.type !== 10) {
         let groupFeedChatrooms = state.groupFeedChatrooms;
         groupFeedChatrooms[index] = modifiedChatroom;
+        const updatedGroupFeedChatrooms =
+          removeDuplicateObjects(groupFeedChatrooms);
         return {
           ...state,
-          groupFeedChatrooms: groupFeedChatrooms,
+          groupFeedChatrooms: updatedGroupFeedChatrooms,
         };
       }
       return state;
@@ -127,14 +130,15 @@ export function homefeedReducer(state = initialState, action: any) {
     case UPDATE_DMFEED_CHATROOM: {
       const modifiedDMChatroom = action.body.modifiedDMChatroom;
       const index = action.body.index;
-      console.log('modifiedDMChatroomREducer', modifiedDMChatroom);
-      console.log('indexReducer', index);
+      // console.log('modifiedDMChatroomREducer', modifiedDMChatroom);
+      // console.log('indexReducer', index);
       if (modifiedDMChatroom?.type === 10) {
         let dmFeedChatrooms = state.dmFeedChatrooms;
         dmFeedChatrooms[index] = modifiedDMChatroom;
+        const updatedDmFeedChatrooms = removeDuplicateObjects(dmFeedChatrooms);
         return {
           ...state,
-          dmFeedChatrooms: dmFeedChatrooms,
+          dmFeedChatrooms: updatedDmFeedChatrooms,
         };
       }
 
@@ -194,9 +198,11 @@ export function homefeedReducer(state = initialState, action: any) {
         } else {
           currentChatrooms = [...state.groupFeedChatrooms, insertedChatroom];
         }
+        const updatedGroupFeedChatrooms =
+          removeDuplicateObjects(currentChatrooms);
         return {
           ...state,
-          groupFeedChatrooms: currentChatrooms,
+          groupFeedChatrooms: updatedGroupFeedChatrooms,
         };
       }
       return state;
@@ -204,11 +210,11 @@ export function homefeedReducer(state = initialState, action: any) {
     case INSERT_DMFEED_CHATROOM: {
       const insertedDMChatroom = action.body.insertedDMChatroom;
       const index = action.body.index;
-      console.log('insertedChatroomREducer', insertedDMChatroom);
-      console.log('indexinsertedChatroomReducer', index);
+      // console.log('insertedChatroomREducer', insertedDMChatroom);
+      // console.log('indexinsertedChatroomReducer', index);
       if (insertedDMChatroom?.type === 10) {
         let currentChatrooms = state.dmFeedChatrooms;
-        console.log('currentDMCHatroms', currentChatrooms);
+        // console.log('currentDMCHatroms', currentChatrooms);
 
         if (currentChatrooms.length !== 0) {
           currentChatrooms = [
@@ -216,14 +222,15 @@ export function homefeedReducer(state = initialState, action: any) {
             insertedDMChatroom,
             ...currentChatrooms.slice(index),
           ];
-          console.log('modifiedDMCHaroapdkl', currentChatrooms);
+          // console.log('modifiedDMCHaroapdkl', currentChatrooms);
         } else {
           currentChatrooms = [...state.dmFeedChatrooms, insertedDMChatroom];
-          console.log('modifiedFirealkrfj', currentChatrooms);
+          // console.log('modifiedFirealkrfj', currentChatrooms);
         }
+        const updatedDmFeedChatrooms = removeDuplicateObjects(currentChatrooms);
         return {
           ...state,
-          dmFeedChatrooms: currentChatrooms,
+          dmFeedChatrooms: updatedDmFeedChatrooms,
         };
       }
       return state;

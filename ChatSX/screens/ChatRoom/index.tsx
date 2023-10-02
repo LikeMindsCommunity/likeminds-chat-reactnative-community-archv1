@@ -214,11 +214,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // console.log('chatroomDetailsComp', chatroomDetails);
 
-  console.log('chatroomDBDetailsComp', chatroomDBDetails);
-  console.log(
-    'chatroomDBDetailsCompPrivateMember',
-    chatroomDBDetails?.isPrivateMember,
-  );
+  // console.log('chatroomDBDetailsComp', chatroomDBDetails);
+  // console.log(
+  //   'chatroomDBDetailsCompPrivateMember',
+  //   chatroomDBDetails?.isPrivateMember,
+  // );
 
   const INITIAL_SYNC_PAGE = 1;
   const PAGE_SIZE = 50;
@@ -232,7 +232,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
   let chatRequestState = chatroomDBDetails?.chatRequestState;
 
-  console.log('chatroomFollowStatussad', chatroomFollowStatus);
+  // console.log('chatroomFollowStatussad', chatroomFollowStatus);
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -256,8 +256,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   */
   }
 
-  console.log('user?.id', user?.id);
-  console.log('chatroomWithUser?.id', chatroomWithUser);
+  // console.log('user?.id', user?.id);
+  // console.log('chatroomWithUser?.id', chatroomWithUser);
 
   let chatroomName =
     chatroomType === 10
@@ -266,7 +266,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         : chatroomDBDetails?.member?.name!
       : chatroomDBDetails?.header;
 
-  console.log('chatroomNameComp', chatroomName);
+  // console.log('chatroomNameComp', chatroomName);
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -306,11 +306,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // Initial header of chatroom screen
   const setInitialHeader = () => {
-    console.log('chatroomNamekljhb', chatroomName);
-    console.log(
-      '{chatroomDetails?.participantCount}',
-      chatroomDetails?.participantCount,
-    );
+    // console.log('chatroomNamekljhb', chatroomName);
+    // console.log(
+    //   '{chatroomDetails?.participantCount}',
+    //   chatroomDetails?.participantCount,
+    // );
     navigation.setOptions({
       title: '',
       headerShadowVisible: false,
@@ -654,7 +654,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     minTimeStamp: number,
     conversationId?: string,
   ) {
-    console.log('maxTimeStampewfedgf', maxTimeStamp);
+    // console.log('maxTimeStampewfedgf', maxTimeStamp);
 
     const res = myClient?.syncConversation(
       SyncConversationRequest.builder()
@@ -688,7 +688,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     // console.log('DB_RESPONSE', DB_RESPONSE);
     // console.log('community?.id,', community?.id);
 
-    console.log('98765');
+    // console.log('98765');
 
     if (DB_RESPONSE?.conversationsData.length !== 0) {
       await myClient?.saveConversationData(
@@ -699,18 +699,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       );
     }
 
-    console.log('456789');
+    // console.log('456789');
 
-    console.log('pagePaginated', page);
+    // console.log('pagePaginated', page);
     if (page === 1) {
-      console.log('9087098');
+      // console.log('9087098');
 
       let conversationsFromRealm = await myClient?.getConversationData(
         chatroomID,
         PAGE_SIZE,
       );
 
-      console.log('conversationsFromRealmPage1', conversationsFromRealm);
+      // console.log('conversationsFromRealmPage1', conversationsFromRealm);
 
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
@@ -732,17 +732,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this function fetchConversations when we first move inside Chatroom
   async function fetchData(showLoaderVal?: boolean) {
-    console.log('chatroomID.toString()', chatroomID?.toString());
+    // console.log('chatroomID.toString()', chatroomID?.toString());
     let chatroomDetails = await myClient?.getChatroom(chatroomID?.toString());
-    console.log('chatroom1', chatroomDetails);
+    // console.log('chatroom1', chatroomDetails);
     let maxTimeStamp = Math.floor(Date.now() * 1000);
     if (chatroomDetails === undefined) {
       //Cold start
       await paginatedSyncAPIChatroom(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
-      console.log('324567');
+      // console.log('324567');
 
       await myClient?.chatroomViewed(chatroomID);
-      console.log('534211');
+      // console.log('534211');
 
       setShimmerIsLoading(false);
     } else {
@@ -772,7 +772,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         // const currentChatroom = JSON.parse(JSON.stringify(currentChatroom1));
 
         let minTimeStamp = chatroom?.lastSeenConversation?.lastUpdatedAt ?? 0;
-        console.log('minTimeStampREalmm', minTimeStamp);
+        // console.log('minTimeStampREalmm', minTimeStamp);
 
         await paginatedSyncAPIChatroom(
           INITIAL_SYNC_PAGE,
@@ -782,10 +782,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       } else {
         // Cold start
         await paginatedSyncAPIChatroom(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
-        console.log('324567');
+        // console.log('324567');
 
         await myClient?.chatroomViewed(chatroomID);
-        console.log('534211');
+        // console.log('534211');
 
         setShimmerIsLoading(false);
       }
@@ -809,11 +809,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   //this function fetchChatroomDetails when we first move inside Chatroom
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
-    console.log('iu6y5trwedsf');
+    // console.log('iu6y5trwedsf');
 
     let DB_DATA1 = await myClient?.getChatroom(chatroomID?.toString());
     let DB_DATA = JSON.parse(JSON.stringify(DB_DATA1));
-    console.log('DB_DATA', DB_DATA);
+    // console.log('DB_DATA', DB_DATA);
     // console.log('DB_DATA[0]', DB_DATA[0]);
     // console.log('DB_DATA.length', DB_DATA?.length);
 
@@ -968,8 +968,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this useEffect update initial header when we get chatroomDetails.
   useEffect(() => {
-    console.log('chatroomDBDetailsUseEffect', chatroomDBDetails);
-    console.log('chatroomDetailsUseEffect', chatroomDetails);
+    // console.log('chatroomDBDetailsUseEffect', chatroomDBDetails);
+    // console.log('chatroomDetailsUseEffect', chatroomDetails);
     setInitialHeader();
   }, [chatroomDBDetails, chatroomDetails]);
 
@@ -1052,11 +1052,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return onValue(query, async (snapshot: DataSnapshot) => {
       if (snapshot.exists()) {
         let firebaseData = snapshot.val();
-        console.log('firebaseData', firebaseData);
+        // console.log('firebaseData', firebaseData);
 
         let conversationID = firebaseData?.collabcard?.answer_id;
 
-        console.log('conversationIDFirebase', conversationID);
+        // console.log('conversationIDFirebase', conversationID);
 
         if (conversationID) {
           if (!user?.sdkClientInfo?.community) return;
@@ -1076,7 +1076,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           // console.log('minTimeStampFirebase', minTimeStamp);
 
           let maxTimeStamp = Math.floor(Date.now() * 1000);
-          console.log('maxTimeStampdsaf', maxTimeStamp);
+          // console.log('maxTimeStampdsaf', maxTimeStamp);
 
           await paginatedSyncAPIChatroom(
             INITIAL_SYNC_PAGE,
@@ -1205,9 +1205,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          navigation.goBack();
           // Updating the followStatus of chatroom to false in case of leaving the chatroom
           await myClient?.setFollowStatus(chatroomID?.toString());
+          navigation.goBack();
         }
       })
       .catch(() => {
@@ -1251,9 +1251,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           });
           navigation.goBack();
         } else {
-          navigation.goBack();
           // Updating the followStatus of chatroom to false in case of leaving the chatroom
           await myClient?.setFollowStatus(chatroomID?.toString());
+          navigation.goBack();
         }
       })
       .catch(() => {
@@ -2014,6 +2014,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             ID: conversationID,
           },
         });
+        let idd = conversationID;
+        let msg = {
+          ...uploadingFilesMessages[conversationID?.toString()],
+          isInProgress: FAILED,
+        };
+
+        await myClient?.saveAttachmentUploadConversation(
+          idd.toString(),
+          JSON.stringify(msg),
+        );
         return error;
       }
       dispatch({
@@ -2030,6 +2040,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ID: conversationID,
       },
     });
+    await myClient?.removeAttactmentUploadConversationByKey(
+      conversationID?.toString(),
+    );
   };
 
   const handleFileUpload = async (conversationID: any, isRetry: any) => {
@@ -2044,6 +2057,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ID: conversationID,
       },
     });
+    let idd = conversationID;
+    let msg = {
+      ...selectedFilesToUpload,
+      isInProgress: SUCCESS,
+    };
+
+    await myClient?.saveAttachmentUploadConversation(
+      idd.toString(),
+      JSON.stringify(msg),
+    );
     const res = await uploadResource({
       selectedImages: selectedFilesToUpload?.attachments,
       conversationID: conversationID,
@@ -2166,6 +2189,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               borderTopRightRadius: 12,
               borderTopLeftRadius: 12,
               borderBottomLeftRadius: 12,
+              marginTop: 10,
             }}>
             <ShimmerPlaceHolder
               style={{width: 150, height: 10, borderRadius: 5}}

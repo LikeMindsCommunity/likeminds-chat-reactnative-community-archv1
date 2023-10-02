@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {removeKey} from '../../commonFuctions';
 import {myClient} from '../../..';
 import {
@@ -25,23 +24,34 @@ export function fileUploadReducer(state = initialState, action: any) {
       };
     }
     case SET_FILE_UPLOADING_MESSAGES: {
+      // console.log('Adsadasd');
+
       const {message = {}, ID} = action.body;
       let obj = {[ID]: {...message}};
+      // console.log('objasdsad', obj);
 
       let dummyState = {
         ...state.uploadingFilesMessages,
         ...obj,
       };
 
-      // this method is used to save attachment in realm to retrieve attachment incase of image upload failure
-      const saveAttachment = () => {
-        myClient?.saveAttachmentUploadConversation(
-          ID.toString(),
-          JSON.stringify(message),
-        );
-      };
+      // console.log('dummyState', dummyState);
 
-      saveAttachment();
+      // this method is used to save attachment in realm to retrieve attachment incase of image upload failure
+      // const saveAttachment = () => {
+      //   console.log('fsasdasda', JSON.stringify(message));
+
+      //   myClient?.saveAttachmentUploadConversation(
+      //     ID.toString(),
+      //     JSON.stringify(message),
+      //   );
+      //   console.log('dsmf sdjkf');
+      // };
+      // console.log('dafasdasd');
+
+      // saveAttachment();
+      // console.log('n dajs');
+
       return {
         ...state,
         uploadingFilesMessages: dummyState,
@@ -57,11 +67,11 @@ export function fileUploadReducer(state = initialState, action: any) {
         uploadingFilesMessages: {...obj},
       };
 
-      const func = () => {
-        myClient?.removeAttactmentUploadConversationByKey(ID?.toString());
-      };
+      // const func = () => {
+      //   myClient?.removeAttactmentUploadConversationByKey(ID?.toString());
+      // };
 
-      func();
+      // func();
       return dummyState;
     }
 

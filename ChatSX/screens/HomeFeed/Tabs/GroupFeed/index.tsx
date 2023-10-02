@@ -381,6 +381,7 @@ const GroupFeed = ({navigation}: Props) => {
           estimatedItemSize={15}
           ListFooterComponent={renderFooter}
           keyExtractor={(item: any) => {
+            console.log('itemsdfsdfs', item);
             return item?.id?.toString();
           }}
         />
