@@ -1,4 +1,5 @@
 import {myClient} from '../../..';
+import {PATH_REGEX, QUERY_REGEX, VALID_URI_REGEX} from '../../constants/Regex';
 import {initAPI} from '../../store/actions/homefeed';
 
 interface DeepLinkRequest {
@@ -15,7 +16,7 @@ interface DeepLinkResponse {
 
 // this function is to check URI is valid or not
 function isValidURI(uri: string): boolean {
-  const regex = /^(ftp|http|https):\/\/[^ "]+$/;
+  const regex = VALID_URI_REGEX;
   return regex.test(uri);
 }
 
@@ -27,11 +28,21 @@ async function parseDeepLink(
   const uri = request.uri;
 
   if (isValidURI(uri)) {
-    const pathSegments = uri.split('/').filter(Boolean);
-    if (pathSegments.length >= 1 && pathSegments[0] === 'chatroom') {
-      const chatroomId = new URLSearchParams(uri.split('?')[1] || '').get(
-        'chatroom_id',
-      );
+    const pathRegex = PATH_REGEX;
+    const matches = uri.match(pathRegex);
+
+    const path = matches ? matches[1] : null;
+
+    if (path === '/chatroom') {
+      let regexToExtractParams: RegExp = QUERY_REGEX;
+      let params: Record<string, string> = {};
+      let match: RegExpExecArray | null;
+
+      while ((match = regexToExtractParams.exec(uri))) {
+        params[match[1]] = match[2];
+      }
+
+      let chatroomId = params?.chatroom_id;
 
       if (chatroomId) {
         const internalRoute = `route://collabcard?collabcard_id=${chatroomId}`;
@@ -76,12 +87,15 @@ async function parseDeepLink(
 
 // Example usage
 const exampleRequest: DeepLinkRequest = {
-  uri: 'https://domain/chatroom?chatroom_id=123',
+  uri: 'https://dummyurl.com/chatroom?chatroom_id=12345',
   userName: 'John Doe',
   uuid: '123456',
   isGuest: false,
 };
 
-parseDeepLink(exampleRequest, response => {
-  console.log(response);
-});
+// Example usage to call parseDeepLink() method
+export function callParseDeepLink() {
+  parseDeepLink(exampleRequest, response => {
+    // Parsed response
+  });
+}

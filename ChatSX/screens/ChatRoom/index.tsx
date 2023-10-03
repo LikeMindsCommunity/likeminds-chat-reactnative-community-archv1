@@ -30,6 +30,7 @@ import {
   copySelectedMessages,
   fetchResourceFromURI,
   formatTime,
+  shareChatroomURL,
 } from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
@@ -120,8 +121,6 @@ import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
 import {useQuery} from '@realm/react';
-import Realm from 'realm';
-import {Observable} from 'rxjs';
 import {Share} from 'react-native';
 
 interface Data {
@@ -271,7 +270,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   let isSecret = chatroomDetails?.chatroom?.isSecret;
 
-  let notIncludedActionsID = [3];
+  let notIncludedActionsID = [16]; // Add All members
   let filteredChatroomActions = chatroomDetails?.chatroomActions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
@@ -626,7 +625,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         .setPage(page)
         .setMinTimestamp(minTimeStamp)
         .setMaxTimestamp(maxTimeStamp)
-        .setPageSize(20)
+        .setPageSize(500)
         .build(),
     );
     return res;
@@ -1987,9 +1986,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function helps to share chatroom url
   const onShare = async () => {
     try {
+      let shareChatroomRequest = {
+        chatroomId: chatroomID,
+        domain: 'https://dummyurl.com',
+      };
+      let URL = shareChatroomURL(shareChatroomRequest);
+
       const result = await Share.share({
-        message:
-          'React Native | A framework for building native apps using React',
+        message: URL,
       });
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
@@ -2372,6 +2376,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       } else if (val?.id === 28) {
                         await unblockMember();
                         setModalVisible(false);
+                      } else if (val?.id === 3) {
+                        // Share flow
+                        onShare();
                       }
                     }}
                     key={val?.id}
@@ -2380,11 +2387,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </TouchableOpacity>
                 );
               })}
-              {
+              {/* {
                 <TouchableOpacity onPress={onShare} style={styles.filtersView}>
                   <Text style={styles.filterText}>{'Share'}</Text>
                 </TouchableOpacity>
-              }
+              } */}
             </Pressable>
           </View>
         </Pressable>
