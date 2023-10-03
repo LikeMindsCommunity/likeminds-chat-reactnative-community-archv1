@@ -2387,11 +2387,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </TouchableOpacity>
                 );
               })}
-              {/* {
-                <TouchableOpacity onPress={onShare} style={styles.filtersView}>
-                  <Text style={styles.filterText}>{'Share'}</Text>
-                </TouchableOpacity>
-              } */}
             </Pressable>
           </View>
         </Pressable>
