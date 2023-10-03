@@ -15,6 +15,7 @@ import {
 import {PollConversationView} from '../Poll';
 import {useQuery} from '@realm/react';
 import {myClient} from '../../..';
+import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
 
 interface Messages {
   item: any;
@@ -60,6 +61,7 @@ const Messages = ({
   const chatRequestedBy = chatroomDBDetails?.chatRequestedBy;
   const chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
+  const status = ChatroomChatRequestState;
 
   const dispatch = useAppDispatch();
   let defaultReactionArrLen = item?.reactions?.length;
@@ -162,7 +164,7 @@ const Messages = ({
   const conversationCreator = item?.member?.sdkClientInfo?.uuid;
   const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = user?.id;
-  const users: any = useQuery('UserSchemaRO');
+  const users = useQuery('UserSchemaRO');
   const currentUserUuid = users[0]?.userUniqueID;
 
   // Method to trim the initial DM connection message based on loggedInMember id
@@ -189,7 +191,7 @@ const Messages = ({
     <View style={styles.messageParent}>
       <View>
         {!!item?.deletedBy ? (
-          chatroomType !== 10 ? (
+          chatroomType !== status.dmChatroom ? (
             currentUserUuid === conversationDeletor ? (
               <View
                 style={[
@@ -349,7 +351,7 @@ const Messages = ({
                     <Text style={styles.textCenterAlign}>
                       {
                         // State 1 refers to initial DM message, so in that case trimming the first user name
-                        item?.state === 1 && chatroomType === 10
+                        item?.state === 1 && chatroomType === status.dmChatroom
                           ? decode(
                               answerTrimming(item?.answer),
                               true,

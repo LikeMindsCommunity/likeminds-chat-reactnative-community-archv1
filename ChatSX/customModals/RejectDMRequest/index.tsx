@@ -8,6 +8,7 @@ import {
   REPORT_AND_REJECT_BUTTON,
 } from '../../constants/Strings';
 import {REPORT} from '../../constants/Screens';
+import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
 
 const RejectDMRequestModal = ({
   hideDMRejectAlert,
@@ -17,6 +18,7 @@ const RejectDMRequestModal = ({
   chatroomID,
   chatroomType,
 }: any) => {
+  const status = ChatroomChatRequestState;
   return (
     <Modal
       visible={DMRejectAlertModalVisible}
@@ -47,7 +49,7 @@ const RejectDMRequestModal = ({
                 onReject();
                 navigation.navigate(REPORT, {
                   conversationID: chatroomID,
-                  isDM: chatroomType === 10 ? true : false,
+                  isDM: chatroomType === status.dmChatroom ? true : false,
                 });
                 hideDMRejectAlert();
               }}>

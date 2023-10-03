@@ -20,7 +20,7 @@ import {
   FIREBASE_CONVERSATIONS_FAILED,
   PAGINATED_CONVERSATIONS_START_SUCCESS,
   PAGINATED_CONVERSATIONS_SUCCESS,
-  GET_CHATROOMACTIONS_SUCCESS,
+  GET_CHATROOM_ACTIONS_SUCCESS,
 } from '../types/types';
 
 export const getConversations =
@@ -152,11 +152,15 @@ export const onConversationsCreate =
 export const getChatroom = (payload: any) => async (dispatch: Dispatch) => {
   try {
     return await dispatch({
-      type: GET_CHATROOMACTIONS_SUCCESS,
+      type: GET_CHATROOM_ACTIONS_SUCCESS,
       [CALL_API]: {
-        func: myClient?.getChatroomV2(payload),
+        func: myClient?.getChatroomActions(payload),
         body: payload,
-        types: [GET_CHATROOM, GET_CHATROOMACTIONS_SUCCESS, GET_CHATROOM_FAILED],
+        types: [
+          GET_CHATROOM,
+          GET_CHATROOM_ACTIONS_SUCCESS,
+          GET_CHATROOM_FAILED,
+        ],
         showLoader: false,
       },
     });

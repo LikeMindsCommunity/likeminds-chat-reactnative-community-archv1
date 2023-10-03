@@ -31,6 +31,7 @@ import {
 } from '../../constants/Strings';
 import Layout from '../../constants/Layout';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
+import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
 
 interface Props {
   avatar: string;
@@ -68,6 +69,7 @@ const HomeFeedItem: React.FC<Props> = ({
   muteStatus,
 }) => {
   const dispatch = useAppDispatch();
+  const status = ChatroomChatRequestState;
   let {invitedChatrooms, user} = useAppSelector(state => state.homefeed);
 
   const showJoinAlert = () =>
@@ -306,11 +308,11 @@ const HomeFeedItem: React.FC<Props> = ({
   return (
     <Pressable
       onPress={() => {
+        // TODO - Currently from backend we don't get the secret chatroom data without accepting or rejecting the invitation, so diabling the click for now so user can't go inside an invited secret chatroom without accepting the invitation
         if (inviteReceiver) return;
         navigation.navigate(CHATROOM, {
           chatroomID: chatroomID,
           isInvited: !!inviteReceiver ? true : false,
-          muteStatus: muteStatus,
         });
       }}
       style={({pressed}) => [
@@ -326,7 +328,7 @@ const HomeFeedItem: React.FC<Props> = ({
           }
           style={styles.avatar}
         />
-        {chatroomType === 10 ? (
+        {chatroomType === status.dmChatroom ? (
           <View style={styles.dmAvatarBubble}>
             <Image
               source={require('../../assets/images/dm_message_bubble3x.png')}
@@ -374,7 +376,7 @@ const HomeFeedItem: React.FC<Props> = ({
                     overflow: 'hidden',
                   },
                 ]}>
-                {chatroomType !== 10 ? (
+                {chatroomType !== status.dmChatroom ? (
                   <Text
                     style={
                       styles.lastMessage

@@ -29,7 +29,7 @@ import {
   UPDATE_MULTIMEDIA_CONVERSATIONS,
   PAGINATED_CONVERSATIONS_START_SUCCESS,
   GET_CHATROOM_DB_SUCCESS,
-  GET_CHATROOMACTIONS_SUCCESS,
+  GET_CHATROOM_ACTIONS_SUCCESS,
   ADD_STATE_MESSAGE,
 } from '../types/types';
 
@@ -174,7 +174,7 @@ export function chatroomReducer(state = initialState, action: any) {
       const {conversations = []} = action.body;
       return {...state, conversations: conversations};
     }
-    case GET_CHATROOMACTIONS_SUCCESS: {
+    case GET_CHATROOM_ACTIONS_SUCCESS: {
       const chatroomDetails = action.body;
       return {...state, chatroomDetails: chatroomDetails};
     }

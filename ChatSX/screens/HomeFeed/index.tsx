@@ -53,7 +53,7 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
-  const users: any = useQuery('UserSchemaRO');
+  const users = useQuery('UserSchemaRO');
 
   const INITIAL_SYNC_PAGE = 1;
 
@@ -149,24 +149,6 @@ const HomeFeed = ({navigation}: Props) => {
 
     return res;
   }
-
-  useEffect(() => {
-    const timeSetter = async () => {
-      const timeStampStored = await myClient?.getTimeStamp();
-      if (timeStampStored.length === 0) {
-        const maxTimeStamp = Math.floor(Date.now() / 1000);
-        const minTimeStamp = 0;
-        await myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
-      } else {
-        // Updating the timeStamp incase of reopening of App
-        await myClient.updateTimeStamp(
-          timeStampStored[0].maxTimeStamp,
-          Math.floor(Date.now() / 1000),
-        );
-      }
-    };
-    timeSetter();
-  }, [isFocused]);
 
   useLayoutEffect(() => {
     fetchData();

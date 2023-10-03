@@ -87,6 +87,7 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
+import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
 
 interface InputBox {
   replyChatID?: any;
@@ -143,6 +144,7 @@ const InputBox = ({
   const [taggedUserName, setTaggedUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const status = ChatroomChatRequestState;
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -603,7 +605,7 @@ const InputBox = ({
       });
 
       if (
-        chatroomType !== 10 && // if not DM
+        chatroomType !== status.dmChatroom && // if not DM
         chatRequestState !== null // if not first DM message sent to an user
       ) {
         if (isReply) {
@@ -653,7 +655,7 @@ const InputBox = ({
 
       // condition for request DM for the first time
       if (
-        chatroomType === 10 && // if DM
+        chatroomType === status.dmChatroom && // if DM
         chatRequestState === null &&
         isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
@@ -673,9 +675,12 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 0},
         });
-        await myClient?.updateChatRequestState(chatroomID.toString(), 0);
+        await myClient?.updateChatRequestState(
+          chatroomID.toString(),
+          status.closed,
+        );
       } else if (
-        chatroomType === 10 && // if DM
+        chatroomType === status.dmChatroom && // if DM
         chatRequestState === null &&
         !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
@@ -689,7 +694,10 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 1},
         });
-        await myClient?.updateChatRequestState(chatroomID.toString(), 1);
+        await myClient?.updateChatRequestState(
+          chatroomID.toString(),
+          status.open,
+        );
       } else {
         if (!isUploadScreen) {
           let payload = {
@@ -868,8 +876,9 @@ const InputBox = ({
       setMessage(e);
       setFormattedConversation(e);
 
-      // chatroomType === 10 (if DM don't detect and show user tags)
-      const newMentions = chatroomType === 10 ? [] : detectMentions(e);
+      // chatroomType === status.dmChatroom (if DM don't detect and show user tags)
+      const newMentions =
+        chatroomType === status.dmChatroom ? [] : detectMentions(e);
 
       if (newMentions.length > 0) {
         const length = newMentions.length;
@@ -1279,7 +1288,7 @@ const InputBox = ({
         <TouchableOpacity
           onPressOut={() => {
             if (
-              chatroomType === 10 && // if DM
+              chatroomType === status.dmChatroom && // if DM
               chatRequestState === null &&
               isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
             ) {

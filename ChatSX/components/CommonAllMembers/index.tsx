@@ -430,8 +430,8 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
               body: {isToast: true, msg: `${apiResponse?.errorMessage}`},
             });
           } else {
-            const chatroomWithUser = response?.chatroom?.chatroomWithUser;
             let createdChatroomID = response?.chatroom?.id;
+            const chatroomWithUser = response?.chatroom?.chatroomWithUser;
             if (!!createdChatroomID) {
               navigation.navigate(CHATROOM, {
                 chatroomID: createdChatroomID,

@@ -47,6 +47,7 @@ import Realm from 'realm';
 import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
 interface Props {

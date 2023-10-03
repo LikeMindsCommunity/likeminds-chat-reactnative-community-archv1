@@ -28,6 +28,7 @@ import {
   DELETE_DMFEED_CHATROOM,
 } from '../types/types';
 import {removeDuplicateObjects} from '../../utils/homeFeedUtils';
+import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
 
 const initialState = {
   myChatrooms: [] as any,
@@ -46,6 +47,8 @@ const initialState = {
   groupFeedChatrooms: [] as any,
   dmFeedChatrooms: [] as any,
 };
+
+const status = ChatroomChatRequestState;
 
 export function homefeedReducer(state = initialState, action: any) {
   switch (action?.type) {
@@ -253,7 +256,7 @@ export function homefeedReducer(state = initialState, action: any) {
     case UPDATE_LAST_CONVERSATION: {
       const {lastConversationAnswer, chatroomType, chatroomID} = action.body;
 
-      let isDM = chatroomType === 10 ? true : false;
+      let isDM = chatroomType === status.dmChatroom ? true : false;
       let chatroomList = isDM ? state?.myDMChatrooms : state?.myChatrooms;
       let index = chatroomList.findIndex((element: any) => {
         return element?.chatroom?.id == chatroomID;

@@ -38,6 +38,7 @@ import Realm from 'realm';
 import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
 interface Props {
@@ -373,9 +374,6 @@ const GroupFeed = ({navigation}: Props) => {
               chatroomType: item?.type,
               muteStatus: item?.muteStatus,
             };
-            // if (!item?.followStatus) {
-            //   return null;
-            // }
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
           extraData={{
