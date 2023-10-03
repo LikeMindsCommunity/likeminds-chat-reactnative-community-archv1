@@ -12,7 +12,6 @@ import {
 import {myClient} from '../../..';
 import {decode, getFullDate} from '../../commonFuctions';
 import {useAppDispatch} from '../../../store';
-import {getHomeFeedData} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE,
   ACCEPT_INVITE_SUCCESS,
@@ -91,7 +90,6 @@ const HomeFeedItem: React.FC<Props> = ({
             });
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
             dispatch({type: SET_PAGE, body: 1});
-            await dispatch(getHomeFeedData({page: 1}, false) as any);
           },
           style: 'default',
         },
