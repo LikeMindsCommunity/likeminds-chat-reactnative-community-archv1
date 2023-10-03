@@ -21,8 +21,8 @@ import {
   ScrollView,
   Platform,
   LogBox,
-  FlatList,
   AppState,
+  ScrollViewProps,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
 import {myClient} from '../../..';
@@ -42,15 +42,13 @@ import {
   getChatroom,
   getConversations,
   paginatedConversations,
+  paginatedConversationsEnd,
+  paginatedConversationsStart,
 } from '../../store/actions/chatroom';
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
-import {
-  getDMFeedData,
-  getHomeFeedData,
-  initAPI,
-} from '../../store/actions/homefeed';
+import {initAPI} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
   ADD_STATE_MESSAGE,
@@ -125,7 +123,6 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
 import {useQuery} from '@realm/react';
 import LinearGradient from 'react-native-linear-gradient';
@@ -159,7 +156,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const db = myClient?.firebaseInstance();
 
   const [replyChatID, setReplyChatID] = useState<number>();
-  const [page, setPage] = useState(1);
+  const [endPage, setEndPage] = useState(1);
+  const [startPage, setStartPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [isToast, setIsToast] = useState(false);
@@ -183,6 +181,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
   const [shimmerIsLoading, setShimmerIsLoading] = useState(true);
+  const [shouldLoadMoreChatEnd, setShouldLoadMoreChatEnd] = useState(true);
+  const [shouldLoadMoreChatStart, setShouldLoadMoreChatStart] = useState(true);
+  const [lastScrollOffset, setLastScrollOffset] = useState(true);
+  const [response, setResponse] = useState([]);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
   const users: any = useQuery('UserSchemaRO');
@@ -1026,10 +1028,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // function shows loader in between calling the API and getting the response
   const loadData = async (newPage?: number) => {
     setIsLoading(true);
-    const newConversations = await myClient.paginateUp(
+    const newConversations = await myClient.getConversationData(
       chatroomID,
-      conversations[conversations.length - 1].createdEpoch,
       100,
+      conversations[conversations.length - 1].createdEpoch,
     );
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
@@ -1982,6 +1984,124 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
+  // Function calls paginatedConversationsEnd action which internally calls getConversations to update conversation array with the new data.
+  async function endOfPaginatedData() {
+    let payload = {
+      chatroomID: chatroomID,
+      conversationID: conversations[conversations.length - 1]?.id,
+      scrollDirection: 0, //scroll up -> 0
+      paginateBy: 50,
+      topNavigate: false,
+    };
+    let response = await dispatch(
+      paginatedConversationsEnd(payload, true) as any,
+    );
+    return response;
+  }
+
+  // Function shows loader in between calling the API and getting the response
+  const endLoadData = async () => {
+    setIsLoading(true);
+    const res = await endOfPaginatedData();
+
+    // To check if its the end of list (top of list in our case)
+    if (res?.conversations?.length == 0) {
+      setShouldLoadMoreChatEnd(false);
+    }
+
+    if (!!res) {
+      setIsLoading(false);
+    }
+  };
+
+  // Function checks the pagination logic, if it verifies the condition then call endLoadData
+  const handleOnEndReached = () => {
+    if (!isLoading && conversations.length > 0) {
+      // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+      if (conversations.length > 15) {
+        const newPage = endPage + 1;
+        setEndPage(newPage);
+        endLoadData();
+      }
+    }
+  };
+
+  // Function calls paginatedConversationsStart action which internally calls getConversations to update conversation array with the new data.
+  async function startOfPaginatedData() {
+    let payload = {
+      chatroomID: chatroomID,
+      conversationID: conversations[0]?.id,
+      scrollDirection: 1, //scroll down -> 1
+      paginateBy: 50,
+      topNavigate: false,
+    };
+    let response = await dispatch(
+      paginatedConversationsStart(payload, true) as any,
+    );
+    return response;
+  }
+
+  // function shows loader in between calling the API and getting the response
+  const startLoadData = async () => {
+    setIsLoading(true);
+    const res = await startOfPaginatedData();
+
+    // To check if its the start of list (bottom of list in our case)
+    if (res?.conversations?.length == 0) {
+      setShouldLoadMoreChatStart(false);
+    }
+    setResponse(res);
+  };
+
+  // Function checks the pagination logic, if it verifies the condition then call startLoadData
+  const handleOnStartReached = () => {
+    if (!isLoading && conversations.length > 0) {
+      // Checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+      if (conversations.length > 15) {
+        const newPage = startPage + 1;
+        setStartPage(newPage);
+        startLoadData();
+      }
+    }
+  };
+
+  const onStartReached = () => {
+    handleOnStartReached();
+  };
+
+  const onEndReached = () => {
+    handleOnEndReached();
+  };
+
+  // For Scrolling Up
+  const handleOnScroll: ScrollViewProps['onScroll'] = event => {
+    const offset = event.nativeEvent.contentOffset.y;
+    const visibleLength = event.nativeEvent.layoutMeasurement.height;
+    const contentLength = event.nativeEvent.contentSize.height;
+    const onStartReachedThreshold = 10;
+    const onEndReachedThreshold = 10;
+
+    // Check if scroll has reached start of list.
+    const isScrollAtStart = offset < onStartReachedThreshold;
+    // Check if scroll has reached end of list.
+    const isScrollAtEnd =
+      contentLength - visibleLength - offset < onEndReachedThreshold;
+
+    if (isScrollAtStart && shouldLoadMoreChatStart && lastScrollOffset) {
+      renderFooter();
+      onStartReached();
+      setLastScrollOffset(false);
+      setTimeout(() => {
+        setLastScrollOffset(true);
+      }, 1000);
+    }
+
+    if (isScrollAtEnd && shouldLoadMoreChatEnd) {
+      renderFooter();
+      onEndReached();
+    }
+  };
+
   return (
     <View style={styles.container}>
       {shimmerIsLoading ? (
@@ -2062,62 +2182,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           </View>
         </View>
       ) : (
-        // <>
-        //   <View
-        //     style={{
-        //       display: 'flex',
-        //       flexDirection: 'row',
-        //       alignItems: 'center',
-        //       marginTop: 50,
-        //     }}>
-        //     <View
-        //       style={{
-        //         width: '20%',
-        //         justifyContent: 'center',
-        //         alignItems: 'center',
-        //       }}></View>
-        //     <View style={{width: '100%'}}>
-        //       <ShimmerPlaceHolder style={{width: '70%'}} />
-        //       <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
-        //     </View>
-        //   </View>
-        //   <View
-        //     style={{
-        //       display: 'flex',
-        //       flexDirection: 'row',
-        //       alignItems: 'center',
-        //       marginTop: 50,
-        //     }}>
-        //     <View
-        //       style={{
-        //         width: '20%',
-        //         justifyContent: 'center',
-        //         alignItems: 'center',
-        //       }}></View>
-        //     <View style={{width: '100%'}}>
-        //       <ShimmerPlaceHolder style={{width: '70%'}} />
-        //       <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
-        //     </View>
-        //   </View>
-        //   <View
-        //     style={{
-        //       display: 'flex',
-        //       flexDirection: 'row',
-        //       alignItems: 'center',
-        //       marginTop: 50,
-        //     }}>
-        //     <View
-        //       style={{
-        //         width: '20%',
-        //         justifyContent: 'center',
-        //         alignItems: 'center',
-        //       }}></View>
-        //     <View style={{width: '100%'}}>
-        //       <ShimmerPlaceHolder style={{width: '70%'}} />
-        //       <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
-        //     </View>
-        //   </View>
-        // </>
         <>
           <FlashList
             ref={flatlistRef}

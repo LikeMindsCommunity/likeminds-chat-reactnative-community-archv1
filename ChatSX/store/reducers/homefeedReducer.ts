@@ -190,9 +190,6 @@ export function homefeedReducer(state = initialState, action: any) {
           ...userInvites[i],
           ...userInvites[i]?.chatroom,
         };
-        //TODO - backend  -> mute/unmute, unseenCount, state, followStatus
-        newObject.state = 0;
-        newObject.followStatus = true;
         updatedUserInvites.push(newObject);
       }
       return {

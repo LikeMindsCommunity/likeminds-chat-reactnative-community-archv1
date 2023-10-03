@@ -12,7 +12,6 @@ import {
 import {myClient} from '../../..';
 import {decode, getFullDate} from '../../commonFuctions';
 import {useAppDispatch, useAppSelector} from '../../../store';
-import {getHomeFeedData} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE,
   ACCEPT_INVITE_SUCCESS,
@@ -31,6 +30,7 @@ import {
   VIDEO_TEXT,
 } from '../../constants/Strings';
 import Layout from '../../constants/Layout';
+import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 
 interface Props {
   avatar: string;
@@ -86,26 +86,13 @@ const HomeFeedItem: React.FC<Props> = ({
               channelId: `${chatroomID}`,
               inviteStatus: 1,
             });
-            //TODO - secret invitation acceptance flow
-            // if (res?.success === true) {
-            //   for (let i = 0; i < invitedChatrooms.length; i++) {
-            //     await myClient?.saveDMChatroom(
-            //       invitedChatrooms[i],
-            //       user?.sdkClientInfo?.community,
-            //       user,
-            //     );
-            //     const getChatroom = await myClient?.getChatroom(
-            //       chatroomID.toString(),
-            //     );
-            //   }
-            // }
             dispatch({
               type: SHOW_TOAST,
               body: {isToast: true, msg: 'Invitation accepted'},
             });
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
             dispatch({type: SET_PAGE, body: 1});
-            await dispatch(getHomeFeedData({page: 1}, false) as any);
+            await paginatedSyncAPI(1, user, false);
           },
           style: 'default',
         },
@@ -319,6 +306,7 @@ const HomeFeedItem: React.FC<Props> = ({
   return (
     <Pressable
       onPress={() => {
+        if (inviteReceiver) return;
         navigation.navigate(CHATROOM, {
           chatroomID: chatroomID,
           isInvited: !!inviteReceiver ? true : false,

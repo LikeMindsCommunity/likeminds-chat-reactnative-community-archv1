@@ -18,7 +18,6 @@ import STYLES from '../../../../constants/Styles';
 import {onValue, ref} from '@firebase/database';
 import {useAppDispatch, useAppSelector} from '../../../../../store';
 import {
-  getDMFeedData,
   getInvites,
   initAPI,
   updateDMFeedData,
