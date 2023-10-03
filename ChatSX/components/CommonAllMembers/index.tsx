@@ -20,7 +20,6 @@ import {CHATROOM} from '../../constants/Screens';
 import {CANCEL_BUTTON, REQUEST_DM_LIMIT} from '../../constants/Strings';
 import {formatTime} from '../../commonFuctions';
 import {FlashList} from '@shopify/flash-list';
-import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 
 const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const [participants, setParticipants] = useState([] as any);

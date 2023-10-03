@@ -187,7 +187,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [response, setResponse] = useState([]);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
-  const users: any = useQuery('UserSchemaRO');
+  const users = useQuery('UserSchemaRO');
 
   const {
     chatroomID,
@@ -734,34 +734,19 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         await myClient?.chatroomViewed(chatroomID);
         setShimmerIsLoading(false);
       }
-
-      // TODO
-      // if (!isInvited) {
-      //   const response = await myClient?.markReadChatroom({
-      //     chatroomId: chatroomID,
-      //   });
-
-      //   const res = await myClient?.chatroomSeen({
-      //     collabcardId: chatroomID,
-      //     uuid: user?.sdkClientInfo?.uuid,
-      //     collabcardType: chatroomType,
-      //   });
-
-      //   updatePageInRedux();
-      // }
     }
   }
 
   //this function fetchChatroomDetails when we first move inside Chatroom
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
-    let DB_DATA1 = await myClient?.getChatroom(chatroomID?.toString());
-    let DB_DATA = JSON.parse(JSON.stringify(DB_DATA1));
+    let DB_DATA = await myClient?.getChatroom(chatroomID?.toString());
+    let DB_DATA_STRINGIFIED = JSON.parse(JSON.stringify(DB_DATA));
 
-    if (DB_DATA) {
+    if (DB_DATA_STRINGIFIED) {
       dispatch({
         type: GET_CHATROOM_DB_SUCCESS,
-        body: {chatroomDBDetails: DB_DATA},
+        body: {chatroomDBDetails: DB_DATA_STRINGIFIED},
       });
     }
     let response = await myClient?.getChatroomV2(payload);
@@ -1859,15 +1844,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             ID: conversationID,
           },
         });
-        let idd = conversationID;
-        let msg = {
+        let id = conversationID;
+        let message = {
           ...uploadingFilesMessages[conversationID?.toString()],
           isInProgress: FAILED,
         };
 
         await myClient?.saveAttachmentUploadConversation(
-          idd.toString(),
-          JSON.stringify(msg),
+          id.toString(),
+          JSON.stringify(message),
         );
         return error;
       }
@@ -1902,15 +1887,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         ID: conversationID,
       },
     });
-    let idd = conversationID;
-    let msg = {
+    let id = conversationID;
+    let message = {
       ...selectedFilesToUpload,
       isInProgress: SUCCESS,
     };
 
     await myClient?.saveAttachmentUploadConversation(
-      idd.toString(),
-      JSON.stringify(msg),
+      id.toString(),
+      JSON.stringify(message),
     );
     const res = await uploadResource({
       selectedImages: selectedFilesToUpload?.attachments,

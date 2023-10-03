@@ -45,11 +45,6 @@ export function fileUploadReducer(state = initialState, action: any) {
         uploadingFilesMessages: {...obj},
       };
 
-      // const func = () => {
-      //   myClient?.removeAttactmentUploadConversationByKey(ID?.toString());
-      // };
-
-      // func();
       return dummyState;
     }
 
