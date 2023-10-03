@@ -40,13 +40,14 @@ import {
   firebaseConversation,
   getChatroom,
   getConversations,
+  paginatedConversations,
   paginatedConversationsEnd,
   paginatedConversationsStart,
 } from '../../store/actions/chatroom';
 import {styles} from './styles';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {DataSnapshot, onValue, ref} from 'firebase/database';
-import {getDMFeedData, initAPI} from '../../store/actions/homefeed';
+import {initAPI} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
   CLEAR_CHATROOM_CONVERSATION,
@@ -55,6 +56,7 @@ import {
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   FIREBASE_CONVERSATIONS_SUCCESS,
+  GET_CHATROOM_DB_SUCCESS,
   GET_CHATROOM_SUCCESS,
   GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
@@ -120,8 +122,6 @@ import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
 import {useQuery} from '@realm/react';
-import Realm from 'realm';
-import {Observable} from 'rxjs';
 
 interface Data {
   id: string;
@@ -157,8 +157,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [msg, setMsg] = useState('');
   const [apiRes, setApiRes] = useState();
   const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [shouldLoadMoreChatEnd, setShouldLoadMoreChatEnd] = useState(true);
-  const [shouldLoadMoreChatStart, setShouldLoadMoreChatStart] = useState(true);
+  const [shouldLoadMoreChat, setShouldLoadMoreChat] = useState(true);
   const [isReact, setIsReact] = useState(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [DMApproveAlertModalVisible, setDMApproveAlertModalVisible] =
@@ -168,17 +167,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [DMBlockAlertModalVisible, setDMBlockAlertModalVisible] =
     useState(false);
   const [showDM, setShowDM] = useState<any>(null);
-  const [type, setType] = useState();
   const [showList, setShowList] = useState<any>(null);
   const [isMessagePrivately, setIsMessagePrivately] = useState<any>(false);
   const [isEditable, setIsEditable] = useState<any>(false);
   const [isWarningMessageModalState, setIsWarningMessageModalState] =
     useState(false);
+  const [shouldLoadMoreChatEnd, setShouldLoadMoreChatEnd] = useState(true);
+  const [shouldLoadMoreChatStart, setShouldLoadMoreChatStart] = useState(true);
+  const [lastScrollOffset, setLastScrollOffset] = useState(true);
+  const [response, setResponse] = useState([]);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
   const users = useQuery('UserSchemaRO');
-  const [lastScrollOffset, setLastScrollOffset] = useState(true);
-  const [response, setResponse] = useState([]);
 
   const {
     chatroomID,
@@ -186,6 +186,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     muteStatus,
     previousChatroomID,
     navigationFromNotification,
+    updatedAt,
   } = route.params;
   const isFocused = useIsFocused();
 
@@ -193,6 +194,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {
     conversations = [],
     chatroomDetails,
+    chatroomDBDetails,
     messageSent,
     isLongPress,
     selectedMessages,
@@ -205,15 +207,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const INITIAL_SYNC_PAGE = 1;
+  const PAGE_SIZE = 100;
 
   let chatroomType = chatroomDetails?.chatroom?.type;
-
   let chatroomFollowStatus = chatroomDetails?.chatroom?.followStatus;
   let memberCanMessage = chatroomDetails?.chatroom?.memberCanMessage;
   let chatroomWithUser = chatroomDetails?.chatroom?.chatroomWithUser;
   let chatRequestState = chatroomDetails?.chatroom?.chatRequestState;
-
-  // To reduce the unseenCount to 0 in case of sending of DM to someone
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -237,14 +237,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   */
   }
 
-  const userIdStringified = user?.id;
-
   let chatroomName =
     chatroomType === 10
-      ? userIdStringified !== chatroomWithUser?.id
+      ? user?.id !== chatroomWithUser?.id
         ? chatroomWithUser?.name
         : chatroomDetails?.chatroom?.member?.name!
-      : chatroomDetails?.chatroom?.header;
+      : chatroomDBDetails?.header;
 
   {
     /* `{? = then}`, `{: = else}`  */
@@ -260,7 +258,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
   let chatroomProfile =
     chatroomType === 10
-      ? userIdStringified !== chatroomWithUser?.id
+      ? user?.id !== chatroomWithUser?.id
         ? chatroomWithUser?.imageUrl
         : chatroomDetails?.chatroom?.member?.imageUrl!
       : null;
@@ -411,7 +409,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
         if (selectedMessagesLength === 1) {
           if (
-            selectedMessages[0].member.id == userIdStringified &&
+            selectedMessages[0]?.member?.id === user?.id &&
             !!selectedMessages[0].answer
           ) {
             isSelectedMessageEditable = true;
@@ -435,7 +433,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           }
 
           if (
-            selectedMessages[i]?.member?.id == userIdStringified &&
+            selectedMessages[i]?.member?.id === user?.id &&
             !!!selectedMessages[i]?.deletedBy
           ) {
             userCanDeleteParticularMessageArr = [
@@ -558,20 +556,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     .then(async () => {
                       dispatch({type: SELECTED_MESSAGES, body: []});
                       dispatch({type: LONG_PRESSED, body: false});
-                      let updatedConversations;
-                      for (let i = 0; i < selectedMessagesIDArr.length; i++) {
-                        updatedConversations =
-                          await myClient?.deleteConversation(
-                            selectedMessagesIDArr[i],
-                            user,
-                            conversations,
-                          );
-                      }
-                      dispatch({
-                        type: GET_CONVERSATIONS_SUCCESS,
-                        body: {conversations: updatedConversations},
-                      });
                       setInitialHeader();
+                      let payload = {
+                        chatroomID: chatroomID,
+                        paginateBy: conversations.length * 2,
+                        topNavigate: false,
+                      };
+                      await dispatch(getConversations(payload, false) as any);
                     })
                     .catch(() => {
                       Alert.alert('Delete message failed');
@@ -618,6 +609,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     page: number,
     maxTimeStamp: number,
     minTimeStamp: number,
+    conversationId?: string,
   ) {
     const res = await myClient?.syncConversation(
       SyncConversationRequest.builder()
@@ -625,71 +617,76 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         .setPage(page)
         .setMinTimestamp(minTimeStamp)
         .setMaxTimestamp(maxTimeStamp)
-        .setPageSize(20)
+        .setPageSize(500)
+        .setConversationId(conversationId)
         .build(),
     );
     return res;
   }
 
   // pagination call for sync conversation
-  const paginatedSyncAPI = async (page: number) => {
-    const val = await syncConversationAPI(page, Math.floor(Date.now()), 0);
+  const paginatedSyncAPI = async (
+    page: number,
+    minTimeStamp: number,
+    maxTimeStamp: number,
+  ) => {
+    const val = await syncConversationAPI(page, maxTimeStamp, minTimeStamp);
+
     const DB_RESPONSE = val?.data;
 
-    if (DB_RESPONSE?.conversationsData?.length !== 0) {
-      await myClient?.saveConversationData(
-        DB_RESPONSE,
-        DB_RESPONSE?.chatroomMeta,
-        DB_RESPONSE?.conversationsData,
-        community?.id,
+    // TODO
+    myClient.saveConversationData(
+      DB_RESPONSE,
+      DB_RESPONSE?.chatroomMeta,
+      DB_RESPONSE?.conversationsData,
+      community?.id,
+    );
+
+    if (page === 1) {
+      let conversationsFromRealm = await myClient.getConversationData(
+        chatroomID,
+        PAGE_SIZE,
       );
+
+      dispatch({
+        type: GET_CONVERSATIONS_SUCCESS,
+        body: {conversations: conversationsFromRealm},
+      });
     }
 
     if (DB_RESPONSE?.conversationsData?.length === 0) {
       return;
     } else {
-      paginatedSyncAPI(page + 1);
+      paginatedSyncAPI(page + 1, minTimeStamp, maxTimeStamp);
     }
   };
 
-  useEffect(() => {
-    const closingChatroom = async () => {
-      await myClient?.markReadChatroom({
-        chatroomId: chatroomID,
-      });
-      await myClient?.updateUnseenCount(chatroomID.toString());
-    };
-    return () => {
-      if (previousRoute?.name !== EXPLORE_FEED) {
-        closingChatroom();
-      }
-    };
-  }, []);
+  // this function fetchConversations when we first move inside Chatroom
+  async function fetchData(showLoaderVal?: boolean) {
+    let chatroom = await myClient.getChatroom(chatroomID);
+    let maxTimeStamp = Math.floor(Date.now());
+    let conversationsFromRealm;
 
-  // Fetching already existing chatrooms from Realm
-  const getExistingData = async () => {
-    const existingChatrooms: any = await myClient?.getConversations(
-      chatroomID.toString(),
-    );
-    if (!!existingChatrooms && existingChatrooms.length != 0) {
+    // Warm start
+    if (chatroom[0]?.isChatroomVisited) {
+      conversationsFromRealm = await myClient.getConversationData(
+        chatroomID,
+        PAGE_SIZE,
+      );
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
-        body: {conversations: existingChatrooms},
+        body: {conversations: conversationsFromRealm},
       });
+      // let minTimeStamp = !!updatedAt ? updatedAt : 0;
+      const currentChatroom = await myClient?.getChatroom(chatroomID);
+      let minTimeStamp =
+        currentChatroom.lastSeenConversation?.lastUpdatedAt ?? 0;
+      await paginatedSyncAPI(INITIAL_SYNC_PAGE, minTimeStamp, maxTimeStamp);
+    } else {
+      // Cold start
+      await paginatedSyncAPI(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
+      await myClient.chatroomViewed(chatroomID);
     }
-  };
-
-  // This function fetchConversations when we first move inside Chatroom
-  async function fetchData(showLoaderVal?: boolean) {
-    await getExistingData();
-    await paginatedSyncAPI(INITIAL_SYNC_PAGE);
-    let conversationsFromRealm: any = await myClient?.getConversations(
-      chatroomID.toString(),
-    );
-    dispatch({
-      type: GET_CONVERSATIONS_SUCCESS,
-      body: {conversations: conversationsFromRealm},
-    });
 
     if (!isInvited) {
       const response = await myClient?.markReadChatroom({
@@ -710,8 +707,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   //this function fetchChatroomDetails when we first move inside Chatroom
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
-    let response = await dispatch(getChatroom(payload) as any);
-    return response;
+    let DB_DATA = await myClient.getChatroom(chatroomID?.toString());
+
+    if (DB_DATA.length > 0) {
+      dispatch({
+        type: GET_CHATROOM_DB_SUCCESS,
+        body: {chatroomDBDetails: DB_DATA[0]},
+      });
+    }
+    // let response = await dispatch(getChatroom(payload) as any);
+    // return response;
   }
 
   // this function fetch initiate API
@@ -724,9 +729,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       userUniqueId: UUID,
       userName: userName,
     };
-
     let res = await dispatch(initAPI(payload) as any);
-
     return res;
   }
 
@@ -763,6 +766,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
     invokeFunction();
   }, [navigation]);
+
+  // this useEffect set unseenCount to zero when leaving chatroom
+  useEffect(() => {
+    const closingChatroom = async () => {
+      await myClient?.markReadChatroom({
+        chatroomId: chatroomID,
+      });
+      await myClient?.updateUnseenCount(chatroomID.toString());
+    };
+    return () => {
+      if (previousRoute?.name !== EXPLORE_FEED) {
+        closingChatroom();
+      }
+    };
+  }, []);
 
   //Logic for navigation backAction
   function backAction() {
@@ -843,23 +861,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           let payload = {
             page: 1,
           };
-
-          let apiRes = await myClient?.checkDMStatus({
-            requestFrom: 'group_channel',
-          });
-          let response = apiRes?.data;
-          if (!!response) {
-            let routeURL = response?.cta;
-            const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-            if (hasShowList) {
-              const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-              setShowList(showListValue);
-            }
-            setShowDM(response?.showDm);
-          }
         }
       }
       let res = await fetchData(false);
+      if (!!res) {
+        // dispatch({type: STOP_CHATROOM_LOADING});
+      }
     }
 
     if (!!chatroomDetails?.chatroom) {
@@ -885,7 +892,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isLongPress, selectedMessages]);
 
-  // useEffect includes firebase realtime listener
+  //useffect includes firebase realtime listener
   useEffect(() => {
     const query = ref(db, `/collabcards/${chatroomID}`);
     return onValue(query, async (snapshot: DataSnapshot) => {
@@ -893,13 +900,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let firebaseData = snapshot.val();
         let conversationID = firebaseData?.collabcard?.answerId;
 
-        let payload = {
-          chatroomId: chatroomID,
-          conversationId: firebaseData?.collabcard?.answerId,
-        };
         if (conversationID) {
-          const res = await dispatch(
-            firebaseConversation(payload, false) as any,
+          if (!user?.sdkClientInfo?.community) return;
+          let minTimeStamp = !!updatedAt ? updatedAt : 0;
+          let maxTimeStamp = Math.floor(Date.now());
+          await syncConversationAPI(
+            INITIAL_SYNC_PAGE,
+            minTimeStamp,
+            maxTimeStamp,
+            conversationID,
           );
         }
       }
@@ -914,33 +923,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isFocused]);
 
-  // This is for scrolling down mainly ie whenever response changes this useEffect will be triggered and it'll calculate the index of the last message before prepending of new data and scroll to that index
-  useEffect(() => {
-    setTimeout(() => {
-      if (!!response) {
-        const len = response?.conversations?.length;
-        if (len != 0 && len != undefined) {
-          let index = len;
-          if (
-            conversations[index + 1].attachmentCount == 0 &&
-            conversations[index + 1].polls == undefined
-          ) {
-            index = len - 2;
-          }
-          scrollToVisibleIndex(index);
-        }
-        setIsLoading(false);
-      }
-    }, 1500);
-  }, [response]);
-
   //This useEffect has logic to or hide message privately when long press on a message
   useEffect(() => {
     if (selectedMessages.length === 1) {
       let selectedMessagesMember = selectedMessages[0]?.member;
       if (
         showDM &&
-        selectedMessagesMember?.id !== userIdStringified &&
+        selectedMessagesMember?.id !== user?.id &&
         !selectedMessages[0]?.deletedBy
       ) {
         if (showList == 2 && selectedMessagesMember?.state === 1) {
@@ -956,131 +945,39 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [selectedMessages, showDM, showList]);
 
-  // Function calls paginatedConversationsEnd action which internally calls getConversations to update conversation array with the new data.
-  async function endOfPaginatedData() {
+  //function calls paginatedConversations action which internally calls getConversation to update conversation array with the new data.
+  async function paginatedData(newPage: number) {
     let payload = {
       chatroomID: chatroomID,
       conversationID: conversations[conversations.length - 1]?.id,
-      scrollDirection: 0, //scroll up -> 0
+      scrollDirection: 0,
       paginateBy: 50,
       topNavigate: false,
     };
-    let response = await dispatch(
-      paginatedConversationsEnd(payload, true) as any,
-    );
+    let response = await dispatch(paginatedConversations(payload, true) as any);
     return response;
   }
 
-  // Function calls paginatedConversationsStart action which internally calls getConversations to update conversation array with the new data.
-  async function startOfPaginatedData() {
-    let payload = {
-      chatroomID: chatroomID,
-      conversationID: conversations[0]?.id,
-      scrollDirection: 1, //scroll down -> 1
-      paginateBy: 50,
-      topNavigate: false,
-    };
-    let response = await dispatch(
-      paginatedConversationsStart(payload, true) as any,
-    );
-    return response;
-  }
-
-  // Function shows loader in between calling the API and getting the response
-  const endLoadData = async () => {
+  // function shows loader in between calling the API and getting the response
+  const loadData = async (newPage?: number) => {
     setIsLoading(true);
-    const res = await endOfPaginatedData();
-
-    // To check if its the end of list (top of list in our case)
-    if (res?.conversations?.length == 0) {
-      setShouldLoadMoreChatEnd(false);
-    }
-
-    if (!!res) {
+    const newConversations = await myClient.paginateUp(
+      chatroomID,
+      conversations[conversations.length - 1].createdEpoch,
+      100,
+    );
+    dispatch({
+      type: GET_CONVERSATIONS_SUCCESS,
+      body: {conversations: [...conversations, ...newConversations]},
+    });
+    if (!!newConversations) {
       setIsLoading(false);
     }
   };
 
-  const scrollToVisibleIndex = (index: number) => {
-    if (flatlistRef.current) {
-      flatlistRef.current.scrollToIndex({
-        animated: false,
-        index: index,
-      });
-    }
-  };
-
-  // function shows loader in between calling the API and getting the response
-  const startLoadData = async () => {
-    setIsLoading(true);
-    const res = await startOfPaginatedData();
-
-    // To check if its the start of list (bottom of list in our case)
-    if (res?.conversations?.length == 0) {
-      setShouldLoadMoreChatStart(false);
-    }
-    setResponse(res);
-  };
-
-  // Function checks the pagination logic, if it verifies the condition then call startLoadData
-  const handleOnStartReached = () => {
-    if (!isLoading && conversations.length > 0) {
-      // Checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
-        const newPage = startPage + 1;
-        setStartPage(newPage);
-        startLoadData();
-      }
-    }
-  };
-
-  const onStartReached = () => {
-    handleOnStartReached();
-  };
-
-  const onEndReached = () => {
-    handleOnEndReached();
-  };
-
-  // For Scrolling Up
-  const handleOnScroll: ScrollViewProps['onScroll'] = event => {
-    const offset = event.nativeEvent.contentOffset.y;
-    const visibleLength = event.nativeEvent.layoutMeasurement.height;
-    const contentLength = event.nativeEvent.contentSize.height;
-    const onStartReachedThreshold = 10;
-    const onEndReachedThreshold = 10;
-
-    // Check if scroll has reached start of list.
-    const isScrollAtStart = offset < onStartReachedThreshold;
-    // Check if scroll has reached end of list.
-    const isScrollAtEnd =
-      contentLength - visibleLength - offset < onEndReachedThreshold;
-
-    if (isScrollAtStart && shouldLoadMoreChatStart && lastScrollOffset) {
-      renderFooter();
-      onStartReached();
-      setLastScrollOffset(false);
-      setTimeout(() => {
-        setLastScrollOffset(true);
-      }, 1000);
-    }
-
-    if (isScrollAtEnd && shouldLoadMoreChatEnd) {
-      renderFooter();
-      onEndReached();
-    }
-  };
-
-  // Function checks the pagination logic, if it verifies the condition then call endLoadData
-  const handleOnEndReached = () => {
-    if (!isLoading && conversations.length > 0) {
-      // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
-        const newPage = endPage + 1;
-        setEndPage(newPage);
-        endLoadData();
-      }
-    }
+  //function checks the pagination logic, if it verifies the condition then call loadData
+  const handleLoadMore = () => {
+    loadData();
   };
 
   const renderFooter = () => {
@@ -1237,6 +1134,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           paginateBy: 100,
           topNavigate: false,
         };
+        await dispatch(getConversations(getConversationsPayload, true) as any);
 
         if (previousRoute?.name === EXPLORE_FEED) {
           dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
@@ -1266,7 +1164,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then((res: any) => {
         fetchChatroomDetails();
-        // Updating Realm in case of muting of chatroom/Dm
         myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications muted for this chatroom');
         setIsToast(true);
@@ -1285,7 +1182,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .muteChatroom(payload)
       .then(() => {
         fetchChatroomDetails();
-        // Updating Realm in case of muting of chatroom/Dm
         myClient?.updateMuteStatus(chatroomID, muteStatus);
         setMsg('Notifications unmuted for this chatroom');
         setIsToast(true);
@@ -1391,16 +1287,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let changedMsg;
     if (selectedMessages[0]?.reactions.length > 0) {
       let isReactedArr = selectedMessages[0]?.reactions.filter(
-        (val: any) => val?.member?.id === userIdStringified,
+        (val: any) => val?.member?.id === user?.id,
       );
       if (isReactedArr.length > 0) {
         // Reacted different emoji
         if (isReactedArr[0].reaction !== val) {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
-            element?.member?.id === userIdStringified
+            element?.member?.id === user?.id
               ? {
                   member: {
-                    id: userIdStringified,
+                    id: user?.id,
                     name: user?.name,
                     imageUrl: '',
                   },
@@ -1417,10 +1313,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else if (isReactedArr[0].reaction === val) {
           // Reacted same emoji
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
-            element?.member?.id === userIdStringified
+            element?.member?.id === user?.id
               ? {
                   member: {
-                    id: userIdStringified,
+                    id: user?.id,
                     name: user?.name,
                     imageUrl: '',
                   },
@@ -1442,7 +1338,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             ...selectedMessages[0]?.reactions,
             {
               member: {
-                id: userIdStringified,
+                id: user?.id,
                 name: user?.name,
                 imageUrl: '',
               },
@@ -1460,7 +1356,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           ...selectedMessages[0]?.reactions,
           {
             member: {
-              id: userIdStringified,
+              id: user?.id,
               name: user?.name,
               imageUrl: '',
             },
@@ -1496,7 +1392,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     if (item?.reactions?.length > 0) {
       let index = item?.reactions.findIndex(
-        (val: any) => val?.member?.id === userIdStringified,
+        (val: any) => val?.member?.id === user?.id,
       );
 
       // this condition checks if clicked reaction ID matches the findIndex ID
@@ -1783,6 +1679,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let uriFinal: any;
 
       if (attachmentType === IMAGE_TEXT) {
+        //image compression
         const compressedImgURI = await CompressedImage.compress(item.uri, {
           compressionMethod: 'auto',
         });
@@ -1794,7 +1691,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       }
 
       //for video thumbnail
-      let thumbnailUrlImg;
+      let thumbnailUrlImg = null;
       if (thumbnailURL && attachmentType === VIDEO_TEXT) {
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
       }
@@ -1817,7 +1714,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       };
 
       try {
-        let getVideoThumbnailData;
+        let getVideoThumbnailData = null;
 
         if (thumbnailURL && attachmentType === VIDEO_TEXT) {
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
@@ -1913,12 +1810,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       uploadingFilesMessages,
       isRetry: isRetry,
     });
-    const getConversationPayload = {
-      chatroomID: chatroomID,
-      paginateBy: conversations.length * 2,
-      topNavigate: false,
-    };
-    await dispatch(getConversations(getConversationPayload, false) as any);
     return res;
   };
 
@@ -1982,10 +1873,127 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
+  // Function calls paginatedConversationsEnd action which internally calls getConversations to update conversation array with the new data.
+  async function endOfPaginatedData() {
+    let payload = {
+      chatroomID: chatroomID,
+      conversationID: conversations[conversations.length - 1]?.id,
+      scrollDirection: 0, //scroll up -> 0
+      paginateBy: 50,
+      topNavigate: false,
+    };
+    let response = await dispatch(
+      paginatedConversationsEnd(payload, true) as any,
+    );
+    return response;
+  }
+
+  // Function shows loader in between calling the API and getting the response
+  const endLoadData = async () => {
+    setIsLoading(true);
+    const res = await endOfPaginatedData();
+
+    // To check if its the end of list (top of list in our case)
+    if (res?.conversations?.length == 0) {
+      setShouldLoadMoreChatEnd(false);
+    }
+
+    if (!!res) {
+      setIsLoading(false);
+    }
+  };
+
+  // Function checks the pagination logic, if it verifies the condition then call endLoadData
+  const handleOnEndReached = () => {
+    if (!isLoading && conversations.length > 0) {
+      // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+      if (conversations.length > 15) {
+        const newPage = endPage + 1;
+        setEndPage(newPage);
+        endLoadData();
+      }
+    }
+  };
+
+  // Function calls paginatedConversationsStart action which internally calls getConversations to update conversation array with the new data.
+  async function startOfPaginatedData() {
+    let payload = {
+      chatroomID: chatroomID,
+      conversationID: conversations[0]?.id,
+      scrollDirection: 1, //scroll down -> 1
+      paginateBy: 50,
+      topNavigate: false,
+    };
+    let response = await dispatch(
+      paginatedConversationsStart(payload, true) as any,
+    );
+    return response;
+  }
+
+  // function shows loader in between calling the API and getting the response
+  const startLoadData = async () => {
+    setIsLoading(true);
+    const res = await startOfPaginatedData();
+
+    // To check if its the start of list (bottom of list in our case)
+    if (res?.conversations?.length == 0) {
+      setShouldLoadMoreChatStart(false);
+    }
+    setResponse(res);
+  };
+
+  // Function checks the pagination logic, if it verifies the condition then call startLoadData
+  const handleOnStartReached = () => {
+    if (!isLoading && conversations.length > 0) {
+      // Checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
+      if (conversations.length > 15) {
+        const newPage = startPage + 1;
+        setStartPage(newPage);
+        startLoadData();
+      }
+    }
+  };
+
+  const onStartReached = () => {
+    handleOnStartReached();
+  };
+
+  const onEndReached = () => {
+    handleOnEndReached();
+  };
+
+  // For Scrolling Up
+  const handleOnScroll: ScrollViewProps['onScroll'] = event => {
+    const offset = event.nativeEvent.contentOffset.y;
+    const visibleLength = event.nativeEvent.layoutMeasurement.height;
+    const contentLength = event.nativeEvent.contentSize.height;
+    const onStartReachedThreshold = 10;
+    const onEndReachedThreshold = 10;
+
+    // Check if scroll has reached start of list.
+    const isScrollAtStart = offset < onStartReachedThreshold;
+    // Check if scroll has reached end of list.
+    const isScrollAtEnd =
+      contentLength - visibleLength - offset < onEndReachedThreshold;
+
+    if (isScrollAtStart && shouldLoadMoreChatStart && lastScrollOffset) {
+      renderFooter();
+      onStartReached();
+      setLastScrollOffset(false);
+      setTimeout(() => {
+        setLastScrollOffset(true);
+      }, 1000);
+    }
+
+    if (isScrollAtEnd && shouldLoadMoreChatEnd) {
+      renderFooter();
+      onEndReached();
+    }
+  };
+
   return (
     <View style={styles.container}>
       <FlashList
-        estimatedItemSize={50}
         ref={flatlistRef}
         data={conversations}
         keyExtractor={(item: any, index) => {
@@ -2000,6 +2008,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             conversations,
           ],
         }}
+        estimatedItemSize={50}
         renderItem={({item: value, index}: any) => {
           let uploadingFilesMessagesIDArr = Object.keys(uploadingFilesMessages);
           let item = {...value};
@@ -2099,15 +2108,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             </View>
           );
         }}
-        onScroll={handleOnScroll}
-        ListHeaderComponent={renderFooter}
+        onEndReached={async () => {
+          if (shouldLoadMoreChat && conversations.length > 0) {
+            handleLoadMore();
+          }
+          return;
+        }}
+        onEndReachedThreshold={10}
         ListFooterComponent={renderFooter}
         keyboardShouldPersistTaps={'handled'}
         inverted
-        // maintainVisibleContentPosition={{
-        //   autoscrollToTopThreshold: undefined,
-        //   minIndexForVisible: 1,
-        // }}
       />
 
       {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
@@ -2231,17 +2241,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         </View>
       ) : chatroomType === 10 ? (
         <View>
-          {/* `{? = then}`, `{: = else}`  */}
-          {/* 
-              if chat_request_state === 0 (Not requested yet) &&
-              (chat_requested_by !== null
-                ? chat_requested_by[0]?.id !== userIdStringified (TRUE or FALSE)
-                : null (FALSE) )
-          */}
           {chatRequestState === 0 &&
           (!!chatroomDetails?.chatroom?.chatRequestedBy
-            ? chatroomDetails?.chatroom?.chatRequestedBy[0]?.id !==
-              userIdStringified
+            ? chatroomDetails?.chatroom?.chatRequestedBy[0]?.id !== user?.id
             : null) ? (
             <View style={styles.dmRequestView}>
               <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>
