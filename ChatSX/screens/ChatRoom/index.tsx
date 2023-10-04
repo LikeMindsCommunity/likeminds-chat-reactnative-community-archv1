@@ -194,7 +194,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const {
     chatroomID,
-    chatroomWithUserParam,
     isInvited,
     previousChatroomID,
     navigationFromNotification,
@@ -225,9 +224,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let chatroomFollowStatus = chatroomDBDetails?.followStatus;
   let memberCanMessage = chatroomDBDetails?.memberCanMessage;
   let chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
-  if (chatroomWithUser == undefined) {
-    chatroomWithUser = chatroomWithUserParam;
-  }
   let chatRequestState = chatroomDBDetails?.chatRequestState;
 
   AWS.config.update({
@@ -803,23 +799,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }
         await fetchData(false);
         await fetchChatroomDetails();
-        if (chatroomWithUserParam !== undefined) {
-          await myClient?.editChatroomDetails(
-            chatroomWithUserParam,
-            chatroomID.toString(),
-            user?.sdkClientInfo?.community,
-          );
-        }
       } else {
         await fetchData(false);
         await fetchChatroomDetails();
-        if (chatroomWithUserParam !== undefined) {
-          await myClient?.editChatroomDetails(
-            chatroomWithUserParam,
-            chatroomID.toString(),
-            user?.sdkClientInfo?.community,
-          );
-        }
       }
     };
     invokeFunction();
