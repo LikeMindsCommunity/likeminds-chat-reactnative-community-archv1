@@ -29,10 +29,13 @@ export const paginatedSyncAPI = async (
   user: any,
   isDm: boolean,
 ) => {
-  const timeStampStored = await myClient?.getTimeStamp(isDm);
+  const timeStampStored = await myClient?.getTimeStamp();
+
+  let minTimeStampNow = isDm
+    ? timeStampStored[0].minTimeStampDm
+    : timeStampStored[0].minTimeStampGroup;
 
   let maxTimeStampNow = Math.floor(Date.now() / 1000);
-  let minTimeStampNow = timeStampStored;
 
   const val = await syncChatroomAPI(
     page,
@@ -56,7 +59,7 @@ export const paginatedSyncAPI = async (
       user?.sdkClientInfo?.community,
     );
   }
-  await myClient.updateTimeStamp(Math.floor(Date.now() / 1000), isDm);
+  await myClient.updateTimeStamp(maxTimeStampNow, isDm);
 
   if (DB_RESPONSE?.chatroomsData?.length === 0) {
     return;

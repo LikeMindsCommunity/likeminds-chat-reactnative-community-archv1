@@ -195,6 +195,16 @@ const HomeFeed = ({navigation}: Props) => {
   }, []);
 
   useEffect(() => {
+    const timeSetter = async () => {
+      const timeStampStored = await myClient?.getTimeStamp();
+      if (timeStampStored.length === 0) {
+        await myClient?.initiateTimeStamp();
+      }
+    };
+    timeSetter();
+  }, []);
+
+  useEffect(() => {
     if (FCMToken && accessToken) {
       pushAPI(FCMToken, accessToken);
     }
