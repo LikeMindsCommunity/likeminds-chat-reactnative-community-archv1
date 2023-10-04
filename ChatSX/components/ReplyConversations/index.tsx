@@ -48,7 +48,7 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
     <View style={styles.replyBox}>
       <View>
         <Text style={styles.replySender}>
-          {item?.member?.id === user?.id ? 'You' : item?.member?.name}
+          {item?.member?.id == user?.id ? 'You' : item?.member?.name}
         </Text>
       </View>
       <View style={styles.alignRow}>
@@ -174,7 +174,7 @@ const ReplyConversations = ({
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
         {/* Reply conversation message sender name */}
-        {!!(item?.member?.id === user?.id) ? null : (
+        {!!(item?.member?.id == user?.id) ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
             {!!item?.member?.customTitle ? (

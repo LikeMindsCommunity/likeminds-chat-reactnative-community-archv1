@@ -19,6 +19,8 @@ import {
   FIREBASE_CONVERSATIONS_SUCCESS,
   FIREBASE_CONVERSATIONS_FAILED,
   PAGINATED_CONVERSATIONS_START_SUCCESS,
+  PAGINATED_CONVERSATIONS_SUCCESS,
+  GET_CHATROOM_ACTIONS_SUCCESS,
 } from '../types/types';
 
 export const getConversations =
@@ -84,6 +86,27 @@ export const paginatedConversationsStart =
     }
   };
 
+export const paginatedConversations =
+  (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
+    try {
+      return await dispatch({
+        type: PAGINATED_CONVERSATIONS_SUCCESS,
+        [CALL_API]: {
+          func: myClient?.getConversations(payload),
+          body: payload,
+          types: [
+            PAGINATED_CONVERSATIONS,
+            PAGINATED_CONVERSATIONS_SUCCESS,
+            PAGINATED_CONVERSATIONS_FAILED,
+          ],
+          showLoader: false,
+        },
+      });
+    } catch (error) {
+      Alert.alert(`${error}`);
+    }
+  };
+
 export const firebaseConversation =
   (payload: any, showLoader: boolean) => async (dispatch: Dispatch) => {
     try {
@@ -129,11 +152,15 @@ export const onConversationsCreate =
 export const getChatroom = (payload: any) => async (dispatch: Dispatch) => {
   try {
     return await dispatch({
-      type: GET_CHATROOM_SUCCESS,
+      type: GET_CHATROOM_ACTIONS_SUCCESS,
       [CALL_API]: {
-        func: myClient?.getChatroomV2(payload),
+        func: myClient?.getChatroomActions(payload),
         body: payload,
-        types: [GET_CHATROOM, GET_CHATROOM_SUCCESS, GET_CHATROOM_FAILED],
+        types: [
+          GET_CHATROOM,
+          GET_CHATROOM_ACTIONS_SUCCESS,
+          GET_CHATROOM_FAILED,
+        ],
         showLoader: false,
       },
     });
