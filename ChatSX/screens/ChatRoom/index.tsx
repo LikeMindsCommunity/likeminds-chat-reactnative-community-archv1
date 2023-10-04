@@ -350,7 +350,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       fontSize: STYLES.$FONT_SIZES.SMALL,
                       fontFamily: STYLES.$FONT_TYPES.LIGHT,
                     }}>
-                    {`${chatroomDetails?.participantCount} participants`}
+                    {chatroomDetails?.participantCount != undefined
+                      ? `${chatroomDetails?.participantCount} participants`
+                      : ''}
                   </Text>
                 ) : null}
               </View>
@@ -1065,11 +1067,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             type: CLEAR_CHATROOM_DETAILS,
             body: {chatroomDBDetails: {}},
           });
-          await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID?.toString(),
+            false,
+          );
           navigation.goBack();
         } else {
           // Updating the followStatus of chatroom to false in case of leaving the chatroom
-          await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID?.toString(),
+            false,
+          );
           setTimeout(() => {
             navigation.goBack();
           }, 500);
@@ -1114,11 +1122,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             type: CLEAR_CHATROOM_DETAILS,
             body: {chatroomDBDetails: {}},
           });
-          await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID?.toString(),
+            false,
+          );
           navigation.goBack();
         } else {
           // Updating the followStatus of chatroom to false in case of leaving the chatroom
-          await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID?.toString(),
+            false,
+          );
           setTimeout(() => {
             navigation.goBack();
           }, 500);
@@ -1181,7 +1195,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           0,
           Date.now() * 1000,
         );
-        await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+
+        await myClient?.updateChatroomFollowStatus(
+          chatroomID?.toString(),
+          true,
+        );
         fetchChatroomDetails();
 
         if (previousRoute?.name === EXPLORE_FEED) {
