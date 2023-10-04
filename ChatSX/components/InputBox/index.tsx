@@ -605,7 +605,7 @@ const InputBox = ({
       });
 
       if (
-        chatroomType !== ChatroomType.dmChatroom && // if not DM
+        chatroomType !== ChatroomType.DMCHATROOM && // if not DM
         chatRequestState !== null // if not first DM message sent to an user
       ) {
         if (isReply) {
@@ -655,7 +655,7 @@ const InputBox = ({
 
       // condition for request DM for the first time
       if (
-        chatroomType === ChatroomType.dmChatroom && // if DM
+        chatroomType === ChatroomType.DMCHATROOM && // if DM
         chatRequestState === null &&
         isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
@@ -677,10 +677,10 @@ const InputBox = ({
         });
         await myClient?.updateChatRequestState(
           chatroomID.toString(),
-          ChatroomChatRequestState.initiated,
+          ChatroomChatRequestState.INITIATED,
         );
       } else if (
-        chatroomType === ChatroomType.dmChatroom && // if DM
+        chatroomType === ChatroomType.DMCHATROOM && // if DM
         chatRequestState === null &&
         !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
@@ -696,7 +696,7 @@ const InputBox = ({
         });
         await myClient?.updateChatRequestState(
           chatroomID.toString(),
-          ChatroomChatRequestState.accepted,
+          ChatroomChatRequestState.ACCEPTED,
         );
       } else {
         if (!isUploadScreen) {
@@ -876,9 +876,9 @@ const InputBox = ({
       setMessage(e);
       setFormattedConversation(e);
 
-      // chatroomType === ChatroomType.dmChatroom (if DM don't detect and show user tags)
+      // chatroomType === ChatroomType.DMCHATROOM (if DM don't detect and show user tags)
       const newMentions =
-        chatroomType === ChatroomType.dmChatroom ? [] : detectMentions(e);
+        chatroomType === ChatroomType.DMCHATROOM ? [] : detectMentions(e);
 
       if (newMentions.length > 0) {
         const length = newMentions.length;
@@ -1288,7 +1288,7 @@ const InputBox = ({
         <TouchableOpacity
           onPressOut={() => {
             if (
-              chatroomType === ChatroomType.dmChatroom && // if DM
+              chatroomType === ChatroomType.DMCHATROOM && // if DM
               chatRequestState === null &&
               isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
             ) {

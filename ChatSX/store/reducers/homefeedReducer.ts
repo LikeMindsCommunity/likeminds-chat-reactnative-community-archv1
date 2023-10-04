@@ -255,7 +255,7 @@ export function homefeedReducer(state = initialState, action: any) {
     case UPDATE_LAST_CONVERSATION: {
       const {lastConversationAnswer, chatroomType, chatroomID} = action.body;
 
-      let isDM = chatroomType === ChatroomType.dmChatroom ? true : false;
+      let isDM = chatroomType === ChatroomType.DMCHATROOM ? true : false;
       let chatroomList = isDM ? state?.myDMChatrooms : state?.myChatrooms;
       let index = chatroomList.findIndex((element: any) => {
         return element?.chatroom?.id == chatroomID;

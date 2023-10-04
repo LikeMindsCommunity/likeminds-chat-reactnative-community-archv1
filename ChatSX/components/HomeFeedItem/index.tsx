@@ -328,7 +328,7 @@ const HomeFeedItem: React.FC<Props> = ({
           }
           style={styles.avatar}
         />
-        {chatroomType === ChatroomType.dmChatroom ? (
+        {chatroomType === ChatroomType.DMCHATROOM ? (
           <View style={styles.dmAvatarBubble}>
             <Image
               source={require('../../assets/images/dm_message_bubble3x.png')}
@@ -376,7 +376,7 @@ const HomeFeedItem: React.FC<Props> = ({
                     overflow: 'hidden',
                   },
                 ]}>
-                {chatroomType !== ChatroomType.dmChatroom ? (
+                {chatroomType !== ChatroomType.DMCHATROOM ? (
                   <Text
                     style={
                       styles.lastMessage

@@ -49,7 +49,7 @@ const RejectDMRequestModal = ({
                 onReject();
                 navigation.navigate(REPORT, {
                   conversationID: chatroomID,
-                  isDM: chatroomType === ChatroomType.dmChatroom ? true : false,
+                  isDM: chatroomType === ChatroomType.DMCHATROOM ? true : false,
                 });
                 hideDMRejectAlert();
               }}>

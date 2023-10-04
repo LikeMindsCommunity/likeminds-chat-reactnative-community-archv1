@@ -1,5 +1,5 @@
 export enum ChatroomType {
-  openChatroom = 0,
-  announcementRoom = 7,
-  dmChatroom = 10,
+  OPENCHATROOM = 0,
+  ANNOUNCEMENTROOM = 7,
+  DMCHATROOM = 10,
 }

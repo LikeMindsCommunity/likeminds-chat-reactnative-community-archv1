@@ -1,5 +1,5 @@
 export enum ChatroomChatRequestState {
-  initiated = 0,
-  accepted = 1,
-  rejected = 2,
+  INITIATED = 0,
+  ACCEPTED = 1,
+  REJECTED = 2,
 }

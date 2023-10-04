@@ -191,7 +191,7 @@ const Messages = ({
     <View style={styles.messageParent}>
       <View>
         {!!item?.deletedBy ? (
-          chatroomType !== ChatroomType.dmChatroom ? (
+          chatroomType !== ChatroomType.DMCHATROOM ? (
             currentUserUuid === conversationDeletor ? (
               <View
                 style={[
@@ -352,7 +352,7 @@ const Messages = ({
                       {
                         // State 1 refers to initial DM message, so in that case trimming the first user name
                         item?.state === 1 &&
-                        chatroomType === ChatroomType.dmChatroom
+                        chatroomType === ChatroomType.DMCHATROOM
                           ? decode(
                               answerTrimming(item?.answer),
                               true,
