@@ -194,7 +194,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const {
     chatroomID,
-    chatroomWithUserParam,
     isInvited,
     previousChatroomID,
     navigationFromNotification,
@@ -225,9 +224,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let chatroomFollowStatus = chatroomDBDetails?.followStatus;
   let memberCanMessage = chatroomDBDetails?.memberCanMessage;
   let chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
-  if (chatroomWithUser == undefined) {
-    chatroomWithUser = chatroomWithUserParam;
-  }
   let chatRequestState = chatroomDBDetails?.chatRequestState;
 
   AWS.config.update({
@@ -354,7 +350,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       fontSize: STYLES.$FONT_SIZES.SMALL,
                       fontFamily: STYLES.$FONT_TYPES.LIGHT,
                     }}>
-                    {`${chatroomDetails?.participantCount} participants`}
+                    {chatroomDetails?.participantCount != undefined
+                      ? `${chatroomDetails?.participantCount} participants`
+                      : ''}
                   </Text>
                 ) : null}
               </View>
@@ -803,23 +801,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }
         await fetchData(false);
         await fetchChatroomDetails();
-        if (chatroomWithUserParam !== undefined) {
-          await myClient?.editChatroomDetails(
-            chatroomWithUserParam,
-            chatroomID.toString(),
-            user?.sdkClientInfo?.community,
-          );
-        }
       } else {
         await fetchData(false);
         await fetchChatroomDetails();
-        if (chatroomWithUserParam !== undefined) {
-          await myClient?.editChatroomDetails(
-            chatroomWithUserParam,
-            chatroomID.toString(),
-            user?.sdkClientInfo?.community,
-          );
-        }
       }
     };
     invokeFunction();
@@ -1083,11 +1067,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             type: CLEAR_CHATROOM_DETAILS,
             body: {chatroomDBDetails: {}},
           });
-          await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID?.toString(),
+            false,
+          );
           navigation.goBack();
         } else {
           // Updating the followStatus of chatroom to false in case of leaving the chatroom
-          await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID?.toString(),
+            false,
+          );
           setTimeout(() => {
             navigation.goBack();
           }, 500);
@@ -1132,11 +1122,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             type: CLEAR_CHATROOM_DETAILS,
             body: {chatroomDBDetails: {}},
           });
-          await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID?.toString(),
+            false,
+          );
           navigation.goBack();
         } else {
           // Updating the followStatus of chatroom to false in case of leaving the chatroom
-          await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID?.toString(),
+            false,
+          );
           setTimeout(() => {
             navigation.goBack();
           }, 500);
@@ -1199,7 +1195,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           0,
           Date.now() * 1000,
         );
-        await myClient?.updateChatroomFollowStatus(chatroomID?.toString());
+
+        await myClient?.updateChatroomFollowStatus(
+          chatroomID?.toString(),
+          true,
+        );
         fetchChatroomDetails();
 
         if (previousRoute?.name === EXPLORE_FEED) {
