@@ -1,8 +1,10 @@
 import {myClient} from '../../..';
 import {PATH_REGEX, QUERY_REGEX, VALID_URI_REGEX} from '../../constants/Regex';
+import {getRoute} from '../../notifications/routes';
 import {initAPI} from '../../store/actions/homefeed';
+import * as RootNavigation from '../../../RootNavigation';
 
-interface DeepLinkRequest {
+export interface DeepLinkRequest {
   uri: string;
   userName: string;
   uuid: string;
@@ -12,6 +14,7 @@ interface DeepLinkRequest {
 interface DeepLinkResponse {
   success: boolean;
   errorMessage?: string;
+  data?: Record<string, string>;
 }
 
 // this function is to check URI is valid or not
@@ -21,7 +24,7 @@ function isValidURI(uri: string): boolean {
 }
 
 // this function is to parse deep link url
-async function parseDeepLink(
+export async function parseDeepLink(
   request: DeepLinkRequest,
   responseCallback?: (response: DeepLinkResponse) => void,
 ) {
@@ -47,15 +50,20 @@ async function parseDeepLink(
       if (chatroomId) {
         const internalRoute = `route://collabcard?collabcard_id=${chatroomId}`;
 
+        // initiate API call
         let initiateUserRequest = {
           userName: request?.userName,
           uuid: request?.uuid,
           isGuest: false,
         };
-        const success = await myClient.initiateUser(initiateUserRequest);
+        const initiateUserResponse = await myClient?.initiateUser(
+          initiateUserRequest,
+        );
 
-        if (success) {
-          // TODO -- Redirect to internalRoute
+        if (initiateUserResponse?.success) {
+          // nvaigation flow
+          let routes = getRoute(internalRoute);
+          RootNavigation.navigate(routes.route, routes.params);
           responseCallback?.({success: true});
           return;
         } else {

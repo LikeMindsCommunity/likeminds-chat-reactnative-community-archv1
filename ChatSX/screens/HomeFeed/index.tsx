@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Image,
   AppState,
+  Linking,
 } from 'react-native';
 import {myClient} from '../../..';
 import {getNameInitials} from '../../commonFuctions';
@@ -24,9 +25,12 @@ import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
 import {FAILED} from '../../constants/Strings';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
-import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {useIsFocused} from '@react-navigation/native';
 import {useQuery} from '@realm/react';
+import {
+  DeepLinkRequest,
+  parseDeepLink,
+} from '../../components/ParseDeepLink';
 
 interface Props {
   navigation: any;
@@ -153,6 +157,32 @@ const HomeFeed = ({navigation}: Props) => {
   useLayoutEffect(() => {
     fetchData();
   }, [navigation, myClient]);
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', ({url}) => {
+      console.log('url ==', url);
+
+      const UUID = users[0]?.userUniqueID;
+      const userName = users[0]?.userName;
+
+      const exampleRequest: DeepLinkRequest = {
+        uri: url,
+        uuid: UUID, // uuid
+        userName: userName, // user name
+        isGuest: false,
+      };
+
+      // Example usage to call parseDeepLink() method
+
+      parseDeepLink(exampleRequest, response => {
+        // Parsed response
+      });
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const token = async () => {

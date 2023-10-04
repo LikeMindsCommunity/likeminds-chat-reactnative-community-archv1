@@ -126,17 +126,13 @@ import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
 import {useQuery} from '@realm/react';
-<<<<<<< HEAD
 import {Share} from 'react-native';
-=======
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
-import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
 import {ChatroomType} from '../../enums/chatroomType';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
->>>>>>> 3e05061403ac010092a0047f3e78bacee352d23a
 
 interface Data {
   id: string;
@@ -289,12 +285,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   let isSecret = chatroomDBDetails?.isSecret;
 
-<<<<<<< HEAD
   let notIncludedActionsID = [16]; // Add All members
-=======
-  let notIncludedActionsID = [3];
-
->>>>>>> 3e05061403ac010092a0047f3e78bacee352d23a
   let filteredChatroomActions = chatroomDetails?.chatroomActions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
@@ -653,10 +644,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         .setMinTimestamp(minTimeStamp)
         .setMaxTimestamp(maxTimeStamp)
         .setPageSize(500)
-<<<<<<< HEAD
-=======
         .setConversationId(conversationId)
->>>>>>> 3e05061403ac010092a0047f3e78bacee352d23a
         .build(),
     );
     return res;
@@ -2017,13 +2005,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-<<<<<<< HEAD
   // this function helps to share chatroom url
   const onShare = async () => {
     try {
       let shareChatroomRequest = {
         chatroomId: chatroomID,
-        domain: 'https://dummyurl.com',
+        domain: '' // Add your custom link to open app,
       };
       let URL = shareChatroomURL(shareChatroomRequest);
 
@@ -2041,7 +2028,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       }
     } catch (error: any) {
       Alert.alert(error.message);
-=======
+    }
+  };
+
   // Function calls paginatedConversationsEnd action which internally calls getConversations to update conversation array with the new data.
   async function endOfPaginatedData() {
     let payload = {
@@ -2186,7 +2175,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     if (isScrollAtEnd && shouldLoadMoreChatEnd) {
       renderFooter();
       onEndReached();
->>>>>>> 3e05061403ac010092a0047f3e78bacee352d23a
     }
   };
 

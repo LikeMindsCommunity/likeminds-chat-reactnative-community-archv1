@@ -123,10 +123,14 @@ const SwitchComponent = () => {
     return unsubscribe;
   }, []);
 
+  const linking = {
+    prefixes: [''], // Add your custom link to open app.
+  };
+
   return (
     <View style={{flex: 1}}>
       <StatusBar barStyle={statusBarStyle} />
-      <NavigationContainer ref={navigationRef}>
+      <NavigationContainer linking={linking} ref={navigationRef}>
         <Stack.Navigator initialRouteName={HOMEFEED}>
           <Stack.Screen name={HOMEFEED} component={HomeFeed} />
           <Stack.Screen name={EXPLORE_FEED} component={ExploreFeed} />
