@@ -28,7 +28,7 @@ import {
   SET_PAGE,
   INSERT_GROUPFEED_CHATROOM,
   UPDATE_GROUPFEED_CHATROOM,
-  DELETE_CHATROOM,
+  DELETE_GROUPFEED_CHATROOM,
 } from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
@@ -38,6 +38,7 @@ import Realm from 'realm';
 import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
 interface Props {
@@ -52,7 +53,7 @@ const GroupFeed = ({navigation}: Props) => {
   const isFocused = useIsFocused();
   const dispatch = useAppDispatch();
 
-  const {
+  let {
     myChatrooms,
     unseenCount,
     totalCount,
@@ -63,6 +64,8 @@ const GroupFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const db = myClient?.firebaseInstance();
+
+  groupFeedChatrooms = [...invitedChatrooms, ...groupFeedChatrooms];
 
   const INITIAL_SYNC_PAGE = 1;
 
@@ -93,7 +96,7 @@ const GroupFeed = ({navigation}: Props) => {
     // Handle deleted GroupFeed Chatroom objects
     changes.deletions.forEach((index: any) => {
       dispatch({
-        type: DELETE_CHATROOM,
+        type: DELETE_GROUPFEED_CHATROOM,
         body: index,
       });
     });
@@ -133,6 +136,15 @@ const GroupFeed = ({navigation}: Props) => {
   }, [isFocused]);
 
   useEffect(() => {
+    if (isFocused) {
+      getExistingData();
+      if (!user?.sdkClientInfo?.community) return;
+      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+      setShimmerIsLoading(false);
+    }
+  }, [isFocused, user]);
+
+  useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
@@ -141,15 +153,6 @@ const GroupFeed = ({navigation}: Props) => {
       }
     });
   }, [user]);
-
-  useEffect(() => {
-    if (isFocused) {
-      getExistingData();
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
-      setShimmerIsLoading(false);
-    }
-  }, [isFocused, user]);
 
   async function fetchData() {
     const invitesRes = await dispatch(
@@ -209,7 +212,10 @@ const GroupFeed = ({navigation}: Props) => {
 
   const handleLoadMore = async () => {
     if (!isLoading) {
-      if (myChatrooms?.length === 0 && invitedChatrooms === 10 * invitePage) {
+      if (
+        groupFeedChatrooms?.length === 0 &&
+        invitedChatrooms === 10 * invitePage
+      ) {
         setIsLoading(true);
         await dispatch(
           updateInvites(
@@ -222,9 +228,9 @@ const GroupFeed = ({navigation}: Props) => {
         });
         setIsLoading(false);
       } else if (
-        myChatrooms?.length > 0 &&
-        myChatrooms?.length % 10 === 0 &&
-        myChatrooms?.length === 10 * page
+        groupFeedChatrooms?.length > 0 &&
+        groupFeedChatrooms?.length % 10 === 0 &&
+        groupFeedChatrooms?.length === 10 * page
       ) {
         const newPage = page + 1;
         dispatch({type: SET_PAGE, body: newPage});
@@ -341,32 +347,36 @@ const GroupFeed = ({navigation}: Props) => {
             />
           )}
           renderItem={({item}: any) => {
+            let lastConversation = item?.lastConversation;
+            if (item?.unseenCount === 0) {
+              lastConversation = item?.lastSeenConversation;
+            }
+            const deletedBy =
+              lastConversation?.deletedByUserId !== null
+                ? lastConversation?.deletedByUserId
+                : lastConversation?.deletedBy;
             const homeFeedProps = {
               title: item?.header!,
               avatar: item?.chatroomImageUrl!,
-              lastMessage: item?.lastConversationRO?.answer!,
-              lastMessageUser: item?.lastConversation?.member?.name!,
-              time: item?.lastConversationRO?.createdAt!,
+              lastMessage: lastConversation?.answer!,
+              lastMessageUser: lastConversation?.member?.name!,
+              time: lastConversation?.createdAt!,
               unreadCount: item?.unseenCount!,
               pinned: false,
-              lastConversation: item?.lastConversationRO!,
-              lastConversationMember: item?.lastConversationRO?.member?.name!,
+              lastConversation: lastConversation!,
+              lastConversationMember: lastConversation?.member?.name!,
               chatroomID: item?.id!,
               isSecret: item?.isSecret,
-              deletedBy: item?.lastConversation?.deletedByUserId,
+              deletedBy: deletedBy,
               conversationDeletor:
-                item?.lastConversationRO?.deletedByMember?.sdkClientInfo?.uuid,
+                lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
               conversationCreator:
-                item?.lastConversationRO?.member?.sdkClientInfo?.uuid,
-              conversationDeletorName:
-                item?.lastConversationRO?.deletedByMember?.name,
+                lastConversation?.member?.sdkClientInfo?.uuid,
+              conversationDeletorName: lastConversation?.deletedByMember?.name,
               inviteReceiver: item?.inviteReceiver,
               chatroomType: item?.type,
               muteStatus: item?.muteStatus,
             };
-            if (!item?.followStatus) {
-              return null;
-            }
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
           extraData={{
@@ -374,6 +384,7 @@ const GroupFeed = ({navigation}: Props) => {
           }}
           estimatedItemSize={15}
           ListFooterComponent={renderFooter}
+          onLoad={handleLoadMore}
           keyExtractor={(item: any) => {
             return item?.id?.toString();
           }}

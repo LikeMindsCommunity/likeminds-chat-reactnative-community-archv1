@@ -152,7 +152,6 @@ const ExploreFeed = ({navigation}: Props) => {
         )}
         renderItem={({item}: any) => {
           const exploreFeedProps = {
-            // title: item?.chatroom?.title!,
             header: item?.header,
             title: item?.title!,
             avatar: item?.chatroomImageUrl,

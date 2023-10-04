@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import {myClient} from '../../..';
 import {decode, getFullDate} from '../../commonFuctions';
-import {useAppDispatch} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../../store';
 import {
   ACCEPT_INVITE,
   ACCEPT_INVITE_SUCCESS,
@@ -30,6 +30,9 @@ import {
   VIDEO_TEXT,
 } from '../../constants/Strings';
 import Layout from '../../constants/Layout';
+import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
+import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
+import {ChatroomType} from '../../enums/chatroomType';
 
 interface Props {
   avatar: string;
@@ -67,6 +70,7 @@ const HomeFeedItem: React.FC<Props> = ({
   muteStatus,
 }) => {
   const dispatch = useAppDispatch();
+  let {invitedChatrooms, user} = useAppSelector(state => state.homefeed);
 
   const showJoinAlert = () =>
     Alert.alert(
@@ -90,6 +94,7 @@ const HomeFeedItem: React.FC<Props> = ({
             });
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
             dispatch({type: SET_PAGE, body: 1});
+            await paginatedSyncAPI(1, user, false);
           },
           style: 'default',
         },
@@ -303,6 +308,8 @@ const HomeFeedItem: React.FC<Props> = ({
   return (
     <Pressable
       onPress={() => {
+        // TODO - Currently from backend we don't get the secret chatroom data without accepting or rejecting the invitation, so diabling the click for now so user can't go inside an invited secret chatroom without accepting the invitation
+        if (inviteReceiver) return;
         navigation.navigate(CHATROOM, {
           chatroomID: chatroomID,
           isInvited: !!inviteReceiver ? true : false,
@@ -321,7 +328,7 @@ const HomeFeedItem: React.FC<Props> = ({
           }
           style={styles.avatar}
         />
-        {chatroomType === 10 ? (
+        {chatroomType === ChatroomType.DMCHATROOM ? (
           <View style={styles.dmAvatarBubble}>
             <Image
               source={require('../../assets/images/dm_message_bubble3x.png')}
@@ -335,7 +342,6 @@ const HomeFeedItem: React.FC<Props> = ({
         <View style={styles.headerContainer}>
           <Text style={styles.title} numberOfLines={1}>
             {title}
-
             {isSecret ? (
               <Image
                 source={require('../../assets/images/lock_icon3x.png')}
@@ -370,7 +376,7 @@ const HomeFeedItem: React.FC<Props> = ({
                     overflow: 'hidden',
                   },
                 ]}>
-                {chatroomType !== 10 ? (
+                {chatroomType !== ChatroomType.DMCHATROOM ? (
                   <Text
                     style={
                       styles.lastMessage

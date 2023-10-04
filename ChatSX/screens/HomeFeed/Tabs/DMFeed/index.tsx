@@ -30,7 +30,7 @@ import {
   SET_INITIAL_DMFEED_CHATROOM,
   INSERT_DMFEED_CHATROOM,
   UPDATE_DMFEED_CHATROOM,
-  DELETE_CHATROOM,
+  DELETE_DMFEED_CHATROOM,
 } from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
@@ -47,6 +47,7 @@ import Realm from 'realm';
 import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
 interface Props {
@@ -121,7 +122,7 @@ const DMFeed = ({navigation}: Props) => {
       setShimmerIsLoading(false);
       dispatch({
         type: SET_INITIAL_DMFEED_CHATROOM,
-        body: existingChatrooms,
+        body: {dmFeedChatrooms: existingChatrooms},
       });
     }
   };
@@ -131,7 +132,7 @@ const DMFeed = ({navigation}: Props) => {
     // Handle deleted DM Chatroom objects
     changes.deletions.forEach((index: any) => {
       dispatch({
-        type: DELETE_CHATROOM,
+        type: DELETE_DMFEED_CHATROOM,
         body: index,
       });
     });
@@ -361,25 +362,33 @@ const DMFeed = ({navigation}: Props) => {
           }}
           estimatedItemSize={15}
           renderItem={({item}: any) => {
+            const userTitle =
+              user?.id == item?.chatroomWithUserId
+                ? item?.member?.name
+                : item?.chatroomWithUser?.name;
+            const deletedBy =
+              item?.lastConversation?.deletedByUserId !== null
+                ? item?.lastConversation?.deletedByUserId
+                : item?.lastConversation?.deletedBy;
             const homeFeedProps = {
-              title: item?.chatroomWithUserName,
+              title: userTitle,
               avatar: item?.chatroomImageUrl!,
-              lastMessage: item?.lastConversationRO?.answer!,
+              lastMessage: item?.lastConversation?.answer!,
               lastMessageUser: item?.lastConversation?.member?.name!,
-              time: item?.lastConversationRO?.createdAt!,
+              time: item?.lastConversation?.createdAt!,
               unreadCount: item?.unseenCount!,
               pinned: false,
-              lastConversation: item?.lastConversationRO!,
-              lastConversationMember: item?.lastConversationRO?.member?.name!,
+              lastConversation: item?.lastConversation!,
+              lastConversationMember: item?.lastConversation?.member?.name!,
               chatroomID: item?.id!,
               isSecret: item?.isSecret,
-              deletedBy: item?.lastConversation?.deletedByUserId,
+              deletedBy: deletedBy,
               conversationDeletor:
-                item?.lastConversationRO?.deletedByMember?.sdkClientInfo?.uuid,
+                item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
               conversationCreator:
-                item?.lastConversationRO?.member?.sdkClientInfo?.uuid,
+                item?.lastConversation?.member?.sdkClientInfo?.uuid,
               conversationDeletorName:
-                item?.lastConversationRO?.deletedByMember?.name,
+                item?.lastConversation?.deletedByMember?.name,
               inviteReceiver: item?.inviteReceiver,
               chatroomType: item?.type,
               muteStatus: item?.muteStatus,

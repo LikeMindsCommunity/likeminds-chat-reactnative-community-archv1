@@ -118,13 +118,10 @@ const FileUpload = ({navigation, route}: any) => {
   }: UploadResource) => {
     LogBox.ignoreLogs(['new NativeEventEmitter']);
     const s3 = new S3();
-
     for (let i = 0; i < selectedImages?.length; i++) {
       let item = selectedImages[i];
-
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
-
       let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
@@ -134,9 +131,9 @@ const FileUpload = ({navigation, route}: any) => {
           : docAttachmentType === PDF_TEXT
           ? item.name
           : null;
+
       let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
       let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
-
       let uriFinal: any;
 
       if (attachmentType === IMAGE_TEXT) {
@@ -175,11 +172,12 @@ const FileUpload = ({navigation, route}: any) => {
 
       try {
         let getVideoThumbnailData = null;
-
         if (thumbnailURL && attachmentType === VIDEO_TEXT) {
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
         }
+
         const data = await s3.upload(params).promise();
+
         let awsResponse = data.Location;
 
         if (awsResponse) {
@@ -233,6 +231,16 @@ const FileUpload = ({navigation, route}: any) => {
             ID: conversationID,
           },
         });
+        let id = conversationID;
+        let message = {
+          ...uploadingFilesMessages[conversationID?.toString()],
+          isInProgress: FAILED,
+        };
+
+        await myClient?.saveAttachmentUploadConversation(
+          id.toString(),
+          JSON.stringify(message),
+        );
         return error;
       }
       dispatch({
@@ -242,13 +250,15 @@ const FileUpload = ({navigation, route}: any) => {
         type: CLEAR_SELECTED_FILE_TO_VIEW,
       });
     }
-
     dispatch({
       type: CLEAR_FILE_UPLOADING_MESSAGES,
       body: {
         ID: conversationID,
       },
     });
+    await myClient?.removeAttactmentUploadConversationByKey(
+      conversationID?.toString(),
+    );
   };
 
   const handleFileUpload = async (conversationID: any, isRetry: any) => {

@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {removeKey} from '../../commonFuctions';
 import {myClient} from '../../..';
 import {
@@ -27,22 +26,10 @@ export function fileUploadReducer(state = initialState, action: any) {
     case SET_FILE_UPLOADING_MESSAGES: {
       const {message = {}, ID} = action.body;
       let obj = {[ID]: {...message}};
-      let keys = Object.keys(state.uploadingFilesMessages);
-
       let dummyState = {
         ...state.uploadingFilesMessages,
         ...obj,
       };
-
-      const func = async () => {
-        myClient?.saveAttachmentUploadConversation(
-          ID.toString(),
-          JSON.stringify(message),
-        );
-        const res = await myClient?.getAllAttachmentUploadConversations();
-      };
-
-      func();
       return {
         ...state,
         uploadingFilesMessages: dummyState,
@@ -58,12 +45,6 @@ export function fileUploadReducer(state = initialState, action: any) {
         uploadingFilesMessages: {...obj},
       };
 
-      const func = async () => {
-        myClient?.removeAttactmentUploadConversationByKey(ID?.toString());
-        const res = await myClient?.getAllAttachmentUploadConversations();
-      };
-
-      func();
       return dummyState;
     }
 

@@ -15,6 +15,8 @@ import {
 import {PollConversationView} from '../Poll';
 import {useQuery} from '@realm/react';
 import {myClient} from '../../..';
+import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
+import {ChatroomType} from '../../enums/chatroomType';
 
 interface Messages {
   item: any;
@@ -43,38 +45,22 @@ const Messages = ({
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
 
-  const [conversationCreator, setConversationCreator] = useState();
-
-  const getConversationCreator = async () => {
-    const conversation = await myClient?.getConversations(item?.chatroomId);
-    const answer = conversation[0].answer;
-    const startingIndex = answer.lastIndexOf('<');
-    const endingIndex = answer.lastIndexOf('|');
-    const trimmedAnswer = answer.substring(startingIndex + 1, endingIndex);
-    if (trimmedAnswer !== undefined) {
-      setConversationCreator(trimmedAnswer);
-    } else {
-      setConversationCreator(item?.member?.sdkClientInfo?.uuid);
-    }
-  };
-
-  // This is to get the second user from the answer key
-  getConversationCreator();
-
   const {
     selectedMessages,
     isLongPress,
     stateArr,
     conversations,
     chatroomDetails,
+    chatroomDBDetails,
   }: any = useAppSelector(state => state.chatroom);
 
   const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [reactionArr, setReactionArr] = useState([] as any);
-  const userIdStringified = user?.id.toString();
+  const userIdStringified = user?.id?.toString();
   const isTypeSent = item?.member?.id == userIdStringified ? true : false;
-  const chatRequestedBy = chatroomDetails?.chatroom?.chatRequestedBy;
+  const chatRequestedBy = chatroomDBDetails?.chatRequestedBy;
+  const chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
@@ -175,6 +161,7 @@ const Messages = ({
 
   const conversationDeletor = item?.deletedByMember?.sdkClientInfo?.uuid;
   const conversationDeletorName = item?.deletedByMember?.name;
+  const conversationCreator = item?.member?.sdkClientInfo?.uuid;
   const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = user?.id;
   const users = useQuery('UserSchemaRO');
@@ -184,12 +171,11 @@ const Messages = ({
   const answerTrimming = (answer: string) => {
     const loggedInMember = currentUserUuid;
     const chatroomWithUser =
-      chatroomDetails?.chatroom?.member?.sdkClientInfo?.uuid;
+      chatroomDBDetails?.chatroomWithUser?.sdkClientInfo?.uuid;
 
-    if (loggedInMember !== chatroomWithUser) {
+    if (loggedInMember === chatroomWithUser) {
       const startingIndex = answer.lastIndexOf('<');
       const receivingUser = answer.substring(0, startingIndex - 2);
-
       return receivingUser;
     } else {
       const startingIndex = answer.indexOf('<');
@@ -197,7 +183,6 @@ const Messages = ({
       const sendingUser =
         answer.substring(0, startingIndex - 1) +
         answer.substring(endingIndex + 2);
-
       return sendingUser;
     }
   };
@@ -206,7 +191,7 @@ const Messages = ({
     <View style={styles.messageParent}>
       <View>
         {!!item?.deletedBy ? (
-          chatroomType !== 10 ? (
+          chatroomType !== ChatroomType.DMCHATROOM ? (
             currentUserUuid === conversationDeletor ? (
               <View
                 style={[
@@ -332,11 +317,11 @@ const Messages = ({
                       conversations[0]?.id == item?.id && 
                       chatRequestBy user should be same as user (when we reject DM chat request by changes to the person who rejected the request)
                 */}
-                {item.state === 19 &&
-                conversations[0].state === 19 &&
+                {item?.state === 19 &&
+                conversations[0]?.state === 19 &&
                 conversations[0]?.id === item?.id &&
-                (!!chatRequestedBy
-                  ? chatRequestedBy[0]?.id == userIdStringified
+                (!!chatroomWithUser
+                  ? chatroomWithUser?.id == userIdStringified
                   : null) ? (
                   <Pressable
                     onPress={() => {
@@ -366,7 +351,8 @@ const Messages = ({
                     <Text style={styles.textCenterAlign}>
                       {
                         // State 1 refers to initial DM message, so in that case trimming the first user name
-                        item?.state === 1
+                        item?.state === 1 &&
+                        chatroomType === ChatroomType.DMCHATROOM
                           ? decode(
                               answerTrimming(item?.answer),
                               true,

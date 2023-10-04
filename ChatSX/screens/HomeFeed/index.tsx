@@ -27,8 +27,6 @@ import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {useIsFocused} from '@react-navigation/native';
 import {useQuery} from '@realm/react';
-import {onValue, ref} from '@firebase/database';
-import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 
 interface Props {
   navigation: any;
@@ -44,7 +42,6 @@ const HomeFeed = ({navigation}: Props) => {
   const [accessToken, setAccessToken] = useState('');
   const dispatch = useAppDispatch();
   const isFocused = useIsFocused();
-  const db = myClient?.firebaseInstance();
 
   const {
     myChatrooms,
@@ -153,25 +150,6 @@ const HomeFeed = ({navigation}: Props) => {
     return res;
   }
 
-  const timeSetter = async () => {
-    const timeStampStored = await myClient?.getTimeStamp();
-    if (timeStampStored.length === 0) {
-      const maxTimeStamp = Math.floor(Date.now() / 1000);
-      const minTimeStamp = 0;
-      await myClient?.saveTimeStamp(minTimeStamp, maxTimeStamp);
-    } else {
-      // Updating the timeStamp incase of reopening of App
-      myClient.updateTimeStamp(
-        timeStampStored[0].maxTimeStamp,
-        Math.floor(Date.now() / 1000),
-      );
-    }
-  };
-
-  useEffect(() => {
-    timeSetter();
-  }, [isFocused]);
-
   useLayoutEffect(() => {
     fetchData();
   }, [navigation, myClient]);
@@ -191,9 +169,7 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const func = async () => {
-      // const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
       const res: any = await myClient?.getAllAttachmentUploadConversations();
-
       if (res) {
         let len = res.length;
         if (len > 0) {
@@ -216,6 +192,16 @@ const HomeFeed = ({navigation}: Props) => {
     };
 
     func();
+  }, []);
+
+  useEffect(() => {
+    const timeSetter = async () => {
+      const timeStampStored = await myClient?.getTimeStamp();
+      if (timeStampStored.length === 0) {
+        await myClient?.initiateTimeStamp();
+      }
+    };
+    timeSetter();
   }, []);
 
   useEffect(() => {

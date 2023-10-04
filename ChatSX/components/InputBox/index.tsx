@@ -87,6 +87,8 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
+import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
+import {ChatroomType} from '../../enums/chatroomType';
 
 interface InputBox {
   replyChatID?: any;
@@ -103,6 +105,7 @@ interface InputBox {
   isEditable?: boolean;
   setIsEditable?: any;
   isSecret?: any;
+  chatroomWithUser?: any;
 }
 
 const InputBox = ({
@@ -120,6 +123,7 @@ const InputBox = ({
   isEditable,
   setIsEditable,
   isSecret,
+  chatroomWithUser,
 }: InputBox) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -594,13 +598,14 @@ const InputBox = ({
           ? {obj: {...replyObj, isInProgress: SUCCESS}}
           : {obj: {...obj, isInProgress: SUCCESS}},
       });
+
       dispatch({
         type: MESSAGE_SENT,
         body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
 
       if (
-        chatroomType !== 10 && // if not DM
+        chatroomType !== ChatroomType.DMCHATROOM && // if not DM
         chatRequestState !== null // if not first DM message sent to an user
       ) {
         if (isReply) {
@@ -650,7 +655,7 @@ const InputBox = ({
 
       // condition for request DM for the first time
       if (
-        chatroomType === 10 && // if DM
+        chatroomType === ChatroomType.DMCHATROOM && // if DM
         chatRequestState === null &&
         isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
@@ -670,8 +675,12 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 0},
         });
+        await myClient?.updateChatRequestState(
+          chatroomID.toString(),
+          ChatroomChatRequestState.INITIATED,
+        );
       } else if (
-        chatroomType === 10 && // if DM
+        chatroomType === ChatroomType.DMCHATROOM && // if DM
         chatRequestState === null &&
         !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
@@ -685,6 +694,10 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 1},
         });
+        await myClient?.updateChatRequestState(
+          chatroomID.toString(),
+          ChatroomChatRequestState.ACCEPTED,
+        );
       } else {
         if (!isUploadScreen) {
           let payload = {
@@ -695,6 +708,7 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
+
           let response = await dispatch(onConversationsCreate(payload) as any);
 
           if (!!response) {
@@ -729,13 +743,10 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
+
           let response = await dispatch(onConversationsCreate(payload) as any);
           await myClient?.replaceSavedConversation(response?.conversation);
-          const conversationGet = await myClient?.getConversations(chatroomID);
-          dispatch({
-            type: GET_CONVERSATIONS_SUCCESS,
-            body: {conversations: conversationGet.reverse()},
-          });
+
           if (response === undefined) {
             dispatch({
               type: SHOW_TOAST,
@@ -746,7 +757,6 @@ const InputBox = ({
             });
           } else if (response) {
             // start uploading
-
             dispatch({
               type: SET_FILE_UPLOADING_MESSAGES,
               body: {
@@ -766,6 +776,27 @@ const InputBox = ({
                 ID: response?.id,
               },
             });
+
+            let id = response?.id;
+            let message = isReply
+              ? {
+                  ...replyObj,
+                  id: response?.id,
+                  temporaryId: ID,
+                  isInProgress: SUCCESS,
+                }
+              : {
+                  ...obj,
+                  id: response?.id,
+                  temporaryId: ID,
+                  isInProgress: SUCCESS,
+                };
+
+            await myClient?.saveAttachmentUploadConversation(
+              id.toString(),
+              JSON.stringify(message),
+            );
+
             await handleFileUpload(response?.id, false);
           }
           dispatch({
@@ -845,8 +876,9 @@ const InputBox = ({
       setMessage(e);
       setFormattedConversation(e);
 
-      // chatroomType === 10 (if DM don't detect and show user tags)
-      const newMentions = chatroomType === 10 ? [] : detectMentions(e);
+      // chatroomType === ChatroomType.DMCHATROOM (if DM don't detect and show user tags)
+      const newMentions =
+        chatroomType === ChatroomType.DMCHATROOM ? [] : detectMentions(e);
 
       if (newMentions.length > 0) {
         const length = newMentions.length;
@@ -960,7 +992,7 @@ const InputBox = ({
     });
     await myClient?.updateConversation(
       conversationId.toString(),
-      editConversationResponse?.data,
+      editConversationResponse?.data?.conversation,
     );
   };
 
@@ -1256,7 +1288,7 @@ const InputBox = ({
         <TouchableOpacity
           onPressOut={() => {
             if (
-              chatroomType === 10 && // if DM
+              chatroomType === ChatroomType.DMCHATROOM && // if DM
               chatRequestState === null &&
               isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
             ) {

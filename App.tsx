@@ -15,8 +15,6 @@ import * as RootNavigation from './RootNavigation';
 import FetchKeyInputScreen from './Sample';
 import {useQuery} from '@realm/react';
 
-const Stack = createNativeStackNavigator();
-
 function App(): JSX.Element {
   const users = useQuery('UserSchemaRO');
   const [userUniqueID, setUserUniqueID] = useState<any>(users[0]?.userUniqueID);

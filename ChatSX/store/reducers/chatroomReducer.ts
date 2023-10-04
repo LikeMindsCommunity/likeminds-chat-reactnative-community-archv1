@@ -28,6 +28,9 @@ import {
   EMPTY_BLOCK_DELETION,
   UPDATE_MULTIMEDIA_CONVERSATIONS,
   PAGINATED_CONVERSATIONS_START_SUCCESS,
+  GET_CHATROOM_DB_SUCCESS,
+  GET_CHATROOM_ACTIONS_SUCCESS,
+  ADD_STATE_MESSAGE,
 } from '../types/types';
 
 const initialState = {
@@ -45,6 +48,7 @@ const initialState = {
   replyMessage: '',
   editConversation: '',
   fileSent: 0,
+  chatroomDBDetails: {},
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -54,6 +58,13 @@ export function chatroomReducer(state = initialState, action: any) {
       return {
         ...state,
         conversations: newArr,
+      };
+    }
+    case ADD_STATE_MESSAGE: {
+      const {conversation = {}} = action.body;
+      return {
+        ...state,
+        conversations: [conversation, ...state.conversations],
       };
     }
     case LONG_PRESSED: {
@@ -69,6 +80,10 @@ export function chatroomReducer(state = initialState, action: any) {
         ...state,
         selectedMessages: selectedMessages,
       };
+    }
+    case GET_CHATROOM_DB_SUCCESS: {
+      const {chatroomDBDetails = {}} = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
     }
     case GET_CONVERSATIONS_SUCCESS: {
       const {conversations = []} = action.body;
@@ -92,8 +107,10 @@ export function chatroomReducer(state = initialState, action: any) {
       const {conversations = []} = data;
       let ID = conversations[0]?.id;
       let temporaryID = conversations[0]?.temporaryId;
+
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
+
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
       let index = conversationsList.findIndex((element: any) => {
         return (
@@ -101,11 +118,12 @@ export function chatroomReducer(state = initialState, action: any) {
           element?.id?.toString() === temporaryID?.toString() // to replace the messsage if message is already there by verifying message's ID with conversationMeta ID;
         );
       });
+
       //replacing the value from the index that matches ID
       if (conversations.length > 0 && index !== -1) {
         conversationArr[index] = conversations[0];
       }
-      // return;
+
       return {
         ...state,
         conversations:
@@ -117,12 +135,10 @@ export function chatroomReducer(state = initialState, action: any) {
     case ON_CONVERSATIONS_CREATE_SUCCESS: {
       const data = action.body;
       const {conversation = []} = data;
-
       if (conversation?.hasFiles || !!conversation?.replyConversation) {
         return {...state};
       }
       let temporaryID = conversation?.temporaryId;
-
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
 
@@ -158,24 +174,25 @@ export function chatroomReducer(state = initialState, action: any) {
       const {conversations = []} = action.body;
       return {...state, conversations: conversations};
     }
-    case GET_CHATROOM_SUCCESS: {
+    case GET_CHATROOM_ACTIONS_SUCCESS: {
       const chatroomDetails = action.body;
       return {...state, chatroomDetails: chatroomDetails};
     }
+    case GET_CHATROOM_SUCCESS: {
+      const chatroomDBDetails = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
+    }
     case CLEAR_CHATROOM_DETAILS: {
-      const {chatroomDetails} = action.body;
-      return {...state, chatroomDetails: chatroomDetails};
+      const {chatroomDBDetails} = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
     }
     case UPDATE_CHAT_REQUEST_STATE: {
       const {chatRequestState} = action.body;
       return {
         ...state,
-        chatroomDetails: {
-          ...state.chatroomDetails,
-          chatroom: {
-            ...state.chatroomDetails.chatroom,
-            chatRequestState: chatRequestState,
-          },
+        chatroomDBDetails: {
+          ...state.chatroomDBDetails,
+          chatRequestState: chatRequestState,
         },
       };
     }
