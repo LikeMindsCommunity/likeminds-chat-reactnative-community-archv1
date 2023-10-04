@@ -1,16 +1,9 @@
 import React, {Alert, Linking, Text} from 'react-native';
 import STYLES from '../constants/Styles';
-import {useAppDispatch, useAppSelector} from '../../store';
 import {PDF_TEXT, VIDEO_TEXT} from '../constants/Strings';
-import {
-  SELECTED_FILES_TO_UPLOAD,
-  SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-} from '../store/types/types';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
-import {diffChars, diffLines, diffWords} from 'diff';
 import moment from 'moment';
-import {shareChatroomRequest} from '../Models/CommonFunctions';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/[^>]+>>)/gu;
 export const REGEX_USER_TAGGING =
@@ -501,13 +494,4 @@ export function extractPathfromRouteQuery(inputString: string): string | null {
 export const formatDate = (date: any, time: any) => {
   let formattedTime = moment(date).format('DD/MM/YYYY hh:mm');
   return formattedTime;
-};
-
-// this method generates URL for share
-export const shareChatroomURL = ({
-  chatroomId,
-  domain,
-}: shareChatroomRequest) => {
-  let URL = `${domain}/chatroom?chatroom_id=${chatroomId}`;
-  return URL;
 };

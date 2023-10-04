@@ -31,7 +31,6 @@ import {
   copySelectedMessages,
   fetchResourceFromURI,
   formatTime,
-  shareChatroomURL,
 } from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
@@ -131,6 +130,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
 import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
 import {ChatroomType} from '../../enums/chatroomType';
+import { onShare } from '../../shareUtils';
+import { EIGHT, FIFTEEN, FOUR, NINE, SIX, THREE, TWENTY_EIGHT, TWENTY_ONE, TWENTY_SEVEN, TWO } from '../../constants/Numbers';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -2005,32 +2006,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  // this function helps to share chatroom url
-  const onShare = async () => {
-    try {
-      let shareChatroomRequest = {
-        chatroomId: chatroomID,
-        domain: '' // Add your custom link to open app,
-      };
-      let URL = shareChatroomURL(shareChatroomRequest);
-
-      const result = await Share.share({
-        message: URL,
-      });
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // shared with activity type of result.activityType
-        } else {
-          // shared
-        }
-      } else if (result.action === Share.dismissedAction) {
-        // dismissed
-      }
-    } catch (error: any) {
-      Alert.alert(error.message);
-    }
-  };
-
   // Function calls paginatedConversationsEnd action which internally calls getConversations to update conversation array with the new data.
   async function endOfPaginatedData() {
     let payload = {
@@ -2606,37 +2581,37 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 return (
                   <TouchableOpacity
                     onPress={async () => {
-                      if (val?.id === 2) {
+                      if (val?.id === TWO) {
                         setModalVisible(false);
                         navigation.navigate(VIEW_PARTICIPANTS, {
                           chatroomID: chatroomID,
                           isSecret: isSecret,
                         });
-                      } else if (val?.id === 9 || val?.id === 15) {
+                      } else if (val?.id === NINE || val?.id === FIFTEEN) {
                         showWarningModal();
                         setModalVisible(false);
-                      } else if (val?.id === 4) {
+                      } else if (val?.id === FOUR) {
                         if (!isSecret) {
                           joinChatroom();
                         }
                         setModalVisible(false);
-                      } else if (val?.id === 6) {
+                      } else if (val?.id === SIX) {
                         await muteNotifications();
                         setModalVisible(false);
-                      } else if (val?.id === 8) {
+                      } else if (val?.id === EIGHT) {
                         await unmuteNotifications();
                         setModalVisible(false);
-                      } else if (val?.id === 21) {
+                      } else if (val?.id === TWENTY_ONE) {
                         //View Profile code
-                      } else if (val?.id === 27) {
+                      } else if (val?.id === TWENTY_SEVEN) {
                         await handleBlockMember();
                         setModalVisible(false);
-                      } else if (val?.id === 28) {
+                      } else if (val?.id === TWENTY_EIGHT) {
                         await unblockMember();
                         setModalVisible(false);
-                      } else if (val?.id === 3) {
+                      } else if (val?.id === THREE) {
                         // Share flow
-                        onShare();
+                        onShare(chatroomID);
                       }
                     }}
                     key={val?.id}

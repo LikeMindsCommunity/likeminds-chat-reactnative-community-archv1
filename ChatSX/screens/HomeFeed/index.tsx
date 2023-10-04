@@ -160,7 +160,6 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const subscription = Linking.addEventListener('url', ({url}) => {
-      console.log('url ==', url);
 
       const UUID = users[0]?.userUniqueID;
       const userName = users[0]?.userName;
