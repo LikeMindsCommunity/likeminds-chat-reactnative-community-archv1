@@ -129,6 +129,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
+import {ChatroomType} from '../../enums/chatroomType';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -187,7 +188,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [shouldLoadMoreChatStart, setShouldLoadMoreChatStart] = useState(true);
   const [lastScrollOffset, setLastScrollOffset] = useState(true);
   const [response, setResponse] = useState([]);
-  const status = ChatroomChatRequestState;
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
   const users = useQuery('UserSchemaRO');
@@ -253,7 +253,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }
 
   let chatroomName =
-    chatroomType === status.dmChatroom
+    chatroomType === ChatroomType.dmChatroom
       ? user?.id != chatroomWithUser?.id
         ? chatroomWithUser?.name
         : chatroomDBDetails?.member?.name!
@@ -272,7 +272,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       */
   }
   let chatroomProfile =
-    chatroomType === status.dmChatroom
+    chatroomType === ChatroomType.dmChatroom
       ? user?.id !== chatroomWithUser?.id
         ? chatroomWithUser?.imageUrl
         : chatroomDBDetails?.member?.imageUrl!
@@ -322,7 +322,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           </TouchableOpacity>
           {!(Object.keys(chatroomDBDetails).length === 0) ? (
             <View style={styles.alignRow}>
-              {chatroomType === status.dmChatroom ? (
+              {chatroomType === ChatroomType.dmChatroom ? (
                 <View style={styles.profile}>
                   <Image
                     source={
@@ -347,7 +347,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   }}>
                   {chatroomName}
                 </Text>
-                {chatroomType !== status.dmChatroom ? (
+                {chatroomType !== ChatroomType.dmChatroom ? (
                   <Text
                     style={{
                       color: STYLES.$COLORS.MSG,
@@ -545,7 +545,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             ) : null}
 
             {isSelectedMessageEditable &&
-            (chatroomType === status.dmChatroom ? !!chatRequestState : true) ? ( // this condition checks in case of DM, chatRequestState != 0 && chatRequestState != null then only show edit Icon
+            (chatroomType === ChatroomType.dmChatroom
+              ? !!chatRequestState
+              : true) ? ( // this condition checks in case of DM, chatRequestState != 0 && chatRequestState != null then only show edit Icon
               <TouchableOpacity
                 onPress={() => {
                   setIsEditable(true);
@@ -621,7 +623,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   //this function to update page for pagination in redux for GroupFeed or DMFeed
   const updatePageInRedux = () => {
-    if (chatroomType === status.dmChatroom) {
+    if (chatroomType === ChatroomType.dmChatroom) {
       dispatch({type: SET_DM_PAGE, body: 1});
     } else {
       dispatch({type: SET_PAGE, body: 1});
@@ -842,7 +844,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   function backAction() {
     dispatch({type: SELECTED_MESSAGES, body: []});
     dispatch({type: LONG_PRESSED, body: false});
-    if (chatroomType === status.dmChatroom) {
+    if (chatroomType === ChatroomType.dmChatroom) {
       if (previousRoute?.name === DM_ALL_MEMBERS) {
         const popAction = StackActions.pop(2);
         navigation.dispatch(popAction);
@@ -866,7 +868,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     function backActionCall() {
       Keyboard.dismiss();
-      if (chatroomType === status.dmChatroom) {
+      if (chatroomType === ChatroomType.dmChatroom) {
         if (previousRoute?.name === DM_ALL_MEMBERS) {
           const popAction = StackActions.pop(2);
           navigation.dispatch(popAction);
@@ -902,7 +904,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this useEffect call API to show InputBox based on showDM key.
   useEffect(() => {
     async function callApi() {
-      if (chatroomType == status.dmChatroom) {
+      if (chatroomType == ChatroomType.dmChatroom) {
         let apiRes = await myClient?.canDmFeed({
           reqFrom: 'chatroom',
           chatroomId: chatroomID,
@@ -913,8 +915,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           setShowDM(response?.showDm);
         }
       } else if (
-        chatroomType == status.openChatroom ||
-        chatroomType == status.announcementRoom
+        chatroomType == ChatroomType.openChatroom ||
+        chatroomType == ChatroomType.announcementRoom
       ) {
         if (!!community?.id) {
           let payload = {
@@ -967,7 +969,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           );
           await myClient?.updateChatRequestState(
             chatroomID?.toString(),
-            status.open,
+            ChatroomChatRequestState.accepted,
           );
           fetchChatroomDetails();
         }
@@ -1601,7 +1603,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const onApprove = async () => {
     let response = await myClient?.sendDMRequest({
       chatroomId: chatroomID,
-      chatRequestState: 1,
+      chatRequestState: ChatroomChatRequestState.accepted,
     });
 
     //dispatching redux action for local handling of chatRequestState
@@ -1610,7 +1612,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       body: {chatRequestState: 1},
     });
 
-    await myClient?.updateChatRequestState(chatroomID?.toString(), status.open);
+    await myClient?.updateChatRequestState(
+      chatroomID?.toString(),
+      ChatroomChatRequestState.accepted,
+    );
     fetchChatroomDetails();
 
     dispatch({
@@ -1627,7 +1632,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const onReject = async () => {
     let response = await myClient?.sendDMRequest({
       chatroomId: chatroomID,
-      chatRequestState: 2,
+      chatRequestState: ChatroomChatRequestState.rejected,
     });
 
     //dispatching redux action for local handling of chatRequestState
@@ -1642,7 +1647,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     await myClient?.updateChatRequestState(
       chatroomID?.toString(),
-      status.rejected,
+      ChatroomChatRequestState.rejected,
     );
     fetchChatroomDetails();
   };
@@ -1651,7 +1656,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const onTapToUndo = async () => {
     let response = await myClient?.blockMember({
       chatroomId: chatroomID,
-      status: 1,
+      status: ChatroomChatRequestState.accepted,
     });
 
     //dispatching redux action for local handling of chatRequestState
@@ -1663,7 +1668,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       type: ADD_STATE_MESSAGE,
       body: {conversation: response?.data?.conversation},
     });
-    await myClient?.updateChatRequestState(chatroomID?.toString(), status.open);
+    await myClient?.updateChatRequestState(
+      chatroomID?.toString(),
+      ChatroomChatRequestState.accepted,
+    );
     fetchChatroomDetails();
   };
 
@@ -1671,7 +1679,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const blockMember = async () => {
     let payload = {
       chatroomId: chatroomID,
-      status: 0,
+      status: ChatroomChatRequestState.initiated,
     };
     const response = await myClient?.blockMember(payload);
     dispatch({
@@ -1684,7 +1692,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
     await myClient?.updateChatRequestState(
       chatroomID?.toString(),
-      status.rejected,
+      ChatroomChatRequestState.rejected,
     );
     fetchChatroomDetails();
   };
@@ -1693,7 +1701,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const unblockMember = async () => {
     let payload = {
       chatroomId: chatroomID,
-      status: 1,
+      status: ChatroomChatRequestState.accepted,
     };
     const response = await myClient?.blockMember(payload);
     dispatch({
@@ -1704,7 +1712,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       type: ADD_STATE_MESSAGE,
       body: {conversation: response?.data?.conversation},
     });
-    await myClient?.updateChatRequestState(chatroomID?.toString(), status.open);
+    await myClient?.updateChatRequestState(
+      chatroomID?.toString(),
+      ChatroomChatRequestState.accepted,
+    );
     fetchChatroomDetails();
   };
 
@@ -2361,7 +2372,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           marginTop: 'auto',
         }}>
         {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
-        {chatroomType !== status.dmChatroom ? (
+        {chatroomType !== ChatroomType.dmChatroom ? (
           <View>
             {!(Object.keys(chatroomDBDetails).length === 0) &&
             previousRoute?.name === EXPLORE_FEED
@@ -2483,7 +2494,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               </View>
             )}
           </View>
-        ) : chatroomType === status.dmChatroom ? (
+        ) : chatroomType === ChatroomType.dmChatroom ? (
           <View>
             {chatRequestState === 0 &&
             (!!chatroomDBDetails?.chatRequestedBy

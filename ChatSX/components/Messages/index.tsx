@@ -16,6 +16,7 @@ import {PollConversationView} from '../Poll';
 import {useQuery} from '@realm/react';
 import {myClient} from '../../..';
 import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
+import {ChatroomType} from '../../enums/chatroomType';
 
 interface Messages {
   item: any;
@@ -61,7 +62,6 @@ const Messages = ({
   const chatRequestedBy = chatroomDBDetails?.chatRequestedBy;
   const chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
-  const status = ChatroomChatRequestState;
 
   const dispatch = useAppDispatch();
   let defaultReactionArrLen = item?.reactions?.length;
@@ -191,7 +191,7 @@ const Messages = ({
     <View style={styles.messageParent}>
       <View>
         {!!item?.deletedBy ? (
-          chatroomType !== status.dmChatroom ? (
+          chatroomType !== ChatroomType.dmChatroom ? (
             currentUserUuid === conversationDeletor ? (
               <View
                 style={[
@@ -351,7 +351,8 @@ const Messages = ({
                     <Text style={styles.textCenterAlign}>
                       {
                         // State 1 refers to initial DM message, so in that case trimming the first user name
-                        item?.state === 1 && chatroomType === status.dmChatroom
+                        item?.state === 1 &&
+                        chatroomType === ChatroomType.dmChatroom
                           ? decode(
                               answerTrimming(item?.answer),
                               true,

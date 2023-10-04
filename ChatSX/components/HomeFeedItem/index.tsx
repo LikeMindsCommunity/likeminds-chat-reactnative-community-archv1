@@ -32,6 +32,7 @@ import {
 import Layout from '../../constants/Layout';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
+import {ChatroomType} from '../../enums/chatroomType';
 
 interface Props {
   avatar: string;
@@ -69,7 +70,6 @@ const HomeFeedItem: React.FC<Props> = ({
   muteStatus,
 }) => {
   const dispatch = useAppDispatch();
-  const status = ChatroomChatRequestState;
   let {invitedChatrooms, user} = useAppSelector(state => state.homefeed);
 
   const showJoinAlert = () =>
@@ -328,7 +328,7 @@ const HomeFeedItem: React.FC<Props> = ({
           }
           style={styles.avatar}
         />
-        {chatroomType === status.dmChatroom ? (
+        {chatroomType === ChatroomType.dmChatroom ? (
           <View style={styles.dmAvatarBubble}>
             <Image
               source={require('../../assets/images/dm_message_bubble3x.png')}
@@ -376,7 +376,7 @@ const HomeFeedItem: React.FC<Props> = ({
                     overflow: 'hidden',
                   },
                 ]}>
-                {chatroomType !== status.dmChatroom ? (
+                {chatroomType !== ChatroomType.dmChatroom ? (
                   <Text
                     style={
                       styles.lastMessage
