@@ -28,9 +28,9 @@ import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {useIsFocused} from '@react-navigation/native';
 import {useQuery} from '@realm/react';
 import {
-  DeepLinkRequest,
   parseDeepLink,
 } from '../../components/ParseDeepLink';
+import { DeepLinkRequest } from '../../Models/ParseDeepLink';
 
 interface Props {
   navigation: any;
