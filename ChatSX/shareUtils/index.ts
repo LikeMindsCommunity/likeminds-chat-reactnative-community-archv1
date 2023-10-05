@@ -1,14 +1,14 @@
 import {Alert, Share} from 'react-native';
-import {ShareChatroomRequest} from '../Models/CommonFunctions';
 import {VALID_URI_REGEX} from '../constants/Regex';
+import { ShareChatroomRequest } from './models';
 
 // this method generates URL for share
 export const shareChatroomURL = ({
   chatroomId,
   domain,
 }: ShareChatroomRequest) => {
-  let URL = `${domain}/chatroom?chatroom_id=${chatroomId}`;
-  return URL;
+  let url = `${domain}/chatroom?chatroom_id=${chatroomId}`;
+  return url;
 };
 
 // this function is to check URI is valid or not
@@ -22,7 +22,7 @@ export const onShare = async (chatroomID: number) => {
   try {
     let shareChatroomRequest = {
       chatroomId: chatroomID,
-      domain: 'https://rnsampleapp.com/', // Add your custom link to open app,
+      domain: '', // Add your custom link to open app,
     };
     let shareUrl = shareChatroomURL(shareChatroomRequest);
 

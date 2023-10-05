@@ -31,8 +31,8 @@ import {
 } from '../../constants/Strings';
 import Layout from '../../constants/Layout';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
-import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
-import {ChatroomType} from '../../enums/chatroomType';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
 
 interface Props {
   avatar: string;

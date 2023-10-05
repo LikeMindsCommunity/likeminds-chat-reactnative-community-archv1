@@ -18,10 +18,7 @@ import moment from 'moment';
 import PollConversationUI from '../PollConversationUI';
 import AnonymousPollModal from '../../../customModals/AnonymousPoll';
 import AddOptionsModal from '../../../customModals/AddOptionModal';
-import {
-  PollConversationViewProps,
-  PollConversationViewState,
-} from '../../../Models/PollModels';
+import {PollConversationViewProps, PollConversationViewState} from '../models';
 
 const PollConversationView = ({
   navigation,

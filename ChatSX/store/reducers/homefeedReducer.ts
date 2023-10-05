@@ -28,8 +28,8 @@ import {
   DELETE_DMFEED_CHATROOM,
 } from '../types/types';
 import {removeDuplicateObjects} from '../../utils/homeFeedUtils';
-import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
-import {ChatroomType} from '../../enums/chatroomType';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
 
 const initialState = {
   myChatrooms: [] as any,

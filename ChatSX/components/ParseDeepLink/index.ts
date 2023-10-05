@@ -2,8 +2,8 @@ import {myClient} from '../../..';
 import {PATH_REGEX, QUERY_REGEX} from '../../constants/Regex';
 import {getRoute} from '../../notifications/routes';
 import * as RootNavigation from '../../../RootNavigation';
-import { DeepLinkRequest, DeepLinkResponse } from '../../Models/ParseDeepLink';
-import { isValidURI } from '../../shareUtils';
+import {isValidURI} from '../../shareUtils';
+import {DeepLinkRequest, DeepLinkResponse} from './models';
 
 // this function is to parse deep link url
 export async function parseDeepLink(
@@ -43,7 +43,8 @@ export async function parseDeepLink(
         );
 
         if (initiateUserResponse?.success) {
-          // nvaigation flow
+          // navigation flow
+
           let routes = getRoute(internalRoute);
           RootNavigation.navigate(routes.route, routes.params);
           responseCallback?.({success: true});

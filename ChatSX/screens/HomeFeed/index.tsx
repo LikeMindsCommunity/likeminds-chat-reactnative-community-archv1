@@ -27,10 +27,8 @@ import {FAILED} from '../../constants/Strings';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {useIsFocused} from '@react-navigation/native';
 import {useQuery} from '@realm/react';
-import {
-  parseDeepLink,
-} from '../../components/ParseDeepLink';
-import { DeepLinkRequest } from '../../Models/ParseDeepLink';
+import {parseDeepLink} from '../../components/ParseDeepLink';
+import {DeepLinkRequest} from '../../components/ParseDeepLink/models';
 
 interface Props {
   navigation: any;
@@ -159,14 +157,13 @@ const HomeFeed = ({navigation}: Props) => {
   }, [navigation, myClient]);
 
   useEffect(() => {
-    const subscription = Linking.addEventListener('url', ({url}) => {
-
-      const UUID = users[0]?.userUniqueID;
+    const listener = Linking.addEventListener('url', ({url}) => {
+      const uuid = users[0]?.userUniqueID;
       const userName = users[0]?.userName;
 
       const exampleRequest: DeepLinkRequest = {
         uri: url,
-        uuid: UUID, // uuid
+        uuid: uuid, // uuid
         userName: userName, // user name
         isGuest: false,
       };
@@ -179,7 +176,7 @@ const HomeFeed = ({navigation}: Props) => {
     });
 
     return () => {
-      subscription.remove();
+      listener.remove();
     };
   }, []);
 

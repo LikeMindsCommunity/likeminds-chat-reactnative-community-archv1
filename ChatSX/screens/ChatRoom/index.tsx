@@ -128,10 +128,10 @@ import {useQuery} from '@realm/react';
 import {Share} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
-import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
-import {ChatroomType} from '../../enums/chatroomType';
-import { onShare } from '../../shareUtils';
-import { EIGHT, FIFTEEN, FOUR, NINE, SIX, THREE, TWENTY_EIGHT, TWENTY_ONE, TWENTY_SEVEN, TWO } from '../../constants/Numbers';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
+import {onShare} from '../../shareUtils';
+import {ChatroomActions} from '../../enums';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -2581,35 +2581,42 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 return (
                   <TouchableOpacity
                     onPress={async () => {
-                      if (val?.id === TWO) {
+                      if (val?.id === ChatroomActions.VIEW_PARTICIPANTS) {
                         setModalVisible(false);
                         navigation.navigate(VIEW_PARTICIPANTS, {
                           chatroomID: chatroomID,
                           isSecret: isSecret,
                         });
-                      } else if (val?.id === NINE || val?.id === FIFTEEN) {
+                      } else if (
+                        val?.id === ChatroomActions.LEAVE_CHATROOM ||
+                        val?.id === ChatroomActions.LEAVE_SECRET_CHATROOM
+                      ) {
                         showWarningModal();
                         setModalVisible(false);
-                      } else if (val?.id === FOUR) {
+                      } else if (val?.id === ChatroomActions.JOIN_CHATROOM) {
                         if (!isSecret) {
                           joinChatroom();
                         }
                         setModalVisible(false);
-                      } else if (val?.id === SIX) {
+                      } else if (
+                        val?.id === ChatroomActions.MUTE_NOTIFICATIONS
+                      ) {
                         await muteNotifications();
                         setModalVisible(false);
-                      } else if (val?.id === EIGHT) {
+                      } else if (
+                        val?.id === ChatroomActions.UNMUTE_NOTIFICATIONS
+                      ) {
                         await unmuteNotifications();
                         setModalVisible(false);
-                      } else if (val?.id === TWENTY_ONE) {
+                      } else if (val?.id === ChatroomActions.VIEW_PROFILE) {
                         //View Profile code
-                      } else if (val?.id === TWENTY_SEVEN) {
+                      } else if (val?.id === ChatroomActions.BLOCK_MEMBER) {
                         await handleBlockMember();
                         setModalVisible(false);
-                      } else if (val?.id === TWENTY_EIGHT) {
+                      } else if (val?.id === ChatroomActions.UNBLOCK_MEMBER) {
                         await unblockMember();
                         setModalVisible(false);
-                      } else if (val?.id === THREE) {
+                      } else if (val?.id === ChatroomActions.SHARE) {
                         // Share flow
                         onShare(chatroomID);
                       }
