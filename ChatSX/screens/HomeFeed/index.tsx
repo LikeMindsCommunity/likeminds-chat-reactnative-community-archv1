@@ -108,7 +108,8 @@ const HomeFeed = ({navigation}: Props) => {
   // For cleanup of resources including realm.close()
   useEffect(() => {
     return () => {
-      myClient?.close();
+      console.log('dasssadad');
+      // myClient?.close();
     };
   }, []);
 
@@ -170,7 +171,10 @@ const HomeFeed = ({navigation}: Props) => {
   useEffect(() => {
     const func = async () => {
       const res: any = await myClient?.getAllAttachmentUploadConversations();
+      console.log('rfesposd', res);
       if (res) {
+        console.log('09876');
+
         let len = res.length;
         if (len > 0) {
           for (let i = 0; i < len; i++) {

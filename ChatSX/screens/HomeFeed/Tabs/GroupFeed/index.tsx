@@ -83,10 +83,11 @@ const GroupFeed = ({navigation}: Props) => {
   const getExistingData = async () => {
     const existingChatrooms: any = await myClient?.getFilteredChatrooms(false);
     if (!!existingChatrooms && existingChatrooms.length != 0) {
+      // console.log('existingChatrooms', existingChatrooms);
       setShimmerIsLoading(false);
       dispatch({
         type: SET_INITIAL_GROUPFEED_CHATROOM,
-        body: existingChatrooms,
+        body: {groupFeedChatrooms: existingChatrooms},
       });
     }
   };
@@ -97,7 +98,7 @@ const GroupFeed = ({navigation}: Props) => {
     changes.deletions.forEach((index: any) => {
       dispatch({
         type: DELETE_GROUPFEED_CHATROOM,
-        body: index,
+        body: {index: index},
       });
     });
 
@@ -106,7 +107,7 @@ const GroupFeed = ({navigation}: Props) => {
       const insertedChatroom = chatrooms[index];
       dispatch({
         type: INSERT_GROUPFEED_CHATROOM,
-        body: {insertedChatroom, index},
+        body: {insertedChatroom: insertedChatroom, index: index},
       });
     });
 
@@ -115,25 +116,37 @@ const GroupFeed = ({navigation}: Props) => {
       const modifiedChatroom = chatrooms[index];
       dispatch({
         type: UPDATE_GROUPFEED_CHATROOM,
-        body: {modifiedChatroom, index},
+        body: {modifiedChatroom: modifiedChatroom, index: index},
       });
     });
   };
 
   // This useEffect calls the listener which is attached to realm
-  useEffect(() => {
-    const realm = new Realm(myClient?.getInstance());
-    const chatrooms = realm
-      .objects('ChatroomRO')
-      .filtered(
-        `(type = 0 || type=7) && (followStatus = true) && (deletedBy = null)`,
-      )
-      .sorted('updatedAt', true);
-    chatrooms.addListener(onGroupFeedChatroomChange);
-    return () => {
-      chatrooms.removeListener(onGroupFeedChatroomChange);
-    };
-  }, [isFocused]);
+  // useEffect(() => {
+  //   console.log('9899898');
+
+  //   const realm = new Realm(myClient?.getInstance());
+  //   console.log('2556127621');
+
+  //   const chatrooms = realm
+  //     .objects<'ChatroomRO'>('ChatroomRO')
+  //     .filtered(
+  //       `(type = 0 || type=7) && (followStatus = true) && (deletedBy = null)`,
+  //     )
+  //     .sorted('updatedAt', true);
+  //   console.log('656hukk');
+
+  //   chatrooms.addListener(onGroupFeedChatroomChange);
+  //   console.log('23uy2u2');
+
+  //   return () => {
+  //     console.log('poiopi');
+  //     chatrooms.removeListener(onGroupFeedChatroomChange);
+  //     console.log('12372u7');
+
+  //     // realm.close();
+  //   };
+  // }, [isFocused]);
 
   useEffect(() => {
     if (isFocused) {
@@ -348,7 +361,10 @@ const GroupFeed = ({navigation}: Props) => {
           )}
           renderItem={({item}: any) => {
             let lastConversation = item?.lastConversation;
-            if (item?.unseenCount === 0) {
+            if (
+              item?.unseenCount === 0 &&
+              item?.lastSeenConversation?.member?.id == user?.id
+            ) {
               lastConversation = item?.lastSeenConversation;
             }
             const deletedBy =
@@ -361,7 +377,7 @@ const GroupFeed = ({navigation}: Props) => {
               lastMessage: lastConversation?.answer!,
               lastMessageUser: lastConversation?.member?.name!,
               time: lastConversation?.createdAt!,
-              unreadCount: item?.unseenCount!,
+              unreadCount: item?.unseenCount,
               pinned: false,
               lastConversation: lastConversation!,
               lastConversationMember: lastConversation?.member?.name!,
@@ -382,7 +398,7 @@ const GroupFeed = ({navigation}: Props) => {
           extraData={{
             value: [groupFeedChatrooms, unseenCount, totalCount],
           }}
-          estimatedItemSize={15}
+          estimatedItemSize={200}
           ListFooterComponent={renderFooter}
           onLoad={handleLoadMore}
           keyExtractor={(item: any) => {

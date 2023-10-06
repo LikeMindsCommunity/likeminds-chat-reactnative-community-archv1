@@ -225,6 +225,10 @@ const PollConversationView = ({
       conversationId: item?.id,
     };
     const res = await dispatch(firebaseConversation(payload, false) as any);
+    await myClient?.updatePollVotes(
+      res?.conversations,
+      user?.sdkClientInfo?.community,
+    );
   }
 
   // this function call an API which adds a poll option in existing poll

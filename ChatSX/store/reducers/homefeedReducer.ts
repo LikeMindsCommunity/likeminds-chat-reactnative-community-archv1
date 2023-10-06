@@ -66,27 +66,27 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case SET_INITIAL_GROUPFEED_CHATROOM: {
-      const groupFeedChatrooms = action.body;
-      if (state.groupFeedChatrooms.length === 0) {
-        return {
-          ...state,
-          groupFeedChatrooms: groupFeedChatrooms,
-        };
-      }
+      const {groupFeedChatrooms = {}} = action.body;
+      // if (state.groupFeedChatrooms.length === 0) {
+      return {
+        ...state,
+        groupFeedChatrooms: groupFeedChatrooms,
+      };
+      // }
       return state;
     }
     case SET_INITIAL_DMFEED_CHATROOM: {
       const {dmFeedChatrooms = {}} = action.body;
-      if (state.dmFeedChatrooms.length === 0) {
-        return {
-          ...state,
-          dmFeedChatrooms: dmFeedChatrooms,
-        };
-      }
+      // if (state.dmFeedChatrooms.length === 0) {
+      return {
+        ...state,
+        dmFeedChatrooms: dmFeedChatrooms,
+      };
+      // }
       return state;
     }
     case DELETE_GROUPFEED_CHATROOM: {
-      const index = action.body;
+      const {index = {}} = action.body;
       let groupFeedChatrooms = state.groupFeedChatrooms;
       groupFeedChatrooms = [
         ...groupFeedChatrooms.slice(0, index),
@@ -98,7 +98,7 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case DELETE_DMFEED_CHATROOM: {
-      const index = action.body;
+      const {index = {}} = action.body;
 
       let dmFeedChatrooms = state.dmFeedChatrooms;
       dmFeedChatrooms = [
@@ -111,8 +111,7 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case UPDATE_GROUPFEED_CHATROOM: {
-      const modifiedChatroom = action.body.modifiedChatroom;
-      const index = action.body.index;
+      const {modifiedChatroom = {}, index = {}} = action.body;
       if (modifiedChatroom?.type !== 10) {
         let groupFeedChatrooms = state.groupFeedChatrooms;
         groupFeedChatrooms[index] = modifiedChatroom;
@@ -126,8 +125,7 @@ export function homefeedReducer(state = initialState, action: any) {
       return state;
     }
     case UPDATE_DMFEED_CHATROOM: {
-      const modifiedDMChatroom = action.body.modifiedDMChatroom;
-      const index = action.body.index;
+      const {modifiedDMChatroom = {}, index = {}} = action.body;
       if (modifiedDMChatroom?.type === 10) {
         let dmFeedChatrooms = state.dmFeedChatrooms;
         dmFeedChatrooms[index] = modifiedDMChatroom;
@@ -140,8 +138,7 @@ export function homefeedReducer(state = initialState, action: any) {
       return state;
     }
     case INSERT_GROUPFEED_CHATROOM: {
-      const insertedChatroom = action.body.insertedChatroom;
-      const index = action.body.index;
+      const {insertedChatroom = {}, index = {}} = action.body;
       if (insertedChatroom?.type !== 10) {
         let currentChatrooms = state.groupFeedChatrooms;
         if (currentChatrooms.length !== 0) {
@@ -163,8 +160,7 @@ export function homefeedReducer(state = initialState, action: any) {
       return state;
     }
     case INSERT_DMFEED_CHATROOM: {
-      const insertedDMChatroom = action.body.insertedDMChatroom;
-      const index = action.body.index;
+      const {insertedDMChatroom = {}, index = {}} = action.body;
       if (insertedDMChatroom?.type === 10) {
         let currentChatrooms = state.dmFeedChatrooms;
         if (currentChatrooms.length !== 0) {
@@ -202,7 +198,7 @@ export function homefeedReducer(state = initialState, action: any) {
     case ACCEPT_INVITE_SUCCESS: {
       const chatroomID = action.body;
       let filteredInvites = state.invitedChatrooms.filter((val: any) => {
-        return val?.chatroom?.id !== chatroomID;
+        return val?.chatroom?.id != chatroomID;
       });
       return {
         ...state,

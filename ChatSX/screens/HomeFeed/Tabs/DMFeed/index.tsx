@@ -133,7 +133,7 @@ const DMFeed = ({navigation}: Props) => {
     changes.deletions.forEach((index: any) => {
       dispatch({
         type: DELETE_DMFEED_CHATROOM,
-        body: index,
+        body: {index: index},
       });
     });
 
@@ -142,7 +142,7 @@ const DMFeed = ({navigation}: Props) => {
       const insertedDMChatroom = chatrooms[index];
       dispatch({
         type: INSERT_DMFEED_CHATROOM,
-        body: {insertedDMChatroom, index},
+        body: {insertedDMChatroom: insertedDMChatroom, index: index},
       });
     });
 
@@ -151,23 +151,36 @@ const DMFeed = ({navigation}: Props) => {
       const modifiedDMChatroom = chatrooms[index];
       dispatch({
         type: UPDATE_DMFEED_CHATROOM,
-        body: {modifiedDMChatroom, index},
+        body: {modifiedDMChatroom: modifiedDMChatroom, index: index},
       });
     });
   };
 
   // This useEffect calls the listener which is attached to realm
-  useEffect(() => {
-    const realm = new Realm(myClient?.getInstance());
-    const chatrooms = realm
-      .objects('ChatroomRO')
-      .filtered(`(type = 10) && (followStatus=true) && (deletedBy = null)`)
-      .sorted('updatedAt', true);
-    chatrooms.addListener(onDMChatroomChange);
-    return () => {
-      chatrooms.removeListener(onDMChatroomChange);
-    };
-  }, [isFocused]);
+  // useEffect(() => {
+  //   console.log('sdhjfbsdfkdsk');
+
+  //   const realm = new Realm(myClient?.getInstance());
+  //   console.log('3553562652');
+
+  //   const chatrooms = realm
+  //     .objects<'ChatroomRO'>('ChatroomRO')
+  //     .filtered(`(type = 10) && (followStatus=true) && (deletedBy = null)`)
+  //     .sorted('updatedAt', true);
+  //   console.log('jksdfsdkjfsd');
+
+  //   chatrooms.addListener(onDMChatroomChange);
+  //   console.log('ncashjdbsa');
+
+  //   return () => {
+  //     console.log('janbdhjbasd');
+
+  //     chatrooms.removeListener(onDMChatroomChange);
+  //     console.log(' vagavaghs');
+
+  //     // realm.close();
+  //   };
+  // }, [isFocused]);
 
   useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);
@@ -360,7 +373,7 @@ const DMFeed = ({navigation}: Props) => {
           extraData={{
             value: [user, dmFeedChatrooms],
           }}
-          estimatedItemSize={15}
+          estimatedItemSize={200}
           renderItem={({item}: any) => {
             const userTitle =
               user?.id == item?.chatroomWithUserId

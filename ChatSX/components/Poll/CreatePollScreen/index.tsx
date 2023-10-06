@@ -309,6 +309,7 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
         type: GET_CONVERSATIONS_SUCCESS,
         body: {conversations: conversations},
       });
+
       handleOnCancel();
     } catch (error) {
       // process error

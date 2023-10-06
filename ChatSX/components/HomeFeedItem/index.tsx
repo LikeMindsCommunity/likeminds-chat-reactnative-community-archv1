@@ -15,6 +15,7 @@ import {useAppDispatch, useAppSelector} from '../../../store';
 import {
   ACCEPT_INVITE,
   ACCEPT_INVITE_SUCCESS,
+  GET_CONVERSATIONS_SUCCESS,
   REJECT_INVITE_SUCCESS,
   SET_PAGE,
   SHOW_TOAST,
@@ -438,13 +439,17 @@ const HomeFeedItem: React.FC<Props> = ({
           />
         </View>
       ) : null}
-      {!!unreadCount
-        ? unreadCount > 0 && (
-            <View style={styles.unreadCountContainer}>
-              <Text style={styles.unreadCount}>{unreadCount}</Text>
-            </View>
-          )
-        : null}
+      {!!unreadCount ? (
+        unreadCount > 100 ? (
+          <View style={styles.unreadCountContainer}>
+            <Text style={styles.unreadCount}>{unreadCount}</Text>
+          </View>
+        ) : (
+          <View style={styles.unreadCountContainer}>
+            <Text style={styles.unreadCount}>{unreadCount}</Text>
+          </View>
+        )
+      ) : null}
     </Pressable>
   );
 };
