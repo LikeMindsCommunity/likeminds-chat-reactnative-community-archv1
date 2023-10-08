@@ -26,7 +26,7 @@ import {FAILED} from '../../constants/Strings';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {useIsFocused} from '@react-navigation/native';
-import {useQuery} from '@realm/react';
+// import {useQuery} from '@realm/react';
 
 interface Props {
   navigation: any;
@@ -53,7 +53,7 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
-  const users = useQuery('UserSchemaRO');
+  // const users = useQuery('UserSchemaRO');
 
   const INITIAL_SYNC_PAGE = 1;
 
@@ -131,12 +131,18 @@ const HomeFeed = ({navigation}: Props) => {
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
 
-    const UUID = users[0]?.userUniqueID;
-    const userName = users[0]?.userName;
+    // const UUID = users[0]?.userUniqueID;
+    // const userName = users[0]?.userName;
+
+    // let payload = {
+    //   uuid: UUID, // uuid
+    //   userName: userName, // user name
+    //   isGuest: false,
+    // };
 
     let payload = {
-      uuid: UUID, // uuid
-      userName: userName, // user name
+      uuid: 'LocalDB', // uuid
+      userName: 'Jai', // user name
       isGuest: false,
     };
 

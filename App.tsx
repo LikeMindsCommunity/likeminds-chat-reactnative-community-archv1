@@ -13,18 +13,19 @@ import notifee, {EventType} from '@notifee/react-native';
 import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './RootNavigation';
 import FetchKeyInputScreen from './Sample';
-import {useQuery} from '@realm/react';
+// import {useQuery} from '@realm/react';
 
 function App(): JSX.Element {
-  const users = useQuery('UserSchemaRO');
-  const [userUniqueID, setUserUniqueID] = useState<any>(users[0]?.userUniqueID);
-  const [userName, setUserName] = useState<any>(users[0]?.userName);
+  // const users = useQuery('UserSchemaRO');
+
+  // const [userUniqueID, setUserUniqueID] = useState<any>(users[0]?.userUniqueID);
+  // const [userName, setUserName] = useState<any>(users[0]?.userName);
   const [isTrue, setIsTrue] = useState(true);
 
-  useEffect(() => {
-    setUserName(users[0]?.userName);
-    setUserUniqueID(users[0]?.userUniqueID);
-  }, [users]);
+  // useEffect(() => {
+  //   setUserName(users[0]?.userName);
+  //   setUserUniqueID(users[0]?.userUniqueID);
+  // }, [users]);
 
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
@@ -39,7 +40,7 @@ function App(): JSX.Element {
     bootstrap();
   }, []);
 
-  return userUniqueID && userName ? (
+  return true ? (
     <ReduxProvider store={store}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

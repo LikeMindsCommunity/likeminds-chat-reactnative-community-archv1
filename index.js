@@ -41,9 +41,9 @@ function HeadlessCheck({isHeadless}) {
   }
 
   return (
-    <RealmProvider schema={[UserSchemaRO]}>
-      <App />
-    </RealmProvider>
+    // <RealmProvider schema={[UserSchemaRO]}>
+    <App />
+    // </RealmProvider>
   );
 
   // return <App />;

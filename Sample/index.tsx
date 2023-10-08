@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import STYLES from '../ChatSX/constants/Styles';
 import Realm from 'realm';
-import {useQuery, useRealm} from '@realm/react';
+// import {useQuery, useRealm} from '@realm/react';
 import {UserSchemaRO} from '../ChatSX/db/schemas/UserSchema';
 import SwitchComponent from '../ChatSX/navigation/SwitchComponent';
 
@@ -25,21 +25,21 @@ const FetchKeyInputScreen: React.FC<ChildProps> = ({isTrue, setIsTrue}) => {
   const [userName, setUserName] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
 
-  const realm = useRealm();
-  const data = useQuery('UserSchemaRO');
-  const handleAddNotes = (userUniqueID: string, userName: string) => {
-    realm.write(() => {
-      realm.create('UserSchemaRO', {
-        userUniqueID: userUniqueID,
-        userName: userName,
-      });
-    });
-  };
+  // const realm = useRealm();
+  // const data = useQuery('UserSchemaRO');
+  // const handleAddNotes = (userUniqueID: string, userName: string) => {
+  //   realm.write(() => {
+  //     realm.create('UserSchemaRO', {
+  //       userUniqueID: userUniqueID,
+  //       userName: userName,
+  //     });
+  //   });
+  // };
 
   const handleButtonPress = () => {
     // Perform some action when the button is pressed
     // You can access the input values from input1 and input2 variables
-    handleAddNotes(userUniqueID, userName);
+    // handleAddNotes(userUniqueID, userName);
     userUniqueID && userName
       ? setIsButtonClicked(true)
       : setIsButtonClicked(false);

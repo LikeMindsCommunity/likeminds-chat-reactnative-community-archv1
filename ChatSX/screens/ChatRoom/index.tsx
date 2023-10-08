@@ -124,7 +124,7 @@ import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
-import {useQuery} from '@realm/react';
+// import {useQuery} from '@realm/react';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
@@ -190,7 +190,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [response, setResponse] = useState([]);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
-  const users = useQuery('UserSchemaRO');
+  // const users = useQuery('UserSchemaRO');
 
   const {
     chatroomID,
@@ -819,12 +819,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function fetch initiate API
   async function fetchInitAPI() {
     //this line of code is for the sample app only, pass your uuid instead of this.
-    const UUID = users[0]?.userUniqueID;
-    const userName = users[0]?.userName;
+    // const UUID = users[0]?.userUniqueID;
+    // const userName = users[0]?.userName;
+
+    // let payload = {
+    //   userUniqueId: UUID,
+    //   userName: userName,
+    // };
 
     let payload = {
-      userUniqueId: UUID,
-      userName: userName,
+      userUniqueId: 'LocalDB',
+      userName: 'Jai',
     };
     let res = await dispatch(initAPI(payload) as any);
     return res;
