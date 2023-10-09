@@ -15,8 +15,8 @@ import {
 import {PollConversationView} from '../Poll';
 import {useQuery} from '@realm/react';
 import {myClient} from '../../..';
-import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
-import {ChatroomType} from '../../enums/chatroomType';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
 
 interface Messages {
   item: any;

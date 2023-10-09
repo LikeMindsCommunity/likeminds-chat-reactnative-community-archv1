@@ -47,7 +47,12 @@ import {
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
 import {myClient} from '../../..';
-import {launchImageLibrary} from 'react-native-image-picker';
+import {
+  launchImageLibrary,
+  launchCamera,
+  ImagePickerResponse,
+  Asset,
+} from 'react-native-image-picker';
 import DocumentPicker from 'react-native-document-picker';
 import {CREATE_POLL_SCREEN, FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
@@ -87,26 +92,9 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
-import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
-import {ChatroomType} from '../../enums/chatroomType';
-
-interface InputBox {
-  replyChatID?: any;
-  chatroomID: any;
-  chatRequestState?: any;
-  chatroomType?: any;
-  navigation: any;
-  isUploadScreen: boolean;
-  isPrivateMember?: boolean;
-  isDoc?: boolean;
-  myRef?: any;
-  previousMessage?: string;
-  handleFileUpload: any;
-  isEditable?: boolean;
-  setIsEditable?: any;
-  isSecret?: any;
-  chatroomWithUser?: any;
-}
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
+import {InputBoxProps, LaunchActivity} from './models';
 
 const InputBox = ({
   replyChatID,
@@ -124,7 +112,7 @@ const InputBox = ({
   setIsEditable,
   isSecret,
   chatroomWithUser,
-}: InputBox) => {
+}: InputBoxProps) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
   const [formattedConversation, setFormattedConversation] =
@@ -224,9 +212,46 @@ const InputBox = ({
     });
   };
 
+  // this method sets image and video to upload on FileUpload screen via redux.
+  const handleImageAndVideoUpload = async (selectedImages: Asset[]) => {
+    if (!!selectedImages) {
+      if (isUploadScreen === false) {
+        await handleVideoThumbnail(selectedImages);
+        dispatch({
+          type: SELECTED_FILE_TO_VIEW,
+          body: {image: selectedImages[0]},
+        });
+        dispatch({
+          type: STATUS_BAR_STYLE,
+          body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+        });
+      } else if (isUploadScreen === true) {
+        // selected files will be saved in redux inside get video function
+        const res = await getVideoThumbnail({
+          selectedImages,
+          selectedFilesToUpload,
+          selectedFilesToUploadThumbnails,
+          initial: false,
+        });
+        dispatch({
+          type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
+          body: {
+            images: res?.selectedFilesToUploadThumbnails,
+          },
+        });
+        dispatch({
+          type: SELECTED_FILES_TO_UPLOAD,
+          body: {
+            images: selectedImages[0],
+          },
+        });
+      }
+    }
+  };
+
   //select Images and videoes From Gallery
-  const selectGalley = async () => {
-    const options = {
+  const selectGallery = async () => {
+    const options: LaunchActivity = {
       mediaType: 'mixed',
       selectionLimit: 0,
     };
@@ -234,57 +259,29 @@ const InputBox = ({
       chatroomID: chatroomID,
       previousMessage: message, // to keep message on uploadScreen InputBox
     });
-    await launchImageLibrary(options as any, async (response: any) => {
+    await launchImageLibrary(options, async (response: ImagePickerResponse) => {
       if (response?.didCancel) {
         if (selectedFilesToUpload.length === 0) {
           navigation.goBack();
         }
-      }
-      let selectedImages = response?.assets; // selectedImages can be anything images or videos or both
+      } else if (response.errorCode) {
+        return;
+      } else {
+        let selectedImages: Asset[] | undefined = response.assets; // selectedImages can be anything images or videos or both
 
-      for (let i = 0; i < selectedImages?.length; i++) {
-        if (selectedImages[i].fileSize >= MAX_FILE_SIZE) {
-          dispatch({
-            type: SHOW_TOAST,
-            body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
-          });
-          navigation.goBack();
-          return;
+        if (!selectedImages) return;
+        for (let i = 0; i < selectedImages?.length; i++) {
+          let fileSize = selectedImages[i]?.fileSize;
+          if (Number(fileSize) >= MAX_FILE_SIZE) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
+            });
+            navigation.goBack();
+            return;
+          }
         }
-      }
-
-      if (!!selectedImages) {
-        if (isUploadScreen === false) {
-          await handleVideoThumbnail(selectedImages);
-          dispatch({
-            type: SELECTED_FILE_TO_VIEW,
-            body: {image: selectedImages[0]},
-          });
-          dispatch({
-            type: STATUS_BAR_STYLE,
-            body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
-          });
-        } else if (isUploadScreen === true) {
-          //selected files will be saved in redux inside get video function
-          const res = await getVideoThumbnail({
-            selectedImages,
-            selectedFilesToUpload,
-            selectedFilesToUploadThumbnails,
-            initial: false,
-          });
-          dispatch({
-            type: SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-            body: {
-              images: res?.selectedFilesToUploadThumbnails,
-            },
-          });
-          dispatch({
-            type: SELECTED_FILES_TO_UPLOAD,
-            body: {
-              images: res?.selectedFilesToUpload,
-            },
-          });
-        }
+        handleImageAndVideoUpload(selectedImages);
       }
     });
   };
@@ -374,6 +371,44 @@ const InputBox = ({
     }
   };
 
+  // this method launches native camera
+  const openCamera = async () => {
+    const options: LaunchActivity = {
+      mediaType: 'photo',
+      selectionLimit: 0,
+    };
+    navigation.navigate(FILE_UPLOAD, {
+      chatroomID: chatroomID,
+      previousMessage: message, // to keep message on uploadScreen InputBox
+    });
+    await launchCamera(options, async (response: ImagePickerResponse) => {
+      if (response?.didCancel) {
+        if (selectedFilesToUpload.length === 0) {
+          navigation.goBack();
+        }
+      } else if (response.errorCode) {
+        return;
+      } else {
+        let selectedImages: Asset[] | undefined = response.assets; // selectedImages would be images only
+
+        if (!selectedImages) return;
+        if (selectedImages?.length > 0) {
+          let fileSize = selectedImages[0]?.fileSize;
+          if (Number(fileSize) >= MAX_FILE_SIZE) {
+            dispatch({
+              type: SHOW_TOAST,
+              body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
+            });
+            navigation.goBack();
+            return;
+          }
+        }
+
+        handleImageAndVideoUpload(selectedImages);
+      }
+    });
+  };
+
   const handleModalClose = () => {
     setModalVisible(false);
   };
@@ -405,14 +440,19 @@ const InputBox = ({
     setDMSentAlertModalVisible(false);
   };
 
+  // function handles opening of camera functionality
+  const handleCamera = async () => {
+    openCamera();
+  };
+
   // function handles the selection of images and videos
   const handleGallery = async () => {
     if (Platform.OS === 'ios') {
-      selectGalley();
+      selectGallery();
     } else {
       let res = await requestStoragePermission();
       if (res === true) {
-        selectGalley();
+        selectGallery();
       }
     }
   };
@@ -1197,7 +1237,7 @@ const InputBox = ({
               <TouchableOpacity
                 style={styles.addMoreButton}
                 onPress={() => {
-                  selectGalley();
+                  selectGallery();
                 }}>
                 <Image
                   source={require('../../assets/images/addImages3x.png')}
@@ -1321,15 +1361,20 @@ const InputBox = ({
           <View style={styles.modalViewParent}>
             <Pressable onPress={() => {}} style={[styles.modalView]}>
               <View style={styles.alignModalElements}>
-                {/* <View style={styles.iconContainer}>
-                  <TouchableOpacity style={styles.cameraStyle}>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible(false);
+                      handleCamera();
+                    }}
+                    style={styles.cameraStyle}>
                     <Image
                       source={require('../../assets/images/camera_icon3x.png')}
                       style={styles.emoji}
                     />
                   </TouchableOpacity>
                   <Text style={styles.iconText}>{CAMERA_TEXT}</Text>
-                </View> */}
+                </View>
                 <View style={styles.iconContainer}>
                   <TouchableOpacity
                     onPress={() => {

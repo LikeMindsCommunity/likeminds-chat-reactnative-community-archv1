@@ -128,8 +128,8 @@ import {useQuery} from '@realm/react';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
-import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
-import {ChatroomType} from '../../enums/chatroomType';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
