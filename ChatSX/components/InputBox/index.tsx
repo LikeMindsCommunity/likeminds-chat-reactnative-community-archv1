@@ -226,8 +226,8 @@ const InputBox = ({
           type: STATUS_BAR_STYLE,
           body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
         });
-      } else if (isUploadScreen === true) {
-        // to select more images and videos on FileUpload screen
+      } else {
+        // to select more images and videos on FileUpload screen (isUploadScreen === true)
 
         const res = await getVideoThumbnail({
           // selected files will be saved in redux inside get video function
