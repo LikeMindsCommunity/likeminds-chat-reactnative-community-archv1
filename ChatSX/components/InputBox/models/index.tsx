@@ -1,4 +1,4 @@
 import {InputBoxProps} from './InputBoxProps';
-import {LaunchActivity} from './LaunchActivity';
+import {LaunchActivityProps} from './LaunchActivityProps';
 
-export {InputBoxProps, LaunchActivity};
+export {InputBoxProps, LaunchActivityProps};

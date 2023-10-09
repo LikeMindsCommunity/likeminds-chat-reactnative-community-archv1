@@ -94,7 +94,7 @@ import {
 } from '../TaggingView/utils';
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
-import {InputBoxProps, LaunchActivity} from './models';
+import {InputBoxProps, LaunchActivityProps} from './models';
 
 const InputBox = ({
   replyChatID,
@@ -216,6 +216,7 @@ const InputBox = ({
   const handleImageAndVideoUpload = async (selectedImages: Asset[]) => {
     if (!!selectedImages) {
       if (isUploadScreen === false) {
+        // to select images and videos from chatroom.
         await handleVideoThumbnail(selectedImages);
         dispatch({
           type: SELECTED_FILE_TO_VIEW,
@@ -226,8 +227,10 @@ const InputBox = ({
           body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
         });
       } else if (isUploadScreen === true) {
-        // selected files will be saved in redux inside get video function
+        // to select more images and videos on FileUpload screen
+
         const res = await getVideoThumbnail({
+          // selected files will be saved in redux inside get video function
           selectedImages,
           selectedFilesToUpload,
           selectedFilesToUploadThumbnails,
@@ -251,7 +254,7 @@ const InputBox = ({
 
   //select Images and videoes From Gallery
   const selectGallery = async () => {
-    const options: LaunchActivity = {
+    const options: LaunchActivityProps = {
       mediaType: 'mixed',
       selectionLimit: 0,
     };
@@ -373,7 +376,7 @@ const InputBox = ({
 
   // this method launches native camera
   const openCamera = async () => {
-    const options: LaunchActivity = {
+    const options: LaunchActivityProps = {
       mediaType: 'photo',
       selectionLimit: 0,
     };
