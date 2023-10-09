@@ -130,7 +130,6 @@ const GroupFeed = ({navigation}: Props) => {
   //       `(type = 0 || type=7) && (followStatus = true) && (deletedBy = null)`,
   //     )
   //     .sorted('updatedAt', true);
-  //   console.log('chatrooms', chatrooms);
 
   //   chatrooms.addListener(onGroupFeedChatroomChange);
   //   return () => {
