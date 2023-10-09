@@ -1,9 +1,13 @@
 import {myClient} from '../../..';
-import {PATH_REGEX, QUERY_REGEX} from '../../constants/Regex';
+import {
+  PATH_REGEX,
+  QUERY_REGEX,
+} from '../../constants/Regex';
 import {getRoute} from '../../notifications/routes';
 import * as RootNavigation from '../../../RootNavigation';
 import {isValidURI} from '../../shareUtils';
 import {DeepLinkRequest, DeepLinkResponse} from './models';
+import { CHATROOM } from '../../constants/Screens';
 
 // this function is to parse deep link url
 export async function parseDeepLink(
@@ -17,7 +21,7 @@ export async function parseDeepLink(
 
     const path = matches ? matches[1] : null;
 
-    if (path === '/chatroom') {
+    if (path === '/chatroom' || path === 'chatroom') {
       let regexToExtractParams: RegExp = QUERY_REGEX;
       let params: Record<string, string> = {};
       let match: RegExpExecArray | null;
@@ -46,7 +50,18 @@ export async function parseDeepLink(
           // navigation flow
 
           let routes = getRoute(internalRoute);
-          RootNavigation.navigate(routes.route, routes.params);
+          const recentRoutes = RootNavigation.getRecentRoutes();
+          let currentRoute = recentRoutes?.routes[recentRoutes?.index]?.name;
+
+          if (currentRoute === CHATROOM) {
+            // navigation when inside chatroom screen
+            RootNavigation.pop();
+            RootNavigation.push(routes.route, routes.params);
+          } else {
+            // navigation when outside chatroom screen
+            RootNavigation.navigate(routes.route, routes.params);
+          }
+
           responseCallback?.({success: true});
           return;
         } else {
