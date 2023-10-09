@@ -156,18 +156,19 @@ const DMFeed = ({navigation}: Props) => {
     });
   };
 
+  // TODO
   // This useEffect calls the listener which is attached to realm
-  useEffect(() => {
-    const realm = new Realm(myClient?.getInstance());
-    const chatrooms = realm
-      .objects('ChatroomRO')
-      .filtered(`(type = 10) && (followStatus=true) && (deletedBy = null)`)
-      .sorted('updatedAt', true);
-    chatrooms.addListener(onDMChatroomChange);
-    return () => {
-      chatrooms.removeListener(onDMChatroomChange);
-    };
-  }, [isFocused]);
+  // useEffect(() => {
+  //   const realm = new Realm(myClient?.getInstance());
+  //   const chatrooms = realm
+  //     .objects('ChatroomRO')
+  //     .filtered(`(type = 10) && (followStatus=true) && (deletedBy = null)`)
+  //     .sorted('updatedAt', true);
+  //   chatrooms.addListener(onDMChatroomChange);
+  //   return () => {
+  //     chatrooms.removeListener(onDMChatroomChange);
+  //   };
+  // }, [isFocused]);
 
   useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);
@@ -175,15 +176,20 @@ const DMFeed = ({navigation}: Props) => {
       if (snapshot.exists()) {
         if (!user?.sdkClientInfo?.community) return;
         paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+        setTimeout(() => {
+          getExistingData();
+        }, 500);
       }
     });
   }, [user]);
 
   useEffect(() => {
     if (isFocused) {
-      getExistingData();
       if (!user?.sdkClientInfo?.community) return;
       paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+      setTimeout(() => {
+        getExistingData();
+      }, 500);
       setShimmerIsLoading(false);
     }
   }, [isFocused, user]);

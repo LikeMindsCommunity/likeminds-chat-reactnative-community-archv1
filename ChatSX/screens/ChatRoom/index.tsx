@@ -708,11 +708,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       await myClient?.chatroomViewed(chatroomID);
       setShimmerIsLoading(false);
     } else {
-      const chatroom = JSON.parse(JSON.stringify(chatroomDetails));
       let conversationsFromRealm;
 
       // Warm start
-      if (chatroom?.isChatroomVisited) {
+      if (chatroomDetails?.isChatroomVisited) {
         setShimmerIsLoading(false);
 
         conversationsFromRealm = await myClient?.getConversationData(
@@ -724,7 +723,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           type: GET_CONVERSATIONS_SUCCESS,
           body: {conversations: conversationsFromRealm},
         });
-        let minTimeStamp = chatroom?.lastSeenConversation?.lastUpdatedAt ?? 0;
+        let minTimeStamp =
+          chatroomDetails?.lastSeenConversation?.lastUpdatedAt ?? 0;
         await paginatedConversationSyncAPI(
           INITIAL_SYNC_PAGE,
           minTimeStamp,
@@ -743,12 +743,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
     let DB_DATA = await myClient?.getChatroom(chatroomID?.toString());
-    let DB_DATA_STRINGIFIED = JSON.parse(JSON.stringify(DB_DATA));
 
-    if (DB_DATA_STRINGIFIED) {
+    if (DB_DATA) {
       dispatch({
         type: GET_CHATROOM_DB_SUCCESS,
-        body: {chatroomDBDetails: DB_DATA_STRINGIFIED},
+        body: {chatroomDBDetails: DB_DATA},
       });
     }
     let response = await myClient?.getChatroomActions(payload);
