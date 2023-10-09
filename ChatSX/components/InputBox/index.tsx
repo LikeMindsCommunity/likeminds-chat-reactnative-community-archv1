@@ -1111,7 +1111,7 @@ const InputBox = ({
                 extraData={{
                   value: [message, userTaggingList],
                 }}
-                estimatedItemSize={15}
+                estimatedItemSize={500}
                 keyboardShouldPersistTaps={'handled'}
                 onEndReached={handleLoadMore}
                 onEndReachedThreshold={1}

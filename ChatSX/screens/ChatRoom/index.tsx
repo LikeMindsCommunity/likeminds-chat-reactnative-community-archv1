@@ -743,12 +743,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
     let DB_DATA = await myClient?.getChatroom(chatroomID?.toString());
-    let DB_DATA_STRINGIFIED = JSON.parse(JSON.stringify(DB_DATA));
 
-    if (DB_DATA_STRINGIFIED) {
+    if (DB_DATA) {
       dispatch({
         type: GET_CHATROOM_DB_SUCCESS,
-        body: {chatroomDBDetails: DB_DATA_STRINGIFIED},
+        body: {chatroomDBDetails: DB_DATA},
       });
     }
     let response = await myClient?.getChatroomActions(payload);
@@ -2201,6 +2200,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               borderTopRightRadius: 12,
               borderTopLeftRadius: 12,
               borderBottomRightRadius: 12,
+              marginTop: 10,
             }}>
             <ShimmerPlaceHolder
               style={{width: 150, height: 10, borderRadius: 5}}
@@ -2247,7 +2247,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 conversations,
               ],
             }}
-            estimatedItemSize={50}
+            estimatedItemSize={500}
             renderItem={({item: value, index}: any) => {
               let uploadingFilesMessagesIDArr = Object.keys(
                 uploadingFilesMessages,

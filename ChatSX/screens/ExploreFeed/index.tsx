@@ -176,7 +176,7 @@ const ExploreFeed = ({navigation}: Props) => {
         extraData={{
           value: [filterState, chats, exploreChatrooms, isPinned],
         }}
-        estimatedItemSize={15}
+        estimatedItemSize={200}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}

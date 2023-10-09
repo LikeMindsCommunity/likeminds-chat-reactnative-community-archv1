@@ -522,7 +522,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
         extraData={{
           value: [searchedParticipants, participants, selectedParticipants],
         }}
-        estimatedItemSize={15}
+        estimatedItemSize={200}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}

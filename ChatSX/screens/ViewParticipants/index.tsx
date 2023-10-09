@@ -247,7 +247,7 @@ const ViewParticipants = ({navigation, route}: any) => {
         extraData={{
           value: [user, participants, isSecret],
         }}
-        estimatedItemSize={15}
+        estimatedItemSize={200}
         ListHeaderComponent={() =>
           isSecret && user?.state === 1 && participants.length > 0 ? (
             <TouchableOpacity

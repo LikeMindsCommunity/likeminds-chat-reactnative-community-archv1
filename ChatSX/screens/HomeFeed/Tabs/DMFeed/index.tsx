@@ -175,15 +175,20 @@ const DMFeed = ({navigation}: Props) => {
       if (snapshot.exists()) {
         if (!user?.sdkClientInfo?.community) return;
         paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+        setTimeout(() => {
+          getExistingData();
+        }, 1000);
       }
     });
   }, [user]);
 
   useEffect(() => {
     if (isFocused) {
-      getExistingData();
       if (!user?.sdkClientInfo?.community) return;
       paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+      setTimeout(() => {
+        getExistingData();
+      }, 1000);
       setShimmerIsLoading(false);
     }
   }, [isFocused, user]);
@@ -360,7 +365,7 @@ const DMFeed = ({navigation}: Props) => {
           extraData={{
             value: [user, dmFeedChatrooms],
           }}
-          estimatedItemSize={15}
+          estimatedItemSize={200}
           renderItem={({item}: any) => {
             const userTitle =
               user?.id == item?.chatroomWithUserId
