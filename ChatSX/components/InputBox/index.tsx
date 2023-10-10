@@ -604,6 +604,10 @@ const InputBox = ({
         body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
 
+      setMessage('');
+      setFormattedConversation('');
+      setInputHeight(25);
+
       if (
         chatroomType !== ChatroomType.DMCHATROOM && // if not DM
         chatRequestState !== null // if not first DM message sent to an user
@@ -642,9 +646,6 @@ const InputBox = ({
           type: CLEAR_SELECTED_FILE_TO_VIEW,
         });
       }
-      setMessage('');
-      setFormattedConversation('');
-      setInputHeight(25);
 
       if (isReply) {
         dispatch({type: SET_IS_REPLY, body: {isReply: false}});
@@ -745,6 +746,7 @@ const InputBox = ({
           };
 
           let response = await dispatch(onConversationsCreate(payload) as any);
+
           await myClient?.replaceSavedConversation(response?.conversation);
 
           if (response === undefined) {
