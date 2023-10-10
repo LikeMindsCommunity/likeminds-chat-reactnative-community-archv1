@@ -80,7 +80,7 @@ const GroupFeed = ({navigation}: Props) => {
   }, []);
 
   // Fetching already existing groupfeed chatrooms from Realm
-  const getExistingData = async () => {
+  const getChatroomFromLocalDB = async () => {
     const existingChatrooms: any = await myClient?.getFilteredChatrooms(false);
     if (!!existingChatrooms && existingChatrooms.length != 0) {
       setShimmerIsLoading(false);
@@ -91,57 +91,12 @@ const GroupFeed = ({navigation}: Props) => {
     }
   };
 
-  // Callback method for listener
-  const onGroupFeedChatroomChange = (chatrooms: any, changes: any) => {
-    // Handle deleted GroupFeed Chatroom objects
-    changes.deletions.forEach((index: any) => {
-      dispatch({
-        type: DELETE_GROUPFEED_CHATROOM,
-        body: index,
-      });
-    });
-
-    // Handle newly added GroupFeed Chatroom objects
-    changes.insertions.forEach((index: any) => {
-      const insertedChatroom = chatrooms[index];
-      dispatch({
-        type: INSERT_GROUPFEED_CHATROOM,
-        body: {insertedChatroom, index},
-      });
-    });
-
-    // Handle GroupFeed Chatroom objects that were modified
-    changes.modifications.forEach((index: any) => {
-      const modifiedChatroom = chatrooms[index];
-      dispatch({
-        type: UPDATE_GROUPFEED_CHATROOM,
-        body: {modifiedChatroom, index},
-      });
-    });
-  };
-
-  // TODO
-  // This useEffect calls the listener which is attached to realm
-  // useEffect(() => {
-  //   const realm = new Realm(myClient?.getInstance());
-  //   const chatrooms = realm
-  //     .objects('ChatroomRO')
-  //     .filtered(
-  //       `(type = 0 || type=7) && (followStatus = true) && (deletedBy = null)`,
-  //     )
-  //     .sorted('updatedAt', true);
-  //   chatrooms.addListener(onGroupFeedChatroomChange);
-  //   return () => {
-  //     chatrooms.removeListener(onGroupFeedChatroomChange);
-  //   };
-  // }, [isFocused]);
-
   useEffect(() => {
     if (isFocused) {
       if (!user?.sdkClientInfo?.community) return;
       paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
       setTimeout(() => {
-        getExistingData();
+        getChatroomFromLocalDB();
       }, 1000);
       setShimmerIsLoading(false);
     }
@@ -155,7 +110,7 @@ const GroupFeed = ({navigation}: Props) => {
         if (isFocused) {
           paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
           setTimeout(() => {
-            getExistingData();
+            getChatroomFromLocalDB();
           }, 1000);
         }
       }
@@ -356,12 +311,12 @@ const GroupFeed = ({navigation}: Props) => {
           )}
           renderItem={({item}: any) => {
             let lastConversation = item?.lastConversation;
-            if (
-              item?.unseenCount === 0 &&
-              item?.lastSeenConversation?.member?.id == user?.id
-            ) {
-              lastConversation = item?.lastSeenConversation;
-            }
+            // if (
+            //   item?.unseenCount === 0 &&
+            //   item?.lastSeenConversation?.member?.id == user?.id
+            // ) {
+            //   lastConversation = item?.lastSeenConversation;
+            // }
             const deletedBy =
               lastConversation?.deletedByUserId !== null
                 ? lastConversation?.deletedByUserId
@@ -393,7 +348,7 @@ const GroupFeed = ({navigation}: Props) => {
           extraData={{
             value: [groupFeedChatrooms, unseenCount, totalCount],
           }}
-          estimatedItemSize={200}
+          estimatedItemSize={15}
           ListFooterComponent={renderFooter}
           onLoad={handleLoadMore}
           keyExtractor={(item: any) => {

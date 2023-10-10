@@ -429,7 +429,7 @@ const InputBox = ({
     }
   };
 
-  const onSend = async (msg) => {
+  const onSend = async (conversation: string) => {
     setMessage('');
     setInputHeight(25);
     // -- Code for local message handling for normal and reply for now
@@ -519,7 +519,7 @@ const InputBox = ({
       }
     }
 
-    let conversationText = replaceMentionValues(msg, ({id, name}) => {
+    let conversationText = replaceMentionValues(conversation, ({id, name}) => {
       // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
@@ -530,7 +530,7 @@ const InputBox = ({
       }
     });
 
-    const isMessageTrimmed = !!msg.trim();
+    const isMessageTrimmed = !!conversation.trim();
 
     // check if message is empty string or not
     if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
@@ -663,7 +663,7 @@ const InputBox = ({
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 0,
-          text: msg.trim(),
+          text: conversation.trim(),
         });
 
         dispatch({
@@ -688,7 +688,7 @@ const InputBox = ({
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 1,
-          text: msg.trim(),
+          text: conversation.trim(),
         });
 
         dispatch({
@@ -1113,7 +1113,7 @@ const InputBox = ({
                 extraData={{
                   value: [message, userTaggingList],
                 }}
-                estimatedItemSize={500}
+                estimatedItemSize={15}
                 keyboardShouldPersistTaps={'handled'}
                 onEndReached={handleLoadMore}
                 onEndReachedThreshold={1}

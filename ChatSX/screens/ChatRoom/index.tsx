@@ -674,7 +674,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
 
     if (page === 1) {
-      let conversationsFromRealm = await myClient?.getConversationData(
+      let conversationsFromRealm = await myClient?.getConversations(
         chatroomID,
         PAGE_SIZE,
       );
@@ -705,7 +705,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     if (chatroomDetails === undefined) {
       //Cold start in case of initiating on a new DM or viewing chatroom from ExploreFeed
       await paginatedConversationSyncAPI(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
-      await myClient?.chatroomViewed(chatroomID);
+      await myClient?.updateChatroomViewed(chatroomID);
       setShimmerIsLoading(false);
     } else {
       const chatroom = JSON.parse(JSON.stringify(chatroomDetails));
@@ -715,7 +715,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       if (chatroom?.isChatroomVisited) {
         setShimmerIsLoading(false);
 
-        conversationsFromRealm = await myClient?.getConversationData(
+        conversationsFromRealm = await myClient?.getConversations(
           chatroomID?.toString(),
           PAGE_SIZE,
         );
@@ -733,7 +733,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       } else {
         // Cold start
         await paginatedConversationSyncAPI(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
-        await myClient?.chatroomViewed(chatroomID);
+        await myClient?.updateChatroomViewed(chatroomID);
         setShimmerIsLoading(false);
       }
     }
@@ -955,7 +955,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       );
     }
     if (page === 1) {
-      let conversationsFromRealm = await myClient?.getConversationData(
+      let conversationsFromRealm = await myClient?.getConversations(
         chatroomID,
         PAGE_SIZE,
       );
@@ -1034,7 +1034,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // function shows loader in between calling the API and getting the response
   const loadData = async (newPage?: number) => {
     setIsLoading(true);
-    const newConversations = await myClient.getConversationData(
+    const newConversations = await myClient.getConversations(
       chatroomID,
       100,
       conversations[conversations.length - 1].createdEpoch,
@@ -2275,7 +2275,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 conversations,
               ],
             }}
-            estimatedItemSize={500}
+            estimatedItemSize={50}
             renderItem={({item: value, index}: any) => {
               let uploadingFilesMessagesIDArr = Object.keys(
                 uploadingFilesMessages,
