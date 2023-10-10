@@ -311,12 +311,6 @@ const GroupFeed = ({navigation}: Props) => {
           )}
           renderItem={({item}: any) => {
             let lastConversation = item?.lastConversation;
-            // if (
-            //   item?.unseenCount === 0 &&
-            //   item?.lastSeenConversation?.member?.id == user?.id
-            // ) {
-            //   lastConversation = item?.lastSeenConversation;
-            // }
             const deletedBy =
               lastConversation?.deletedByUserId !== null
                 ? lastConversation?.deletedByUserId

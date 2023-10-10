@@ -542,7 +542,7 @@ const InputBox = ({
         replyObj.member.id = user?.id?.toString();
         replyObj.member.sdkClientInfo = user?.sdkClientInfo;
         replyObj.member.uuid = user?.uuid;
-        replyObj.answer = conversationText.trim()?.toString();
+        replyObj.answer = conversationText?.trim()?.toString();
         replyObj.createdAt = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
           useGrouping: false,
@@ -574,7 +574,7 @@ const InputBox = ({
       obj.member.id = user?.id?.toString();
       obj.member.sdkClientInfo = user?.sdkClientInfo;
       obj.member.uuid = user?.uuid;
-      obj.answer = conversationText.trim()?.toString();
+      obj.answer = conversationText?.trim()?.toString();
       obj.createdAt = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,
         useGrouping: false,
@@ -663,7 +663,7 @@ const InputBox = ({
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 0,
-          text: conversation.trim(),
+          text: conversation?.trim(),
         });
 
         dispatch({
@@ -688,7 +688,7 @@ const InputBox = ({
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 1,
-          text: conversation.trim(),
+          text: conversation?.trim(),
         });
 
         dispatch({
@@ -704,7 +704,7 @@ const InputBox = ({
           let payload = {
             chatroomId: chatroomID,
             hasFiles: false,
-            text: conversationText.trim(),
+            text: conversationText?.trim(),
             temporaryId: ID?.toString(),
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
@@ -739,7 +739,7 @@ const InputBox = ({
           let payload = {
             chatroomId: chatroomID,
             hasFiles: false,
-            text: conversationText.trim(),
+            text: conversationText?.trim(),
             temporaryId: ID?.toString(),
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
@@ -1394,6 +1394,7 @@ const InputBox = ({
         hideDMSentAlert={hideDMSentAlert}
         DMSentAlertModalVisible={DMSentAlertModalVisible}
         onSend={onSend}
+        message={message}
       />
     </View>
   );
