@@ -429,7 +429,9 @@ const InputBox = ({
     }
   };
 
-  const onSend = async () => {
+  const onSend = async (msg) => {
+    setMessage('');
+    setInputHeight(25);
     // -- Code for local message handling for normal and reply for now
     let months = [
       'Jan',
@@ -516,8 +518,8 @@ const InputBox = ({
         }
       }
     }
-    [];
-    let conversationText = replaceMentionValues(message, ({id, name}) => {
+
+    let conversationText = replaceMentionValues(msg, ({id, name}) => {
       // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
@@ -528,11 +530,7 @@ const InputBox = ({
       }
     });
 
-    const isMessageTrimmed = !!message.trim();
-
-    setMessage('');
-    setFormattedConversation('');
-    setInputHeight(25);
+    const isMessageTrimmed = !!msg.trim();
 
     // check if message is empty string or not
     if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
@@ -665,7 +663,7 @@ const InputBox = ({
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 0,
-          text: message.trim(),
+          text: msg.trim(),
         });
 
         dispatch({
@@ -690,7 +688,7 @@ const InputBox = ({
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 1,
-          text: message.trim(),
+          text: msg.trim(),
         });
 
         dispatch({
@@ -1301,7 +1299,7 @@ const InputBox = ({
               if (isEditable) {
                 onEdit();
               } else {
-                onSend();
+                onSend(message);
               }
             }
           }}
