@@ -152,13 +152,15 @@ const GroupFeed = ({navigation}: Props) => {
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
         if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
-        setTimeout(() => {
-          getExistingData();
-        }, 1000);
+        if (isFocused) {
+          paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+          setTimeout(() => {
+            getExistingData();
+          }, 1000);
+        }
       }
     });
-  }, [user]);
+  }, [user, isFocused]);
 
   async function fetchData() {
     const invitesRes = await dispatch(

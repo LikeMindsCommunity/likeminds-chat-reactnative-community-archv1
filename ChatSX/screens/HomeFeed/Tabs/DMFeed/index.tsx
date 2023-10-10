@@ -174,13 +174,15 @@ const DMFeed = ({navigation}: Props) => {
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
         if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
-        setTimeout(() => {
-          getExistingData();
-        }, 1000);
+        if (isFocused) {
+          paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+          setTimeout(() => {
+            getExistingData();
+          }, 1000);
+        }
       }
     });
-  }, [user]);
+  }, [user, isFocused]);
 
   useEffect(() => {
     if (isFocused) {

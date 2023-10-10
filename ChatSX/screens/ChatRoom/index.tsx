@@ -932,19 +932,52 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isLongPress, selectedMessages]);
 
+  // sync conversation call with conversation_id from firebase listener
+  const firebaseConversationSyncAPI = async (
+    page: number,
+    minTimeStamp: number,
+    maxTimeStamp: number,
+    conversationId?: string,
+  ) => {
+    const val = await syncConversationAPI(
+      page,
+      maxTimeStamp,
+      minTimeStamp,
+      conversationId,
+    );
+    const DB_RESPONSE = val?.data;
+    if (DB_RESPONSE?.conversationsData.length !== 0) {
+      await myClient?.saveConversationData(
+        DB_RESPONSE,
+        DB_RESPONSE?.chatroomMeta,
+        DB_RESPONSE?.conversationsData,
+        community?.id,
+      );
+    }
+    if (page === 1) {
+      let conversationsFromRealm = await myClient?.getConversationData(
+        chatroomID,
+        PAGE_SIZE,
+      );
+      dispatch({
+        type: GET_CONVERSATIONS_SUCCESS,
+        body: {conversations: conversationsFromRealm},
+      });
+    }
+    return;
+  };
+
   //useffect includes firebase realtime listener
   useEffect(() => {
     const query = ref(db, `/collabcards/${chatroomID}`);
     return onValue(query, async (snapshot: DataSnapshot) => {
       if (snapshot.exists()) {
         let firebaseData = snapshot.val();
-
         let conversationID = firebaseData?.collabcard?.answer_id;
-
         if (conversationID) {
           if (!user?.sdkClientInfo?.community) return;
           let maxTimeStamp = Math.floor(Date.now() * 1000);
-          await paginatedConversationSyncAPI(
+          await firebaseConversationSyncAPI(
             INITIAL_SYNC_PAGE,
             0,
             maxTimeStamp,
