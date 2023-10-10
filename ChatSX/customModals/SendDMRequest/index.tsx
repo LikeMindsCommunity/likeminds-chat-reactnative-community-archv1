@@ -12,6 +12,7 @@ const SendDMRequestModal = ({
   hideDMSentAlert,
   DMSentAlertModalVisible,
   onSend,
+  message,
 }: any) => {
   return (
     <Modal
@@ -34,7 +35,7 @@ const SendDMRequestModal = ({
             <TouchableOpacity
               style={[styles.button, styles.okButton]}
               onPress={() => {
-                onSend();
+                onSend(message);
                 hideDMSentAlert();
               }}>
               <Text style={styles.buttonText}>{CONFIRM_BUTTON}</Text>

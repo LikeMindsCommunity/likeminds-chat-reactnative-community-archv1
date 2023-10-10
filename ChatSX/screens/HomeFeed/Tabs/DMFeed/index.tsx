@@ -116,7 +116,7 @@ const DMFeed = ({navigation}: Props) => {
   }, []);
 
   // Fetching already existing chatrooms from Realm
-  const getExistingData = async () => {
+  const getChatroomFromLocalDB = async () => {
     const existingChatrooms: any = await myClient?.getFilteredChatrooms(true);
     if (!!existingChatrooms && existingChatrooms.length !== 0) {
       setShimmerIsLoading(false);
@@ -127,63 +127,28 @@ const DMFeed = ({navigation}: Props) => {
     }
   };
 
-  // Callback for listener
-  const onDMChatroomChange = (chatrooms: any, changes: any) => {
-    // Handle deleted DM Chatroom objects
-    changes.deletions.forEach((index: any) => {
-      dispatch({
-        type: DELETE_DMFEED_CHATROOM,
-        body: index,
-      });
-    });
-
-    // Handle newly added DM Chatroom objects
-    changes.insertions.forEach((index: any) => {
-      const insertedDMChatroom = chatrooms[index];
-      dispatch({
-        type: INSERT_DMFEED_CHATROOM,
-        body: {insertedDMChatroom, index},
-      });
-    });
-
-    // Handle DM Chatroom objects that were modified
-    changes.modifications.forEach((index: any) => {
-      const modifiedDMChatroom = chatrooms[index];
-      dispatch({
-        type: UPDATE_DMFEED_CHATROOM,
-        body: {modifiedDMChatroom, index},
-      });
-    });
-  };
-
-  // This useEffect calls the listener which is attached to realm
-  useEffect(() => {
-    const realm = new Realm(myClient?.getInstance());
-    const chatrooms = realm
-      .objects('ChatroomRO')
-      .filtered(`(type = 10) && (followStatus=true) && (deletedBy = null)`)
-      .sorted('updatedAt', true);
-    chatrooms.addListener(onDMChatroomChange);
-    return () => {
-      chatrooms.removeListener(onDMChatroomChange);
-    };
-  }, [isFocused]);
-
   useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
         if (!user?.sdkClientInfo?.community) return;
-        paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+        if (isFocused) {
+          paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+          setTimeout(() => {
+            getChatroomFromLocalDB();
+          }, 1000);
+        }
       }
     });
-  }, [user]);
+  }, [user, isFocused]);
 
   useEffect(() => {
     if (isFocused) {
-      getExistingData();
       if (!user?.sdkClientInfo?.community) return;
       paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+      setTimeout(() => {
+        getChatroomFromLocalDB();
+      }, 1000);
       setShimmerIsLoading(false);
     }
   }, [isFocused, user]);

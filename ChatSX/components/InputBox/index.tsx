@@ -429,7 +429,9 @@ const InputBox = ({
     }
   };
 
-  const onSend = async () => {
+  const onSend = async (conversation: string) => {
+    setMessage('');
+    setInputHeight(25);
     // -- Code for local message handling for normal and reply for now
     let months = [
       'Jan',
@@ -516,8 +518,8 @@ const InputBox = ({
         }
       }
     }
-    [];
-    let conversationText = replaceMentionValues(message, ({id, name}) => {
+
+    let conversationText = replaceMentionValues(conversation, ({id, name}) => {
       // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
@@ -528,8 +530,10 @@ const InputBox = ({
       }
     });
 
+    const isMessageTrimmed = !!conversation.trim();
+
     // check if message is empty string or not
-    if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
+    if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
       if (isReply) {
         replyObj.replyConversation = replyMessage?.id?.toString();
@@ -538,7 +542,7 @@ const InputBox = ({
         replyObj.member.id = user?.id?.toString();
         replyObj.member.sdkClientInfo = user?.sdkClientInfo;
         replyObj.member.uuid = user?.uuid;
-        replyObj.answer = conversationText.trim()?.toString();
+        replyObj.answer = conversationText?.trim()?.toString();
         replyObj.createdAt = `${hr.toLocaleString('en-US', {
           minimumIntegerDigits: 2,
           useGrouping: false,
@@ -570,7 +574,7 @@ const InputBox = ({
       obj.member.id = user?.id?.toString();
       obj.member.sdkClientInfo = user?.sdkClientInfo;
       obj.member.uuid = user?.uuid;
-      obj.answer = conversationText.trim()?.toString();
+      obj.answer = conversationText?.trim()?.toString();
       obj.createdAt = `${hr.toLocaleString('en-US', {
         minimumIntegerDigits: 2,
         useGrouping: false,
@@ -642,9 +646,6 @@ const InputBox = ({
           type: CLEAR_SELECTED_FILE_TO_VIEW,
         });
       }
-      setMessage('');
-      setFormattedConversation('');
-      setInputHeight(25);
 
       if (isReply) {
         dispatch({type: SET_IS_REPLY, body: {isReply: false}});
@@ -662,7 +663,7 @@ const InputBox = ({
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 0,
-          text: message.trim(),
+          text: conversation?.trim(),
         });
 
         dispatch({
@@ -687,7 +688,7 @@ const InputBox = ({
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: 1,
-          text: message.trim(),
+          text: conversation?.trim(),
         });
 
         dispatch({
@@ -703,7 +704,7 @@ const InputBox = ({
           let payload = {
             chatroomId: chatroomID,
             hasFiles: false,
-            text: conversationText.trim(),
+            text: conversationText?.trim(),
             temporaryId: ID?.toString(),
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
@@ -738,13 +739,14 @@ const InputBox = ({
           let payload = {
             chatroomId: chatroomID,
             hasFiles: false,
-            text: conversationText.trim(),
+            text: conversationText?.trim(),
             temporaryId: ID?.toString(),
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
 
           let response = await dispatch(onConversationsCreate(payload) as any);
+
           await myClient?.replaceSavedConversation(response?.conversation);
 
           if (response === undefined) {
@@ -1297,7 +1299,7 @@ const InputBox = ({
               if (isEditable) {
                 onEdit();
               } else {
-                onSend();
+                onSend(message);
               }
             }
           }}
@@ -1392,6 +1394,7 @@ const InputBox = ({
         hideDMSentAlert={hideDMSentAlert}
         DMSentAlertModalVisible={DMSentAlertModalVisible}
         onSend={onSend}
+        message={message}
       />
     </View>
   );
