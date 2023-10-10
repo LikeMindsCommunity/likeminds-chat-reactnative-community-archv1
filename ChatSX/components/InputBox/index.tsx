@@ -528,8 +528,14 @@ const InputBox = ({
       }
     });
 
+    const isMessageTrimmed = !!message.trim();
+
+    setMessage('');
+    setFormattedConversation('');
+    setInputHeight(25);
+
     // check if message is empty string or not
-    if ((!!message.trim() && !isUploadScreen) || isUploadScreen) {
+    if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
       if (isReply) {
         replyObj.replyConversation = replyMessage?.id?.toString();
@@ -603,10 +609,6 @@ const InputBox = ({
         type: MESSAGE_SENT,
         body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
-
-      setMessage('');
-      setFormattedConversation('');
-      setInputHeight(25);
 
       if (
         chatroomType !== ChatroomType.DMCHATROOM && // if not DM

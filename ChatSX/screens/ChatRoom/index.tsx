@@ -950,11 +950,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             maxTimeStamp,
             conversationID,
           );
-          await myClient?.updateChatRequestState(
-            chatroomID?.toString(),
-            ChatroomChatRequestState.ACCEPTED,
-          );
-          fetchChatroomDetails();
         }
       }
     });
