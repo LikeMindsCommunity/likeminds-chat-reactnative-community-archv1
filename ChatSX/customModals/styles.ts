@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
     // width: 90,
   },
   buttonText: {
-    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontSize: STYLES.$FONT_SIZES.PREMEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.SECONDARY,
     textTransform: 'uppercase',

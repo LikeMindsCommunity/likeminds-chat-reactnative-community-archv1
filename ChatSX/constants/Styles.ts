@@ -12,6 +12,7 @@ export default {
   $FONT_SIZES: {
     XS: 10,
     SMALL: 12,
+    PREMEDIUM: 13,
     MEDIUM: 14,
     LARGE: 16,
     XL: 18,

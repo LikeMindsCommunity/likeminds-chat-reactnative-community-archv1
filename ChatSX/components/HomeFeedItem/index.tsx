@@ -140,12 +140,13 @@ const HomeFeedItem: React.FC<Props> = ({
     let imageCount = 0;
     let videosCount = 0;
     let pdfCount = 0;
+
     for (let i = 0; i < attachments.length; i++) {
       if (attachments[i].type == 'image') {
         imageCount++;
       } else if (attachments[i].type == 'video') {
         videosCount++;
-      } else {
+      } else if (attachments[i].type == 'pdf') {
         pdfCount++;
       }
     }
@@ -301,7 +302,13 @@ const HomeFeedItem: React.FC<Props> = ({
         </View>
       );
     } else {
-      return;
+      return (
+        <View style={[styles.alignCenter]}>
+          <Text style={styles.attachment_msg}>
+            This message is not supported yet
+          </Text>
+        </View>
+      );
     }
   };
 

@@ -679,6 +679,26 @@ export const ImageConversations = ({
     }
   };
 
+  let imageSource = null;
+
+  if (attachment0) {
+    if (
+      (attachment0.type === VIDEO_TEXT && attachment0.thumbnailUrl === null) ||
+      (attachment0.type === IMAGE_TEXT && attachment0.url === null)
+    ) {
+      // Use require for video or image
+      imageSource = require('../../assets/images/imagePlaceholder.jpeg');
+    } else {
+      // Use the uri
+      imageSource = {
+        uri:
+          attachment0?.type === VIDEO_TEXT
+            ? attachment0?.thumbnailUrl
+            : attachment0?.url,
+      };
+    }
+  }
+
   return (
     <View>
       {item?.attachmentCount === 1 ? (
@@ -688,15 +708,7 @@ export const ImageConversations = ({
           onPress={event => {
             handleOnPress(event, attachment0?.url, 0);
           }}>
-          <Image
-            style={styles.singleImg}
-            source={{
-              uri:
-                attachment0?.type === VIDEO_TEXT
-                  ? attachment0?.thumbnailUrl
-                  : attachment0?.url,
-            }}
-          />
+          <Image style={styles.singleImg} source={imageSource} />
           {attachment0?.type === VIDEO_TEXT ? (
             <View style={{position: 'absolute', bottom: 0, left: 5}}>
               <Image

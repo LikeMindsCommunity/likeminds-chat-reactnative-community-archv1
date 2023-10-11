@@ -127,6 +127,16 @@ const DMFeed = ({navigation}: Props) => {
     }
   };
 
+  const getAppConfig = async () => {
+    const appConfig = await myClient?.getAppConfig();
+    if (appConfig?.isDmFeedChatroomsSynced === undefined) {
+      myClient?.initiateAppConfig();
+      myClient?.setAppConfig(true);
+    } else {
+      setShimmerIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
@@ -134,9 +144,10 @@ const DMFeed = ({navigation}: Props) => {
         if (!user?.sdkClientInfo?.community) return;
         if (isFocused) {
           paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+          setShimmerIsLoading(false);
           setTimeout(() => {
             getChatroomFromLocalDB();
-          }, 1000);
+          }, 300);
         }
       }
     });
@@ -144,12 +155,13 @@ const DMFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     if (isFocused) {
+      getAppConfig();
       if (!user?.sdkClientInfo?.community) return;
       paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+      setShimmerIsLoading(false);
       setTimeout(() => {
         getChatroomFromLocalDB();
-      }, 1000);
-      setShimmerIsLoading(false);
+      }, 300);
     }
   }, [isFocused, user]);
 

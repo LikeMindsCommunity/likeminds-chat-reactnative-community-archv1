@@ -676,6 +676,10 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 0},
         });
+        await myClient?.saveNewConversation(
+          chatroomID.toString(),
+          response?.data?.conversation,
+        );
         await myClient?.updateChatRequestState(
           chatroomID.toString(),
           ChatroomChatRequestState.INITIATED,
@@ -695,6 +699,10 @@ const InputBox = ({
           type: UPDATE_CHAT_REQUEST_STATE,
           body: {chatRequestState: 1},
         });
+        await myClient?.saveNewConversation(
+          chatroomID.toString(),
+          response?.data?.conversation,
+        );
         await myClient?.updateChatRequestState(
           chatroomID.toString(),
           ChatroomChatRequestState.ACCEPTED,

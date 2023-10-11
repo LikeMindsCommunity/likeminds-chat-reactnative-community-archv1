@@ -91,14 +91,25 @@ const GroupFeed = ({navigation}: Props) => {
     }
   };
 
+  const getAppConfig = async () => {
+    const appConfig = await myClient?.getAppConfig();
+    if (appConfig?.isGroupFeedChatroomsSynced === undefined) {
+      myClient?.initiateAppConfig();
+      myClient?.setAppConfig(false);
+    } else {
+      setShimmerIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isFocused) {
+      getAppConfig();
       if (!user?.sdkClientInfo?.community) return;
       paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+      setShimmerIsLoading(false);
       setTimeout(() => {
         getChatroomFromLocalDB();
-      }, 1000);
-      setShimmerIsLoading(false);
+      }, 300);
     }
   }, [isFocused, user]);
 
@@ -109,9 +120,10 @@ const GroupFeed = ({navigation}: Props) => {
         if (!user?.sdkClientInfo?.community) return;
         if (isFocused) {
           paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+          setShimmerIsLoading(false);
           setTimeout(() => {
             getChatroomFromLocalDB();
-          }, 1000);
+          }, 300);
         }
       }
     });
@@ -311,6 +323,12 @@ const GroupFeed = ({navigation}: Props) => {
           )}
           renderItem={({item}: any) => {
             let lastConversation = item?.lastConversation;
+            // if (
+            //   item?.unseenCount === 0 &&
+            //   item?.lastSeenConversation?.member?.id == user?.id
+            // ) {
+            //   lastConversation = item?.lastSeenConversation;
+            // }
             const deletedBy =
               lastConversation?.deletedByUserId !== null
                 ? lastConversation?.deletedByUserId

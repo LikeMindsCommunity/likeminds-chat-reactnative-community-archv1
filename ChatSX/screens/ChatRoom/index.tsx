@@ -51,6 +51,7 @@ import {DataSnapshot, onValue, ref} from 'firebase/database';
 import {initAPI} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
+  ADD_CONVERSATION,
   ADD_STATE_MESSAGE,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
@@ -679,6 +680,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         PAGE_SIZE,
       );
 
+      const temp = conversationsFromRealm.slice(0, 5);
+
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         body: {conversations: conversationsFromRealm},
@@ -698,8 +701,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   // this function fetchConversations when we first move inside Chatroom
-  async function fetchData(showLoaderVal?: boolean) {
-    let chatroomDetails = await myClient?.getChatroom(chatroomID?.toString());
+  async function fetchData(chatroomDetails: any, showLoaderVal?: boolean) {
     let maxTimeStamp = Math.floor(Date.now() * 1000);
 
     if (chatroomDetails === undefined) {
@@ -707,13 +709,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       await paginatedConversationSyncAPI(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
       await myClient?.updateChatroomViewed(chatroomID);
       setShimmerIsLoading(false);
+      fetchChatroomDetails();
     } else {
-      const chatroom = JSON.parse(JSON.stringify(chatroomDetails));
       let conversationsFromRealm;
 
+      console.log('23ehjdjk', chatroomDetails?.isChatroomVisited);
+
       // Warm start
-      if (chatroom?.isChatroomVisited) {
-        setShimmerIsLoading(false);
+      if (chatroomDetails?.isChatroomVisited) {
+        console.log('sadmadhasd');
 
         conversationsFromRealm = await myClient?.getConversations(
           chatroomID?.toString(),
@@ -724,7 +728,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           type: GET_CONVERSATIONS_SUCCESS,
           body: {conversations: conversationsFromRealm},
         });
-        let minTimeStamp = chatroom?.lastSeenConversation?.lastUpdatedAt ?? 0;
+        let minTimeStamp =
+          chatroomDetails?.lastSeenConversation?.lastUpdatedAt ?? 0;
         await paginatedConversationSyncAPI(
           INITIAL_SYNC_PAGE,
           minTimeStamp,
@@ -743,7 +748,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
     let DB_DATA = await myClient?.getChatroom(chatroomID?.toString());
-
+    if (DB_DATA?.isChatroomVisited) {
+      setShimmerIsLoading(false);
+    }
     if (DB_DATA) {
       dispatch({
         type: GET_CHATROOM_DB_SUCCESS,
@@ -755,6 +762,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       type: GET_CHATROOM_ACTIONS_SUCCESS,
       body: response?.data,
     });
+    return DB_DATA;
   }
 
   // this function fetch initiate API
@@ -798,11 +806,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           // App has gone to the background
           await fetchInitAPI();
         }
-        await fetchData(false);
-        await fetchChatroomDetails();
+        const chatroomDetails = await fetchChatroomDetails();
+        await fetchData(chatroomDetails, false);
       } else {
-        await fetchData(false);
-        await fetchChatroomDetails();
+        const chatroomDetails = await fetchChatroomDetails();
+        await fetchData(chatroomDetails, false);
       }
     };
     invokeFunction();
@@ -959,10 +967,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         chatroomID,
         PAGE_SIZE,
       );
+      // if (
+      //   chatroomType === ChatroomType.DMCHATROOM && // if DM
+      //   chatRequestState === null // if first DM message sent to an user
+      // ) {
+      //   dispatch({
+      //     type: ADD_CONVERSATION,
+      //     body: {conversations: conversationsFromRealm},
+      //   });
+      // } else {
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         body: {conversations: conversationsFromRealm},
       });
+      // }
     }
     return;
   };
@@ -983,6 +1001,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             maxTimeStamp,
             conversationID,
           );
+          await myClient?.updateChatRequestState(
+            chatroomID?.toString(),
+            ChatroomChatRequestState.ACCEPTED,
+          );
+          fetchChatroomDetails();
         }
       }
     });
@@ -1107,7 +1130,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           );
           setTimeout(() => {
             navigation.goBack();
-          }, 500);
+          }, 300);
         }
       })
       .catch(() => {
@@ -1162,7 +1185,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           );
           setTimeout(() => {
             navigation.goBack();
-          }, 500);
+          }, 300);
         }
       })
       .catch(() => {
