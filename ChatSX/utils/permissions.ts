@@ -70,3 +70,36 @@ export async function requestStoragePermission() {
     }
   }
 }
+
+export async function requestCameraPermission() {
+  if (Platform.OS === 'android') {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'App needs permission to access your camera',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        return true;
+      } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+        Alert.alert(
+          'Camera Permission Required',
+          'App needs access to your camera to capture photos. Please go to app settings and grant permission.',
+          [
+            {text: 'Cancel', style: 'cancel'},
+            {text: 'Open Settings', onPress: Linking.openSettings},
+          ],
+        );
+      } else {
+        return false;
+      }
+    } catch (err) {
+      return false;
+    }
+  }
+}

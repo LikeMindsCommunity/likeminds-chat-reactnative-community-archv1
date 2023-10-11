@@ -85,7 +85,7 @@ import {
   getVideoThumbnail,
   replaceLastMention,
 } from '../../commonFuctions';
-import {requestStoragePermission} from '../../utils/permissions';
+import {requestCameraPermission, requestStoragePermission} from '../../utils/permissions';
 import {FlashList} from '@shopify/flash-list';
 import {TaggingView} from '../TaggingView';
 import {
@@ -445,7 +445,14 @@ const InputBox = ({
 
   // function handles opening of camera functionality
   const handleCamera = async () => {
-    openCamera();
+    if (Platform.OS === 'ios') {
+      openCamera();
+    } else {
+      let res = await requestCameraPermission();
+      if (res === true) {
+        openCamera();
+      }
+    }
   };
 
   // function handles the selection of images and videos
