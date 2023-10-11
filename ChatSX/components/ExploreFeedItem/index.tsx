@@ -70,7 +70,10 @@ const ExploreFeedItem: React.FC<Props> = ({
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
           // Updating the followStatus of chatroom to false in case of leaving the chatroom
-          await myClient?.updateChatroomFollowStatus(chatroomID.toString());
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID.toString(),
+            false,
+          );
         }
         dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
         await dispatch(getExploreFeedData(payload) as any);

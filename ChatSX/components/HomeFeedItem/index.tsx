@@ -438,13 +438,17 @@ const HomeFeedItem: React.FC<Props> = ({
           />
         </View>
       ) : null}
-      {!!unreadCount
-        ? unreadCount > 0 && (
-            <View style={styles.unreadCountContainer}>
-              <Text style={styles.unreadCount}>{unreadCount}</Text>
-            </View>
-          )
-        : null}
+      {!!unreadCount ? (
+        unreadCount > 100 ? (
+          <View style={styles.unreadCountContainer}>
+            <Text style={styles.unreadCount}>99+</Text>
+          </View>
+        ) : (
+          <View style={styles.unreadCountContainer}>
+            <Text style={styles.unreadCount}>{unreadCount}</Text>
+          </View>
+        )
+      ) : null}
     </Pressable>
   );
 };
