@@ -51,7 +51,6 @@ import {DataSnapshot, onValue, ref} from 'firebase/database';
 import {initAPI} from '../../store/actions/homefeed';
 import {
   ACCEPT_INVITE_SUCCESS,
-  ADD_CONVERSATION,
   ADD_STATE_MESSAGE,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
@@ -680,8 +679,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         PAGE_SIZE,
       );
 
-      const temp = conversationsFromRealm.slice(0, 5);
-
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         body: {conversations: conversationsFromRealm},
@@ -713,12 +710,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     } else {
       let conversationsFromRealm;
 
-      console.log('23ehjdjk', chatroomDetails?.isChatroomVisited);
-
       // Warm start
       if (chatroomDetails?.isChatroomVisited) {
-        console.log('sadmadhasd');
-
         conversationsFromRealm = await myClient?.getConversations(
           chatroomID?.toString(),
           PAGE_SIZE,
@@ -967,20 +960,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         chatroomID,
         PAGE_SIZE,
       );
-      // if (
-      //   chatroomType === ChatroomType.DMCHATROOM && // if DM
-      //   chatRequestState === null // if first DM message sent to an user
-      // ) {
-      //   dispatch({
-      //     type: ADD_CONVERSATION,
-      //     body: {conversations: conversationsFromRealm},
-      //   });
-      // } else {
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         body: {conversations: conversationsFromRealm},
       });
-      // }
     }
     return;
   };

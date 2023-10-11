@@ -21,7 +21,6 @@ import {
   SELECTED_MORE_FILES_TO_UPLOAD,
   SET_EDIT_MESSAGE,
   SET_IS_REPLY,
-  ADD_CONVERSATION,
   SET_POSITION,
   SET_REPLY_MESSAGE,
   UPDATE_CHAT_REQUEST_STATE,
@@ -85,10 +84,6 @@ export function chatroomReducer(state = initialState, action: any) {
     case GET_CHATROOM_DB_SUCCESS: {
       const {chatroomDBDetails = {}} = action.body;
       return {...state, chatroomDBDetails: chatroomDBDetails};
-    }
-    case ADD_CONVERSATION: {
-      const {conversations = []} = action.body;
-      return {...state, conversations: [state.conversations, ...conversations]};
     }
     case GET_CONVERSATIONS_SUCCESS: {
       const {conversations = []} = action.body;
