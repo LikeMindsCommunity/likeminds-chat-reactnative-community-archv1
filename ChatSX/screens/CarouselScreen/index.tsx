@@ -34,7 +34,7 @@ const CarouselScreen = ({navigation, route}: any) => {
   }
   let userName = dataObject?.member?.name;
   let date = dataObject?.date;
-  let time = dataObject?.created_at;
+  let time = dataObject?.createdAt;
 
   let countText = '';
 

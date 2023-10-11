@@ -431,11 +431,9 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             });
           } else {
             let createdChatroomID = response?.chatroom?.id;
-            const chatroomWithUser = response?.chatroom?.chatroomWithUser;
             if (!!createdChatroomID) {
               navigation.navigate(CHATROOM, {
                 chatroomID: createdChatroomID,
-                chatroomWithUserParam: chatroomWithUser,
               });
             }
           }
