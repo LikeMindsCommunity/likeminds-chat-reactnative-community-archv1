@@ -304,11 +304,9 @@ const HomeFeedItem: React.FC<Props> = ({
       );
     } else {
       return (
-        <View style={[styles.alignCenter]}>
-          <Text style={styles.attachment_msg}>
-            This message is not supported yet
-          </Text>
-        </View>
+        <Text style={styles.deletedMessage}>
+          This message is not supported yet
+        </Text>
       );
     }
   };
