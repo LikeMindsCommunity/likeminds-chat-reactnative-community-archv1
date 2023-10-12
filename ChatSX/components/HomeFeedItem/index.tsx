@@ -33,6 +33,7 @@ import Layout from '../../constants/Layout';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
 import {ChatroomType} from '../../enums/chatroomType';
+import {DocumentType} from '../../enums/DocumentType';
 
 interface Props {
   avatar: string;
@@ -142,11 +143,11 @@ const HomeFeedItem: React.FC<Props> = ({
     let pdfCount = 0;
 
     for (let i = 0; i < attachments.length; i++) {
-      if (attachments[i].type == 'image') {
+      if (attachments[i].type == DocumentType.IMAGE) {
         imageCount++;
-      } else if (attachments[i].type == 'video') {
+      } else if (attachments[i].type == DocumentType.VIDEO) {
         videosCount++;
-      } else if (attachments[i].type == 'pdf') {
+      } else if (attachments[i].type == DocumentType.PDF) {
         pdfCount++;
       }
     }

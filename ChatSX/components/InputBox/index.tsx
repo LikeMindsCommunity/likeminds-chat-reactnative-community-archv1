@@ -662,7 +662,7 @@ const InputBox = ({
       ) {
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
-          chatRequestState: 0,
+          chatRequestState: ChatroomChatRequestState.INITIATED,
           text: conversation?.trim(),
         });
 
@@ -674,7 +674,7 @@ const InputBox = ({
         //dispatching redux action for local handling of chatRequestState
         dispatch({
           type: UPDATE_CHAT_REQUEST_STATE,
-          body: {chatRequestState: 0},
+          body: {chatRequestState: ChatroomChatRequestState.INITIATED},
         });
         await myClient?.saveNewConversation(
           chatroomID.toString(),
@@ -691,13 +691,13 @@ const InputBox = ({
       ) {
         let response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
-          chatRequestState: 1,
+          chatRequestState: ChatroomChatRequestState.ACCEPTED,
           text: conversation?.trim(),
         });
 
         dispatch({
           type: UPDATE_CHAT_REQUEST_STATE,
-          body: {chatRequestState: 1},
+          body: {chatRequestState: ChatroomChatRequestState.ACCEPTED},
         });
         await myClient?.saveNewConversation(
           chatroomID.toString(),

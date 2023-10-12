@@ -57,7 +57,7 @@ const AttachmentConversations = ({
 }: AttachmentConversations) => {
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
-  let attachment0 = item?.attachments[0];
+  let firstAttachment = item?.attachments[0];
   return (
     <View
       style={[
@@ -87,7 +87,7 @@ const AttachmentConversations = ({
             ) : null}
           </Text>
         )}
-        {attachment0?.type === IMAGE_TEXT ? (
+        {firstAttachment?.type === IMAGE_TEXT ? (
           <ImageConversations
             isIncluded={isIncluded}
             item={item}
@@ -96,7 +96,7 @@ const AttachmentConversations = ({
             longPressOpenKeyboard={longPressOpenKeyboard}
             handleFileUpload={handleFileUpload}
           />
-        ) : attachment0?.type === PDF_TEXT ? (
+        ) : firstAttachment?.type === PDF_TEXT ? (
           <PDFConversations
             isIncluded={isIncluded}
             item={item}
@@ -104,7 +104,7 @@ const AttachmentConversations = ({
             longPressOpenKeyboard={longPressOpenKeyboard}
             handleFileUpload={handleFileUpload}
           />
-        ) : attachment0?.type === VIDEO_TEXT ? (
+        ) : firstAttachment?.type === VIDEO_TEXT ? (
           <ImageConversations
             isIncluded={isIncluded}
             item={item}
@@ -113,7 +113,7 @@ const AttachmentConversations = ({
             longPressOpenKeyboard={longPressOpenKeyboard}
             handleFileUpload={handleFileUpload}
           />
-        ) : attachment0?.type === AUDIO_TEXT ? (
+        ) : firstAttachment?.type === AUDIO_TEXT ? (
           <View>
             <Text style={styles.deletedMsg}>
               This message is not supported in this app yet.
@@ -132,7 +132,7 @@ const AttachmentConversations = ({
         </View>
       </View>
 
-      {!isTypeSent && !(attachment0?.type === AUDIO_TEXT) ? (
+      {!isTypeSent && !(firstAttachment?.type === AUDIO_TEXT) ? (
         <Pressable
           onLongPress={event => {
             const {pageX, pageY} = event.nativeEvent;
@@ -182,8 +182,8 @@ export const VideoConversations = ({
   longPressOpenKeyboard,
   handleFileUpload,
 }: PDFConversations) => {
-  let attachment0 = item?.attachments[0];
-  let attachment1 = item?.attachments[1];
+  let firstAttachment = item?.attachments[0];
+  let secondAttachment = item?.attachments[1];
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
@@ -248,7 +248,7 @@ export const VideoConversations = ({
                 onLongPress={handleLongPress}
                 delayLongPress={200}
                 onPress={event => {
-                  handleOnPress(event, attachment0?.url);
+                  handleOnPress(event, firstAttachment?.url);
                 }}
                 style={styles.alignRow}>
                 <Image
@@ -256,14 +256,14 @@ export const VideoConversations = ({
                   style={styles.icon}
                 />
                 <Text numberOfLines={2} style={styles.docName}>
-                  {attachment0?.name}
+                  {firstAttachment?.name}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onLongPress={handleLongPress}
                 delayLongPress={200}
                 onPress={event => {
-                  handleOnPress(event, attachment1?.url);
+                  handleOnPress(event, secondAttachment?.url);
                 }}
                 style={styles.alignRow}>
                 <Image
@@ -271,7 +271,7 @@ export const VideoConversations = ({
                   style={styles.icon}
                 />
                 <Text numberOfLines={2} style={styles.docName}>
-                  {attachment1?.name}
+                  {secondAttachment?.name}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -301,7 +301,7 @@ export const VideoConversations = ({
           onLongPress={handleLongPress}
           delayLongPress={200}
           onPress={event => {
-            handleOnPress(event, attachment0?.url);
+            handleOnPress(event, firstAttachment?.url);
           }}
           style={styles.alignRow}>
           <Image
@@ -309,7 +309,7 @@ export const VideoConversations = ({
             style={styles.icon}
           />
           <Text numberOfLines={2} style={styles.docName}>
-            {attachment0?.name}
+            {firstAttachment?.name}
           </Text>
         </TouchableOpacity>
       )}
@@ -394,8 +394,8 @@ export const PDFConversations = ({
   longPressOpenKeyboard,
   handleFileUpload,
 }: PDFConversations) => {
-  let attachment0 = item?.attachments[0];
-  let attachment1 = item?.attachments[1];
+  let firstAttachment = item?.attachments[0];
+  let secondAttachment = item?.attachments[1];
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
@@ -459,7 +459,7 @@ export const PDFConversations = ({
                 onLongPress={handleLongPress}
                 delayLongPress={200}
                 onPress={event => {
-                  handleOnPress(event, attachment0?.url);
+                  handleOnPress(event, firstAttachment?.url);
                 }}
                 style={styles.alignRow}>
                 <Image
@@ -467,14 +467,14 @@ export const PDFConversations = ({
                   style={styles.icon}
                 />
                 <Text numberOfLines={2} style={styles.docName}>
-                  {attachment0?.name}
+                  {firstAttachment?.name}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onLongPress={handleLongPress}
                 delayLongPress={200}
                 onPress={event => {
-                  handleOnPress(event, attachment1?.url);
+                  handleOnPress(event, secondAttachment?.url);
                 }}
                 style={styles.alignRow}>
                 <Image
@@ -482,7 +482,7 @@ export const PDFConversations = ({
                   style={styles.icon}
                 />
                 <Text numberOfLines={2} style={styles.docName}>
-                  {attachment1?.name}
+                  {secondAttachment?.name}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -512,7 +512,7 @@ export const PDFConversations = ({
           onLongPress={handleLongPress}
           delayLongPress={200}
           onPress={event => {
-            handleOnPress(event, attachment0?.url);
+            handleOnPress(event, firstAttachment?.url);
           }}
           style={styles.alignRow}>
           <Image
@@ -520,7 +520,7 @@ export const PDFConversations = ({
             style={styles.icon}
           />
           <Text numberOfLines={2} style={styles.docName}>
-            {attachment0?.name}
+            {firstAttachment?.name}
           </Text>
         </TouchableOpacity>
       )}
@@ -615,10 +615,10 @@ export const ImageConversations = ({
   longPressOpenKeyboard,
   handleFileUpload,
 }: ImageConversations) => {
-  let attachment0 = item?.attachments[0];
-  let attachment1 = item?.attachments[1];
-  let attachment2 = item?.attachments[2];
-  let attachment3 = item?.attachments[3];
+  let firstAttachment = item?.attachments[0];
+  let secondAttachment = item?.attachments[1];
+  let thirdAttachment = item?.attachments[2];
+  let fourthAttachment = item?.attachments[3];
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
@@ -681,10 +681,11 @@ export const ImageConversations = ({
 
   let imageSource = null;
 
-  if (attachment0) {
+  if (firstAttachment) {
     if (
-      (attachment0.type === VIDEO_TEXT && attachment0.thumbnailUrl === null) ||
-      (attachment0.type === IMAGE_TEXT && attachment0.url === null)
+      (firstAttachment.type === VIDEO_TEXT &&
+        firstAttachment.thumbnailUrl === null) ||
+      (firstAttachment.type === IMAGE_TEXT && firstAttachment.url === null)
     ) {
       // Use require for video or image
       imageSource = require('../../assets/images/imagePlaceholder.jpeg');
@@ -692,9 +693,9 @@ export const ImageConversations = ({
       // Use the uri
       imageSource = {
         uri:
-          attachment0?.type === VIDEO_TEXT
-            ? attachment0?.thumbnailUrl
-            : attachment0?.url,
+          firstAttachment?.type === VIDEO_TEXT
+            ? firstAttachment?.thumbnailUrl
+            : firstAttachment?.url,
       };
     }
   }
@@ -706,10 +707,10 @@ export const ImageConversations = ({
           onLongPress={handleLongPress}
           delayLongPress={200}
           onPress={event => {
-            handleOnPress(event, attachment0?.url, 0);
+            handleOnPress(event, firstAttachment?.url, 0);
           }}>
           <Image style={styles.singleImg} source={imageSource} />
-          {attachment0?.type === VIDEO_TEXT ? (
+          {firstAttachment?.type === VIDEO_TEXT ? (
             <View style={{position: 'absolute', bottom: 0, left: 5}}>
               <Image
                 source={require('../../assets/images/video_icon3x.png')}
@@ -725,18 +726,18 @@ export const ImageConversations = ({
             onLongPress={handleLongPress}
             delayLongPress={200}
             onPress={event => {
-              handleOnPress(event, attachment0?.url, 0);
+              handleOnPress(event, firstAttachment?.url, 0);
             }}>
             <Image
               source={{
                 uri:
-                  attachment0?.type === VIDEO_TEXT
-                    ? attachment0?.thumbnailUrl
-                    : attachment0?.url,
+                  firstAttachment?.type === VIDEO_TEXT
+                    ? firstAttachment?.thumbnailUrl
+                    : firstAttachment?.url,
               }}
               style={styles.doubleImg}
             />
-            {attachment0?.type === VIDEO_TEXT ? (
+            {firstAttachment?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
                   source={require('../../assets/images/video_icon3x.png')}
@@ -750,18 +751,18 @@ export const ImageConversations = ({
             onLongPress={handleLongPress}
             delayLongPress={200}
             onPress={event => {
-              handleOnPress(event, attachment1?.url, 1);
+              handleOnPress(event, secondAttachment?.url, 1);
             }}>
             <Image
               source={{
                 uri:
-                  attachment1?.type === VIDEO_TEXT
-                    ? attachment1?.thumbnailUrl
-                    : attachment1?.url,
+                  secondAttachment?.type === VIDEO_TEXT
+                    ? secondAttachment?.thumbnailUrl
+                    : secondAttachment?.url,
               }}
               style={styles.doubleImg}
             />
-            {attachment1?.type === VIDEO_TEXT ? (
+            {secondAttachment?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
                   source={require('../../assets/images/video_icon3x.png')}
@@ -824,13 +825,13 @@ export const ImageConversations = ({
             <Image
               source={{
                 uri:
-                  attachment0?.type === VIDEO_TEXT
-                    ? attachment0?.thumbnailUrl
-                    : attachment0?.url,
+                  firstAttachment?.type === VIDEO_TEXT
+                    ? firstAttachment?.thumbnailUrl
+                    : firstAttachment?.url,
               }}
               style={styles.multipleImg}
             />
-            {attachment0?.type === VIDEO_TEXT ? (
+            {firstAttachment?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
                   source={require('../../assets/images/video_icon3x.png')}
@@ -844,12 +845,12 @@ export const ImageConversations = ({
               style={styles.multipleImg}
               source={{
                 uri:
-                  attachment1?.type === VIDEO_TEXT
-                    ? attachment1?.thumbnailUrl
-                    : attachment1?.url,
+                  secondAttachment?.type === VIDEO_TEXT
+                    ? secondAttachment?.thumbnailUrl
+                    : secondAttachment?.url,
               }}
             />
-            {attachment0?.type === VIDEO_TEXT ? (
+            {firstAttachment?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
                   source={require('../../assets/images/video_icon3x.png')}
@@ -870,18 +871,18 @@ export const ImageConversations = ({
               onLongPress={handleLongPress}
               delayLongPress={200}
               onPress={event => {
-                handleOnPress(event, attachment0?.url, 0);
+                handleOnPress(event, firstAttachment?.url, 0);
               }}>
               <Image
                 source={{
                   uri:
-                    attachment0?.type === VIDEO_TEXT
-                      ? attachment0?.thumbnailUrl
-                      : attachment0?.url,
+                    firstAttachment?.type === VIDEO_TEXT
+                      ? firstAttachment?.thumbnailUrl
+                      : firstAttachment?.url,
                 }}
                 style={styles.doubleImg}
               />
-              {attachment0?.type === VIDEO_TEXT ? (
+              {firstAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -895,18 +896,18 @@ export const ImageConversations = ({
               onLongPress={handleLongPress}
               delayLongPress={200}
               onPress={event => {
-                handleOnPress(event, attachment1?.url, 1);
+                handleOnPress(event, secondAttachment?.url, 1);
               }}>
               <Image
                 source={{
                   uri:
-                    attachment1?.type === VIDEO_TEXT
-                      ? attachment1?.thumbnailUrl
-                      : attachment1?.url,
+                    secondAttachment?.type === VIDEO_TEXT
+                      ? secondAttachment?.thumbnailUrl
+                      : secondAttachment?.url,
                 }}
                 style={styles.doubleImg}
               />
-              {attachment1?.type === VIDEO_TEXT ? (
+              {secondAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -922,18 +923,18 @@ export const ImageConversations = ({
               onLongPress={handleLongPress}
               delayLongPress={200}
               onPress={event => {
-                handleOnPress(event, attachment2?.url, 2);
+                handleOnPress(event, thirdAttachment?.url, 2);
               }}>
               <Image
                 source={{
                   uri:
-                    attachment2?.type === VIDEO_TEXT
-                      ? attachment2?.thumbnailUrl
-                      : attachment2?.url,
+                    thirdAttachment?.type === VIDEO_TEXT
+                      ? thirdAttachment?.thumbnailUrl
+                      : thirdAttachment?.url,
                 }}
                 style={styles.doubleImg}
               />
-              {attachment2?.type === VIDEO_TEXT ? (
+              {thirdAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -947,18 +948,18 @@ export const ImageConversations = ({
               onLongPress={handleLongPress}
               delayLongPress={200}
               onPress={event => {
-                handleOnPress(event, attachment3?.url, 3);
+                handleOnPress(event, fourthAttachment?.url, 3);
               }}>
               <Image
                 source={{
                   uri:
-                    attachment3?.type === VIDEO_TEXT
-                      ? attachment3?.thumbnailUrl
-                      : attachment3?.url,
+                    fourthAttachment?.type === VIDEO_TEXT
+                      ? fourthAttachment?.thumbnailUrl
+                      : fourthAttachment?.url,
                 }}
                 style={styles.doubleImg}
               />
-              {attachment3?.type === VIDEO_TEXT ? (
+              {fourthAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -1023,13 +1024,13 @@ export const ImageConversations = ({
               <Image
                 source={{
                   uri:
-                    attachment0?.type === VIDEO_TEXT
-                      ? attachment0?.thumbnailUrl
-                      : attachment0?.url,
+                    firstAttachment?.type === VIDEO_TEXT
+                      ? firstAttachment?.thumbnailUrl
+                      : firstAttachment?.url,
                 }}
                 style={styles.multipleImg}
               />
-              {attachment0?.type === VIDEO_TEXT ? (
+              {firstAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -1043,12 +1044,12 @@ export const ImageConversations = ({
                 style={styles.multipleImg}
                 source={{
                   uri:
-                    attachment1?.type === VIDEO_TEXT
-                      ? attachment1?.thumbnailUrl
-                      : attachment1?.url,
+                    secondAttachment?.type === VIDEO_TEXT
+                      ? secondAttachment?.thumbnailUrl
+                      : secondAttachment?.url,
                 }}
               />
-              {attachment1?.type === VIDEO_TEXT ? (
+              {secondAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -1063,13 +1064,13 @@ export const ImageConversations = ({
               <Image
                 source={{
                   uri:
-                    attachment2?.type === VIDEO_TEXT
-                      ? attachment2?.thumbnailUrl
-                      : attachment2?.url,
+                    thirdAttachment?.type === VIDEO_TEXT
+                      ? thirdAttachment?.thumbnailUrl
+                      : thirdAttachment?.url,
                 }}
                 style={styles.multipleImg}
               />
-              {attachment2?.type === VIDEO_TEXT ? (
+              {thirdAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
@@ -1083,12 +1084,12 @@ export const ImageConversations = ({
                 style={styles.multipleImg}
                 source={{
                   uri:
-                    attachment3?.type === VIDEO_TEXT
-                      ? attachment3?.thumbnailUrl
-                      : attachment3?.url,
+                    fourthAttachment?.type === VIDEO_TEXT
+                      ? fourthAttachment?.thumbnailUrl
+                      : fourthAttachment?.url,
                 }}
               />
-              {attachment3?.type === VIDEO_TEXT ? (
+              {fourthAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
                     source={require('../../assets/images/video_icon3x.png')}
