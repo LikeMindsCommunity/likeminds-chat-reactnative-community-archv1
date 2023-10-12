@@ -147,7 +147,7 @@ const DMFeed = ({navigation}: Props) => {
           setShimmerIsLoading(false);
           setTimeout(() => {
             getChatroomFromLocalDB();
-          }, 300);
+          }, 500);
         }
       }
     });
@@ -160,7 +160,7 @@ const DMFeed = ({navigation}: Props) => {
     setShimmerIsLoading(false);
     setTimeout(() => {
       getChatroomFromLocalDB();
-    }, 300);
+    }, 500);
   }, [user]);
 
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.

@@ -108,7 +108,7 @@ const GroupFeed = ({navigation}: Props) => {
     setShimmerIsLoading(false);
     setTimeout(() => {
       getChatroomFromLocalDB();
-    }, 300);
+    }, 500);
   }, [user]);
 
   useEffect(() => {
@@ -121,7 +121,7 @@ const GroupFeed = ({navigation}: Props) => {
           setShimmerIsLoading(false);
           setTimeout(() => {
             getChatroomFromLocalDB();
-          }, 300);
+          }, 500);
         }
       }
     });
