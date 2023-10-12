@@ -16,6 +16,7 @@ import {useAppSelector} from '../../../store';
 import Layout from '../../constants/Layout';
 import {ADD_PARTICIPANTS} from '../../constants/Screens';
 import {FlashList} from '@shopify/flash-list';
+import {LoaderComponent} from '../../components/LoaderComponent';
 
 const ViewParticipants = ({navigation, route}: any) => {
   const [participants, setParticipants] = useState({} as any);
@@ -24,6 +25,7 @@ const ViewParticipants = ({navigation, route}: any) => {
   const [isSearch, setIsSearch] = useState(false);
   const [search, setSearch] = useState('');
   const [totalChatroomCount, setTotalChatroomCount] = useState('');
+  const [count, setCount] = useState(1);
 
   const {chatroomID, isSecret} = route.params;
   const user = useAppSelector(state => state.homefeed.user);
@@ -139,6 +141,7 @@ const ViewParticipants = ({navigation, route}: any) => {
 
     setTotalChatroomCount(res?.totalParticipantsCount);
     setParticipants(res?.participants);
+    setCount(0);
 
     if (!!res && res?.participants.length === 10) {
       const apiResponse = await myClient?.getParticipants({
@@ -319,6 +322,7 @@ const ViewParticipants = ({navigation, route}: any) => {
           <Text style={styles.title}>No search results found</Text>
         </View>
       )}
+      {count > 0 && <LoaderComponent />}
     </View>
   );
 };
