@@ -3,7 +3,7 @@ import {
   PATH_REGEX,
   QUERY_REGEX,
 } from '../../constants/Regex';
-import {getRoute} from '../../notifications/routes';
+import {getLinkingRoute} from '../../notifications/routes';
 import * as RootNavigation from '../../../RootNavigation';
 import {isValidURI} from '../../shareUtils';
 import {DeepLinkRequest, DeepLinkResponse} from './models';
@@ -49,7 +49,7 @@ export async function parseDeepLink(
         if (initiateUserResponse?.success) {
           // navigation flow
 
-          let routes = getRoute(internalRoute);
+          let routes = getLinkingRoute(internalRoute);
           const recentRoutes = RootNavigation.getRecentRoutes();
           let currentRoute = recentRoutes?.routes[recentRoutes?.index]?.name;
 
