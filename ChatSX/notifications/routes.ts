@@ -8,10 +8,10 @@ import {
   ROUTE_CHATROOM_DETAIL,
   ROUTE_POLL_CHATROOM,
 } from './constants';
-import { RouteParams } from './models';
+import {RouteParams} from './models';
 
 // to get notification routes
-export function getRoute(route: string) {
+export function getRoute(route: any) {
   let params = {} as RouteParams,
     match;
 

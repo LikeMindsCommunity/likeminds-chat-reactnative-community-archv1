@@ -17,11 +17,13 @@ import FetchKeyInputScreen from './Sample';
 import {useQuery} from '@realm/react';
 import {parseDeepLink} from './ChatSX/components/ParseDeepLink';
 import {DeepLinkRequest} from './ChatSX/components/ParseDeepLink/models';
+import {UserSchemaResponse} from './ChatSX/db/models';
+import {USER_SCHEMA_RO} from './ChatSX/constants/Strings';
 
 function App(): JSX.Element {
-  const users = useQuery('UserSchemaRO');
-  const [userUniqueID, setUserUniqueID] = useState<any>(users[0]?.userUniqueID);
-  const [userName, setUserName] = useState<any>(users[0]?.userName);
+  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
+  const [userUniqueID, setUserUniqueID] = useState(users[0]?.userUniqueID);
+  const [userName, setUserName] = useState(users[0]?.userName);
   const [isTrue, setIsTrue] = useState(true);
 
   useEffect(() => {
@@ -67,7 +69,7 @@ function App(): JSX.Element {
     getInitialURL();
   }, []);
 
-  return true ? (
+  return userUniqueID && userName ? (
     <ReduxProvider store={store}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
