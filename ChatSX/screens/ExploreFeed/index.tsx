@@ -27,7 +27,6 @@ interface Props {
 }
 
 const ExploreFeed = ({navigation}: Props) => {
-  // const [chats, setChats] = useState(dummyData.my_chatrooms);
   const {
     exploreChatrooms = [],
     page,
