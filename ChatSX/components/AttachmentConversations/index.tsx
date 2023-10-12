@@ -679,7 +679,7 @@ export const ImageConversations = ({
     }
   };
 
-  let imageSource = null;
+  let firstImageSource = null;
 
   if (firstAttachment) {
     if (
@@ -688,14 +688,77 @@ export const ImageConversations = ({
       (firstAttachment.type === IMAGE_TEXT && firstAttachment.url === null)
     ) {
       // Use require for video or image
-      imageSource = require('../../assets/images/imagePlaceholder.jpeg');
+      firstImageSource = require('../../assets/images/imagePlaceholder.jpeg');
     } else {
       // Use the uri
-      imageSource = {
+      firstImageSource = {
         uri:
           firstAttachment?.type === VIDEO_TEXT
             ? firstAttachment?.thumbnailUrl
             : firstAttachment?.url,
+      };
+    }
+  }
+
+  let secondImageSource = null;
+
+  if (secondAttachment) {
+    if (
+      (secondAttachment.type === VIDEO_TEXT &&
+        secondAttachment.thumbnailUrl === null) ||
+      (secondAttachment.type === IMAGE_TEXT && secondAttachment.url === null)
+    ) {
+      // Use require for video or image
+      secondImageSource = require('../../assets/images/imagePlaceholder.jpeg');
+    } else {
+      // Use the uri
+      secondImageSource = {
+        uri:
+          secondAttachment?.type === VIDEO_TEXT
+            ? secondAttachment?.thumbnailUrl
+            : secondAttachment?.url,
+      };
+    }
+  }
+
+  let thirdImageSource = null;
+
+  if (thirdAttachment) {
+    if (
+      (thirdAttachment.type === VIDEO_TEXT &&
+        thirdAttachment.thumbnailUrl === null) ||
+      (thirdAttachment.type === IMAGE_TEXT && thirdAttachment.url === null)
+    ) {
+      // Use require for video or image
+      thirdImageSource = require('../../assets/images/imagePlaceholder.jpeg');
+    } else {
+      // Use the uri
+      thirdImageSource = {
+        uri:
+          thirdAttachment?.type === VIDEO_TEXT
+            ? thirdAttachment?.thumbnailUrl
+            : thirdAttachment?.url,
+      };
+    }
+  }
+
+  let fourthImageSource = null;
+
+  if (fourthAttachment) {
+    if (
+      (fourthAttachment.type === VIDEO_TEXT &&
+        fourthAttachment.thumbnailUrl === null) ||
+      (fourthAttachment.type === IMAGE_TEXT && fourthAttachment.url === null)
+    ) {
+      // Use require for video or image
+      fourthImageSource = require('../../assets/images/imagePlaceholder.jpeg');
+    } else {
+      // Use the uri
+      fourthImageSource = {
+        uri:
+          fourthAttachment?.type === VIDEO_TEXT
+            ? fourthAttachment?.thumbnailUrl
+            : fourthAttachment?.url,
       };
     }
   }
@@ -709,7 +772,7 @@ export const ImageConversations = ({
           onPress={event => {
             handleOnPress(event, firstAttachment?.url, 0);
           }}>
-          <Image style={styles.singleImg} source={imageSource} />
+          <Image style={styles.singleImg} source={firstImageSource} />
           {firstAttachment?.type === VIDEO_TEXT ? (
             <View style={{position: 'absolute', bottom: 0, left: 5}}>
               <Image
@@ -728,15 +791,7 @@ export const ImageConversations = ({
             onPress={event => {
               handleOnPress(event, firstAttachment?.url, 0);
             }}>
-            <Image
-              source={{
-                uri:
-                  firstAttachment?.type === VIDEO_TEXT
-                    ? firstAttachment?.thumbnailUrl
-                    : firstAttachment?.url,
-              }}
-              style={styles.doubleImg}
-            />
+            <Image source={firstImageSource} style={styles.doubleImg} />
             {firstAttachment?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
@@ -753,15 +808,7 @@ export const ImageConversations = ({
             onPress={event => {
               handleOnPress(event, secondAttachment?.url, 1);
             }}>
-            <Image
-              source={{
-                uri:
-                  secondAttachment?.type === VIDEO_TEXT
-                    ? secondAttachment?.thumbnailUrl
-                    : secondAttachment?.url,
-              }}
-              style={styles.doubleImg}
-            />
+            <Image source={secondImageSource} style={styles.doubleImg} />
             {secondAttachment?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
@@ -822,15 +869,7 @@ export const ImageConversations = ({
           }}
           style={styles.doubleImgParent}>
           <View style={styles.imgParent}>
-            <Image
-              source={{
-                uri:
-                  firstAttachment?.type === VIDEO_TEXT
-                    ? firstAttachment?.thumbnailUrl
-                    : firstAttachment?.url,
-              }}
-              style={styles.multipleImg}
-            />
+            <Image source={firstImageSource} style={styles.multipleImg} />
             {firstAttachment?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
@@ -841,15 +880,7 @@ export const ImageConversations = ({
             ) : null}
           </View>
           <View style={styles.imgParent}>
-            <Image
-              style={styles.multipleImg}
-              source={{
-                uri:
-                  secondAttachment?.type === VIDEO_TEXT
-                    ? secondAttachment?.thumbnailUrl
-                    : secondAttachment?.url,
-              }}
-            />
+            <Image style={styles.multipleImg} source={secondImageSource} />
             {firstAttachment?.type === VIDEO_TEXT ? (
               <View style={{position: 'absolute', bottom: 0, left: 5}}>
                 <Image
@@ -873,15 +904,7 @@ export const ImageConversations = ({
               onPress={event => {
                 handleOnPress(event, firstAttachment?.url, 0);
               }}>
-              <Image
-                source={{
-                  uri:
-                    firstAttachment?.type === VIDEO_TEXT
-                      ? firstAttachment?.thumbnailUrl
-                      : firstAttachment?.url,
-                }}
-                style={styles.doubleImg}
-              />
+              <Image source={firstImageSource} style={styles.doubleImg} />
               {firstAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
@@ -898,15 +921,7 @@ export const ImageConversations = ({
               onPress={event => {
                 handleOnPress(event, secondAttachment?.url, 1);
               }}>
-              <Image
-                source={{
-                  uri:
-                    secondAttachment?.type === VIDEO_TEXT
-                      ? secondAttachment?.thumbnailUrl
-                      : secondAttachment?.url,
-                }}
-                style={styles.doubleImg}
-              />
+              <Image source={secondImageSource} style={styles.doubleImg} />
               {secondAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
@@ -925,15 +940,7 @@ export const ImageConversations = ({
               onPress={event => {
                 handleOnPress(event, thirdAttachment?.url, 2);
               }}>
-              <Image
-                source={{
-                  uri:
-                    thirdAttachment?.type === VIDEO_TEXT
-                      ? thirdAttachment?.thumbnailUrl
-                      : thirdAttachment?.url,
-                }}
-                style={styles.doubleImg}
-              />
+              <Image source={thirdImageSource} style={styles.doubleImg} />
               {thirdAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
@@ -950,15 +957,7 @@ export const ImageConversations = ({
               onPress={event => {
                 handleOnPress(event, fourthAttachment?.url, 3);
               }}>
-              <Image
-                source={{
-                  uri:
-                    fourthAttachment?.type === VIDEO_TEXT
-                      ? fourthAttachment?.thumbnailUrl
-                      : fourthAttachment?.url,
-                }}
-                style={styles.doubleImg}
-              />
+              <Image source={fourthImageSource} style={styles.doubleImg} />
               {fourthAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
@@ -1021,15 +1020,7 @@ export const ImageConversations = ({
           }}>
           <View style={styles.doubleImgParent}>
             <View style={styles.imgParent}>
-              <Image
-                source={{
-                  uri:
-                    firstAttachment?.type === VIDEO_TEXT
-                      ? firstAttachment?.thumbnailUrl
-                      : firstAttachment?.url,
-                }}
-                style={styles.multipleImg}
-              />
+              <Image source={firstImageSource} style={styles.multipleImg} />
               {firstAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
@@ -1040,15 +1031,7 @@ export const ImageConversations = ({
               ) : null}
             </View>
             <View style={styles.imgParent}>
-              <Image
-                style={styles.multipleImg}
-                source={{
-                  uri:
-                    secondAttachment?.type === VIDEO_TEXT
-                      ? secondAttachment?.thumbnailUrl
-                      : secondAttachment?.url,
-                }}
-              />
+              <Image style={styles.multipleImg} source={secondImageSource} />
               {secondAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
@@ -1061,15 +1044,7 @@ export const ImageConversations = ({
           </View>
           <View style={styles.doubleImgParent}>
             <View style={styles.imgParent}>
-              <Image
-                source={{
-                  uri:
-                    thirdAttachment?.type === VIDEO_TEXT
-                      ? thirdAttachment?.thumbnailUrl
-                      : thirdAttachment?.url,
-                }}
-                style={styles.multipleImg}
-              />
+              <Image source={thirdImageSource} style={styles.multipleImg} />
               {thirdAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
@@ -1080,15 +1055,7 @@ export const ImageConversations = ({
               ) : null}
             </View>
             <View style={styles.imgParent}>
-              <Image
-                style={styles.multipleImg}
-                source={{
-                  uri:
-                    fourthAttachment?.type === VIDEO_TEXT
-                      ? fourthAttachment?.thumbnailUrl
-                      : fourthAttachment?.url,
-                }}
-              />
+              <Image style={styles.multipleImg} source={fourthImageSource} />
               {fourthAttachment?.type === VIDEO_TEXT ? (
                 <View style={{position: 'absolute', bottom: 0, left: 5}}>
                   <Image
