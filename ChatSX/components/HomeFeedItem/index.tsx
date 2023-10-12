@@ -316,10 +316,12 @@ const HomeFeedItem: React.FC<Props> = ({
       onPress={() => {
         // TODO - Currently from backend we don't get the secret chatroom data without accepting or rejecting the invitation, so diabling the click for now so user can't go inside an invited secret chatroom without accepting the invitation
         if (inviteReceiver) return;
-        navigation.navigate(CHATROOM, {
-          chatroomID: chatroomID,
-          isInvited: !!inviteReceiver ? true : false,
-        });
+        setTimeout(() => {
+          navigation.navigate(CHATROOM, {
+            chatroomID: chatroomID,
+            isInvited: !!inviteReceiver ? true : false,
+          });
+        }, 300);
       }}
       style={({pressed}) => [
         {opacity: pressed ? 0.5 : 1.0},

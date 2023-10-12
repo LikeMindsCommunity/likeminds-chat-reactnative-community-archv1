@@ -154,16 +154,14 @@ const DMFeed = ({navigation}: Props) => {
   }, [user, isFocused]);
 
   useEffect(() => {
-    if (isFocused) {
-      getAppConfig();
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
-      setShimmerIsLoading(false);
-      setTimeout(() => {
-        getChatroomFromLocalDB();
-      }, 300);
-    }
-  }, [isFocused, user]);
+    getAppConfig();
+    if (!user?.sdkClientInfo?.community) return;
+    paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+    setShimmerIsLoading(false);
+    setTimeout(() => {
+      getChatroomFromLocalDB();
+    }, 300);
+  }, [user]);
 
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {

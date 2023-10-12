@@ -102,16 +102,14 @@ const GroupFeed = ({navigation}: Props) => {
   };
 
   useEffect(() => {
-    if (isFocused) {
-      getAppConfig();
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
-      setShimmerIsLoading(false);
-      setTimeout(() => {
-        getChatroomFromLocalDB();
-      }, 300);
-    }
-  }, [isFocused, user]);
+    getAppConfig();
+    if (!user?.sdkClientInfo?.community) return;
+    paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+    setShimmerIsLoading(false);
+    setTimeout(() => {
+      getChatroomFromLocalDB();
+    }, 300);
+  }, [user]);
 
   useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);

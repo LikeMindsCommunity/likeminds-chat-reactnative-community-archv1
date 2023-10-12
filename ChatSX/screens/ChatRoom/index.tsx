@@ -215,6 +215,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {user, community, memberRights} = useAppSelector(
     state => state.homefeed,
   );
+
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const INITIAL_SYNC_PAGE = 1;
@@ -669,7 +670,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         DB_RESPONSE,
         DB_RESPONSE?.chatroomMeta,
         DB_RESPONSE?.conversationsData,
-        community?.id,
+        user?.sdkClientInfo?.community?.toString(),
       );
     }
 
@@ -801,13 +802,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }
         const chatroomDetails = await fetchChatroomDetails();
         await fetchData(chatroomDetails, false);
+        await myClient?.updateChatroomFollowStatus(chatroomID, true);
       } else {
         const chatroomDetails = await fetchChatroomDetails();
         await fetchData(chatroomDetails, false);
       }
     };
     invokeFunction();
-  }, [navigation]);
+  }, [navigation, user]);
 
   // this useEffect set unseenCount to zero when closing the chatroom
   useEffect(() => {
