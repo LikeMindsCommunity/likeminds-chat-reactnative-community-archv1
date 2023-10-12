@@ -39,7 +39,7 @@ const initialState = {
   messageSent: '' as any,
   isLongPress: false,
   selectedMessages: [],
-  stateArr: [1, 2, 3, 7, 8, 9, 20, 19, 17, 15, 11], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
+  stateArr: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
   position: {x: 0, y: 0} as any,
   selectedFilesToUpload: [],
   selectedFilesToUploadThumbnails: [],
