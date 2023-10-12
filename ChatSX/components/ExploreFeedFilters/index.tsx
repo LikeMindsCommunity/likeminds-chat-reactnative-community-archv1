@@ -18,6 +18,7 @@ interface Props {
   setIsPinned: (val: any) => void;
   setFilterState: (val: any) => void;
   filterState: any;
+  pinnedChatroomsCount: number;
 }
 
 const ExploreFeedFilters = ({
@@ -25,6 +26,7 @@ const ExploreFeedFilters = ({
   filterState,
   setFilterState,
   setIsPinned,
+  pinnedChatroomsCount,
 }: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -79,7 +81,7 @@ const ExploreFeedFilters = ({
               />
             </View>
           </TouchableOpacity>
-        ) : (
+        ) : pinnedChatroomsCount > 3 ? (
           <TouchableOpacity
             onPress={() => {
               setIsPinned(true);
@@ -89,7 +91,7 @@ const ExploreFeedFilters = ({
               style={styles.pinIcon}
             />
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
       <Modal
         // animationType="slide"

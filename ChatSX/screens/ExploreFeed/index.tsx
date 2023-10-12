@@ -28,9 +28,11 @@ interface Props {
 
 const ExploreFeed = ({navigation}: Props) => {
   // const [chats, setChats] = useState(dummyData.my_chatrooms);
-  const {exploreChatrooms = [], page}: any = useAppSelector(
-    state => state.explorefeed,
-  );
+  const {
+    exploreChatrooms = [],
+    page,
+    pinnedChatroomsCount,
+  }: any = useAppSelector(state => state.explorefeed);
   const {community}: any = useAppSelector(state => state.homefeed);
   const [chats, setChats] = useState(exploreChatrooms);
   const [filterState, setFilterState] = useState(0);
@@ -150,6 +152,7 @@ const ExploreFeed = ({navigation}: Props) => {
               }
             }}
             isPinned={isPinned}
+            pinnedChatroomsCount={pinnedChatroomsCount}
           />
         )}
         renderItem={({item}: any) => {
