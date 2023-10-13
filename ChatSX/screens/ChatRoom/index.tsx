@@ -4,7 +4,7 @@ import {
   useIsFocused,
 } from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {SyncChatroomRequest} from 'reactnative-chat-data';
+import {SyncChatroomRequest} from '@likeminds.community/chat-rn-beta';
 import {
   View,
   Text,
@@ -124,7 +124,7 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import {SyncConversationRequest} from 'reactnative-chat-data';
+import {SyncConversationRequest} from '@likeminds.community/chat-rn-beta';
 import {useQuery} from '@realm/react';
 import {Share} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -2542,8 +2542,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           <View>
             {chatRequestState === 0 &&
             (!!chatroomDBDetails?.chatRequestedBy
-              ? chatroomDBDetails?.chatRequestedBy?.id !== user?.id?.toStr
-              ing()
+              ? chatroomDBDetails?.chatRequestedBy?.id !== user?.id?.toString()
               : null) ? (
               <View style={styles.dmRequestView}>
                 <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>

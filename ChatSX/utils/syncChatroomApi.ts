@@ -1,4 +1,4 @@
-import {SyncChatroomRequest} from 'reactnative-chat-data';
+import {SyncChatroomRequest} from '@likeminds.community/chat-rn-beta';
 import {myClient} from '../../';
 
 // Sync Chatrrom API

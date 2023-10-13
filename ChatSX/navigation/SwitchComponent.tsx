@@ -105,10 +105,13 @@ const SwitchComponent = () => {
               });
               const popAction = StackActions.pop(1);
               navigation.dispatch(popAction);
-              navigation.navigate(
-                routes?.route as never,
-                routes?.params as never,
-              );
+              setTimeout(() => {
+                navigation.navigate(
+                  routes?.route as never,
+                  routes?.params as never,
+                );
+              }, 1000);
+              
             }
           } else {
             navigation.navigate(
