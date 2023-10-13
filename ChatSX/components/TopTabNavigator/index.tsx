@@ -54,7 +54,7 @@ export const PeopleWhoReactedDefault = ({
                   ) : null}
                 </TouchableOpacity>
                 <View>
-                  <Text>{val?.reaction}</Text>
+                  <Text style={styles.messageText}>{val?.reaction}</Text>
                 </View>
               </View>
             </View>
@@ -99,7 +99,7 @@ export const PeopleWhoReacted = ({
                   ) : null}
                 </TouchableOpacity>
                 <View>
-                  <Text>{title}</Text>
+                  <Text style={styles.messageText}>{title}</Text>
                 </View>
               </View>
             </View>

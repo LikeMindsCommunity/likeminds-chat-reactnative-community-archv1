@@ -380,7 +380,6 @@ const HomeFeedItem: React.FC<Props> = ({
                 style={[
                   styles.alignCenter,
                   {
-                    width: Layout.window.width - 130,
                     overflow: 'hidden',
                   },
                 ]}>
