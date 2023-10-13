@@ -19,7 +19,9 @@ notifee.onBackgroundEvent(async ({type, detail}) => {
 
   if (type === EventType.PRESS) {
     if (!!RootNavigation) {
-      RootNavigation.navigate(routes.route, routes.params); // e.g. navigate(CHATROOM, {chatroomID: 69285});
+      setTimeout(() => {
+        RootNavigation.navigate(routes.route, routes.params); // e.g. navigate(CHATROOM, {chatroomID: 69285});
+      }, 1000);
     }
   }
 });

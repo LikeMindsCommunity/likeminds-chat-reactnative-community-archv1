@@ -26,10 +26,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>rnsampleapp</string>
+			<string>mychat</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>rnsampleapp</string>
+				<string>mychat</string>
 			</array>
 		</dict>
 		<dict>

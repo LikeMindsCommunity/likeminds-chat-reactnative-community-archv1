@@ -38,8 +38,11 @@ function App(): JSX.Element {
 
       if (initialNotification) {
         let routes = getRoute(initialNotification?.notification?.data?.route);
-        RootNavigation.navigate(routes.route, routes.params);
+        setTimeout(() => {
+          RootNavigation.navigate(routes.route, routes.params);
+        }, 1000);
       }
+      
     }
     bootstrap();
   }, []);

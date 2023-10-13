@@ -99,7 +99,6 @@ import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
 
-
 const InputBox = ({
   replyChatID,
   chatroomID,
@@ -1431,25 +1430,25 @@ const InputBox = ({
                   </TouchableOpacity>
                   <Text style={styles.iconText}>{DOCUMENTS_TEXT}</Text>
                 </View>
-                <View style={styles.iconContainer}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setModalVisible(false);
-                      navigation.navigate(CREATE_POLL_SCREEN, {
-                        chatroomID: chatroomID,
-                        conversationsLength: conversations.length * 2,
-                      });
-
-                      // setPollModalVisible(true);
-                    }}
-                    style={styles.pollStyle}>
-                    <Image
-                      source={require('../../assets/images/poll_icon3x.png')}
-                      style={styles.emoji}
-                    />
-                  </TouchableOpacity>
-                  <Text style={styles.iconText}>{POLL_TEXT}</Text>
-                </View>
+                {chatroomType !== 10 ? (
+                  <View style={styles.iconContainer}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setModalVisible(false);
+                        navigation.navigate(CREATE_POLL_SCREEN, {
+                          chatroomID: chatroomID,
+                          conversationsLength: conversations.length * 2,
+                        });
+                      }}
+                      style={styles.pollStyle}>
+                      <Image
+                        source={require('../../assets/images/poll_icon3x.png')}
+                        style={styles.emoji}
+                      />
+                    </TouchableOpacity>
+                    <Text style={styles.iconText}>{POLL_TEXT}</Text>
+                  </View>
+                ) : null}
               </View>
             </Pressable>
           </View>
