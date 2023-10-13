@@ -20,22 +20,25 @@ import {
 import {SET_EXPLORE_FEED_PAGE} from '../../store/types/types';
 import styles from './styles';
 import {FlashList} from '@shopify/flash-list';
+import {LoaderComponent} from '../../components/LoaderComponent';
 
 interface Props {
   navigation: any;
 }
 
 const ExploreFeed = ({navigation}: Props) => {
-  // const [chats, setChats] = useState(dummyData.my_chatrooms);
-  const {exploreChatrooms = [], page}: any = useAppSelector(
-    state => state.explorefeed,
-  );
+  const {
+    exploreChatrooms = [],
+    page,
+    pinnedChatroomsCount,
+  }: any = useAppSelector(state => state.explorefeed);
   const {community}: any = useAppSelector(state => state.homefeed);
   const [chats, setChats] = useState(exploreChatrooms);
   const [filterState, setFilterState] = useState(0);
   const [isPinned, setIsPinned] = useState(false);
   // const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const {count} = useAppSelector(state => state.loader);
   const dispatch = useAppDispatch();
 
   useLayoutEffect(() => {
@@ -70,7 +73,7 @@ const ExploreFeed = ({navigation}: Props) => {
       orderType: filterState,
       page: 1,
     };
-    let response = await dispatch(getExploreFeedData(payload) as any);
+    let response = await dispatch(getExploreFeedData(payload, true) as any);
     return response;
   }
 
@@ -148,6 +151,7 @@ const ExploreFeed = ({navigation}: Props) => {
               }
             }}
             isPinned={isPinned}
+            pinnedChatroomsCount={pinnedChatroomsCount}
           />
         )}
         renderItem={({item}: any) => {
@@ -182,6 +186,7 @@ const ExploreFeed = ({navigation}: Props) => {
         ListFooterComponent={renderFooter}
         keyExtractor={(item: any) => (item?.id ? item?.id.toString() : null)}
       />
+      {count > 0 && <LoaderComponent />}
     </View>
   );
 };

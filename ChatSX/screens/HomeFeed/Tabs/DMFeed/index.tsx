@@ -127,6 +127,16 @@ const DMFeed = ({navigation}: Props) => {
     }
   };
 
+  const getAppConfig = async () => {
+    const appConfig = await myClient?.getAppConfig();
+    if (appConfig?.isDmFeedChatroomsSynced === undefined) {
+      myClient?.initiateAppConfig();
+      myClient?.setAppConfig(true);
+    } else {
+      setShimmerIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
@@ -134,24 +144,24 @@ const DMFeed = ({navigation}: Props) => {
         if (!user?.sdkClientInfo?.community) return;
         if (isFocused) {
           paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+          setShimmerIsLoading(false);
           setTimeout(() => {
             getChatroomFromLocalDB();
-          }, 1000);
+          }, 500);
         }
       }
     });
   }, [user, isFocused]);
 
   useEffect(() => {
-    if (isFocused) {
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
-      setTimeout(() => {
-        getChatroomFromLocalDB();
-      }, 1000);
-      setShimmerIsLoading(false);
-    }
-  }, [isFocused, user]);
+    getAppConfig();
+    if (!user?.sdkClientInfo?.community) return;
+    paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+    setShimmerIsLoading(false);
+    setTimeout(() => {
+      getChatroomFromLocalDB();
+    }, 500);
+  }, [user]);
 
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {

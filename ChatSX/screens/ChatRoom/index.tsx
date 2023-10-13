@@ -215,6 +215,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {user, community, memberRights} = useAppSelector(
     state => state.homefeed,
   );
+
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const INITIAL_SYNC_PAGE = 1;
@@ -669,7 +670,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         DB_RESPONSE,
         DB_RESPONSE?.chatroomMeta,
         DB_RESPONSE?.conversationsData,
-        community?.id,
+        user?.sdkClientInfo?.community?.toString(),
       );
     }
 
@@ -698,8 +699,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   // this function fetchConversations when we first move inside Chatroom
-  async function fetchData(showLoaderVal?: boolean) {
-    let chatroomDetails = await myClient?.getChatroom(chatroomID?.toString());
+  async function fetchData(chatroomDetails: any, showLoaderVal?: boolean) {
     let maxTimeStamp = Math.floor(Date.now() * 1000);
 
     if (chatroomDetails === undefined) {
@@ -707,14 +707,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       await paginatedConversationSyncAPI(INITIAL_SYNC_PAGE, 0, maxTimeStamp);
       await myClient?.updateChatroomViewed(chatroomID);
       setShimmerIsLoading(false);
+      fetchChatroomDetails();
     } else {
-      const chatroom = JSON.parse(JSON.stringify(chatroomDetails));
       let conversationsFromRealm;
 
       // Warm start
-      if (chatroom?.isChatroomVisited) {
-        setShimmerIsLoading(false);
-
+      if (chatroomDetails?.isChatroomVisited) {
         conversationsFromRealm = await myClient?.getConversations(
           chatroomID?.toString(),
           PAGE_SIZE,
@@ -724,7 +722,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           type: GET_CONVERSATIONS_SUCCESS,
           body: {conversations: conversationsFromRealm},
         });
-        let minTimeStamp = chatroom?.lastSeenConversation?.lastUpdatedAt ?? 0;
+        let minTimeStamp =
+          chatroomDetails?.lastSeenConversation?.lastUpdatedAt ?? 0;
         await paginatedConversationSyncAPI(
           INITIAL_SYNC_PAGE,
           minTimeStamp,
@@ -743,7 +742,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function fetchChatroomDetails() {
     let payload = {chatroomId: chatroomID};
     let DB_DATA = await myClient?.getChatroom(chatroomID?.toString());
-
+    if (DB_DATA?.isChatroomVisited) {
+      setShimmerIsLoading(false);
+    }
     if (DB_DATA) {
       dispatch({
         type: GET_CHATROOM_DB_SUCCESS,
@@ -755,6 +756,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       type: GET_CHATROOM_ACTIONS_SUCCESS,
       body: response?.data,
     });
+    return DB_DATA;
   }
 
   // this function fetch initiate API
@@ -798,15 +800,16 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           // App has gone to the background
           await fetchInitAPI();
         }
-        await fetchData(false);
-        await fetchChatroomDetails();
+        const chatroomDetails = await fetchChatroomDetails();
+        await fetchData(chatroomDetails, false);
+        await myClient?.updateChatroomFollowStatus(chatroomID, true);
       } else {
-        await fetchData(false);
-        await fetchChatroomDetails();
+        const chatroomDetails = await fetchChatroomDetails();
+        await fetchData(chatroomDetails, false);
       }
     };
     invokeFunction();
-  }, [navigation]);
+  }, [navigation, user]);
 
   // this useEffect set unseenCount to zero when closing the chatroom
   useEffect(() => {
@@ -983,6 +986,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             maxTimeStamp,
             conversationID,
           );
+          await myClient?.updateChatRequestState(
+            chatroomID?.toString(),
+            ChatroomChatRequestState.ACCEPTED,
+          );
+          fetchChatroomDetails();
         }
       }
     });
@@ -1107,7 +1115,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           );
           setTimeout(() => {
             navigation.goBack();
-          }, 500);
+          }, 300);
         }
       })
       .catch(() => {
@@ -1162,7 +1170,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           );
           setTimeout(() => {
             navigation.goBack();
-          }, 500);
+          }, 300);
         }
       })
       .catch(() => {
