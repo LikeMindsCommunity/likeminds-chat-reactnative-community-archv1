@@ -500,7 +500,7 @@ const Messages = ({
                     : {backgroundColor: 'white'},
                 ]}
                 key={val + index}>
-                <Text>{val?.reaction}</Text>
+                <Text style={styles.messageText}>{val?.reaction}</Text>
                 <Text style={styles.messageText}>{val?.memberArr?.length}</Text>
               </TouchableOpacity>
             ))}
@@ -524,7 +524,7 @@ const Messages = ({
                   ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                   : {backgroundColor: 'white'},
               ]}>
-              <Text>{reactionArr[0]?.reaction}</Text>
+              <Text style={styles.messageText}>{reactionArr[0]?.reaction}</Text>
               <Text style={styles.messageText}>
                 {reactionArr[0]?.memberArr?.length}
               </Text>
@@ -541,7 +541,7 @@ const Messages = ({
                   ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                   : {backgroundColor: 'white'},
               ]}>
-              <Text>{reactionArr[1]?.reaction}</Text>
+              <Text style={styles.messageText}>{reactionArr[1]?.reaction}</Text>
               <Text style={styles.messageText}>
                 {reactionArr[1]?.memberArr?.length}
               </Text>

@@ -193,6 +193,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [shouldLoadMoreChatStart, setShouldLoadMoreChatStart] = useState(true);
   const [lastScrollOffset, setLastScrollOffset] = useState(true);
   const [response, setResponse] = useState([]);
+  const [isRealmDataPresent, setIsRealmDataPresent] = useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
@@ -754,6 +755,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         type: GET_CHATROOM_DB_SUCCESS,
         body: {chatroomDBDetails: DB_DATA},
       });
+      setIsRealmDataPresent(true);
     }
     let response = await myClient?.getChatroomActions(payload);
     dispatch({
@@ -770,7 +772,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const userName = users[0]?.userName;
 
     let payload = {
-      userUniqueId: UUID,
+      uuid: UUID,
       userName: userName,
       isGuest: false,
     };
@@ -807,7 +809,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }
         const chatroomDetails = await fetchChatroomDetails();
         await fetchData(chatroomDetails, false);
-        await myClient?.updateChatroomFollowStatus(chatroomID, true);
       } else {
         const chatroomDetails = await fetchChatroomDetails();
         await fetchData(chatroomDetails, false);
@@ -2413,7 +2414,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           marginTop: 'auto',
         }}>
         {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
-        {chatroomType !== ChatroomType.DMCHATROOM ? (
+        {chatroomType !== ChatroomType.DMCHATROOM && memberRights.length > 0 ? (
           <View>
             {!(Object.keys(chatroomDBDetails).length === 0) &&
             previousRoute?.name === EXPLORE_FEED
@@ -2473,7 +2474,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </Text>
                 </View>
               ) : !(Object.keys(chatroomDBDetails).length === 0) &&
-                previousRoute?.name === HOMEFEED ? (
+                previousRoute?.name === HOMEFEED &&
+                isRealmDataPresent ? (
                 <View
                   style={{
                     padding: 20,
@@ -2535,11 +2537,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               </View>
             )}
           </View>
-        ) : chatroomType === ChatroomType.DMCHATROOM ? (
+        ) : chatroomType === ChatroomType.DMCHATROOM &&
+          memberRights.length > 0 ? (
           <View>
             {chatRequestState === 0 &&
             (!!chatroomDBDetails?.chatRequestedBy
-              ? chatroomDBDetails?.chatRequestedBy?.id !== user?.id?.toString()
+              ? chatroomDBDetails?.chatRequestedBy?.id !== user?.id?.toStr
+              ing()
               : null) ? (
               <View style={styles.dmRequestView}>
                 <Text style={styles.inviteText}>{DM_REQUEST_SENT_MESSAGE}</Text>

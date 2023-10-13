@@ -44,4 +44,9 @@ export const styles = StyleSheet.create({
     gap: 5,
     flexGrow: 1,
   },
+  messageText: {
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.SECONDARY,
+  },
 });
