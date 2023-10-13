@@ -91,16 +91,25 @@ const GroupFeed = ({navigation}: Props) => {
     }
   };
 
-  useEffect(() => {
-    if (isFocused) {
-      if (!user?.sdkClientInfo?.community) return;
-      paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
-      setTimeout(() => {
-        getChatroomFromLocalDB();
-      }, 1000);
+  const getAppConfig = async () => {
+    const appConfig = await myClient?.getAppConfig();
+    if (appConfig?.isGroupFeedChatroomsSynced === undefined) {
+      myClient?.initiateAppConfig();
+      myClient?.setAppConfig(false);
+    } else {
       setShimmerIsLoading(false);
     }
-  }, [isFocused, user]);
+  };
+
+  useEffect(() => {
+    getAppConfig();
+    if (!user?.sdkClientInfo?.community) return;
+    paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+    setShimmerIsLoading(false);
+    setTimeout(() => {
+      getChatroomFromLocalDB();
+    }, 500);
+  }, [user]);
 
   useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);
@@ -109,9 +118,10 @@ const GroupFeed = ({navigation}: Props) => {
         if (!user?.sdkClientInfo?.community) return;
         if (isFocused) {
           paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+          setShimmerIsLoading(false);
           setTimeout(() => {
             getChatroomFromLocalDB();
-          }, 1000);
+          }, 500);
         }
       }
     });

@@ -7,6 +7,7 @@ import {
 const initialState = {
   exploreChatrooms: [],
   page: 1,
+  pinnedChatroomsCount: 0,
 };
 
 export function explorefeedReducer(state = initialState, action: any) {
@@ -19,8 +20,12 @@ export function explorefeedReducer(state = initialState, action: any) {
       };
     }
     case GET_EXPLORE_FEED_CHAT_SUCCESS: {
-      const {chatrooms = []} = action.body;
-      return {...state, exploreChatrooms: chatrooms};
+      const {chatrooms = [], pinnedChatroomsCount} = action.body;
+      return {
+        ...state,
+        exploreChatrooms: chatrooms,
+        pinnedChatroomsCount: pinnedChatroomsCount,
+      };
     }
     case UPDATE_EXPLORE_FEED_CHAT_SUCCESS: {
       const {chatrooms = []} = action.body;

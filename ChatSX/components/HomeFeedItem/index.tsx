@@ -33,6 +33,7 @@ import Layout from '../../constants/Layout';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
 import {ChatroomType} from '../../enums/chatroomType';
+import {DocumentType} from '../../enums/DocumentType';
 
 interface Props {
   avatar: string;
@@ -140,12 +141,13 @@ const HomeFeedItem: React.FC<Props> = ({
     let imageCount = 0;
     let videosCount = 0;
     let pdfCount = 0;
+
     for (let i = 0; i < attachments.length; i++) {
-      if (attachments[i].type == 'image') {
+      if (attachments[i].type == DocumentType.IMAGE) {
         imageCount++;
-      } else if (attachments[i].type == 'video') {
+      } else if (attachments[i].type == DocumentType.VIDEO) {
         videosCount++;
-      } else {
+      } else if (attachments[i].type == DocumentType.PDF) {
         pdfCount++;
       }
     }
@@ -301,7 +303,11 @@ const HomeFeedItem: React.FC<Props> = ({
         </View>
       );
     } else {
-      return;
+      return (
+        <Text style={styles.deletedMessage}>
+          This message is not supported yet
+        </Text>
+      );
     }
   };
 
@@ -310,10 +316,12 @@ const HomeFeedItem: React.FC<Props> = ({
       onPress={() => {
         // TODO - Currently from backend we don't get the secret chatroom data without accepting or rejecting the invitation, so diabling the click for now so user can't go inside an invited secret chatroom without accepting the invitation
         if (inviteReceiver) return;
-        navigation.navigate(CHATROOM, {
-          chatroomID: chatroomID,
-          isInvited: !!inviteReceiver ? true : false,
-        });
+        setTimeout(() => {
+          navigation.navigate(CHATROOM, {
+            chatroomID: chatroomID,
+            isInvited: !!inviteReceiver ? true : false,
+          });
+        }, 300);
       }}
       style={({pressed}) => [
         {opacity: pressed ? 0.5 : 1.0},
