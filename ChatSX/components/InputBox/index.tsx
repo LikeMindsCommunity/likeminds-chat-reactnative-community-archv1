@@ -85,7 +85,10 @@ import {
   getVideoThumbnail,
   replaceLastMention,
 } from '../../commonFuctions';
-import {requestCameraPermission, requestStoragePermission} from '../../utils/permissions';
+import {
+  requestCameraPermission,
+  requestStoragePermission,
+} from '../../utils/permissions';
 import {FlashList} from '@shopify/flash-list';
 import {TaggingView} from '../TaggingView';
 import {
