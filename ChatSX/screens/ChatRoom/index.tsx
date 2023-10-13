@@ -113,6 +113,7 @@ import {
   REQUEST_DM_LIMIT,
   WARNING_MSG_PRIVATE_CHATROOM,
   WARNING_MSG_PUBLIC_CHATROOM,
+  USER_SCHEMA_RO,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -132,6 +133,7 @@ import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {onShare} from '../../shareUtils';
 import {ChatroomActions} from '../../enums';
+import {UserSchemaResponse} from '../../db/models';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -192,7 +194,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [response, setResponse] = useState([]);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
-  const users = useQuery('UserSchemaRO');
+  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
 
   const {
     chatroomID,

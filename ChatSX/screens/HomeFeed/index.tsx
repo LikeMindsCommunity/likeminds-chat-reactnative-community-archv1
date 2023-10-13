@@ -23,12 +23,13 @@ import {fetchFCMToken, requestUserPermission} from '../../notifications';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
-import {FAILED} from '../../constants/Strings';
+import {FAILED, USER_SCHEMA_RO} from '../../constants/Strings';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {useIsFocused} from '@react-navigation/native';
 import {useQuery} from '@realm/react';
 import {parseDeepLink} from '../../components/ParseDeepLink';
 import {DeepLinkRequest} from '../../components/ParseDeepLink/models';
+import {UserSchemaResponse} from '../../db/models';
 
 interface Props {
   navigation: any;
@@ -55,7 +56,7 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
-  const users = useQuery('UserSchemaRO');
+  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
 
   const INITIAL_SYNC_PAGE = 1;
 

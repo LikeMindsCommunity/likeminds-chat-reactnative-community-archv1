@@ -14,6 +14,8 @@ import Realm from 'realm';
 import {useQuery, useRealm} from '@realm/react';
 import {UserSchemaRO} from '../ChatSX/db/schemas/UserSchema';
 import SwitchComponent from '../ChatSX/navigation/SwitchComponent';
+import { UserSchemaResponse } from '../ChatSX/db/models';
+import { USER_SCHEMA_RO } from '../ChatSX/constants/Strings';
 
 interface ChildProps {
   isTrue: boolean;
@@ -26,10 +28,10 @@ const FetchKeyInputScreen: React.FC<ChildProps> = ({isTrue, setIsTrue}) => {
   const [isButtonClicked, setIsButtonClicked] = useState(false);
 
   const realm = useRealm();
-  const data = useQuery('UserSchemaRO');
+  const data = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
   const handleAddNotes = (userUniqueID: string, userName: string) => {
     realm.write(() => {
-      realm.create('UserSchemaRO', {
+      realm.create(USER_SCHEMA_RO, {
         userUniqueID: userUniqueID,
         userName: userName,
       });
