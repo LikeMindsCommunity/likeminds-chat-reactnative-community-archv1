@@ -99,6 +99,7 @@ import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
 
+
 const InputBox = ({
   replyChatID,
   chatroomID,

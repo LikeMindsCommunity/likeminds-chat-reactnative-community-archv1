@@ -1,5 +1,7 @@
-import {ChatroomType} from './ChatroomType';
-import {ChatroomChatRequestState} from './ChatroomChatRequestState';
-import {DocumentType} from './DocumentType';
 
-export {ChatroomType, DocumentType, ChatroomChatRequestState};
+import {ChatroomActions} from './ChatroomActions';
+import {ChatroomType} from './ChatroomType';
+import {DocumentType} from './DocumentType';
+import {ChatroomChatRequestState} from './ChatroomChatRequestState';
+
+export {ChatroomActions, ChatroomType, DocumentType, ChatroomChatRequestState};

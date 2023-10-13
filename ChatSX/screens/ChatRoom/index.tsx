@@ -113,6 +113,7 @@ import {
   REQUEST_DM_LIMIT,
   WARNING_MSG_PRIVATE_CHATROOM,
   WARNING_MSG_PUBLIC_CHATROOM,
+  USER_SCHEMA_RO,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -125,11 +126,15 @@ import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
 import {SyncConversationRequest} from 'reactnative-chat-data';
 import {useQuery} from '@realm/react';
+import {Share} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
+import {onShare} from '../../shareUtils';
+import {ChatroomActions} from '../../enums';
+import {UserSchemaResponse} from '../../db/models';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -190,7 +195,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [response, setResponse] = useState([]);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
-  const users = useQuery('UserSchemaRO');
+  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
 
   const {
     chatroomID,
@@ -281,8 +286,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   let isSecret = chatroomDBDetails?.isSecret;
 
-  let notIncludedActionsID = [3];
-
+  let notIncludedActionsID = [16]; // Add All members
   let filteredChatroomActions = chatroomDetails?.chatroomActions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
@@ -768,6 +772,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let payload = {
       userUniqueId: UUID,
       userName: userName,
+      isGuest: false,
     };
     let res = await dispatch(initAPI(payload) as any);
     return res;
@@ -2615,34 +2620,44 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 return (
                   <TouchableOpacity
                     onPress={async () => {
-                      if (val?.id === 2) {
+                      if (val?.id === ChatroomActions.VIEW_PARTICIPANTS) {
                         setModalVisible(false);
                         navigation.navigate(VIEW_PARTICIPANTS, {
                           chatroomID: chatroomID,
                           isSecret: isSecret,
                         });
-                      } else if (val?.id === 9 || val?.id === 15) {
+                      } else if (
+                        val?.id === ChatroomActions.LEAVE_CHATROOM ||
+                        val?.id === ChatroomActions.LEAVE_SECRET_CHATROOM
+                      ) {
                         showWarningModal();
                         setModalVisible(false);
-                      } else if (val?.id === 4) {
+                      } else if (val?.id === ChatroomActions.JOIN_CHATROOM) {
                         if (!isSecret) {
                           joinChatroom();
                         }
                         setModalVisible(false);
-                      } else if (val?.id === 6) {
+                      } else if (
+                        val?.id === ChatroomActions.MUTE_NOTIFICATIONS
+                      ) {
                         await muteNotifications();
                         setModalVisible(false);
-                      } else if (val?.id === 8) {
+                      } else if (
+                        val?.id === ChatroomActions.UNMUTE_NOTIFICATIONS
+                      ) {
                         await unmuteNotifications();
                         setModalVisible(false);
-                      } else if (val?.id === 21) {
+                      } else if (val?.id === ChatroomActions.VIEW_PROFILE) {
                         //View Profile code
-                      } else if (val?.id === 27) {
+                      } else if (val?.id === ChatroomActions.BLOCK_MEMBER) {
                         await handleBlockMember();
                         setModalVisible(false);
-                      } else if (val?.id === 28) {
+                      } else if (val?.id === ChatroomActions.UNBLOCK_MEMBER) {
                         await unblockMember();
                         setModalVisible(false);
+                      } else if (val?.id === ChatroomActions.SHARE) {
+                        // Share flow
+                        onShare(chatroomID);
                       }
                     }}
                     key={val?.id}

@@ -17,6 +17,8 @@ import {useQuery} from '@realm/react';
 import {myClient} from '../../..';
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
+import { UserSchemaResponse } from '../../db/models';
+import { USER_SCHEMA_RO } from '../../constants/Strings';
 
 interface Messages {
   item: any;
@@ -164,7 +166,7 @@ const Messages = ({
   const conversationCreator = item?.member?.sdkClientInfo?.uuid;
   const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = user?.id;
-  const users = useQuery('UserSchemaRO');
+  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
   const currentUserUuid = users[0]?.userUniqueID;
 
   // Method to trim the initial DM connection message based on loggedInMember id

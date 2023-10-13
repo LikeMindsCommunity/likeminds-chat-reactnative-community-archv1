@@ -6,7 +6,7 @@ import {
   EDIT_POLL_TEXT,
   SUBMIT_VOTE_TITLE,
 } from '../../../constants/Strings';
-import {PollConversationUIProps} from '../../../Models/PollModels';
+import {PollConversationUIProps} from '../models';
 
 const PollConversationUI = ({
   text,
