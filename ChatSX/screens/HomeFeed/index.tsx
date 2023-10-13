@@ -107,13 +107,6 @@ const HomeFeed = ({navigation}: Props) => {
     });
   };
 
-  // For cleanup of resources including realm.close()
-  useEffect(() => {
-    return () => {
-      myClient?.close();
-    };
-  }, []);
-
   //push API to receive firebase notifications
   const pushAPI = async (fcmToken: any, accessToken: any) => {
     const deviceID = await getUniqueId();

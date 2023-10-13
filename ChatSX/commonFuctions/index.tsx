@@ -463,7 +463,7 @@ export function replaceLastMention(
     );
   }
   const replacement = `@[${mentionUsername}](${UUID}) `;
-  const replacedString = input.replace(mentionRegex, replacement);
+  const replacedString = input?.replace(mentionRegex, replacement);
   return replacedString;
 }
 

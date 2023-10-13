@@ -54,7 +54,7 @@ const PollConversationUI = ({
           style={styles.selectedItem}
         />
       ) : null}
-      {!!(member?.id === user?.id) ? null : (
+      {!!(member?.id == user?.id) ? null : (
         <Text style={styles.messageInfo} numberOfLines={1}>
           {member?.name}
           {!!member?.customTitle ? (

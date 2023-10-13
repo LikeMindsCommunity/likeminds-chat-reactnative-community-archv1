@@ -49,7 +49,7 @@ export const PeopleWhoReactedDefault = ({
                   }}
                   style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.member?.name}</Text>
-                  {val?.member?.id === user?.id ? (
+                  {val?.member?.id == user?.id ? (
                     <Text style={styles.text}>Tap to remove</Text>
                   ) : null}
                 </TouchableOpacity>
@@ -94,7 +94,7 @@ export const PeopleWhoReacted = ({
                   }}
                   style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.name}</Text>
-                  {val?.id === user?.id ? (
+                  {val?.id == user?.id ? (
                     <Text style={styles.text}>Tap to remove</Text>
                   ) : null}
                 </TouchableOpacity>

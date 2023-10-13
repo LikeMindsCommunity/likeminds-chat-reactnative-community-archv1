@@ -594,7 +594,7 @@ const replaceMentionValues = (
   value: string,
   replacer: (mention: MentionData) => string,
 ) =>
-  value.replace(mentionRegEx, (fullMatch, original, trigger, name, id) =>
+  value?.replace(mentionRegEx, (fullMatch, original, trigger, name, id) =>
     replacer({
       original,
       trigger,
@@ -607,7 +607,7 @@ const convertToMentionValues = (
   value: string,
   replacer: (mention: any) => string,
 ) =>
-  value.replace(convertionRegex, (original, name, URLwithID) =>
+  value?.replace(convertionRegex, (original, name, URLwithID) =>
     replacer({
       original,
       name,

@@ -20,6 +20,7 @@ import {CHATROOM} from '../../constants/Screens';
 import {CANCEL_BUTTON, REQUEST_DM_LIMIT} from '../../constants/Strings';
 import {formatTime} from '../../commonFuctions';
 import {FlashList} from '@shopify/flash-list';
+import {LoaderComponent} from '../LoaderComponent';
 
 const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const [participants, setParticipants] = useState([] as any);
@@ -33,6 +34,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const [isStopPagination, setIsStopPagination] = useState(false);
   const [selectedParticipants, setSelectedParticipants] = useState([] as any);
   const dispatch = useAppDispatch();
+  const [count, setCount] = useState(1);
 
   const {user, community} = useAppSelector(state => state.homefeed);
 
@@ -222,6 +224,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
   const fetchParticipants = async () => {
     const res = await myClient?.getAllMembers({page: 1});
     setParticipants(res?.data?.members);
+    setCount(0);
   };
 
   //function fetch all members of the community for DM.
@@ -237,6 +240,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
           };
     const res = await myClient.getAllMembers(initialPayload);
     setParticipants(res?.data?.members);
+    setCount(0);
   };
 
   //function search members in the community.
@@ -431,11 +435,9 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             });
           } else {
             let createdChatroomID = response?.chatroom?.id;
-            const chatroomWithUser = response?.chatroom?.chatroomWithUser;
             if (!!createdChatroomID) {
               navigation.navigate(CHATROOM, {
                 chatroomID: createdChatroomID,
-                chatroomWithUserParam: chatroomWithUser,
               });
             }
           }
@@ -550,6 +552,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
           />
         </TouchableOpacity>
       ) : null}
+      {count > 0 && <LoaderComponent />}
     </View>
   );
 };

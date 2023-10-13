@@ -66,24 +66,18 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case SET_INITIAL_GROUPFEED_CHATROOM: {
-      const groupFeedChatrooms = action.body;
-      if (state.groupFeedChatrooms.length === 0) {
-        return {
-          ...state,
-          groupFeedChatrooms: groupFeedChatrooms,
-        };
-      }
-      return state;
+      const {groupFeedChatrooms = {}} = action.body;
+      return {
+        ...state,
+        groupFeedChatrooms: groupFeedChatrooms,
+      };
     }
     case SET_INITIAL_DMFEED_CHATROOM: {
       const {dmFeedChatrooms = {}} = action.body;
-      if (state.dmFeedChatrooms.length === 0) {
-        return {
-          ...state,
-          dmFeedChatrooms: dmFeedChatrooms,
-        };
-      }
-      return state;
+      return {
+        ...state,
+        dmFeedChatrooms: dmFeedChatrooms,
+      };
     }
     case DELETE_GROUPFEED_CHATROOM: {
       const index = action.body;
