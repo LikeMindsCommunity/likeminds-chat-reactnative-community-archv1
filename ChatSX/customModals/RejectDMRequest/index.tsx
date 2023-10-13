@@ -8,8 +8,8 @@ import {
   REPORT_AND_REJECT_BUTTON,
 } from '../../constants/Strings';
 import {REPORT} from '../../constants/Screens';
-import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
-import {ChatroomType} from '../../enums/chatroomType';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
 
 const RejectDMRequestModal = ({
   hideDMRejectAlert,

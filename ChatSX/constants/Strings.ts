@@ -96,3 +96,4 @@ export const NEW_POLL_OPTION_TEXT =
 export const SUBMIT_TEXT = 'SUBMIT';
 export const POLL_ENDED_WARNING = 'Poll ended. Vote cannot be submitted now';
 export const POLL_SUBMITTED_SUCCESSFULLY = 'Your vote is submitted succesfully';
+export const USER_SCHEMA_RO = 'UserSchemaRO'

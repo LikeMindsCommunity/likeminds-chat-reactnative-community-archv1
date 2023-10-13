@@ -18,8 +18,8 @@ import {
 } from '../../../store/types/types';
 import {myClient} from '../../../..';
 import CreatePollUI from '../CreatePollUI';
-import {CreatePoll, CreatePollStateProps} from '../../../Models/PollModels';
 import {formatDate} from '../../../commonFuctions';
+import {CreatePoll, CreatePollStateProps} from '../models';
 
 const CreatePollScreen = ({navigation, route}: CreatePoll) => {
   const [question, setQuestion] = useState<string>('');

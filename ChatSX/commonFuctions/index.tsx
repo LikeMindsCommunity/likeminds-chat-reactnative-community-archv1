@@ -1,14 +1,8 @@
 import React, {Alert, Linking, Text} from 'react-native';
 import STYLES from '../constants/Styles';
-import {useAppDispatch, useAppSelector} from '../../store';
 import {PDF_TEXT, VIDEO_TEXT} from '../constants/Strings';
-import {
-  SELECTED_FILES_TO_UPLOAD,
-  SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
-} from '../store/types/types';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
-import {diffChars, diffLines, diffWords} from 'diff';
 import moment from 'moment';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/[^>]+>>)/gu;
