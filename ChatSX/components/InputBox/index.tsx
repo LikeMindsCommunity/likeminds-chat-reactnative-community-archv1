@@ -87,8 +87,8 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
-import {ChatroomChatRequestState} from '../../enums/chatoomChatRequestStateEnum';
-import {ChatroomType} from '../../enums/chatroomType';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
 
 interface InputBox {
   replyChatID?: any;
@@ -225,7 +225,7 @@ const InputBox = ({
   };
 
   //select Images and videoes From Gallery
-  const selectGalley = async () => {
+  const selectGallery = async () => {
     const options = {
       mediaType: 'mixed',
       selectionLimit: 0,
@@ -408,11 +408,11 @@ const InputBox = ({
   // function handles the selection of images and videos
   const handleGallery = async () => {
     if (Platform.OS === 'ios') {
-      selectGalley();
+      selectGallery();
     } else {
       let res = await requestStoragePermission();
       if (res === true) {
-        selectGalley();
+        selectGallery();
       }
     }
   };
@@ -1207,7 +1207,7 @@ const InputBox = ({
               <TouchableOpacity
                 style={styles.addMoreButton}
                 onPress={() => {
-                  selectGalley();
+                  selectGallery();
                 }}>
                 <Image
                   source={require('../../assets/images/addImages3x.png')}

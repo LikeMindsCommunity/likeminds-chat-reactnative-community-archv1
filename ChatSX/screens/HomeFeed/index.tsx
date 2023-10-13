@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Image,
   AppState,
+  Linking,
 } from 'react-native';
 import {myClient} from '../../..';
 import {getNameInitials} from '../../commonFuctions';
@@ -22,11 +23,13 @@ import {fetchFCMToken, requestUserPermission} from '../../notifications';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
-import {FAILED} from '../../constants/Strings';
+import {FAILED, USER_SCHEMA_RO} from '../../constants/Strings';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
-import {SyncChatroomRequest} from 'reactnative-chat-data';
 import {useIsFocused} from '@react-navigation/native';
 import {useQuery} from '@realm/react';
+import {parseDeepLink} from '../../components/ParseDeepLink';
+import {DeepLinkRequest} from '../../components/ParseDeepLink/models';
+import {UserSchemaResponse} from '../../db/models';
 
 interface Props {
   navigation: any;
@@ -53,7 +56,7 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
-  const users = useQuery('UserSchemaRO');
+  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
 
   const INITIAL_SYNC_PAGE = 1;
 
@@ -146,6 +149,30 @@ const HomeFeed = ({navigation}: Props) => {
   useLayoutEffect(() => {
     fetchData();
   }, [navigation, myClient]);
+
+  useEffect(() => {
+    const listener = Linking.addEventListener('url', ({url}) => {
+      const uuid = users[0]?.userUniqueID;
+      const userName = users[0]?.userName;
+
+      const exampleRequest: DeepLinkRequest = {
+        uri: url,
+        uuid: uuid, // uuid
+        userName: userName, // user name
+        isGuest: false,
+      };
+
+      // Example usage to call parseDeepLink() method
+
+      parseDeepLink(exampleRequest, response => {
+        // Parsed response
+      });
+    });
+
+    return () => {
+      listener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const token = async () => {
