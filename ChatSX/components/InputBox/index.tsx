@@ -1439,8 +1439,6 @@ const InputBox = ({
                           chatroomID: chatroomID,
                           conversationsLength: conversations.length * 2,
                         });
-
-                        // setPollModalVisible(true);
                       }}
                       style={styles.pollStyle}>
                       <Image
