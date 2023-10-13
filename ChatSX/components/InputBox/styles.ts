@@ -114,7 +114,7 @@ export const styles = StyleSheet.create({
     justifyContent:'space-between',
     marginVertical: 20,
     flexWrap: 'wrap',
-    gap: 20,
+    gap: 30,
     marginHorizontal: 40,
   },
   cameraStyle: {backgroundColor: '#06C3AF', padding: 15, borderRadius: 50},
