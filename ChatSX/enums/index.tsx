@@ -1,6 +1,5 @@
-
 import {ChatroomActions} from './ChatroomActions';
-import {ChatroomType} from './ChatroomType';
+import {ChatroomType} from './chatroomType';
 import {DocumentType} from './DocumentType';
 import {ChatroomChatRequestState} from './ChatroomChatRequestState';
 
