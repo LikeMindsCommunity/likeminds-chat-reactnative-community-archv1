@@ -78,7 +78,7 @@ const getPartsInterval = (
   parts: Part[],
   cursor: number,
   count: number,
-  isFirst: boolean
+  isFirst: boolean,
 ): Part[] => {
   const newCursor = cursor + count;
 
@@ -102,14 +102,17 @@ const getPartsInterval = (
     partsInterval.push(currentPart);
   } else {
     // For case when tagged user is at the beginning
-    if(currentPart.text==parts[0].text && isFirst){
+    if (currentPart.text == parts[0].text && isFirst) {
       partsInterval.push(
         generatePlainTextPart(
-          currentPart.text.substr(0, currentPart.position.end-currentPart.position.start),
+          currentPart.text.substr(
+            0,
+            currentPart.position.end - currentPart.position.start,
+          ),
         ),
       );
-      currentPart.text='';
-    } else{
+      currentPart.text = '';
+    } else {
       partsInterval.push(
         generatePlainTextPart(
           currentPart.text.substr(cursor - currentPart.position.start, count),
@@ -246,7 +249,7 @@ const generateValueFromPartsAndChangedText = (
   parts: Part[],
   originalText: string,
   changedText: string,
-  isFirst: boolean
+  isFirst: boolean,
 ) => {
   const changes = diffChars(
     originalText,
@@ -285,7 +288,7 @@ const generateValueFromPartsAndChangedText = (
       default: {
         if (change.count !== 0) {
           newParts = newParts.concat(
-            getPartsInterval(parts, cursor, change.count,isFirst),
+            getPartsInterval(parts, cursor, change.count, isFirst),
           );
 
           cursor += change.count;
@@ -591,7 +594,7 @@ const replaceMentionValues = (
   value: string,
   replacer: (mention: MentionData) => string,
 ) =>
-  value.replace(mentionRegEx, (fullMatch, original, trigger, name, id) =>
+  value?.replace(mentionRegEx, (fullMatch, original, trigger, name, id) =>
     replacer({
       original,
       trigger,
@@ -604,7 +607,7 @@ const convertToMentionValues = (
   value: string,
   replacer: (mention: any) => string,
 ) =>
-  value.replace(convertionRegex, (original, name, URLwithID) =>
+  value?.replace(convertionRegex, (original, name, URLwithID) =>
     replacer({
       original,
       name,

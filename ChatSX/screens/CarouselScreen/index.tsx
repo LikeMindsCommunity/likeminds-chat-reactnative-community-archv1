@@ -19,12 +19,22 @@ const CarouselScreen = ({navigation, route}: any) => {
   const video = useRef<any>(null);
   const dispatch = useAppDispatch();
   const {index, dataObject} = route.params;
+  let data = dataObject?.attachments;
+  let imageCount = 0;
+  let videoCount = 0;
+  let pdfCount = 0;
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].type == 'image') {
+      imageCount++;
+    } else if (data[i].type == 'video') {
+      videoCount++;
+    } else {
+      pdfCount++;
+    }
+  }
   let userName = dataObject?.member?.name;
   let date = dataObject?.date;
-  let time = dataObject?.created_at;
-  let imageCount = dataObject?.images.length;
-  let videoCount = dataObject?.videos.length;
-  let data = dataObject?.attachments;
+  let time = dataObject?.createdAt;
 
   let countText = '';
 

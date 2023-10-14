@@ -1,5 +1,5 @@
 import {View, Text, Image, TouchableOpacity, Pressable} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useLayoutEffect} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {decode} from '../../commonFuctions';
@@ -13,7 +13,12 @@ import {
   SET_POSITION,
 } from '../../store/types/types';
 import {PollConversationView} from '../Poll';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useQuery} from '@realm/react';
+import {myClient} from '../../..';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
+import { UserSchemaResponse } from '../../db/models';
+import { USER_SCHEMA_RO } from '../../constants/Strings';
 
 interface Messages {
   item: any;
@@ -25,6 +30,7 @@ interface Messages {
   removeReaction: any;
   handleTapToUndo: any;
   handleFileUpload: any;
+  chatroomType: any;
 }
 
 const Messages = ({
@@ -37,21 +43,26 @@ const Messages = ({
   removeReaction,
   handleTapToUndo,
   handleFileUpload,
+  chatroomType,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
+
   const {
     selectedMessages,
     isLongPress,
     stateArr,
     conversations,
     chatroomDetails,
+    chatroomDBDetails,
   }: any = useAppSelector(state => state.chatroom);
 
   const [selectedReaction, setSelectedReaction] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [reactionArr, setReactionArr] = useState([] as any);
-  const isTypeSent = item?.member?.id === user?.id ? true : false;
-  const chatRequestedBy = chatroomDetails?.chatroom?.chat_requested_by;
+  const userIdStringified = user?.id?.toString();
+  const isTypeSent = item?.member?.id == userIdStringified ? true : false;
+  const chatRequestedBy = chatroomDBDetails?.chatRequestedBy;
+  const chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
@@ -88,30 +99,6 @@ const Messages = ({
       }
     }
   }, [item?.reactions]);
-
-  // Method to get userUniqueId stored in AsyncStorage
-  const getUserUniqueId = async () => {
-    const userUniqueID = await AsyncStorage.getItem('userUniqueID');
-    return userUniqueID;
-  };
-
-  // Method to trim the initial DM connection message based on loggedInMember id
-  const answerTrimming = (answer: string) => {
-    const loggedInMember = getUserUniqueId();
-    const chatroomWithUser =
-      chatroomDetails?.chatroom?.chatroom_with_user?.user_unique_id;
-    if (loggedInMember === chatroomWithUser) {
-      const startingIndex = answer.lastIndexOf('<');
-      return answer.substring(0, startingIndex - 2);
-    } else {
-      const startingIndex = answer.indexOf('<');
-      const endingIndex = answer.indexOf('>');
-      return (
-        answer.substring(0, startingIndex - 1) +
-        answer.substring(endingIndex + 2)
-      );
-    }
-  };
 
   const reactionLen = reactionArr.length;
 
@@ -174,21 +161,103 @@ const Messages = ({
     }
   };
 
+  const conversationDeletor = item?.deletedByMember?.sdkClientInfo?.uuid;
+  const conversationDeletorName = item?.deletedByMember?.name;
+  const conversationCreator = item?.member?.sdkClientInfo?.uuid;
+  const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
+  const chatroomWithUserMemberId = user?.id;
+  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
+  const currentUserUuid = users[0]?.userUniqueID;
+
+  // Method to trim the initial DM connection message based on loggedInMember id
+  const answerTrimming = (answer: string) => {
+    const loggedInMember = currentUserUuid;
+    const chatroomWithUser =
+      chatroomDBDetails?.chatroomWithUser?.sdkClientInfo?.uuid;
+
+    if (loggedInMember === chatroomWithUser) {
+      const startingIndex = answer.lastIndexOf('<');
+      const receivingUser = answer.substring(0, startingIndex - 2);
+      return receivingUser;
+    } else {
+      const startingIndex = answer.indexOf('<');
+      const endingIndex = answer.indexOf('>');
+      const sendingUser =
+        answer.substring(0, startingIndex - 1) +
+        answer.substring(endingIndex + 2);
+      return sendingUser;
+    }
+  };
+
   return (
     <View style={styles.messageParent}>
       <View>
-        {!!item?.deleted_by ? (
-          <View
-            style={[
-              styles.message,
-              isTypeSent ? styles.sentMessage : styles.receivedMessage,
-              isIncluded
-                ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
-                : null,
-            ]}>
-            <Text style={styles.deletedMsg}>This message has been deleted</Text>
-          </View>
-        ) : !!item?.reply_conversation_object ? (
+        {!!item?.deletedBy ? (
+          chatroomType !== ChatroomType.DMCHATROOM ? (
+            currentUserUuid === conversationDeletor ? (
+              <View
+                style={[
+                  styles.message,
+                  isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                  isIncluded
+                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                    : null,
+                ]}>
+                <Text style={styles.deletedMsg}>You deleted this message</Text>
+              </View>
+            ) : conversationCreator === conversationDeletor ? (
+              <View
+                style={[
+                  styles.message,
+                  isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                  isIncluded
+                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                    : null,
+                ]}>
+                <Text style={styles.deletedMsg}>
+                  This message has been deleted by {conversationDeletorName}
+                </Text>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.message,
+                  isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                  isIncluded
+                    ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                    : null,
+                ]}>
+                <Text style={styles.deletedMsg}>
+                  This message has been deleted by Community Manager
+                </Text>
+              </View>
+            )
+          ) : currentUserUuid === conversationDeletor ? (
+            <View
+              style={[
+                styles.message,
+                isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                isIncluded
+                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                  : null,
+              ]}>
+              <Text style={styles.deletedMsg}>You deleted this message</Text>
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.message,
+                isTypeSent ? styles.sentMessage : styles.receivedMessage,
+                isIncluded
+                  ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
+                  : null,
+              ]}>
+              <Text style={styles.deletedMsg}>
+                This message has been deleted by {conversationDeletorName}
+              </Text>
+            </View>
+          )
+        ) : !!item?.replyConversationObject ? (
           <ReplyConversations
             isIncluded={isIncluded}
             item={item}
@@ -204,7 +273,7 @@ const Messages = ({
             navigation={navigation}
             handleFileUpload={handleFileUpload}
           />
-        ) : !!!item?.reply_conversation_object && item?.attachment_count > 0 ? (
+        ) : !!!item?.replyConversationObject && item?.attachmentCount > 0 ? (
           <AttachmentConversations
             navigation={navigation}
             isIncluded={isIncluded}
@@ -250,11 +319,11 @@ const Messages = ({
                       conversations[0]?.id == item?.id && 
                       chatRequestBy user should be same as user (when we reject DM chat request by changes to the person who rejected the request)
                 */}
-                {item.state === 19 &&
-                conversations[0].state === 19 &&
+                {item?.state === 19 &&
+                conversations[0]?.state === 19 &&
                 conversations[0]?.id === item?.id &&
-                (!!chatRequestedBy
-                  ? chatRequestedBy[0]?.id === user?.id
+                (!!chatroomWithUser
+                  ? chatroomWithUser?.id == userIdStringified
                   : null) ? (
                   <Pressable
                     onPress={() => {
@@ -284,9 +353,28 @@ const Messages = ({
                     <Text style={styles.textCenterAlign}>
                       {
                         // State 1 refers to initial DM message, so in that case trimming the first user name
-                        item?.state === 1
-                          ? decode(answerTrimming(item?.answer), true)
-                          : decode(item?.answer, true)
+                        item?.state === 1 &&
+                        chatroomType === ChatroomType.DMCHATROOM
+                          ? decode(
+                              answerTrimming(item?.answer),
+                              true,
+                              false,
+
+                              conversationCreator,
+
+                              chatroomWithUserUuid,
+                              chatroomWithUserMemberId,
+                            )
+                          : decode(
+                              item?.answer,
+                              true,
+                              false,
+
+                              conversationCreator,
+
+                              chatroomWithUserUuid,
+                              chatroomWithUserMemberId,
+                            )
                       }
                     </Text>
                   </View>
@@ -308,23 +396,23 @@ const Messages = ({
                       ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                       : null,
                   ]}>
-                  {!!(item?.member?.id === user?.id) ? null : (
+                  {!!(item?.member?.id == userIdStringified) ? null : (
                     <Text style={styles.messageInfo} numberOfLines={1}>
                       {item?.member?.name}
-                      {!!item?.member?.custom_title ? (
+                      {!!item?.member?.customTitle ? (
                         <Text
                           style={
                             styles.messageCustomTitle
-                          }>{` • ${item?.member?.custom_title}`}</Text>
+                          }>{` • ${item?.member?.customTitle}`}</Text>
                       ) : null}
                     </Text>
                   )}
                   <Text>{decode(item?.answer, true)}</Text>
                   <View style={styles.alignTime}>
-                    {item?.is_edited ? (
+                    {item?.isEdited ? (
                       <Text style={styles.messageDate}>{`Edited • `}</Text>
                     ) : null}
-                    <Text style={styles.messageDate}>{item?.created_at}</Text>
+                    <Text style={styles.messageDate}>{item?.createdAt}</Text>
                   </View>
                 </View>
                 {(reactionArr.length > 0 ||
@@ -390,7 +478,7 @@ const Messages = ({
         ) : null}
       </View>
 
-      {!item?.deleted_by ? (
+      {!item?.deletedBy ? (
         reactionLen > 0 && reactionLen <= 2 ? (
           <View
             style={[
@@ -412,7 +500,7 @@ const Messages = ({
                     : {backgroundColor: 'white'},
                 ]}
                 key={val + index}>
-                <Text>{val?.reaction}</Text>
+                <Text style={styles.messageText}>{val?.reaction}</Text>
                 <Text style={styles.messageText}>{val?.memberArr?.length}</Text>
               </TouchableOpacity>
             ))}
@@ -436,7 +524,7 @@ const Messages = ({
                   ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                   : {backgroundColor: 'white'},
               ]}>
-              <Text>{reactionArr[0]?.reaction}</Text>
+              <Text style={styles.messageText}>{reactionArr[0]?.reaction}</Text>
               <Text style={styles.messageText}>
                 {reactionArr[0]?.memberArr?.length}
               </Text>
@@ -453,7 +541,7 @@ const Messages = ({
                   ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                   : {backgroundColor: 'white'},
               ]}>
-              <Text>{reactionArr[1]?.reaction}</Text>
+              <Text style={styles.messageText}>{reactionArr[1]?.reaction}</Text>
               <Text style={styles.messageText}>
                 {reactionArr[1]?.memberArr?.length}
               </Text>
@@ -498,12 +586,12 @@ const Messages = ({
 
           //logic to check clicked index and findIndex are same so that we can remove reaction
           let index = item?.reactions.findIndex(
-            (val: any) => val?.member?.id === user?.id,
+            (val: any) => val?.member?.id == userIdStringified,
           );
 
           if (
             index !== -1 &&
-            item?.reactions[index]?.member?.id === reactionArr?.id // this condition checks if clicked reaction ID matches the findIndex ID
+            item?.reactions[index]?.member?.id == reactionArr?.id // this condition checks if clicked reaction ID matches the findIndex ID
           ) {
             setModalVisible(false);
           }

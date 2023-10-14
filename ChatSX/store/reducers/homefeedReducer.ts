@@ -1,3 +1,4 @@
+import {current} from '@reduxjs/toolkit';
 import Styles from '../../constants/Styles';
 import {
   ACCEPT_INVITE_SUCCESS,
@@ -6,6 +7,7 @@ import {
   GET_INVITES_SUCCESS,
   INIT_API_SUCCESS,
   PROFILE_DATA_SUCCESS,
+  GET_SYNC_HOMEFEED_CHAT_SUCCESS,
   REJECT_INVITE_SUCCESS,
   SET_DM_PAGE,
   SET_PAGE,
@@ -15,7 +17,19 @@ import {
   UPDATE_HOMEFEED_CHAT_SUCCESS,
   UPDATE_INVITES_SUCCESS,
   UPDATE_LAST_CONVERSATION,
+  TO_BE_DELETED,
+  SET_INITIAL_GROUPFEED_CHATROOM,
+  INSERT_GROUPFEED_CHATROOM,
+  INSERT_DMFEED_CHATROOM,
+  UPDATE_GROUPFEED_CHATROOM,
+  UPDATE_DMFEED_CHATROOM,
+  SET_INITIAL_DMFEED_CHATROOM,
+  DELETE_GROUPFEED_CHATROOM,
+  DELETE_DMFEED_CHATROOM,
 } from '../types/types';
+import {removeDuplicateObjects} from '../../utils/homeFeedUtils';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
 
 const initialState = {
   myChatrooms: [] as any,
@@ -31,10 +45,12 @@ const initialState = {
   isToast: false as boolean,
   toastMessage: '' as string,
   statusBarStyle: Styles.$STATUS_BAR_STYLE.default,
+  groupFeedChatrooms: [] as any,
+  dmFeedChatrooms: [] as any,
 };
 
 export function homefeedReducer(state = initialState, action: any) {
-  switch (action.type) {
+  switch (action?.type) {
     case SET_PAGE: {
       const page = action.body;
       return {
@@ -49,11 +65,132 @@ export function homefeedReducer(state = initialState, action: any) {
         dmPage: page,
       };
     }
-    case GET_INVITES_SUCCESS: {
-      const {user_invites = []} = action.body;
+    case SET_INITIAL_GROUPFEED_CHATROOM: {
+      const {groupFeedChatrooms = {}} = action.body;
       return {
         ...state,
-        invitedChatrooms: user_invites,
+        groupFeedChatrooms: groupFeedChatrooms,
+      };
+    }
+    case SET_INITIAL_DMFEED_CHATROOM: {
+      const {dmFeedChatrooms = {}} = action.body;
+      return {
+        ...state,
+        dmFeedChatrooms: dmFeedChatrooms,
+      };
+    }
+    case DELETE_GROUPFEED_CHATROOM: {
+      const index = action.body;
+      let groupFeedChatrooms = state.groupFeedChatrooms;
+      groupFeedChatrooms = [
+        ...groupFeedChatrooms.slice(0, index),
+        ...groupFeedChatrooms.slice(index + 1),
+      ];
+      return {
+        ...state,
+        groupFeedChatrooms: groupFeedChatrooms,
+      };
+    }
+    case DELETE_DMFEED_CHATROOM: {
+      const index = action.body;
+
+      let dmFeedChatrooms = state.dmFeedChatrooms;
+      dmFeedChatrooms = [
+        ...dmFeedChatrooms.slice(0, index),
+        ...dmFeedChatrooms.slice(index + 1),
+      ];
+      return {
+        ...state,
+        dmFeedChatrooms: dmFeedChatrooms,
+      };
+    }
+    case UPDATE_GROUPFEED_CHATROOM: {
+      const modifiedChatroom = action.body.modifiedChatroom;
+      const index = action.body.index;
+      if (modifiedChatroom?.type !== 10) {
+        let groupFeedChatrooms = state.groupFeedChatrooms;
+        groupFeedChatrooms[index] = modifiedChatroom;
+        const updatedGroupFeedChatrooms =
+          removeDuplicateObjects(groupFeedChatrooms);
+        return {
+          ...state,
+          groupFeedChatrooms: updatedGroupFeedChatrooms,
+        };
+      }
+      return state;
+    }
+    case UPDATE_DMFEED_CHATROOM: {
+      const modifiedDMChatroom = action.body.modifiedDMChatroom;
+      const index = action.body.index;
+      if (modifiedDMChatroom?.type === 10) {
+        let dmFeedChatrooms = state.dmFeedChatrooms;
+        dmFeedChatrooms[index] = modifiedDMChatroom;
+        const updatedDmFeedChatrooms = removeDuplicateObjects(dmFeedChatrooms);
+        return {
+          ...state,
+          dmFeedChatrooms: updatedDmFeedChatrooms,
+        };
+      }
+      return state;
+    }
+    case INSERT_GROUPFEED_CHATROOM: {
+      const insertedChatroom = action.body.insertedChatroom;
+      const index = action.body.index;
+      if (insertedChatroom?.type !== 10) {
+        let currentChatrooms = state.groupFeedChatrooms;
+        if (currentChatrooms.length !== 0) {
+          currentChatrooms = [
+            ...currentChatrooms.slice(0, index),
+            insertedChatroom,
+            ...currentChatrooms.slice(index),
+          ];
+        } else {
+          currentChatrooms = [...state.groupFeedChatrooms, insertedChatroom];
+        }
+        const updatedGroupFeedChatrooms =
+          removeDuplicateObjects(currentChatrooms);
+        return {
+          ...state,
+          groupFeedChatrooms: updatedGroupFeedChatrooms,
+        };
+      }
+      return state;
+    }
+    case INSERT_DMFEED_CHATROOM: {
+      const insertedDMChatroom = action.body.insertedDMChatroom;
+      const index = action.body.index;
+      if (insertedDMChatroom?.type === 10) {
+        let currentChatrooms = state.dmFeedChatrooms;
+        if (currentChatrooms.length !== 0) {
+          currentChatrooms = [
+            ...currentChatrooms.slice(0, index),
+            insertedDMChatroom,
+            ...currentChatrooms.slice(index),
+          ];
+        } else {
+          currentChatrooms = [...state.dmFeedChatrooms, insertedDMChatroom];
+        }
+        const updatedDmFeedChatrooms = removeDuplicateObjects(currentChatrooms);
+        return {
+          ...state,
+          dmFeedChatrooms: updatedDmFeedChatrooms,
+        };
+      }
+      return state;
+    }
+    case GET_INVITES_SUCCESS: {
+      const {userInvites = []} = action.body;
+      let updatedUserInvites = [];
+      for (let i = 0; i < userInvites.length; i++) {
+        let newObject = {
+          ...userInvites[i],
+          ...userInvites[i]?.chatroom,
+        };
+        updatedUserInvites.push(newObject);
+      }
+      return {
+        ...state,
+        invitedChatrooms: updatedUserInvites,
       };
     }
     case ACCEPT_INVITE_SUCCESS: {
@@ -77,44 +214,42 @@ export function homefeedReducer(state = initialState, action: any) {
       };
     }
     case UPDATE_INVITES_SUCCESS: {
-      const {user_invites = []} = action.body;
+      const {userInvites = []} = action.body;
       return {
         ...state,
-        invitedChatrooms: [...state.invitedChatrooms, ...user_invites],
+        invitedChatrooms: [...state.invitedChatrooms, ...userInvites],
       };
     }
     case GET_HOMEFEED_CHAT_SUCCESS: {
-      const {my_chatrooms, unseen_chatroom_count, total_chatroom_count} =
-        action.body;
+      const {unseenChannelCount, totalChannelCount} = action.body;
       return {
         ...state,
-        myChatrooms: my_chatrooms,
-        totalCount: total_chatroom_count,
-        unseenCount: unseen_chatroom_count,
+        totalCount: totalChannelCount,
+        unseenCount: unseenChannelCount,
       };
     }
     case UPDATE_HOMEFEED_CHAT_SUCCESS: {
-      const {my_chatrooms = []} = action.body;
-      return {...state, myChatrooms: [...state.myChatrooms, ...my_chatrooms]};
+      const {myChatrooms = []} = action.body;
+      return {...state, myChatrooms: [...state.myChatrooms, ...myChatrooms]};
     }
     case GET_DMFEED_CHAT_SUCCESS: {
-      const {dm_chatrooms} = action.body;
+      const {dmChatrooms} = action.body;
       return {
         ...state,
-        myDMChatrooms: dm_chatrooms,
+        myDMChatrooms: dmChatrooms,
       };
     }
     case UPDATE_DMFEED_CHAT_SUCCESS: {
-      const {dm_chatrooms = []} = action.body;
+      const {dmChatrooms = []} = action.body;
       return {
         ...state,
-        myDMChatrooms: [...state.myDMChatrooms, ...dm_chatrooms],
+        myDMChatrooms: [...state.myDMChatrooms, ...dmChatrooms],
       };
     }
     case UPDATE_LAST_CONVERSATION: {
       const {lastConversationAnswer, chatroomType, chatroomID} = action.body;
 
-      let isDM = chatroomType === 10 ? true : false;
+      let isDM = chatroomType === ChatroomType.DMCHATROOM ? true : false;
       let chatroomList = isDM ? state?.myDMChatrooms : state?.myChatrooms;
       let index = chatroomList.findIndex((element: any) => {
         return element?.chatroom?.id == chatroomID;
@@ -125,8 +260,8 @@ export function homefeedReducer(state = initialState, action: any) {
         let chatroomObject = arr[index];
         arr[index] = {
           ...chatroomObject,
-          last_conversation: {
-            ...chatroomObject?.last_conversation,
+          lastConversation: {
+            ...chatroomObject?.lastConversation,
             answer: lastConversationAnswer,
           },
         };
@@ -142,8 +277,8 @@ export function homefeedReducer(state = initialState, action: any) {
       return {...state, community: community};
     }
     case PROFILE_DATA_SUCCESS: {
-      const {member = {}, member_rights = []} = action.body;
-      return {...state, user: member, memberRights: member_rights};
+      const {member = {}, memberRights = []} = action.body;
+      return {...state, user: member, memberRights: memberRights};
     }
     case SHOW_TOAST: {
       const {isToast, msg} = action.body;

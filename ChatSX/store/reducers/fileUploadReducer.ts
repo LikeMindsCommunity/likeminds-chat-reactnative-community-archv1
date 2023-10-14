@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {removeKey} from '../../commonFuctions';
+import {myClient} from '../../..';
 import {
   CLEAR_FILE_UPLOADING_MESSAGES,
   IS_FILE_UPLOADING,
@@ -26,22 +26,10 @@ export function fileUploadReducer(state = initialState, action: any) {
     case SET_FILE_UPLOADING_MESSAGES: {
       const {message = {}, ID} = action.body;
       let obj = {[ID]: {...message}};
-      let keys = Object.keys(state.uploadingFilesMessages);
-
       let dummyState = {
         ...state.uploadingFilesMessages,
         ...obj,
       };
-
-      const func = async () => {
-        const res = await AsyncStorage.getItem('uploadingFilesMessages');
-        await AsyncStorage.setItem(
-          'uploadingFilesMessages',
-          JSON.stringify({...JSON.parse(res as any), ...dummyState}),
-        );
-      };
-
-      func();
       return {
         ...state,
         uploadingFilesMessages: dummyState,
@@ -50,22 +38,13 @@ export function fileUploadReducer(state = initialState, action: any) {
     case CLEAR_FILE_UPLOADING_MESSAGES: {
       const {ID} = action.body;
 
+      // removeKey removes the sent media from retry media list, ie, obj
       let obj = removeKey(ID, state.uploadingFilesMessages);
       let dummyState = {
         ...state,
         uploadingFilesMessages: {...obj},
       };
 
-      const func = async () => {
-        const res = await AsyncStorage.getItem('uploadingFilesMessages');
-        let obj = removeKey(ID, JSON.parse(res as any));
-        await AsyncStorage.setItem(
-          'uploadingFilesMessages',
-          JSON.stringify(obj),
-        );
-      };
-
-      func();
       return dummyState;
     }
 

@@ -4,8 +4,11 @@ import {myClient} from '../../..';
 import STYLES from '../../constants/Styles';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
-import {getHomeFeedData} from '../../store/actions/homefeed';
-import {SET_EXPLORE_FEED_PAGE, SET_PAGE} from '../../store/types/types';
+import {
+  SET_EXPLORE_FEED_PAGE,
+  SET_PAGE,
+  TO_BE_DELETED,
+} from '../../store/types/types';
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 import {CHATROOM} from '../../constants/Screens';
@@ -19,7 +22,7 @@ interface Props {
   isJoined: boolean;
   participants: number;
   messageCount: number;
-  external_seen: number;
+  externalSeen: number;
   isSecret: boolean;
   chatroomID: number;
   filterState: any;
@@ -35,7 +38,7 @@ const ExploreFeedItem: React.FC<Props> = ({
   isJoined = false,
   participants,
   messageCount,
-  external_seen,
+  externalSeen,
   isSecret,
   chatroomID,
   filterState,
@@ -50,7 +53,7 @@ const ExploreFeedItem: React.FC<Props> = ({
   const leaveChatroom = async (val: boolean) => {
     const payload = {
       collabcardId: chatroomID,
-      memberId: user?.id,
+      uuid: user?.sdkClientInfo?.uuid,
       value: val,
     };
     const res = await myClient
@@ -66,21 +69,17 @@ const ExploreFeedItem: React.FC<Props> = ({
         } else {
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
+          // Updating the followStatus of chatroom to false in case of leaving the chatroom
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID.toString(),
+            false,
+          );
         }
         dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
         await dispatch(getExploreFeedData(payload) as any);
-        dispatch({type: SET_PAGE, body: 1});
-        await dispatch(
-          getHomeFeedData(
-            {
-              page: 1,
-            },
-            false,
-          ) as any,
-        );
       })
       .catch(() => {
-        // Alert.alert('Leave Chatroom failed');
+        Alert.alert('Leave Chatroom failed');
       });
 
     return res;
@@ -109,7 +108,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           </View>
         )}
 
-        {!external_seen && !pinned && (
+        {!externalSeen && !pinned && (
           <View style={styles.newBadge}>
             <Text style={styles.newBadgeText}>New</Text>
           </View>

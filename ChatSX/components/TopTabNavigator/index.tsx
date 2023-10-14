@@ -49,12 +49,12 @@ export const PeopleWhoReactedDefault = ({
                   }}
                   style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.member?.name}</Text>
-                  {val?.member?.id === user?.id ? (
+                  {val?.member?.id == user?.id ? (
                     <Text style={styles.text}>Tap to remove</Text>
                   ) : null}
                 </TouchableOpacity>
                 <View>
-                  <Text>{val?.reaction}</Text>
+                  <Text style={styles.messageText}>{val?.reaction}</Text>
                 </View>
               </View>
             </View>
@@ -94,12 +94,12 @@ export const PeopleWhoReacted = ({
                   }}
                   style={styles.alignColumn}>
                   <Text style={styles.textHeading}>{val?.name}</Text>
-                  {val?.id === user?.id ? (
+                  {val?.id == user?.id ? (
                     <Text style={styles.text}>Tap to remove</Text>
                   ) : null}
                 </TouchableOpacity>
                 <View>
-                  <Text>{title}</Text>
+                  <Text style={styles.messageText}>{title}</Text>
                 </View>
               </View>
             </View>

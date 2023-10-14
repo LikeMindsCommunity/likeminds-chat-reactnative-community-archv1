@@ -11,8 +11,7 @@ import {
 } from 'react-native';
 import {myClient} from '../../..';
 import {decode, getFullDate} from '../../commonFuctions';
-import {useAppDispatch} from '../../../store';
-import {getHomeFeedData} from '../../store/actions/homefeed';
+import {useAppDispatch, useAppSelector} from '../../../store';
 import {
   ACCEPT_INVITE,
   ACCEPT_INVITE_SUCCESS,
@@ -31,6 +30,10 @@ import {
   VIDEO_TEXT,
 } from '../../constants/Strings';
 import Layout from '../../constants/Layout';
+import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
+import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomType} from '../../enums';
+import {DocumentType} from '../../enums';
 
 interface Props {
   avatar: string;
@@ -44,7 +47,7 @@ interface Props {
   chatroomID: number;
   lastConversationMember?: string;
   isSecret: boolean;
-  deletedBy?: number;
+  deletedBy?: string;
   inviteReceiver?: any;
   chatroomType: number;
   muteStatus: boolean;
@@ -68,6 +71,7 @@ const HomeFeedItem: React.FC<Props> = ({
   muteStatus,
 }) => {
   const dispatch = useAppDispatch();
+  let {invitedChatrooms, user} = useAppSelector(state => state.homefeed);
 
   const showJoinAlert = () =>
     Alert.alert(
@@ -91,7 +95,7 @@ const HomeFeedItem: React.FC<Props> = ({
             });
             dispatch({type: ACCEPT_INVITE_SUCCESS, body: chatroomID});
             dispatch({type: SET_PAGE, body: 1});
-            await dispatch(getHomeFeedData({page: 1}, false) as any);
+            await paginatedSyncAPI(1, user, false);
           },
           style: 'default',
         },
@@ -133,9 +137,20 @@ const HomeFeedItem: React.FC<Props> = ({
     );
 
   const getFeedIconAttachment = (val: any) => {
-    let imageCount = val?.images?.length;
-    let videosCount = val?.videos?.length;
-    let pdfCount = val?.pdf?.length;
+    const attachments = val.attachments;
+    let imageCount = 0;
+    let videosCount = 0;
+    let pdfCount = 0;
+
+    for (let i = 0; i < attachments.length; i++) {
+      if (attachments[i].type == DocumentType.IMAGE) {
+        imageCount++;
+      } else if (attachments[i].type == DocumentType.VIDEO) {
+        videosCount++;
+      } else if (attachments[i].type == DocumentType.PDF) {
+        pdfCount++;
+      }
+    }
 
     if (imageCount > 0 && videosCount > 0 && pdfCount > 0) {
       return (
@@ -279,10 +294,7 @@ const HomeFeedItem: React.FC<Props> = ({
       );
     } else if (val?.state === 10) {
       return (
-        <View
-          style={[
-            styles.alignCenter,
-          ]}>
+        <View style={[styles.alignCenter]}>
           <Image
             source={require('../../assets/images/poll_icon3x.png')}
             style={[styles.icon, {tintColor: STYLES.$COLORS.PRIMARY}]}
@@ -291,17 +303,25 @@ const HomeFeedItem: React.FC<Props> = ({
         </View>
       );
     } else {
-      return;
+      return (
+        <Text style={styles.deletedMessage}>
+          This message is not supported yet
+        </Text>
+      );
     }
   };
 
   return (
     <Pressable
       onPress={() => {
-        navigation.navigate(CHATROOM, {
-          chatroomID: chatroomID,
-          isInvited: !!inviteReceiver ? true : false,
-        });
+        // TODO - Currently from backend we don't get the secret chatroom data without accepting or rejecting the invitation, so diabling the click for now so user can't go inside an invited secret chatroom without accepting the invitation
+        if (inviteReceiver) return;
+        setTimeout(() => {
+          navigation.navigate(CHATROOM, {
+            chatroomID: chatroomID,
+            isInvited: !!inviteReceiver ? true : false,
+          });
+        }, 300);
       }}
       style={({pressed}) => [
         {opacity: pressed ? 0.5 : 1.0},
@@ -316,7 +336,7 @@ const HomeFeedItem: React.FC<Props> = ({
           }
           style={styles.avatar}
         />
-        {chatroomType === 10 ? (
+        {chatroomType === ChatroomType.DMCHATROOM ? (
           <View style={styles.dmAvatarBubble}>
             <Image
               source={require('../../assets/images/dm_message_bubble3x.png')}
@@ -330,7 +350,6 @@ const HomeFeedItem: React.FC<Props> = ({
         <View style={styles.headerContainer}>
           <Text style={styles.title} numberOfLines={1}>
             {title}
-
             {isSecret ? (
               <Image
                 source={require('../../assets/images/lock_icon3x.png')}
@@ -349,7 +368,9 @@ const HomeFeedItem: React.FC<Props> = ({
                 width: '80%',
               },
             ]}>
-            {!!deletedBy ? (
+            {deletedBy !== 'null' &&
+            deletedBy !== null &&
+            deletedBy !== undefined ? (
               <Text
                 style={
                   styles.deletedMessage
@@ -359,11 +380,10 @@ const HomeFeedItem: React.FC<Props> = ({
                 style={[
                   styles.alignCenter,
                   {
-                    width: Layout.window.width - 130,
                     overflow: 'hidden',
                   },
                 ]}>
-                {chatroomType !== 10 ? (
+                {chatroomType !== ChatroomType.DMCHATROOM ? (
                   <Text
                     style={
                       styles.lastMessage
@@ -371,7 +391,7 @@ const HomeFeedItem: React.FC<Props> = ({
                 ) : null}
 
                 <Text numberOfLines={1} style={[styles.parentLastMessage]}>
-                  {!!lastConversation?.has_files
+                  {lastConversation.hasFiles > 0
                     ? getFeedIconAttachment(lastConversation)
                     : lastConversation?.state === 10
                     ? getFeedIconAttachment(lastConversation)
@@ -425,13 +445,17 @@ const HomeFeedItem: React.FC<Props> = ({
           />
         </View>
       ) : null}
-      {!!unreadCount
-        ? unreadCount > 0 && (
-            <View style={styles.unreadCountContainer}>
-              <Text style={styles.unreadCount}>{unreadCount}</Text>
-            </View>
-          )
-        : null}
+      {!!unreadCount ? (
+        unreadCount > 100 ? (
+          <View style={styles.unreadCountContainer}>
+            <Text style={styles.unreadCount}>99+</Text>
+          </View>
+        ) : (
+          <View style={styles.unreadCountContainer}>
+            <Text style={styles.unreadCount}>{unreadCount}</Text>
+          </View>
+        )
+      ) : null}
     </Pressable>
   );
 };

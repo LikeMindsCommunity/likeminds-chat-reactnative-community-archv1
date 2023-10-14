@@ -18,8 +18,6 @@ import STYLES from '../../../../constants/Styles';
 import {onValue, ref} from '@firebase/database';
 import {useAppDispatch, useAppSelector} from '../../../../../store';
 import {
-  getDMFeedData,
-  getHomeFeedData,
   getInvites,
   initAPI,
   updateDMFeedData,
@@ -27,7 +25,13 @@ import {
   updateInvites,
 } from '../../../../store/actions/homefeed';
 import styles from './styles';
-import {SET_DM_PAGE} from '../../../../store/types/types';
+import {
+  SET_DM_PAGE,
+  SET_INITIAL_DMFEED_CHATROOM,
+  INSERT_DMFEED_CHATROOM,
+  UPDATE_DMFEED_CHATROOM,
+  DELETE_DMFEED_CHATROOM,
+} from '../../../../store/types/types';
 import {getUniqueId} from 'react-native-device-info';
 import {fetchFCMToken, requestUserPermission} from '../../../../notifications';
 import {DM_ALL_MEMBERS} from '../../../../constants/Screens';
@@ -38,6 +42,13 @@ import {
   NO_DM_TEXT,
 } from '../../../../constants/Strings';
 import {FlashList} from '@shopify/flash-list';
+import {useIsFocused} from '@react-navigation/native';
+import Realm from 'realm';
+import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
+import LinearGradient from 'react-native-linear-gradient';
+import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+
+const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
 interface Props {
   navigation: any;
@@ -45,39 +56,44 @@ interface Props {
 
 const DMFeed = ({navigation}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [shimmerIsLoading, setShimmerIsLoading] = useState(true);
   const [showDM, setShowDM] = useState(false);
   const [showList, setShowList] = useState<any>(null);
   const [FCMToken, setFCMToken] = useState('');
   const dispatch = useAppDispatch();
+  const isFocused = useIsFocused();
 
-  const {myDMChatrooms, unseenCount, totalCount, dmPage, invitedChatrooms} =
-    useAppSelector(state => state.homefeed);
+  const {
+    myDMChatrooms,
+    unseenCount,
+    totalCount,
+    dmPage,
+    invitedChatrooms,
+    dmFeedChatrooms,
+  } = useAppSelector(state => state.homefeed);
   const {user, community} = useAppSelector(state => state.homefeed);
 
-  const db = myClient?.fbInstance();
+  const db = myClient?.firebaseInstance();
   const chatrooms = [...myDMChatrooms];
+  const INITIAL_SYNC_PAGE = 1;
 
   async function fetchData() {
     if (!!community?.id) {
       let payload = {
         page: 1,
       };
-      const res = await dispatch(getDMFeedData(payload) as any);
-
-      if (!!res) {
-        let apiRes = await myClient?.checkDMStatus({
-          requestFrom: 'dm_feed_v2',
-        });
-        let response = apiRes?.data;
-        if (!!response) {
-          let routeURL = response?.cta;
-          const hasShowList = SHOW_LIST_REGEX.test(routeURL);
-          if (hasShowList) {
-            const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
-            setShowList(showListValue);
-          }
-          setShowDM(response?.show_dm);
+      let apiRes = await myClient?.checkDMStatus({
+        requestFrom: 'dm_feed_v2',
+      });
+      let response = apiRes?.data;
+      if (!!response) {
+        let routeURL = response?.cta;
+        const hasShowList = SHOW_LIST_REGEX.test(routeURL);
+        if (hasShowList) {
+          const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
+          setShowList(showListValue);
         }
+        setShowDM(response?.showDm);
       }
     }
   }
@@ -98,6 +114,54 @@ const DMFeed = ({navigation}: Props) => {
     };
     token();
   }, []);
+
+  // Fetching already existing chatrooms from Realm
+  const getChatroomFromLocalDB = async () => {
+    const existingChatrooms: any = await myClient?.getFilteredChatrooms(true);
+    if (!!existingChatrooms && existingChatrooms.length !== 0) {
+      setShimmerIsLoading(false);
+      dispatch({
+        type: SET_INITIAL_DMFEED_CHATROOM,
+        body: {dmFeedChatrooms: existingChatrooms},
+      });
+    }
+  };
+
+  const getAppConfig = async () => {
+    const appConfig = await myClient?.getAppConfig();
+    if (appConfig?.isDmFeedChatroomsSynced === undefined) {
+      myClient?.initiateAppConfig();
+      myClient?.setAppConfig(true);
+    } else {
+      setShimmerIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const query = ref(db, `/community/${community?.id}`);
+    return onValue(query, snapshot => {
+      if (snapshot.exists()) {
+        if (!user?.sdkClientInfo?.community) return;
+        if (isFocused) {
+          paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+          setShimmerIsLoading(false);
+          setTimeout(() => {
+            getChatroomFromLocalDB();
+          }, 500);
+        }
+      }
+    });
+  }, [user, isFocused]);
+
+  useEffect(() => {
+    getAppConfig();
+    if (!user?.sdkClientInfo?.community) return;
+    paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+    setShimmerIsLoading(false);
+    setTimeout(() => {
+      getChatroomFromLocalDB();
+    }, 500);
+  }, [user]);
 
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {
@@ -142,19 +206,9 @@ const DMFeed = ({navigation}: Props) => {
     ) : null;
   };
 
-  useEffect(() => {
-    const query = ref(db, `/community/${community?.id}`);
-    return onValue(query, snapshot => {
-      if (snapshot.exists()) {
-        dispatch(getDMFeedData({page: 1}, false) as any);
-        dispatch({type: SET_DM_PAGE, body: 1});
-      }
-    });
-  }, []);
-
   return (
     <View style={styles.page}>
-      {chatrooms?.length === 0 ? (
+      {dmFeedChatrooms?.length === 0 ? (
         <View style={styles.nothingDM}>
           <View style={[styles.justifyCenter]}>
             <Image
@@ -188,46 +242,139 @@ const DMFeed = ({navigation}: Props) => {
             {DM_INFO}
           </Text>
         </View>
+      ) : shimmerIsLoading ? (
+        <>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 50,
+            }}>
+            <View
+              style={{
+                width: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ShimmerPlaceHolder
+                style={{
+                  width: 50,
+                  alignItmes: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 50,
+                  height: 50,
+                }}
+              />
+            </View>
+            <View style={{width: '100%'}}>
+              <ShimmerPlaceHolder style={{width: '70%'}} />
+              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+            </View>
+          </View>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 50,
+            }}>
+            <View
+              style={{
+                width: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ShimmerPlaceHolder
+                style={{
+                  width: 50,
+                  alignItmes: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 50,
+                  height: 50,
+                }}
+              />
+            </View>
+            <View style={{width: '100%'}}>
+              <ShimmerPlaceHolder style={{width: '70%'}} />
+              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+            </View>
+          </View>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 50,
+            }}>
+            <View
+              style={{
+                width: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ShimmerPlaceHolder
+                style={{
+                  width: 50,
+                  alignItmes: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 50,
+                  height: 50,
+                }}
+              />
+            </View>
+            <View style={{width: '100%'}}>
+              <ShimmerPlaceHolder style={{width: '70%'}} />
+              <ShimmerPlaceHolder style={{marginTop: 10, width: '50%'}} />
+            </View>
+          </View>
+        </>
       ) : (
         <FlashList
-          data={chatrooms}
+          data={dmFeedChatrooms}
           extraData={{
-            value: [user, chatrooms],
+            value: [user, dmFeedChatrooms],
           }}
           estimatedItemSize={15}
           renderItem={({item}: any) => {
-            let chatroomWithUser = item?.chatroom?.chatroom_with_user;
-            let chatroom = item?.chatroom;
+            const userTitle =
+              user?.id == item?.chatroomWithUserId
+                ? item?.member?.name
+                : item?.chatroomWithUser?.name;
+            const deletedBy =
+              item?.lastConversation?.deletedByUserId !== null
+                ? item?.lastConversation?.deletedByUserId
+                : item?.lastConversation?.deletedBy;
             const homeFeedProps = {
-              title:
-                user?.id !== chatroomWithUser?.id
-                  ? chatroomWithUser?.name
-                  : chatroom?.member?.name!,
-              avatar:
-                user?.id !== chatroomWithUser?.id
-                  ? chatroomWithUser?.image_url!
-                  : chatroom?.member?.image_url!,
-              lastMessage: item?.last_conversation?.answer!,
-              lastMessageUser: item?.last_conversation?.member?.name!,
-              time: item?.last_conversation_time!,
-              unreadCount: item?.unseen_conversation_count!,
+              title: userTitle,
+              avatar: item?.chatroomImageUrl!,
+              lastMessage: item?.lastConversation?.answer!,
+              lastMessageUser: item?.lastConversation?.member?.name!,
+              time: item?.lastConversation?.createdAt!,
+              unreadCount: item?.unseenCount!,
               pinned: false,
-              lastConversation: item?.last_conversation!,
-              chatroomID: chatroom?.id!,
-              deletedBy: item?.last_conversation?.deleted_by,
-              isSecret: chatroom?.is_secret,
-              chatroomType: chatroom?.type,
-              muteStatus: chatroom?.mute_status,
+              lastConversation: item?.lastConversation!,
+              lastConversationMember: item?.lastConversation?.member?.name!,
+              chatroomID: item?.id!,
+              isSecret: item?.isSecret,
+              deletedBy: deletedBy,
+              conversationDeletor:
+                item?.lastConversation?.deletedByMember?.sdkClientInfo?.uuid,
+              conversationCreator:
+                item?.lastConversation?.member?.sdkClientInfo?.uuid,
+              conversationDeletorName:
+                item?.lastConversation?.deletedByMember?.name,
+              inviteReceiver: item?.inviteReceiver,
+              chatroomType: item?.type,
+              muteStatus: item?.muteStatus,
             };
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.1}
           ListFooterComponent={renderFooter}
-          keyExtractor={(item: any) => item?.chatroom?.id.toString()}
+          keyExtractor={(item: any) => item?.id.toString()}
         />
       )}
-      {showDM && chatrooms?.length > 0 ? (
+      {showDM && dmFeedChatrooms?.length > 0 ? (
         <Pressable
           onPress={() => {
             navigation.navigate(DM_ALL_MEMBERS, {showList: showList});

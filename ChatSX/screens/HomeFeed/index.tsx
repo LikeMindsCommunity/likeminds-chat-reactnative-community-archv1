@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Image,
   AppState,
+  Linking,
 } from 'react-native';
 import {myClient} from '../../..';
 import {getNameInitials} from '../../commonFuctions';
@@ -22,9 +23,13 @@ import {fetchFCMToken, requestUserPermission} from '../../notifications';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import GroupFeed from './Tabs/GroupFeed';
 import DMFeed from './Tabs/DMFeed';
-import {FAILED} from '../../constants/Strings';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {FAILED, USER_SCHEMA_RO} from '../../constants/Strings';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
+import {useIsFocused} from '@react-navigation/native';
+import {useQuery} from '@realm/react';
+import {parseDeepLink} from '../../components/ParseDeepLink';
+import {DeepLinkRequest} from '../../components/ParseDeepLink/models';
+import {UserSchemaResponse} from '../../db/models';
 
 interface Props {
   navigation: any;
@@ -39,6 +44,7 @@ const HomeFeed = ({navigation}: Props) => {
   const [FCMToken, setFCMToken] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const dispatch = useAppDispatch();
+  const isFocused = useIsFocused();
 
   const {
     myChatrooms,
@@ -50,8 +56,10 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
+  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
 
-  const db = myClient?.fbInstance();
+  const INITIAL_SYNC_PAGE = 1;
+
   const chatrooms = [...invitedChatrooms, ...myChatrooms];
   const setOptions = () => {
     navigation.setOptions({
@@ -75,14 +83,14 @@ const HomeFeed = ({navigation}: Props) => {
             width: 35,
             height: 35,
             borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
-            backgroundColor: !!user?.image_url ? 'white' : 'purple',
+            backgroundColor: !!user?.imageUrl ? 'white' : 'purple',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 5,
             paddingTop: Platform.OS === 'ios' ? 5 : 3,
           }}>
-          {!!user?.image_url ? (
-            <Image source={{uri: user?.image_url}} style={styles.avatar} />
+          {!!user?.imageUrl ? (
+            <Image source={{uri: user?.imageUrl}} style={styles.avatar} />
           ) : (
             <Text
               style={{
@@ -100,6 +108,7 @@ const HomeFeed = ({navigation}: Props) => {
     });
   };
 
+  //push API to receive firebase notifications
   const pushAPI = async (fcmToken: any, accessToken: any) => {
     const deviceID = await getUniqueId();
     try {
@@ -115,19 +124,23 @@ const HomeFeed = ({navigation}: Props) => {
   };
 
   async function fetchData() {
-    //this line of code is for the sample app only, pass your userUniqueID instead of this.
-    const UUID = await AsyncStorage.getItem('userUniqueID');
+    //this line of code is for the sample app only, pass your uuid instead of this.
+
+    const UUID = users[0]?.userUniqueID;
+    const userName = users[0]?.userName;
 
     let payload = {
-      userUniqueId: UUID, // user unique ID
-      userName: '', // user name
+      uuid: UUID, // uuid
+      userName: userName, // user name
       isGuest: false,
     };
+
     let res = await dispatch(initAPI(payload) as any);
+
     if (!!res) {
-      await dispatch(getMemberState() as any);
       setCommunityId(res?.community?.id);
-      setAccessToken(res?.access_token);
+      setAccessToken(res?.accessToken);
+      await dispatch(getMemberState() as any);
     }
 
     return res;
@@ -136,6 +149,30 @@ const HomeFeed = ({navigation}: Props) => {
   useLayoutEffect(() => {
     fetchData();
   }, [navigation, myClient]);
+
+  useEffect(() => {
+    const listener = Linking.addEventListener('url', ({url}) => {
+      const uuid = users[0]?.userUniqueID;
+      const userName = users[0]?.userName;
+
+      const exampleRequest: DeepLinkRequest = {
+        uri: url,
+        uuid: uuid, // uuid
+        userName: userName, // user name
+        isGuest: false,
+      };
+
+      // Example usage to call parseDeepLink() method
+
+      parseDeepLink(exampleRequest, response => {
+        // Parsed response
+      });
+    });
+
+    return () => {
+      listener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const token = async () => {
@@ -152,21 +189,21 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const func = async () => {
-      const res: any = await AsyncStorage.getItem('uploadingFilesMessages');
+      const res: any = await myClient?.getAllAttachmentUploadConversations();
       if (res) {
-        let uploadingFilesMessagesSavedObject = JSON.parse(res);
-        let arrOfKeys = Object.keys(uploadingFilesMessagesSavedObject);
-        let len = arrOfKeys.length;
+        let len = res.length;
         if (len > 0) {
           for (let i = 0; i < len; i++) {
+            let data = res[i];
+            let uploadingFilesMessagesSavedObject = JSON.parse(data?.value);
             dispatch({
               type: UPDATE_FILE_UPLOADING_OBJECT,
               body: {
                 message: {
-                  ...uploadingFilesMessagesSavedObject[arrOfKeys[i]],
+                  ...uploadingFilesMessagesSavedObject,
                   isInProgress: FAILED,
                 },
-                ID: arrOfKeys[i],
+                ID: data?.key,
               },
             });
           }
@@ -175,6 +212,16 @@ const HomeFeed = ({navigation}: Props) => {
     };
 
     func();
+  }, []);
+
+  useEffect(() => {
+    const timeSetter = async () => {
+      const timeStampStored = await myClient?.getTimeStamp();
+      if (timeStampStored.length === 0) {
+        await myClient?.initiateTimeStamp();
+      }
+    };
+    timeSetter();
   }, []);
 
   useEffect(() => {
@@ -195,7 +242,7 @@ const HomeFeed = ({navigation}: Props) => {
 
   return (
     <View style={styles.page}>
-      {community?.hide_dm_tab === false ? (
+      {community?.hideDmTab === false ? (
         <Tab.Navigator
           screenOptions={{
             tabBarLabelStyle: styles.font,
@@ -226,7 +273,7 @@ const HomeFeed = ({navigation}: Props) => {
             component={DMFeed}
           />
         </Tab.Navigator>
-      ) : community?.hide_dm_tab === true ? (
+      ) : community?.hideDmTab === true ? (
         <GroupFeed navigation={navigation} />
       ) : null}
     </View>

@@ -22,7 +22,7 @@ import {
 import {Platform} from 'react-native';
 import ActionAlertModal from '../../../customModals/ActionListModel';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {CreatePollProps} from '../../../Models/PollModels';
+import {CreatePollProps} from '../models';
 import STYLES from '../../../constants/Styles';
 
 const CreatePollUI = ({

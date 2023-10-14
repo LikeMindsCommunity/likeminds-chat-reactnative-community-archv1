@@ -6,7 +6,7 @@ import {
   EDIT_POLL_TEXT,
   SUBMIT_VOTE_TITLE,
 } from '../../../constants/Strings';
-import {PollConversationUIProps} from '../../../Models/PollModels';
+import {PollConversationUIProps} from '../models';
 
 const PollConversationUI = ({
   text,
@@ -54,14 +54,14 @@ const PollConversationUI = ({
           style={styles.selectedItem}
         />
       ) : null}
-      {!!(member?.id === user?.id) ? null : (
+      {!!(member?.id == user?.id) ? null : (
         <Text style={styles.messageInfo} numberOfLines={1}>
           {member?.name}
-          {!!member?.custom_title ? (
+          {!!member?.customTitle ? (
             <Text
               style={
                 styles.messageCustomTitle
-              }>{` • ${member?.custom_title}`}</Text>
+              }>{` • ${member?.customTitle}`}</Text>
           ) : null}
         </Text>
       )}
@@ -115,7 +115,7 @@ const PollConversationUI = ({
       <View style={[styles.extraMarginSpace, styles.gap10]}>
         {optionArr?.map((element: any, index: any) => {
           let isSelected = selectedPolls.includes(index);
-          let voteCount = element?.no_votes;
+          let voteCount = element?.noVotes;
           let isPollSentByMe = user?.id === element?.member?.id ? true : false;
           return (
             <View key={element?.id} style={styles.gap}>
@@ -128,7 +128,7 @@ const PollConversationUI = ({
                   setSelectedPollOptions(index);
                 }}
                 style={({pressed}) => [
-                  isSelected || element?.is_selected
+                  isSelected || element?.isSelected
                     ? styles.pollButton
                     : styles.greyPollButton,
                   {opacity: pressed ? 0.5 : 1},

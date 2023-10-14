@@ -105,10 +105,13 @@ const SwitchComponent = () => {
               });
               const popAction = StackActions.pop(1);
               navigation.dispatch(popAction);
-              navigation.navigate(
-                routes?.route as never,
-                routes?.params as never,
-              );
+              setTimeout(() => {
+                navigation.navigate(
+                  routes?.route as never,
+                  routes?.params as never,
+                );
+              }, 1000);
+              
             }
           } else {
             navigation.navigate(
@@ -123,10 +126,14 @@ const SwitchComponent = () => {
     return unsubscribe;
   }, []);
 
+  const linking = {
+    prefixes: [''], // Add your custom link to open app.
+  };
+
   return (
     <View style={{flex: 1}}>
       <StatusBar barStyle={statusBarStyle} />
-      <NavigationContainer ref={navigationRef}>
+      <NavigationContainer linking={linking} ref={navigationRef}>
         <Stack.Navigator initialRouteName={HOMEFEED}>
           <Stack.Screen name={HOMEFEED} component={HomeFeed} />
           <Stack.Screen name={EXPLORE_FEED} component={ExploreFeed} />
@@ -170,7 +177,7 @@ const SwitchComponent = () => {
           dispatch({type: SHOW_TOAST, body: {isToast: false, msg: ''}});
         }}
       />
-      {count > 0 && <LoaderComponent />}
+      {/* {count > 0 && <LoaderComponent />} */}
       {chatroomCount > 0 && <LoaderChatroomComponent />}
     </View>
   );

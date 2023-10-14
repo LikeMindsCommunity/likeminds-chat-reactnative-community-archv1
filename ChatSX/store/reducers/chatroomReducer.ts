@@ -12,7 +12,7 @@ import {
   LONG_PRESSED,
   MESSAGE_SENT,
   ON_CONVERSATIONS_CREATE_SUCCESS,
-  PAGINATED_CONVERSATIONS_SUCCESS,
+  PAGINATED_CONVERSATIONS_END_SUCCESS,
   REACTION_SENT,
   SELECTED_FILES_TO_UPLOAD,
   SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
@@ -26,6 +26,11 @@ import {
   UPDATE_CHAT_REQUEST_STATE,
   UPDATE_CONVERSATIONS,
   EMPTY_BLOCK_DELETION,
+  UPDATE_MULTIMEDIA_CONVERSATIONS,
+  PAGINATED_CONVERSATIONS_START_SUCCESS,
+  GET_CHATROOM_DB_SUCCESS,
+  GET_CHATROOM_ACTIONS_SUCCESS,
+  ADD_STATE_MESSAGE,
 } from '../types/types';
 
 const initialState = {
@@ -34,7 +39,7 @@ const initialState = {
   messageSent: '' as any,
   isLongPress: false,
   selectedMessages: [],
-  stateArr: [1, 2, 3, 7, 8, 9, 20, 19, 17, 15], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
+  stateArr: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], //states for person started, left, joined, added, removed messages, aceept DM, reject DM, turned to community manager.
   position: {x: 0, y: 0} as any,
   selectedFilesToUpload: [],
   selectedFilesToUploadThumbnails: [],
@@ -43,6 +48,7 @@ const initialState = {
   replyMessage: '',
   editConversation: '',
   fileSent: 0,
+  chatroomDBDetails: {},
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -52,6 +58,13 @@ export function chatroomReducer(state = initialState, action: any) {
       return {
         ...state,
         conversations: newArr,
+      };
+    }
+    case ADD_STATE_MESSAGE: {
+      const {conversation = {}} = action.body;
+      return {
+        ...state,
+        conversations: [conversation, ...state.conversations],
       };
     }
     case LONG_PRESSED: {
@@ -68,23 +81,36 @@ export function chatroomReducer(state = initialState, action: any) {
         selectedMessages: selectedMessages,
       };
     }
+    case GET_CHATROOM_DB_SUCCESS: {
+      const {chatroomDBDetails = {}} = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
+    }
     case GET_CONVERSATIONS_SUCCESS: {
       const {conversations = []} = action.body;
-      let arr = conversations.reverse();
-      return {...state, conversations: arr};
+      return {...state, conversations: conversations};
     }
-    case PAGINATED_CONVERSATIONS_SUCCESS: {
+    case PAGINATED_CONVERSATIONS_END_SUCCESS: {
       const {conversations = []} = action.body;
       let arr = conversations.reverse();
       return {...state, conversations: [...state.conversations, ...arr]};
+    }
+    case PAGINATED_CONVERSATIONS_START_SUCCESS: {
+      const {conversations = []} = action.body;
+      let arr = conversations.reverse();
+      return {
+        ...state,
+        conversations: [...arr, ...state.conversations],
+      };
     }
     case FIREBASE_CONVERSATIONS_SUCCESS: {
       const data = action.body;
       const {conversations = []} = data;
       let ID = conversations[0]?.id;
-      let temporaryID = conversations[0]?.temporary_id;
+      let temporaryID = conversations[0]?.temporaryId;
+
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
+
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
       let index = conversationsList.findIndex((element: any) => {
         return (
@@ -92,11 +118,12 @@ export function chatroomReducer(state = initialState, action: any) {
           element?.id?.toString() === temporaryID?.toString() // to replace the messsage if message is already there by verifying message's ID with conversationMeta ID;
         );
       });
+
       //replacing the value from the index that matches ID
       if (conversations.length > 0 && index !== -1) {
         conversationArr[index] = conversations[0];
       }
-      // return;
+
       return {
         ...state,
         conversations:
@@ -108,12 +135,10 @@ export function chatroomReducer(state = initialState, action: any) {
     case ON_CONVERSATIONS_CREATE_SUCCESS: {
       const data = action.body;
       const {conversation = []} = data;
-
-      if (conversation?.has_files || !!conversation?.reply_conversation) {
+      if (conversation?.hasFiles || !!conversation?.replyConversation) {
         return {...state};
       }
-      let temporaryID = conversation?.temporary_id;
-
+      let temporaryID = conversation?.temporaryId;
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];
 
@@ -121,7 +146,7 @@ export function chatroomReducer(state = initialState, action: any) {
       let index = conversationsList.findIndex((element: any) => {
         return (
           element?.id?.toString() === temporaryID || // to check locally handled item id with temporaryID
-          element?.temporary_id?.toString() === temporaryID // to replace the messsage if message is already there by verifying message's temporaryID with conversationMeta temporaryID;
+          element?.temporaryId?.toString() === temporaryID // to replace the messsage if message is already there by verifying message's temporaryID with conversationMeta temporaryID;
         );
       });
 
@@ -141,29 +166,33 @@ export function chatroomReducer(state = initialState, action: any) {
       const {obj} = action.body;
       return {...state, conversations: [obj, ...state.conversations]};
     }
-
+    case UPDATE_MULTIMEDIA_CONVERSATIONS: {
+      const id = action.body;
+      // return null;
+    }
     case CLEAR_CHATROOM_CONVERSATION: {
       const {conversations = []} = action.body;
       return {...state, conversations: conversations};
     }
-    case GET_CHATROOM_SUCCESS: {
+    case GET_CHATROOM_ACTIONS_SUCCESS: {
       const chatroomDetails = action.body;
       return {...state, chatroomDetails: chatroomDetails};
     }
+    case GET_CHATROOM_SUCCESS: {
+      const chatroomDBDetails = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
+    }
     case CLEAR_CHATROOM_DETAILS: {
-      const {chatroomDetails} = action.body;
-      return {...state, chatroomDetails: chatroomDetails};
+      const {chatroomDBDetails} = action.body;
+      return {...state, chatroomDBDetails: chatroomDBDetails};
     }
     case UPDATE_CHAT_REQUEST_STATE: {
       const {chatRequestState} = action.body;
       return {
         ...state,
-        chatroomDetails: {
-          ...state.chatroomDetails,
-          chatroom: {
-            ...state.chatroomDetails.chatroom,
-            chat_request_state: chatRequestState,
-          },
+        chatroomDBDetails: {
+          ...state.chatroomDBDetails,
+          chatRequestState: chatRequestState,
         },
       };
     }

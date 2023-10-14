@@ -37,7 +37,7 @@ import {Dispatch} from '@reduxjs/toolkit';
 
 export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
   try {
-    return await dispatch({
+    const temp = await dispatch({
       type: INIT_API_SUCCESS,
       [CALL_API]: {
         func: myClient?.initiateUser(payload),
@@ -46,6 +46,7 @@ export const initAPI = (payload: any) => async (dispatch: Dispatch) => {
         showLoader: true,
       },
     });
+    return temp;
   } catch (error) {
     Alert.alert(`${error}`);
   }
@@ -158,7 +159,7 @@ export const getHomeFeedData =
             GET_HOMEFEED_CHAT_SUCCESS,
             GET_HOMEFEED_CHAT_FAILED,
           ],
-          showLoader: showLoader != undefined ? false : true,
+          showLoader: showLoader ? true : false,
         },
       });
     } catch (error) {
@@ -200,7 +201,7 @@ export const getDMFeedData =
             GET_DMFEED_CHAT_SUCCESS,
             GET_DMFEED_CHAT_FAILED,
           ],
-          showLoader: showLoader != undefined ? false : true,
+          showLoader: showLoader ? true : false,
         },
       });
     } catch (error) {
@@ -221,7 +222,7 @@ export const updateDMFeedData =
             UPDATE_DMFEED_CHAT_SUCCESS,
             UPDATE_DMFEED_CHAT_FAILED,
           ],
-          showLoader: showLoader != undefined ? false : true,
+          showLoader: showLoader ? true : false,
         },
       });
     } catch (error) {
