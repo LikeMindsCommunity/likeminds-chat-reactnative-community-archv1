@@ -1,4 +1,4 @@
-import {SyncChatroomRequest} from '@likeminds.community/chat-rn-beta';
+import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
 import {myClient} from '../../';
 
 // Sync Chatrrom API
