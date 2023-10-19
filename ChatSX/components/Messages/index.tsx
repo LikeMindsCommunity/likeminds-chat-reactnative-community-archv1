@@ -175,11 +175,8 @@ const Messages = ({
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
   const currentUserUuid = users[0]?.userUniqueID;
 
-  console.log('item?.answer', item?.answer);
-
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {
-    console.log('answerAsdasds', answer);
     const loggedInMember = currentUserUuid;
     const chatroomWithUser =
       chatroomDBDetails?.chatroomWithUser?.sdkClientInfo?.uuid;
