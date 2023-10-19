@@ -1,4 +1,4 @@
-import {SyncChatroomRequest} from '@likeminds.community/chat-rn-beta';
+import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
 import {myClient} from '../../';
 import {track} from '../analytics/LMChatAnalytics';
 import {Events, Keys} from '../enums';
