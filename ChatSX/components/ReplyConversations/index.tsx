@@ -6,7 +6,7 @@ import {
   Alert,
   Pressable,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
@@ -23,6 +23,8 @@ import {
   VIDEO_TEXT,
 } from '../../constants/Strings';
 import AttachmentConversations from '../AttachmentConversations';
+import {track} from '../../analytics/LMChatAnalytics';
+import {Events, Keys} from '../../enums';
 
 interface ReplyConversations {
   item: any;
@@ -34,6 +36,7 @@ interface ReplyConversations {
   reactionArr: any;
   navigation: any;
   handleFileUpload: any;
+  chatroomID: any;
 }
 
 interface ReplyBox {
@@ -108,6 +111,7 @@ const ReplyConversations = ({
   reactionArr,
   navigation,
   handleFileUpload,
+  chatroomID,
 }: ReplyConversations) => {
   const dispatch = useAppDispatch();
   const {conversations, selectedMessages, stateArr, isLongPress}: any =
@@ -143,6 +147,19 @@ const ReplyConversations = ({
           dispatch({type: LONG_PRESSED, body: false});
         }
       } else {
+        let selectedKey;
+        if (selectedMessages[0]?.attachmentCount > 0) {
+          selectedKey = selectedMessages[0]?.attachments[0]?.type;
+        } else {
+          selectedKey = 'text';
+        }
+        track(
+          Events.MESSAGE_SELECTED,
+          new Map<string, string>([
+            [Keys.TYPE, selectedKey],
+            [Keys.CHATROOM_ID, chatroomID.toString()],
+          ]),
+        );
         if (!isStateIncluded) {
           dispatch({
             type: SELECTED_MESSAGES,

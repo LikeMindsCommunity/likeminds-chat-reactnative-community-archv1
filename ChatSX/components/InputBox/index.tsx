@@ -95,9 +95,10 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
-import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
+import {track} from '../../analytics/LMChatAnalytics';
 
 const InputBox = ({
   replyChatID,
@@ -115,6 +116,8 @@ const InputBox = ({
   setIsEditable,
   isSecret,
   chatroomWithUser,
+  item,
+  chatroomName,
 }: InputBoxProps) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -136,9 +139,12 @@ const InputBox = ({
   const [taggedUserName, setTaggedUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const {chatroomDBDetails}: any = useAppSelector(state => state.chatroom);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
+
+  let taggedUserNames: any = [];
 
   const {
     selectedFilesToUpload = [],
@@ -157,6 +163,8 @@ const InputBox = ({
     fileSent,
   }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+  const [taggedUserCount, setTaggedUserCount] = useState(0);
+  const [isGroupTag, setIsGroupTag] = useState(false);
 
   const dispatch = useAppDispatch();
   let conversationArrayLength = conversations.length;
@@ -577,8 +585,12 @@ const InputBox = ({
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
         let newName = name.substring(1);
+        setIsGroupTag(true);
+        taggedUserNames.push(name);
         return `<<${name}|route://${newName}>>`;
       } else {
+        setTaggedUserCount(taggedUserCount + 1);
+        taggedUserNames.push(name);
         return `<<${name}|route://${id}>>`;
       }
     });
@@ -621,6 +633,22 @@ const InputBox = ({
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
+        track(
+          Events.MESSAGE_REPLY,
+          new Map<string, string>([
+            [Keys.TYPE, 'text'],
+            [Keys.CHATROOM_ID, item?.id],
+            [
+              Keys.REPLIED_TO_MEMBER_ID,
+              item?.replyConversationObject?.member?.id,
+            ],
+            [
+              Keys.REPLIED_TO_MEMBER_STATE,
+              item?.replyConversationObject?.member?.state,
+            ],
+            [Keys.REPLIED_TO_MESSAGE_ID, item?.replyConversationObject?.id],
+          ]),
+        );
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
@@ -868,6 +896,24 @@ const InputBox = ({
           });
         }
       }
+      let selectedType;
+      if (replyObj?.attachmentCount > 0 || obj?.attachmentCount > 0) {
+        selectedType = dummyAttachmentsArr?.type;
+      } else {
+        selectedType = 'text';
+      }
+      track(
+        Events.CHATROOM_RESPONDED,
+        new Map<string, string>([
+          [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
+          [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
+          [Keys.CHATROOM_NAME, chatroomName?.toString()],
+          [Keys.CHATROOM_LAST_CONVERSATION_TYPE, selectedType.toString()],
+          ['count_tagged_users', taggedUserCount.toString()],
+          ['name_tagged_users', taggedUserNames.toString()],
+          ['is_group_tag', isGroupTag.toString()],
+        ]),
+      );
     }
   };
 
@@ -1056,6 +1102,14 @@ const InputBox = ({
     await myClient?.updateConversation(
       conversationId.toString(),
       editConversationResponse?.data?.conversation,
+    );
+
+    track(
+      Events.MESSAGE_EDITED,
+      new Map<string, string>([
+        [Keys.TYPE, 'text'],
+        [Keys.UPDATED_DESCRIPTION, editedConversation],
+      ]),
     );
   };
 

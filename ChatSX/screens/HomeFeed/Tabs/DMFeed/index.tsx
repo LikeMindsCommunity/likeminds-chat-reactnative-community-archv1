@@ -47,6 +47,8 @@ import Realm from 'realm';
 import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+import {track} from '../../../../analytics/LMChatAnalytics';
+import {Events, Keys} from '../../../../enums';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -97,6 +99,13 @@ const DMFeed = ({navigation}: Props) => {
       }
     }
   }
+
+  useEffect(() => {
+    track(
+      Events.DM_FEED_OPENED,
+      new Map<string, string>([[Keys.SOURCE, 'home_feed']]),
+    );
+  }, []);
 
   useLayoutEffect(() => {
     fetchData();

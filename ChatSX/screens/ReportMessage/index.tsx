@@ -14,6 +14,8 @@ import STYLES from '../../constants/Styles';
 import styles from './styles';
 import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch} from '../../../store';
+import {track} from '../../analytics/LMChatAnalytics';
+import {Events, Keys} from '../../enums';
 interface Props {
   navigation: any;
   route: any;
@@ -24,7 +26,12 @@ const ReportScreen = ({navigation, route}: Props) => {
   const [otherReason, setOtherReason] = useState('');
   const [selectedId, setSelectedId] = useState(-1);
 
-  const {conversationID, isDM = false} = route.params;
+  const {
+    conversationID,
+    isDM = false,
+    chatroomID,
+    selectedMessages,
+  } = route.params;
 
   const dispatch = useAppDispatch();
 
@@ -76,7 +83,7 @@ const ReportScreen = ({navigation, route}: Props) => {
         const res = await myClient?.getReportTags({
           type: isDM === true ? 1 : 0,
         });
-        setReasons(res?.data?.report_tags);
+        setReasons(res?.data?.reportTags);
       } catch (error) {
         //    Alert.alert('API failed')
       }
@@ -86,7 +93,7 @@ const ReportScreen = ({navigation, route}: Props) => {
 
   const reportMessage = async () => {
     try {
-      const call = await myClient?.pushReport({
+      const call = await myClient?.postReport({
         conversationId: Number(conversationID),
         tagId: Number(selectedId),
         reason: otherReason != '' ? otherReason : '',
@@ -95,6 +102,20 @@ const ReportScreen = ({navigation, route}: Props) => {
         type: SHOW_TOAST,
         body: {isToast: true, msg: 'Reported succesfully'},
       });
+      let selectedKey;
+      if (selectedMessages[0]?.attachmentCount > 0) {
+        selectedKey = selectedMessages[0]?.attachments[0]?.type;
+      } else {
+        selectedKey = 'text';
+      }
+      track(
+        Events.MESSAGE_REPORTED,
+        new Map<string, string>([
+          [Keys.TYPE, selectedKey],
+          [Keys.CHATROOM_ID, chatroomID.toString()],
+          [Keys.REASON, otherReason != '' ? otherReason : ''],
+        ]),
+      );
     } catch (error) {
       //  Alert.alert('API failed')
     }

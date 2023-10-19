@@ -15,10 +15,11 @@ import {
 import {PollConversationView} from '../Poll';
 import {useQuery} from '@realm/react';
 import {myClient} from '../../..';
-import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
-import { UserSchemaResponse } from '../../db/models';
-import { USER_SCHEMA_RO } from '../../constants/Strings';
+import {UserSchemaResponse} from '../../db/models';
+import {USER_SCHEMA_RO} from '../../constants/Strings';
+import {track} from '../../analytics/LMChatAnalytics';
 
 interface Messages {
   item: any;
@@ -31,6 +32,8 @@ interface Messages {
   handleTapToUndo: any;
   handleFileUpload: any;
   chatroomType: any;
+  chatroomID: any;
+  chatroomName: any;
 }
 
 const Messages = ({
@@ -44,6 +47,8 @@ const Messages = ({
   handleTapToUndo,
   handleFileUpload,
   chatroomType,
+  chatroomID,
+  chatroomName,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
 
@@ -66,6 +71,7 @@ const Messages = ({
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
+
   let defaultReactionArrLen = item?.reactions?.length;
 
   //this useEffect update setReactionArr in format of { reaction: 👌, memberArr: []}
@@ -169,8 +175,11 @@ const Messages = ({
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
   const currentUserUuid = users[0]?.userUniqueID;
 
+  console.log('item?.answer', item?.answer);
+
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {
+    console.log('answerAsdasds', answer);
     const loggedInMember = currentUserUuid;
     const chatroomWithUser =
       chatroomDBDetails?.chatroomWithUser?.sdkClientInfo?.uuid;
@@ -272,6 +281,7 @@ const Messages = ({
             reactionArr={reactionArr}
             navigation={navigation}
             handleFileUpload={handleFileUpload}
+            chatroomID={chatroomID}
           />
         ) : !!!item?.replyConversationObject && item?.attachmentCount > 0 ? (
           <AttachmentConversations
@@ -364,6 +374,8 @@ const Messages = ({
 
                               chatroomWithUserUuid,
                               chatroomWithUserMemberId,
+                              chatroomName,
+                              user?.sdkClientInfo?.community,
                             )
                           : decode(
                               item?.answer,
@@ -374,6 +386,8 @@ const Messages = ({
 
                               chatroomWithUserUuid,
                               chatroomWithUserMemberId,
+                              chatroomName,
+                              user?.sdkClientInfo?.community,
                             )
                       }
                     </Text>
@@ -581,8 +595,18 @@ const Messages = ({
         setModalVisible={val => {
           setModalVisible(val);
         }}
+        item={item}
+        chatroomID={chatroomID}
         removeReaction={(reactionArr: any, removeFromList?: any) => {
           removeReaction(item, reactionArr, removeFromList);
+
+          track(
+            Events.REACTION_REMOVED,
+            new Map<string, string>([
+              [Keys.MESSAGE_ID, item?.id],
+              [Keys.CHATROOM_ID, chatroomID.toString()],
+            ]),
+          );
 
           //logic to check clicked index and findIndex are same so that we can remove reaction
           let index = item?.reactions.findIndex(

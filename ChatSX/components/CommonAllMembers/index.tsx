@@ -21,8 +21,16 @@ import {CANCEL_BUTTON, REQUEST_DM_LIMIT} from '../../constants/Strings';
 import {formatTime} from '../../commonFuctions';
 import {FlashList} from '@shopify/flash-list';
 import {LoaderComponent} from '../LoaderComponent';
+import {Events, Keys} from '../../enums';
+import {track} from '../../analytics/LMChatAnalytics';
 
-const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
+const CommonAllMembers = ({
+  navigation,
+  chatroomID,
+  isDM,
+  chatroomName,
+  showList,
+}: any) => {
   const [participants, setParticipants] = useState([] as any);
   const [searchedParticipants, setSearchedParticipants] = useState([] as any);
   const [isLoading, setIsLoading] = useState(false);
@@ -299,6 +307,14 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
       type: SHOW_TOAST,
       body: {isToast: true, msg: 'Invitation sent'},
     });
+    track(
+      Events.MEMBER_GROUP_ADDED,
+      new Map<string, string>([
+        ['member_group', selectedParticipants],
+        [Keys.CHATROOM_NAME, chatroomName.toString()],
+        [Keys.CHATROOM_ID, chatroomID.toString()],
+      ]),
+    );
   };
 
   //function calls action to update members array with the new data.
@@ -427,6 +443,7 @@ const CommonAllMembers = ({navigation, chatroomID, isDM, showList}: any) => {
             uuid: uuid,
           };
           const apiResponse = await myClient?.createDMChatroom(payload);
+          track(Events.DM_CHAT_ROOM_CREATED);
           const response = apiResponse?.data;
           if (apiResponse?.success === false) {
             dispatch({

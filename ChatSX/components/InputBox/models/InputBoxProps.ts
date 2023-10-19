@@ -14,4 +14,6 @@ export interface InputBoxProps {
   setIsEditable?: any;
   isSecret?: any;
   chatroomWithUser?: any;
+  item?: any;
+  chatroomName?: any;
 }

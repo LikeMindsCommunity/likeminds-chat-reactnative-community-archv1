@@ -79,6 +79,7 @@ export function getLinkingRoute(route: string) {
           params: {
             chatroomID: params[paramsKey[0]],
             navigationFromNotification: false,
+            deepLinking: true,
           },
         };
       }

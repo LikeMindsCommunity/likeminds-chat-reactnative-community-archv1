@@ -17,6 +17,8 @@ import Layout from '../../constants/Layout';
 import {ADD_PARTICIPANTS} from '../../constants/Screens';
 import {FlashList} from '@shopify/flash-list';
 import {LoaderComponent} from '../../components/LoaderComponent';
+import {track} from '../../analytics/LMChatAnalytics';
+import {Events, Keys, Sources} from '../../enums';
 
 const ViewParticipants = ({navigation, route}: any) => {
   const [participants, setParticipants] = useState({} as any);
@@ -27,7 +29,7 @@ const ViewParticipants = ({navigation, route}: any) => {
   const [totalChatroomCount, setTotalChatroomCount] = useState('');
   const [count, setCount] = useState(1);
 
-  const {chatroomID, isSecret} = route.params;
+  const {chatroomID, isSecret, chatroomName} = route.params;
   const user = useAppSelector(state => state.homefeed.user);
 
   const setInitialHeader = () => {
@@ -138,6 +140,14 @@ const ViewParticipants = ({navigation, route}: any) => {
       participantName: search,
     } as any);
     const res = apiRes?.data;
+    track(
+      Events.VIEW_CHATROOM_PARTICIPANTS,
+      new Map<string, string>([
+        [Keys.CHATROOM_ID, chatroomID.toString()],
+        [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community],
+        [Keys.SOURCE, Sources.CHATROOM_OVERFLOW_MENU],
+      ]),
+    );
 
     setTotalChatroomCount(res?.totalParticipantsCount);
     setParticipants(res?.participants);
@@ -258,6 +268,7 @@ const ViewParticipants = ({navigation, route}: any) => {
                 navigation.navigate(ADD_PARTICIPANTS, {
                   chatroomID: chatroomID,
                   isSecret: isSecret,
+                  chatroomName: chatroomName,
                 });
               }}
               style={styles.participants}>
