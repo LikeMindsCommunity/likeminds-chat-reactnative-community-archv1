@@ -53,7 +53,6 @@ const ImageCropScreen = ({navigation, route}: ImageCropScreenProps) => {
             }}
             ref={cropViewRef}
             onImageCrop={res => {
-              console.log('CropView =', res);
               replaceImage(res);
             }}
           />

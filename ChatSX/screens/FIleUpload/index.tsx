@@ -299,19 +299,21 @@ const FileUpload = ({navigation, route}: any) => {
                 style={styles.backBtn}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.touchableBackButton}
-              onPress={() => {
-                navigation.navigate(IMAGE_CROP_SCREEN, {
-                  uri: selectedFileToView?.uri,
-                  fileName: selectedFileToView?.fileName,
-                });
-              }}>
-              <Image
-                source={require('../../assets/images/crop_icon3x.png')}
-                style={styles.cropIcon}
-              />
-            </TouchableOpacity>
+            {itemType === IMAGE_TEXT ? (
+              <TouchableOpacity
+                style={styles.touchableBackButton}
+                onPress={() => {
+                  navigation.navigate(IMAGE_CROP_SCREEN, {
+                    uri: selectedFileToView?.uri,
+                    fileName: selectedFileToView?.fileName,
+                  });
+                }}>
+                <Image
+                  source={require('../../assets/images/crop_icon3x.png')}
+                  style={styles.cropIcon}
+                />
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
       ) : null}
