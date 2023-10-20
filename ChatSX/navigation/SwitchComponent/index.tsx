@@ -14,35 +14,31 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import HomeFeed from '../screens/HomeFeed';
-import ExploreFeed from '../screens/ExploreFeed';
-import ChatRoom from '../screens/ChatRoom';
-import {useAppDispatch, useAppSelector} from '../../store';
-import ReportScreen from '../screens/ReportMessage';
-import ImageScreen from '../components/ImageScreen';
+import HomeFeed from '../../screens/HomeFeed';
+import ExploreFeed from '../../screens/ExploreFeed';
+import ChatRoom from '../../screens/ChatRoom';
+import {useAppDispatch, useAppSelector} from '../../../store';
+import ReportScreen from '../../screens/ReportMessage';
+import ImageScreen from '../../components/ImageScreen';
 import {
   LoaderChatroomComponent,
   LoaderComponent,
-} from '../components/LoaderComponent';
-import ToastMessage from '../components/ToastMessage';
+} from '../../components/LoaderComponent';
+import ToastMessage from '../../components/ToastMessage';
 import {
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
   SHOW_TOAST,
-} from '../store/types/types';
+} from '../../store/types/types';
 import messaging from '@react-native-firebase/messaging';
-import notifee, {
-  AndroidCategory,
-  AndroidImportance,
-  EventType,
-} from '@notifee/react-native';
-import {getRoute} from '../notifications/routes';
-import {navigationRef} from '../../RootNavigation';
-import getNotification from '../notifications';
-import ViewParticipants from '../screens/ViewParticipants';
-import AddParticipants from '../screens/AddParticipants';
-import DmAllMembers from '../screens/DmAllMembers';
-import FileUpload from '../screens/FIleUpload';
+import notifee, {EventType} from '@notifee/react-native';
+import {getRoute} from '../../notifications/routes';
+import {navigationRef} from '../../../RootNavigation';
+import getNotification from '../../notifications';
+import ViewParticipants from '../../screens/ViewParticipants';
+import AddParticipants from '../../screens/AddParticipants';
+import DmAllMembers from '../../screens/DmAllMembers';
+import FileUpload from '../../screens/FIleUpload';
 import {
   ADD_PARTICIPANTS,
   CHATROOM,
@@ -58,14 +54,16 @@ import {
   POLL_RESULT,
   CREATE_POLL_SCREEN,
   IMAGE_CROP_SCREEN,
-} from '../constants/Screens';
-import VideoPlayer from '../screens/VideoPlayer';
-import CarouselScreen from '../screens/CarouselScreen';
-import PollResult from '../components/PollResult';
-import {CreatePollScreen} from '../components/Poll';
-import ImageCropScreen from '../screens/ImageCrop';
+} from '../../constants/Screens';
+import VideoPlayer from '../../screens/VideoPlayer';
+import CarouselScreen from '../../screens/CarouselScreen';
+import PollResult from '../../components/PollResult';
+import {CreatePollScreen} from '../../components/Poll';
+import ImageCropScreen from '../../screens/ImageCrop';
+import {ImageCropScreenProps} from '../../screens/ImageCrop/models';
+import {RootStackParamList} from './models';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const SwitchComponent = () => {
   const {count, chatroomCount} = useAppSelector(state => state.loader);
@@ -128,7 +126,8 @@ const SwitchComponent = () => {
   }, []);
 
   const linking = {
-    prefixes: [''], // Add your custom link to open app.
+    // prefixes: ['mychat:/'], // Add your custom link to open app.
+    prefixes: ['https://rnsampleapp.com'], // Add your custom link to open app.
   };
 
   return (
@@ -183,7 +182,6 @@ const SwitchComponent = () => {
           dispatch({type: SHOW_TOAST, body: {isToast: false, msg: ''}});
         }}
       />
-      {/* {count > 0 && <LoaderComponent />} */}
       {chatroomCount > 0 && <LoaderChatroomComponent />}
     </View>
   );

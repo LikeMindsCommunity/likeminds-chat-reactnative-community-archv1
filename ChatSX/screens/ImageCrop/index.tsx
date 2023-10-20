@@ -1,13 +1,7 @@
-import React, {useRef} from 'react';
+import React, {FC, useRef} from 'react';
 import {CropView} from 'react-native-image-crop-tools';
 import {ImageCropScreenProps} from './models';
-import {
-  Image,
-  Platform,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Image, Platform, Text, TouchableOpacity, View} from 'react-native';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {
@@ -17,7 +11,7 @@ import {
 } from '../../store/types/types';
 import {CANCEL_BUTTON, DONE_BUTTON} from '../../constants/Strings';
 
-const ImageCropScreen = ({navigation, route}: ImageCropScreenProps) => {
+const ImageCropScreen: FC<ImageCropScreenProps> = ({navigation, route}) => {
   const {selectedFilesToUpload = []}: any = useAppSelector(
     state => state.chatroom,
   );
