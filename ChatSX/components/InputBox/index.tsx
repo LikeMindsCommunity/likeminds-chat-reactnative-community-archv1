@@ -231,7 +231,6 @@ const InputBox = ({
         });
       } else {
         // to select more images and videos on FileUpload screen (isUploadScreen === true)
-
         const res = await getVideoThumbnail({
           // selected files will be saved in redux inside get video function
           selectedImages,
@@ -248,7 +247,7 @@ const InputBox = ({
         dispatch({
           type: SELECTED_FILES_TO_UPLOAD,
           body: {
-            images: selectedImages[0],
+            images: res?.selectedFilesToUpload,
           },
         });
       }
