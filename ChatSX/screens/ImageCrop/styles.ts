@@ -11,6 +11,11 @@ export const styles = StyleSheet.create({
   item: {
     padding: 5,
   },
+  cropView: {
+    width: '100%',
+    flex: 1,
+    backgroundColor: 'black',
+  },
   text: {
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,

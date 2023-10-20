@@ -1,7 +1,13 @@
 import React, {useRef} from 'react';
 import {CropView} from 'react-native-image-crop-tools';
 import {ImageCropScreenProps} from './models';
-import {Button, Image, Text, TouchableOpacity, View} from 'react-native';
+import {
+  Image,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {
@@ -9,6 +15,7 @@ import {
   SELECTED_FILES_TO_UPLOAD_THUMBNAILS,
   SELECTED_FILE_TO_VIEW,
 } from '../../store/types/types';
+import {CANCEL_BUTTON, DONE_BUTTON} from '../../constants/Strings';
 
 const ImageCropScreen = ({navigation, route}: ImageCropScreenProps) => {
   const {selectedFilesToUpload = []}: any = useAppSelector(
@@ -18,6 +25,7 @@ const ImageCropScreen = ({navigation, route}: ImageCropScreenProps) => {
   const cropViewRef = useRef<CropView>(null);
   const {uri, fileName} = route?.params;
 
+  // this function is used to replace the old image with cropped image
   const replaceImage = (item: any) => {
     let selectedFiles = [...selectedFilesToUpload];
     for (let i = 0; i < selectedFiles?.length; i++) {
@@ -41,31 +49,36 @@ const ImageCropScreen = ({navigation, route}: ImageCropScreenProps) => {
     });
     navigation.goBack();
   };
+
   return (
     <>
+      {/* Crop View */}
       {uri ? (
         <>
           <CropView
             sourceUrl={uri}
-            style={{
-              width: '100%',
-              flex: 1,
-            }}
+            style={styles.cropView}
             ref={cropViewRef}
             onImageCrop={res => {
-              replaceImage(res);
+              let croppedImage = {...res};
+              if (Platform.OS === 'android') {
+                if (!croppedImage?.uri) return;
+                croppedImage.uri = `file://${croppedImage?.uri}`;
+              }
+              replaceImage(croppedImage);
             }}
           />
         </>
       ) : null}
 
+      {/* Bottom Tabs */}
       <View style={styles.bottom}>
         <TouchableOpacity
           style={styles.item}
           onPress={() => {
             navigation.goBack();
           }}>
-          <Text style={styles.text}>Cancel</Text>
+          <Text style={styles.text}>{CANCEL_BUTTON}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.item}
@@ -83,7 +96,7 @@ const ImageCropScreen = ({navigation, route}: ImageCropScreenProps) => {
           onPress={() => {
             cropViewRef?.current?.saveImage(false, 100);
           }}>
-          <Text style={styles.text}>Done</Text>
+          <Text style={styles.text}>{DONE_BUTTON}</Text>
         </TouchableOpacity>
       </View>
     </>

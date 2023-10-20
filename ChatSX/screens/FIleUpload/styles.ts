@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     width: 25,
     resizeMode: 'contain',
     tintColor: 'white',
+    marginRight: Platform.OS === 'ios' ? 0 : 15,
   },
   mainImage: {
     height: Layout.window.height,
