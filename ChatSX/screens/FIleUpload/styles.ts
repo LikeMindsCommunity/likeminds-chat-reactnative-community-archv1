@@ -9,6 +9,14 @@ const styles = StyleSheet.create({
     zIndex: 1,
     top: Platform.OS === 'ios' ? 60 : 20,
     left: 10,
+    width: '100%',
+    right: 10,
+  },
+  headingItems: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flex: 1,
   },
   backBtn: {
     height: 20,
@@ -16,6 +24,12 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     tintColor: 'white',
     padding: 5,
+  },
+  cropIcon: {
+    height: 25,
+    width: 25,
+    resizeMode: 'contain',
+    tintColor: 'white',
   },
   mainImage: {
     height: Layout.window.height,

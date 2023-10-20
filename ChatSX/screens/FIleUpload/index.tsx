@@ -38,6 +38,7 @@ import AWS from 'aws-sdk';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {fetchResourceFromURI} from '../../commonFuctions';
 import {myClient} from '../../..';
+import {IMAGE_CROP_SCREEN} from '../../constants/Screens';
 
 interface UploadResource {
   selectedImages: any;
@@ -50,8 +51,7 @@ interface UploadResource {
 
 const FileUpload = ({navigation, route}: any) => {
   const video = useRef<any>(null);
-  const [status, setStatus] = React.useState({positionMillis: 0});
-  const [inFullscreen, setInFullsreen] = useState(false);
+
   const {chatroomID, previousMessage = ''} = route?.params;
   const {
     selectedFilesToUpload = [],
@@ -278,26 +278,41 @@ const FileUpload = ({navigation, route}: any) => {
     <View style={styles.page}>
       {len > 0 ? (
         <View style={styles.headingContainer}>
-          <TouchableOpacity
-            style={styles.touchableBackButton}
-            onPress={() => {
-              dispatch({
-                type: CLEAR_SELECTED_FILES_TO_UPLOAD,
-              });
-              dispatch({
-                type: CLEAR_SELECTED_FILE_TO_VIEW,
-              });
-              dispatch({
-                type: STATUS_BAR_STYLE,
-                body: {color: STYLES.$STATUS_BAR_STYLE.default},
-              });
-              navigation.goBack();
-            }}>
-            <Image
-              source={require('../../assets/images/blue_back_arrow3x.png')}
-              style={styles.backBtn}
-            />
-          </TouchableOpacity>
+          <View style={styles.headingItems}>
+            <TouchableOpacity
+              style={styles.touchableBackButton}
+              onPress={() => {
+                dispatch({
+                  type: CLEAR_SELECTED_FILES_TO_UPLOAD,
+                });
+                dispatch({
+                  type: CLEAR_SELECTED_FILE_TO_VIEW,
+                });
+                dispatch({
+                  type: STATUS_BAR_STYLE,
+                  body: {color: STYLES.$STATUS_BAR_STYLE.default},
+                });
+                navigation.goBack();
+              }}>
+              <Image
+                source={require('../../assets/images/blue_back_arrow3x.png')}
+                style={styles.backBtn}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.touchableBackButton}
+              onPress={() => {
+                navigation.navigate(IMAGE_CROP_SCREEN, {
+                  uri: selectedFileToView?.uri,
+                  fileName: selectedFileToView?.fileName,
+                });
+              }}>
+              <Image
+                source={require('../../assets/images/crop_icon3x.png')}
+                style={styles.cropIcon}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
       ) : null}
       <View style={styles.selectedFileToView}>

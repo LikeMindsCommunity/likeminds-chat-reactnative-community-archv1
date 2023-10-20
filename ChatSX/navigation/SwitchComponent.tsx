@@ -57,11 +57,13 @@ import {
   CAROUSEL_SCREEN,
   POLL_RESULT,
   CREATE_POLL_SCREEN,
+  IMAGE_CROP_SCREEN,
 } from '../constants/Screens';
 import VideoPlayer from '../screens/VideoPlayer';
 import CarouselScreen from '../screens/CarouselScreen';
 import PollResult from '../components/PollResult';
 import {CreatePollScreen} from '../components/Poll';
+import ImageCropScreen from '../screens/ImageCrop';
 
 const Stack = createNativeStackNavigator();
 
@@ -111,7 +113,6 @@ const SwitchComponent = () => {
                   routes?.params as never,
                 );
               }, 1000);
-              
             }
           } else {
             navigation.navigate(
@@ -167,6 +168,11 @@ const SwitchComponent = () => {
             // options={{headerShown: false, gestureEnabled: false}}
             name={CREATE_POLL_SCREEN}
             component={CreatePollScreen}
+          />
+          <Stack.Screen
+            options={{headerShown: false}}
+            name={IMAGE_CROP_SCREEN}
+            component={ImageCropScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
