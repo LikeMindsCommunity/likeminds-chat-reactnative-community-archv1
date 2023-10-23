@@ -58,8 +58,8 @@
     "rn-emoji-keyboard": "1.2.1"
   },
   "devDependencies": {
-    "@babel/core": "7.20.0",
-    "@babel/preset-env": "7.20.0",
+    "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "7.20.0",
     "@react-native-community/eslint-config": "3.0.0",
     "@tsconfig/react-native": "2.0.2",
