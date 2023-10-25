@@ -12,6 +12,7 @@ import {
   PermissionsAndroid,
   Linking,
   ActivityIndicator,
+  Button,
 } from 'react-native';
 import React, {FC, useEffect, useRef, useState} from 'react';
 import {styles} from './styles';
@@ -98,6 +99,9 @@ import {
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+
+const audioRecorderPlayer = new AudioRecorderPlayer();
 
 const InputBox = ({
   replyChatID,
@@ -1058,6 +1062,41 @@ const InputBox = ({
     );
   };
 
+  // Audio and play section
+  const startRecord = async () => {
+    // const path = 'your_audio_file_path.mp3';
+    const result = await audioRecorderPlayer.startRecorder();
+    audioRecorderPlayer.addRecordBackListener(e => {
+      console.log(
+        'addRecordBackListener',
+        e,
+        audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)),
+      );
+      // this.setState({
+      //   recordSecs: e.currentPosition,
+      //   recordTime: this.audioRecorderPlayer.mmssss(
+      //     Math.floor(e.currentPosition),
+      //   ),
+      // });
+      return;
+    });
+    console.log('result ==', result);
+  };
+
+  const stopRecord = async () => {
+    await audioRecorderPlayer.stopRecorder();
+    audioRecorderPlayer.removeRecordBackListener();
+  };
+
+  const startPlay = async () => {
+    // const path = 'your_audio_file_path.mp3';
+    await audioRecorderPlayer.startPlayer();
+  };
+
+  const stopPlay = async () => {
+    await audioRecorderPlayer.stopPlayer();
+  };
+
   return (
     <View>
       <View
@@ -1229,6 +1268,13 @@ const InputBox = ({
               </TouchableOpacity>
             </View>
           ) : null}
+
+          <View>
+            <Button title="Start Recording" onPress={startRecord} />
+            <Button title="Stop Recording" onPress={stopRecord} />
+            <Button title="Start Playing" onPress={startPlay} />
+            <Button title="Stop Playing" onPress={stopPlay} />
+          </View>
 
           <View
             style={[
