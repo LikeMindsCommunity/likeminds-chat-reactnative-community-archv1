@@ -38,8 +38,8 @@ import AWS from 'aws-sdk';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {fetchResourceFromURI} from '../../commonFuctions';
 import {myClient} from '../../..';
-import {track} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface UploadResource {
   selectedImages: any;
@@ -223,7 +223,7 @@ const FileUpload = ({navigation, route}: any) => {
 
           const uploadRes = await myClient?.putMultimedia(payload as any);
 
-          track(
+          LMChatAnalytics.track(
             Events.ATTACHMENT_UPLOADED,
             new Map<string, string>([
               [Keys.CHATROOM_ID, chatroomID?.toString()],

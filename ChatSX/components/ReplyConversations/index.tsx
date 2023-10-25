@@ -23,8 +23,8 @@ import {
   VIDEO_TEXT,
 } from '../../constants/Strings';
 import AttachmentConversations from '../AttachmentConversations';
-import {track} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface ReplyConversations {
   item: any;
@@ -153,7 +153,7 @@ const ReplyConversations = ({
         } else {
           selectedKey = 'text';
         }
-        track(
+        LMChatAnalytics.track(
           Events.MESSAGE_SELECTED,
           new Map<string, string>([
             [Keys.TYPE, selectedKey],

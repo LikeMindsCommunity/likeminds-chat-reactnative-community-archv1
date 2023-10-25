@@ -1,7 +1,7 @@
 import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
 import {myClient} from '../../';
-import {track} from '../analytics/LMChatAnalytics';
 import {Events, Keys} from '../enums';
+import {LMChatAnalytics} from '../analytics/LMChatAnalytics';
 
 // Sync Chatrrom API
 async function syncChatroomAPI(
@@ -64,7 +64,7 @@ export const paginatedSyncAPI = async (
   await myClient.updateTimeStamp(maxTimeStampNow, isDm);
 
   if (DB_RESPONSE?.chatroomsData?.length === 0) {
-    track(
+    LMChatAnalytics.track(
       Events.SYNC_COMPLETE,
       new Map<string, string>([[Keys.SYNC_COMPLETE, true.toString()]]),
     );

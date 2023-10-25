@@ -2,7 +2,7 @@ import {Alert, Share} from 'react-native';
 import {VALID_URI_REGEX} from '../constants/Regex';
 import {ShareChatroomRequest} from './models';
 import {Events, Keys} from '../enums';
-import {track} from '../analytics/LMChatAnalytics';
+import {LMChatAnalytics} from '../analytics/LMChatAnalytics';
 
 // this method generates URL for share
 export const shareChatroomURL = ({
@@ -27,7 +27,7 @@ export const onShare = async (chatroomID: number, chatroomType: number) => {
       domain: '', // Add your custom link to open app,
     };
     let shareUrl = shareChatroomURL(shareChatroomRequest);
-    track(
+    LMChatAnalytics.track(
       Events.CHAT_ROOM_SHARED,
       new Map<string, string>([
         [Keys.SOURCE, chatroomID.toString()],

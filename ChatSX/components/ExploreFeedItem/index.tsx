@@ -12,8 +12,8 @@ import {
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 import {CHATROOM} from '../../constants/Screens';
-import {track} from '../../analytics/LMChatAnalytics';
 import {Events, Keys, Sources} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface Props {
   avatar: string;
@@ -68,7 +68,7 @@ const ExploreFeedItem: React.FC<Props> = ({
         if (val) {
           setMsg('Joined successfully');
           setIsToast(true);
-          track(
+          LMChatAnalytics.track(
             Events.CHAT_ROOM_FOLLOWED,
             new Map<string, string>([
               [Keys.CHATROOM_ID, chatroomID.toString()],

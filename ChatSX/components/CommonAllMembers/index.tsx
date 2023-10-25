@@ -22,7 +22,7 @@ import {formatTime} from '../../commonFuctions';
 import {FlashList} from '@shopify/flash-list';
 import {LoaderComponent} from '../LoaderComponent';
 import {Events, Keys} from '../../enums';
-import {track} from '../../analytics/LMChatAnalytics';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 const CommonAllMembers = ({
   navigation,
@@ -307,7 +307,7 @@ const CommonAllMembers = ({
       type: SHOW_TOAST,
       body: {isToast: true, msg: 'Invitation sent'},
     });
-    track(
+    LMChatAnalytics.track(
       Events.MEMBER_GROUP_ADDED,
       new Map<string, string>([
         ['member_group', selectedParticipants],
@@ -443,7 +443,7 @@ const CommonAllMembers = ({
             uuid: uuid,
           };
           const apiResponse = await myClient?.createDMChatroom(payload);
-          track(Events.DM_CHAT_ROOM_CREATED);
+          LMChatAnalytics.track(Events.DM_CHAT_ROOM_CREATED);
           const response = apiResponse?.data;
           if (apiResponse?.success === false) {
             dispatch({

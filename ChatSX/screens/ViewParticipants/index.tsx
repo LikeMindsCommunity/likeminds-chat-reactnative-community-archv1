@@ -17,8 +17,8 @@ import Layout from '../../constants/Layout';
 import {ADD_PARTICIPANTS} from '../../constants/Screens';
 import {FlashList} from '@shopify/flash-list';
 import {LoaderComponent} from '../../components/LoaderComponent';
-import {track} from '../../analytics/LMChatAnalytics';
 import {Events, Keys, Sources} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 const ViewParticipants = ({navigation, route}: any) => {
   const [participants, setParticipants] = useState({} as any);
@@ -140,7 +140,7 @@ const ViewParticipants = ({navigation, route}: any) => {
       participantName: search,
     } as any);
     const res = apiRes?.data;
-    track(
+    LMChatAnalytics.track(
       Events.VIEW_CHATROOM_PARTICIPANTS,
       new Map<string, string>([
         [Keys.CHATROOM_ID, chatroomID.toString()],

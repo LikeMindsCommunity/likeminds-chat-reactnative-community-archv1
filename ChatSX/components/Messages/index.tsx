@@ -19,7 +19,7 @@ import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {UserSchemaResponse} from '../../db/models';
 import {USER_SCHEMA_RO} from '../../constants/Strings';
-import {track} from '../../analytics/LMChatAnalytics';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface Messages {
   item: any;
@@ -597,7 +597,7 @@ const Messages = ({
         removeReaction={(reactionArr: any, removeFromList?: any) => {
           removeReaction(item, reactionArr, removeFromList);
 
-          track(
+          LMChatAnalytics.track(
             Events.REACTION_REMOVED,
             new Map<string, string>([
               [Keys.MESSAGE_ID, item?.id],

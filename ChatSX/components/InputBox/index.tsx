@@ -98,7 +98,7 @@ import {
 import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
-import {track} from '../../analytics/LMChatAnalytics';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 const InputBox = ({
   replyChatID,
@@ -633,7 +633,7 @@ const InputBox = ({
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
-        track(
+        LMChatAnalytics.track(
           Events.MESSAGE_REPLY,
           new Map<string, string>([
             [Keys.TYPE, 'text'],
@@ -902,7 +902,7 @@ const InputBox = ({
       } else {
         selectedType = 'text';
       }
-      track(
+      LMChatAnalytics.track(
         Events.CHATROOM_RESPONDED,
         new Map<string, string>([
           [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
@@ -1104,7 +1104,7 @@ const InputBox = ({
       editConversationResponse?.data?.conversation,
     );
 
-    track(
+    LMChatAnalytics.track(
       Events.MESSAGE_EDITED,
       new Map<string, string>([
         [Keys.TYPE, 'text'],

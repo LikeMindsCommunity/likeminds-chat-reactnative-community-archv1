@@ -5,8 +5,8 @@ import STYLES from '../../constants/Styles';
 import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
 import Layout from '../../constants/Layout';
 import {useAppSelector} from '../../../store';
-import {track} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface PeopleWhoReactedDefault {
   item: any;
@@ -157,7 +157,7 @@ export default function MyTabs({
       index: 0,
       routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
     };
-    track(
+    LMChatAnalytics.track(
       Events.REACTION_LIST_OPENED,
       new Map<string, string>([
         [Keys.MESSAGE_ID, item?.id],

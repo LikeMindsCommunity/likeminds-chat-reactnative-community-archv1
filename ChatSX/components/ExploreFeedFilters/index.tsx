@@ -12,8 +12,8 @@ import STYLES from '../../constants/Styles';
 import {useAppDispatch} from '../../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
 import {styles} from './styles';
-import {track} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface Props {
   isPinned: boolean;
@@ -87,7 +87,7 @@ const ExploreFeedFilters = ({
           <TouchableOpacity
             onPress={() => {
               setIsPinned(true);
-              track(
+              LMChatAnalytics.track(
                 Events.PINNED_CHATROOM_VIEWED,
                 new Map<string, string>([[Keys.SOURCE, 'banner']]),
               );

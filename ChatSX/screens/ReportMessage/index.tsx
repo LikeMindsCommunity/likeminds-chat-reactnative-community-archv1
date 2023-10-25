@@ -14,8 +14,8 @@ import STYLES from '../../constants/Styles';
 import styles from './styles';
 import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch} from '../../../store';
-import {track} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 interface Props {
   navigation: any;
   route: any;
@@ -108,7 +108,7 @@ const ReportScreen = ({navigation, route}: Props) => {
       } else {
         selectedKey = 'text';
       }
-      track(
+      LMChatAnalytics.track(
         Events.MESSAGE_REPORTED,
         new Map<string, string>([
           [Keys.TYPE, selectedKey],

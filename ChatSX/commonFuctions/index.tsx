@@ -4,8 +4,8 @@ import {PDF_TEXT, VIDEO_TEXT} from '../constants/Strings';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import moment from 'moment';
-import {track} from '../analytics/LMChatAnalytics';
 import {Events, Keys} from '../enums';
+import {LMChatAnalytics} from '../analytics/LMChatAnalytics';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/[^>]+>>)/gu;
 export const REGEX_USER_TAGGING =
@@ -140,7 +140,7 @@ export const decode = (
           const startingIndex = route.indexOf('/');
           const taggedUserId = route.substring(startingIndex + 1);
 
-          track(
+          LMChatAnalytics.track(
             Events.USER_TAGS_SOMEONE,
             new Map<string, string>([
               [Keys.COMMUNITY_ID, communityId?.toString() || ''],
@@ -296,7 +296,7 @@ export function copySelectedMessages(
   selectedMessages: any,
   chatroomID: string,
 ) {
-  track(
+  LMChatAnalytics.track(
     Events.MESSAGE_COPIED,
     new Map<string, string>([
       [Keys.TYPE, 'text'],

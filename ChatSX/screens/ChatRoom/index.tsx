@@ -135,7 +135,7 @@ import {ChatroomType} from '../../enums';
 import {onShare} from '../../shareUtils';
 import {ChatroomActions, Events} from '../../enums';
 import {UserSchemaResponse} from '../../db/models';
-import {track} from '../../analytics/LMChatAnalytics';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -596,7 +596,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         } else {
                           selectedKey = 'text';
                         }
-                        track(
+                        LMChatAnalytics.track(
                           Events.MESSAGE_DELETED,
                           new Map<string, string>([
                             [Keys.TYPE, selectedKey],
@@ -832,7 +832,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     } else if (deepLinking) {
       source = 'deep_link';
     }
-    track(
+    LMChatAnalytics.track(
       Events.CHAT_ROOM_OPENED,
       new Map<string, string>([
         [Keys.CHATROOM_ID, chatroomID.toString()],
@@ -1135,7 +1135,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .followChatroom(payload)
       .then(async () => {
-        track(
+        LMChatAnalytics.track(
           Events.CHAT_ROOM_UN_FOLLOWED,
           new Map<string, string>([
             [Keys.CHATROOM_ID, chatroomID.toString()],
@@ -1198,7 +1198,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .leaveSecretChatroom(payload)
       .then(async () => {
-        track(
+        LMChatAnalytics.track(
           Events.CHAT_ROOM_LEFT,
           new Map<string, string>([
             [Keys.CHATROOM_NAME, chatroomName.toString()],
@@ -1253,7 +1253,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const res = await myClient
       .followChatroom(payload)
       .then(async () => {
-        track(
+        LMChatAnalytics.track(
           Events.CHAT_ROOM_FOLLOWED,
           new Map<string, string>([
             [Keys.CHATROOM_ID, chatroomID.toString()],
@@ -1310,7 +1310,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         );
         fetchChatroomDetails();
 
-        track(
+        LMChatAnalytics.track(
           Events.CHAT_ROOM_FOLLOWED,
           new Map<string, string>([
             [Keys.CHATROOM_ID, chatroomID.toString()],
@@ -1348,7 +1348,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .then((res: any) => {
         fetchChatroomDetails();
         myClient?.updateMuteStatus(chatroomID);
-        track(
+        LMChatAnalytics.track(
           Events.CHATROOM_MUTED,
           new Map<string, string>([[Keys.CHATROOM_NAME, chatroomName]]),
         );
@@ -1370,7 +1370,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       .then(() => {
         fetchChatroomDetails();
         myClient?.updateMuteStatus(chatroomID);
-        track(
+        LMChatAnalytics.track(
           Events.CHATROOM_UNMUTED,
           new Map<string, string>([[Keys.CHATROOM_NAME, chatroomName]]),
         );
@@ -1471,7 +1471,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     } else {
       from = 'long press';
     }
-    track(
+    LMChatAnalytics.track(
       Events.MESSAGE_REACTIONS,
       new Map<string, string>([
         [Keys.REACTION, reaction],
@@ -1672,7 +1672,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       } else {
         selectedKey = 'text';
       }
-      track(
+      LMChatAnalytics.track(
         Events.MESSAGE_SELECTED,
         new Map<string, string>([
           [Keys.TYPE, selectedKey],
@@ -1724,7 +1724,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else {
           selectedKey = 'text';
         }
-        track(
+        LMChatAnalytics.track(
           Events.MESSAGE_SELECTED,
           new Map<string, string>([
             [Keys.TYPE, selectedKey],
@@ -2109,7 +2109,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       uploadingFilesMessages,
       isRetry: isRetry,
     });
-    track(
+    LMChatAnalytics.track(
       Events.ATTACHMENT_UPLOAD_ERROR,
       new Map<string, string>([
         [Keys.CHATROOM_ID, chatroomID?.toString()],
@@ -2179,7 +2179,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         }
       }
     }
-    track(
+    LMChatAnalytics.track(
       Events.REPLY_PRIVATELY,
       new Map<string, string>([
         [Keys.CHATROOM_ID, chatroomID.toString()],
