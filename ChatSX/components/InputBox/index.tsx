@@ -99,6 +99,39 @@ import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
 
+interface LinkPreviewBox {
+  ogTags: any;
+}
+
+export const LinkPreviewBox = ({ogTags}: LinkPreviewBox) => {
+  return (
+    <View style={styles.linkPreviewMainBox}>
+      <View style={styles.linkPreviewImageView}>
+        {!!ogTags?.image ? (
+          <Image source={{uri: ogTags?.image}} style={styles.linkPreviewIcon} />
+        ) : null}
+      </View>
+      <View style={styles.linkPreviewBox}>
+        <View>
+          <Text style={styles.linkPreviewTitle} numberOfLines={2}>
+            {ogTags?.title}
+          </Text>
+        </View>
+        <View style={styles.alignRow}>
+          <Text style={styles.linkPreviewMessageText} numberOfLines={1}>
+            {ogTags?.description}
+          </Text>
+        </View>
+        <View style={styles.alignRow}>
+          <Text style={styles.linkPreviewMessageText} numberOfLines={1}>
+            {ogTags?.url}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
 const InputBox = ({
   replyChatID,
   chatroomID,
@@ -129,6 +162,8 @@ const InputBox = ({
   const [s3UploadResponse, setS3UploadResponse] = useState<any>();
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
+  const [debounceLinkPreviewTimeout, setLinkPreviewDebounceTimeout] =
+    useState<any>(null);
   const [isUserTagging, setIsUserTagging] = useState(false);
   const [userTaggingList, setUserTaggingList] = useState<any>([]);
   const [userTaggingListHeight, setUserTaggingListHeight] = useState<any>(116);
@@ -136,6 +171,8 @@ const InputBox = ({
   const [taggedUserName, setTaggedUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
+
+  const [ogTagsState, setOgTagsState] = useState<any>({});
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -621,6 +658,7 @@ const InputBox = ({
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
+        replyObj.ogTags = ogTagsState;
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
@@ -648,6 +686,7 @@ const InputBox = ({
       obj.images = dummySelectedFileArr;
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
+      obj.ogTags = ogTagsState;
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
@@ -869,6 +908,7 @@ const InputBox = ({
         }
       }
     }
+    setOgTagsState({});
   };
 
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
@@ -921,7 +961,44 @@ const InputBox = ({
     ) : null;
   };
 
+  async function detectLinkPreview(val: any) {
+    console.log('valHerere', val);
+    const payload = {
+      url: val,
+    };
+    const decodeUrlResponse = await myClient?.decodeUrl(payload);
+    console.log('decodeUrlResponse', decodeUrlResponse);
+
+    const ogTags = decodeUrlResponse?.data?.ogTags;
+    console.log(
+      'Object.keys(ogTagsState).length',
+      Object.keys(ogTagsState).length,
+    );
+
+    if (Object.keys(ogTagsState).length === 0) setOgTagsState(ogTags);
+  }
+
   const handleInputChange = async (e: any) => {
+    const regex =
+      /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b)/i;
+    let parts = e.split(regex);
+    if (parts?.length > 0) {
+      {
+        parts?.map((val: any, index: any) => {
+          if (regex.test(val)) {
+            clearTimeout(debounceLinkPreviewTimeout);
+            const urlRegex = /(https?:\/\/[^\s]+)/gi;
+            let isURL = urlRegex.test(val);
+            if (isURL) {
+              const timeoutID = setTimeout(() => {
+                detectLinkPreview(val);
+              }, 500);
+              setLinkPreviewDebounceTimeout(timeoutID);
+            }
+          }
+        });
+      }
+    }
     if (chatRequestState === 0 || chatRequestState === null) {
       if (e.length >= MAX_LENGTH) {
         dispatch({
@@ -1078,7 +1155,10 @@ const InputBox = ({
         ]}>
         <View
           style={
-            (isReply && !isUploadScreen) || isUserTagging || isEditable
+            (isReply && !isUploadScreen) ||
+            isUserTagging ||
+            isEditable ||
+            Object.keys(ogTagsState).length !== 0
               ? [
                   styles.replyBoxParent,
                   {
@@ -1203,6 +1283,29 @@ const InputBox = ({
               </TouchableOpacity>
             </View>
           )}
+
+          {Object.keys(ogTagsState).length !== 0 ? (
+            <View
+              style={[
+                styles.taggableUsersBox,
+                {
+                  backgroundColor: !!isUploadScreen ? 'black' : 'white',
+                  // height: userTaggingListHeight,
+                },
+              ]}>
+              <LinkPreviewBox ogTags={ogTagsState} />
+              <TouchableOpacity
+                onPress={() => {
+                  setOgTagsState({});
+                }}
+                style={styles.replyBoxClose}>
+                <Image
+                  style={styles.replyCloseImg}
+                  source={require('../../assets/images/close_icon.png')}
+                />
+              </TouchableOpacity>
+            </View>
+          ) : null}
 
           {isEditable ? (
             <View style={styles.replyBox}>
