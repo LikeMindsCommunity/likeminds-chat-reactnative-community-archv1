@@ -126,8 +126,7 @@ const SwitchComponent = () => {
   }, []);
 
   const linking = {
-    // prefixes: ['mychat:/'], // Add your custom link to open app.
-    prefixes: ['https://rnsampleapp.com'], // Add your custom link to open app.
+    prefixes: [''], // Add your custom link to open app, and don't add / after the link.
   };
 
   return (
