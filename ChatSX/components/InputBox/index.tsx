@@ -630,8 +630,6 @@ const InputBox = ({
 
     const isMessageTrimmed = !!conversation.trim();
 
-    console.log('ogTagsStateadasd', ogTagsState);
-
     // check if message is empty string or not
     if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
@@ -697,8 +695,6 @@ const InputBox = ({
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
       obj.ogTags = ogTagsState;
-
-      console.log('obj.ogTags', obj.ogTags);
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
@@ -989,19 +985,11 @@ const InputBox = ({
   };
 
   async function detectLinkPreview(val: any) {
-    console.log('valHerere', val);
     const payload = {
       url: val,
     };
     const decodeUrlResponse = await myClient?.decodeUrl(payload);
-    console.log('decodeUrlResponse', decodeUrlResponse);
-
     const ogTags = decodeUrlResponse?.data?.ogTags;
-    console.log(
-      'Object.keys(ogTagsState).length',
-      Object.keys(ogTagsState).length,
-    );
-
     if (ogTags !== undefined) setOgTagsState(ogTags);
   }
 
@@ -1009,11 +997,9 @@ const InputBox = ({
     const regex =
       /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b)/i;
     let parts = e.split(regex);
-    console.log('partsCurrent', parts);
     if (parts?.length > 0) {
       {
         parts?.map((val: any, index: any) => {
-          console.log('partsValll', val);
           if (regex.test(val) && !isUploadScreen) {
             clearTimeout(debounceLinkPreviewTimeout);
             const urlRegex = /(https?:\/\/[^\s]+)/gi;
@@ -1023,20 +1009,12 @@ const InputBox = ({
               // setUrl(val);
               const timeoutID = setTimeout(() => {
                 for (let i = 0; i < parts.length; i++) {
-                  // if (parts.includes(url) && url) setClosedOnce(false);
                   if (regex.test(parts[i]) && !closedOnce) {
-                    console.log('parts[i]', parts[i]);
                     setShowLinkPreview(true);
                     setUrl(parts[i]);
                     detectLinkPreview(parts[i]);
                     break;
                   }
-                  // for delteion of char from link
-                  // else if (!parts.includes(url) && url) {
-                  //   console.log('hanjiiiii');
-                  //   setShowLinkPreview(false);
-                  //   setClosedOnce(true);
-                  // }
                 }
               }, 500);
               setLinkPreviewDebounceTimeout(timeoutID);
