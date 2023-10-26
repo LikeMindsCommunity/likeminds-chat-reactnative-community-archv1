@@ -1070,18 +1070,14 @@ const InputBox = ({
   const startRecord = async () => {
     const result = await audioRecorderPlayer.startRecorder();
     audioRecorderPlayer.addRecordBackListener(e => {
-      console.log(
-        'addRecordBackListener',
-        e,
-        audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)),
-      );
       setVoiceNotes({
         recordSecs: e.currentPosition,
-        recordTime: audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)),
+        recordTime: audioRecorderPlayer
+          .mmssss(Math.floor(e.currentPosition))
+          .substring(3),
       });
       return;
     });
-    console.log('result ==', result);
   };
 
   const stopRecord = async () => {
@@ -1296,15 +1292,6 @@ const InputBox = ({
                   }
                 : null,
             ]}>
-            {/* <TouchableOpacity
-              style={styles.emojiButton}
-              onPress={() => setShowEmoji(!showEmoji)}>
-              <Image
-                source={require('../../assets/images/smile_emoji3x.png')}
-                style={styles.emoji}
-              />
-            </TouchableOpacity> */}
-
             {!!isUploadScreen && !!!isDoc ? (
               <TouchableOpacity
                 style={styles.addMoreButton}
@@ -1329,59 +1316,87 @@ const InputBox = ({
               </TouchableOpacity>
             ) : null}
 
-            <View
-              style={[
-                styles.inputParent,
-                !!isUploadScreen
-                  ? {
-                      marginHorizontal: 5,
-                    }
-                  : {marginHorizontal: 20},
-              ]}>
-              <TaggingView
-                defaultValue={message}
-                onChange={handleInputChange}
-                placeholder="Type here..."
-                placeholderTextColor="#aaa"
-                inputRef={myRef}
-                maxLength={
-                  chatRequestState === 0 || chatRequestState === null
-                    ? MAX_LENGTH
-                    : undefined
-                }
-                onContentSizeChange={event => {
-                  setInputHeight(event.nativeEvent.contentSize.height);
-                }}
+            {!!voiceNotes?.recordTime ? (
+              <View
                 style={[
-                  styles.input,
-                  {height: Math.max(25, inputHeight)},
-                  {
-                    color: !!isUploadScreen
-                      ? STYLES.$BACKGROUND_COLORS.LIGHT
-                      : STYLES.$BACKGROUND_COLORS.DARK,
-                  },
-                ]}
-                numberOfLines={6}
-                onBlur={() => {
-                  setIsKeyBoardFocused(false);
-                }}
-                onFocus={() => {
-                  setIsKeyBoardFocused(true);
-                }}
-                partTypes={[
-                  {
-                    trigger: '@', // Should be a single character like '@' or '#'
-                    textStyle: {
-                      color: STYLES.$COLORS.LIGHT_BLUE,
-                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                    }, // The mention style in the input
-                  },
-                ]}
-              />
-            </View>
+                  styles.voiceNotesInputParent,
+                  styles.voiceRecorderInput,
+                ]}>
+                <View style={styles.alignItems}>
+                  <Image
+                    source={require('../../assets/images/record_icon3x.png')}
+                    style={styles.emoji}
+                  />
+                  <Text>{voiceNotes.recordTime}</Text>
+                </View>
+                <View style={styles.alignItems}>
+                  <Image
+                    source={require('../../assets/images/stop_recording_icon3x.png')}
+                    style={styles.emoji}
+                  />
+                  <Image
+                    source={require('../../assets/images/cross_circle_icon3x.png')}
+                    style={styles.emoji}
+                  />
+                </View>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.inputParent,
+                  !!isUploadScreen
+                    ? {
+                        marginHorizontal: 5,
+                      }
+                    : {marginHorizontal: 20},
+                ]}>
+                <TaggingView
+                  defaultValue={message}
+                  onChange={handleInputChange}
+                  placeholder="Type here..."
+                  placeholderTextColor="#aaa"
+                  inputRef={myRef}
+                  maxLength={
+                    chatRequestState === 0 || chatRequestState === null
+                      ? MAX_LENGTH
+                      : undefined
+                  }
+                  onContentSizeChange={event => {
+                    setInputHeight(event.nativeEvent.contentSize.height);
+                  }}
+                  style={[
+                    styles.input,
+                    {height: Math.max(25, inputHeight)},
+                    {
+                      color: !!isUploadScreen
+                        ? STYLES.$BACKGROUND_COLORS.LIGHT
+                        : STYLES.$BACKGROUND_COLORS.DARK,
+                    },
+                  ]}
+                  numberOfLines={6}
+                  onBlur={() => {
+                    setIsKeyBoardFocused(false);
+                  }}
+                  onFocus={() => {
+                    setIsKeyBoardFocused(true);
+                  }}
+                  partTypes={[
+                    {
+                      trigger: '@', // Should be a single character like '@' or '#'
+                      textStyle: {
+                        color: STYLES.$COLORS.LIGHT_BLUE,
+                        fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                      }, // The mention style in the input
+                    },
+                  ]}
+                />
+              </View>
+            )}
+
             {!isUploadScreen &&
             !(chatRequestState === 0 || chatRequestState === null) &&
-            !isEditable ? (
+            !isEditable &&
+            !voiceNotes?.recordTime ? (
               <TouchableOpacity
                 style={styles.emojiButton}
                 onPress={() => {

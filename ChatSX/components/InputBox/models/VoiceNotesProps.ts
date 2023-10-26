@@ -1,4 +1,4 @@
 export interface VoiceNotesProps {
-    recordSecs: number,
-    recordTime: string,
-  }
+  recordSecs: number;
+  recordTime: string;
+}

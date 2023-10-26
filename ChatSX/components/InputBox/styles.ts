@@ -64,6 +64,15 @@ export const styles = StyleSheet.create({
     // width: '90%', // when none of emoji and updload icon is there
     width: '70%',
   },
+  voiceNotesInputParent: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+    paddingLeft: 0,
+    width: '88%',
+    // backgroundColor: 'pink',
+  },
   input: {
     flexGrow: 1,
     fontSize: STYLES.$FONT_SIZES.XL,
@@ -216,5 +225,18 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.MEDIUM,
     color: STYLES.$COLORS.MSG,
+  },
+  alignItems: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  voiceRecorderInput: {
+    marginHorizontal: 20,
+    paddingVertical: 4,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });
