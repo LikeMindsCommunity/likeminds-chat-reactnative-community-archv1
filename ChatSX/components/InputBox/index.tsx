@@ -109,7 +109,12 @@ export const LinkPreviewBox = ({ogTags}: LinkPreviewBox) => {
       <View style={styles.linkPreviewImageView}>
         {!!ogTags?.image ? (
           <Image source={{uri: ogTags?.image}} style={styles.linkPreviewIcon} />
-        ) : null}
+        ) : (
+          <Image
+            source={require('../../assets/images/defaultLinkPreview.png')}
+            style={styles.linkPreviewIcon}
+          />
+        )}
       </View>
       <View style={styles.linkPreviewBox}>
         <View>
@@ -173,6 +178,9 @@ const InputBox = ({
   const [page, setPage] = useState(1);
 
   const [ogTagsState, setOgTagsState] = useState<any>({});
+  const [closedOnce, setClosedOnce] = useState(false);
+  const [showLinkPreview, setShowLinkPreview] = useState(true);
+  const [url, setUrl] = useState('');
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -622,6 +630,8 @@ const InputBox = ({
 
     const isMessageTrimmed = !!conversation.trim();
 
+    console.log('ogTagsStateadasd', ogTagsState);
+
     // check if message is empty string or not
     if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
       let replyObj = chatSchema.reply;
@@ -687,6 +697,8 @@ const InputBox = ({
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
       obj.ogTags = ogTagsState;
+
+      console.log('obj.ogTags', obj.ogTags);
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
@@ -801,7 +813,7 @@ const InputBox = ({
         );
       } else {
         if (!isUploadScreen) {
-          let payload = {
+          let payload: any = {
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText?.trim(),
@@ -809,6 +821,12 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
+
+          if (Object.keys(ogTagsState).length !== 0 && url) {
+            payload.ogTags = ogTagsState;
+          } else if (url) {
+            payload.shareLink = url;
+          }
 
           let response = await dispatch(onConversationsCreate(payload) as any);
 
@@ -836,7 +854,7 @@ const InputBox = ({
             body: {status: !fileSent},
           });
           navigation.goBack();
-          let payload = {
+          let payload: any = {
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText?.trim(),
@@ -844,6 +862,12 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
+
+          if (Object.keys(ogTagsState).length !== 0 && url) {
+            payload.ogTags = ogTagsState;
+          } else if (url) {
+            payload.shareLink = url;
+          }
 
           let response = await dispatch(onConversationsCreate(payload) as any);
 
@@ -908,7 +932,10 @@ const InputBox = ({
         }
       }
     }
+    setShowLinkPreview(false);
     setOgTagsState({});
+    setUrl('');
+    setClosedOnce(false);
   };
 
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
@@ -975,23 +1002,42 @@ const InputBox = ({
       Object.keys(ogTagsState).length,
     );
 
-    if (Object.keys(ogTagsState).length === 0) setOgTagsState(ogTags);
+    if (ogTags !== undefined) setOgTagsState(ogTags);
   }
 
   const handleInputChange = async (e: any) => {
     const regex =
       /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b)/i;
     let parts = e.split(regex);
+    console.log('partsCurrent', parts);
     if (parts?.length > 0) {
       {
         parts?.map((val: any, index: any) => {
-          if (regex.test(val)) {
+          console.log('partsValll', val);
+          if (regex.test(val) && !isUploadScreen) {
             clearTimeout(debounceLinkPreviewTimeout);
             const urlRegex = /(https?:\/\/[^\s]+)/gi;
             let isURL = urlRegex.test(val);
             if (isURL) {
+              // setShowLinkPreview(true);
+              // setUrl(val);
               const timeoutID = setTimeout(() => {
-                detectLinkPreview(val);
+                for (let i = 0; i < parts.length; i++) {
+                  // if (parts.includes(url) && url) setClosedOnce(false);
+                  if (regex.test(parts[i]) && !closedOnce) {
+                    console.log('parts[i]', parts[i]);
+                    setShowLinkPreview(true);
+                    setUrl(parts[i]);
+                    detectLinkPreview(parts[i]);
+                    break;
+                  }
+                  // for delteion of char from link
+                  // else if (!parts.includes(url) && url) {
+                  //   console.log('hanjiiiii');
+                  //   setShowLinkPreview(false);
+                  //   setClosedOnce(true);
+                  // }
+                }
               }, 500);
               setLinkPreviewDebounceTimeout(timeoutID);
             }
@@ -1284,7 +1330,7 @@ const InputBox = ({
             </View>
           )}
 
-          {Object.keys(ogTagsState).length !== 0 ? (
+          {Object.keys(ogTagsState).length !== 0 && showLinkPreview ? (
             <View
               style={[
                 styles.taggableUsersBox,
@@ -1296,7 +1342,8 @@ const InputBox = ({
               <LinkPreviewBox ogTags={ogTagsState} />
               <TouchableOpacity
                 onPress={() => {
-                  setOgTagsState({});
+                  setShowLinkPreview(false);
+                  setClosedOnce(true);
                 }}
                 style={styles.replyBoxClose}>
                 <Image

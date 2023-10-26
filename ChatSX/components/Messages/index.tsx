@@ -17,8 +17,9 @@ import {useQuery} from '@realm/react';
 import {myClient} from '../../..';
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
-import { UserSchemaResponse } from '../../db/models';
-import { USER_SCHEMA_RO } from '../../constants/Strings';
+import {UserSchemaResponse} from '../../db/models';
+import {USER_SCHEMA_RO} from '../../constants/Strings';
+import LinkPreview from '../LinkPreview';
 
 interface Messages {
   item: any;
@@ -308,6 +309,16 @@ const Messages = ({
               }}
             />
           </View>
+        ) : item?.ogTags?.url != null ? (
+          <LinkPreview
+            description={item?.ogTags?.description}
+            title={item?.ogTags?.title}
+            image={item?.ogTags?.image}
+            url={item?.ogTags?.url}
+            isTypeSent={isTypeSent}
+            isIncluded={isIncluded}
+            item={item}
+          />
         ) : (
           <View>
             {isItemIncludedInStateArr ? (

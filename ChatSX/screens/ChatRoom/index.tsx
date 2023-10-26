@@ -2191,6 +2191,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       onEndReached();
     }
   };
+  // console.log('coversation0th ==', conversations[0]);
 
   return (
     <View style={styles.container}>

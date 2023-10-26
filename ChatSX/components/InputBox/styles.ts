@@ -135,7 +135,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginTop: 10,
     marginBottom: 10,
-    width: '40%',
+    width: '45%',
   },
   linkPreviewTitle: {
     color: 'black',
@@ -171,13 +171,13 @@ export const styles = StyleSheet.create({
   },
   replyBoxClose: {
     position: 'absolute',
-    right: 5,
-    top: 5,
+    right: 10,
+    top: 10,
     backgroundColor: STYLES.$COLORS.SELECTED_BLUE,
     padding: 5,
     borderRadius: 10,
   },
-  replyCloseImg: {height: 5, width: 5, resizeMode: 'contain'},
+  replyCloseImg: {height: 7, width: 7, resizeMode: 'contain'},
   iconText: {
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
