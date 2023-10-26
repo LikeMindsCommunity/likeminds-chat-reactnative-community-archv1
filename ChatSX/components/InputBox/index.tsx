@@ -98,7 +98,7 @@ import {
 } from '../TaggingView/utils';
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
-import {InputBoxProps, LaunchActivityProps} from './models';
+import {InputBoxProps, LaunchActivityProps, VoiceNotesProps} from './models';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
@@ -140,6 +140,10 @@ const InputBox = ({
   const [taggedUserName, setTaggedUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [voiceNotes, setVoiceNotes] = useState<VoiceNotesProps>({
+    recordSecs: 0,
+    recordTime: '',
+  });
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -1064,7 +1068,6 @@ const InputBox = ({
 
   // Audio and play section
   const startRecord = async () => {
-    // const path = 'your_audio_file_path.mp3';
     const result = await audioRecorderPlayer.startRecorder();
     audioRecorderPlayer.addRecordBackListener(e => {
       console.log(
@@ -1072,12 +1075,10 @@ const InputBox = ({
         e,
         audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)),
       );
-      // this.setState({
-      //   recordSecs: e.currentPosition,
-      //   recordTime: this.audioRecorderPlayer.mmssss(
-      //     Math.floor(e.currentPosition),
-      //   ),
-      // });
+      setVoiceNotes({
+        recordSecs: e.currentPosition,
+        recordTime: audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)),
+      });
       return;
     });
     console.log('result ==', result);
@@ -1086,10 +1087,13 @@ const InputBox = ({
   const stopRecord = async () => {
     await audioRecorderPlayer.stopRecorder();
     audioRecorderPlayer.removeRecordBackListener();
+    setVoiceNotes({
+      recordSecs: 0,
+      recordTime: '',
+    });
   };
 
   const startPlay = async () => {
-    // const path = 'your_audio_file_path.mp3';
     await audioRecorderPlayer.startPlayer();
   };
 
@@ -1393,28 +1397,45 @@ const InputBox = ({
           </View>
         </View>
 
-        <TouchableOpacity
-          onPressOut={() => {
-            if (
-              chatroomType === ChatroomType.DMCHATROOM && // if DM
-              chatRequestState === null &&
-              isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
-            ) {
-              sendDmRequest();
-            } else {
-              if (isEditable) {
-                onEdit();
+        {/* Send message and send voice notes UI */}
+        {!!message ? (
+          <TouchableOpacity
+            onPressOut={() => {
+              if (
+                chatroomType === ChatroomType.DMCHATROOM && // if DM
+                chatRequestState === null &&
+                isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
+              ) {
+                sendDmRequest();
               } else {
-                onSend(message);
+                if (isEditable) {
+                  onEdit();
+                } else {
+                  onSend(message);
+                }
               }
-            }
-          }}
-          style={styles.sendButton}>
-          <Image
-            source={require('../../assets/images/send_button3x.png')}
-            style={styles.emoji}
-          />
-        </TouchableOpacity>
+            }}
+            style={styles.sendButton}>
+            <Image
+              source={require('../../assets/images/send_button3x.png')}
+              style={styles.send}
+            />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onLongPress={() => {
+              startRecord();
+            }}
+            onPressOut={() => {
+              stopRecord();
+            }}
+            style={styles.sendButton}>
+            <Image
+              source={require('../../assets/images/mic_icon3x.png')}
+              style={styles.mic}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* More features modal like select Images, Docs etc. */}

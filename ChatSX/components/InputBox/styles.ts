@@ -40,6 +40,19 @@ export const styles = StyleSheet.create({
     height: 22,
     resizeMode: 'contain',
   },
+
+  send: {
+    width: 22,
+    height: 22,
+    resizeMode: 'contain',
+    marginLeft: 5,
+  },
+
+  mic: {
+    width: 22,
+    height: 22,
+    resizeMode: 'contain',
+  },
   inputParent: {
     display: 'flex',
     flexDirection: 'row',
@@ -68,7 +81,6 @@ export const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingLeft: 5,
     marginLeft: 5,
   },
   sendButtonText: {
@@ -111,7 +123,7 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent:'space-between',
+    justifyContent: 'space-between',
     marginVertical: 20,
     flexWrap: 'wrap',
     gap: 30,
@@ -187,5 +199,22 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 10,
     marginTop: 10,
+  },
+  disabledInput: {
+    marginVertical: Platform.OS === 'android' ? 10 : 20,
+    marginHorizontal: 10,
+    paddingVertical: 10,
+    minHeight: 50,
+    paddingHorizontal: 20,
+    backgroundColor: '#f2f2f2',
+    borderRadius: 25,
+    justifyContent: 'center',
+    borderColor: STYLES.$COLORS.MSG,
+    borderWidth: 1,
+  },
+  disabledInputText: {
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    color: STYLES.$COLORS.MSG,
   },
 });
