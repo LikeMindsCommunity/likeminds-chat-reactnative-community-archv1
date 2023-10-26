@@ -818,9 +818,9 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
 
-          if (Object.keys(ogTagsState).length !== 0 && url) {
+          if (Object.keys(ogTagsState).length !== 0 && url && !closedOnce) {
             payload.ogTags = ogTagsState;
-          } else if (url) {
+          } else if (url && !closedOnce) {
             payload.shareLink = url;
           }
 
@@ -859,9 +859,9 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
 
-          if (Object.keys(ogTagsState).length !== 0 && url) {
+          if (Object.keys(ogTagsState).length !== 0 && url && !closedOnce) {
             payload.ogTags = ogTagsState;
-          } else if (url) {
+          } else if (url && !closedOnce) {
             payload.shareLink = url;
           }
 
