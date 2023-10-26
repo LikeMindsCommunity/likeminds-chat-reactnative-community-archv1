@@ -34,8 +34,8 @@ export const LinkPreviewBox = ({
       onPress={async () => {
         await Linking.openURL(url);
       }}>
-      <View style={styles.replyBox}>
-        <View style={styles.linkPreviewImage}>
+      <View style={styles.linkPreviewBox}>
+        <View>
           {!!image ? (
             <Image source={{uri: image}} style={styles.linkPreviewIcon} />
           ) : null}
@@ -80,7 +80,7 @@ const LinkPreview = ({
       ]}>
       <View
         style={[
-          styles.replyMessage,
+          styles.linkPreview,
           isTypeSent ? styles.sentMessage : styles.receivedMessage,
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
