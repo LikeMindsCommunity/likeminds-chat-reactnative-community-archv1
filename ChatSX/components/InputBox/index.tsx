@@ -98,14 +98,12 @@ import {
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
+import {LINK_PREVIEW_REGEX, URL_REGEX} from '../../constants/Regex';
+import {LinkPreviewSnapProps} from './models/LinkPreviewSnapProps';
 
-interface LinkPreviewBox {
-  ogTags: any;
-}
-
-export const LinkPreviewBox = ({ogTags}: LinkPreviewBox) => {
+export const LinkPreviewSnap = ({ogTags}: LinkPreviewSnapProps) => {
   return (
-    <View style={styles.linkPreviewMainBox}>
+    <View style={styles.linkPreviewBox}>
       <View style={styles.linkPreviewImageView}>
         {!!ogTags?.image ? (
           <Image source={{uri: ogTags?.image}} style={styles.linkPreviewIcon} />
@@ -116,7 +114,7 @@ export const LinkPreviewBox = ({ogTags}: LinkPreviewBox) => {
           />
         )}
       </View>
-      <View style={styles.linkPreviewBox}>
+      <View style={styles.linkPreviewTextView}>
         <View>
           <Text style={styles.linkPreviewTitle} numberOfLines={2}>
             {ogTags?.title}
@@ -984,32 +982,27 @@ const InputBox = ({
     ) : null;
   };
 
-  async function detectLinkPreview(val: any) {
+  async function detectLinkPreview(link: string) {
     const payload = {
-      url: val,
+      url: link,
     };
     const decodeUrlResponse = await myClient?.decodeUrl(payload);
     const ogTags = decodeUrlResponse?.data?.ogTags;
     if (ogTags !== undefined) setOgTagsState(ogTags);
   }
 
-  const handleInputChange = async (e: any) => {
-    const regex =
-      /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b)/i;
-    let parts = e.split(regex);
+  const handleInputChange = async (event: string) => {
+    let parts = event.split(LINK_PREVIEW_REGEX);
     if (parts?.length > 0) {
       {
-        parts?.map((val: any, index: any) => {
-          if (regex.test(val) && !isUploadScreen) {
+        parts?.map((value: string) => {
+          if (LINK_PREVIEW_REGEX.test(value) && !isUploadScreen) {
             clearTimeout(debounceLinkPreviewTimeout);
-            const urlRegex = /(https?:\/\/[^\s]+)/gi;
-            let isURL = urlRegex.test(val);
+            let isURL = URL_REGEX.test(value);
             if (isURL) {
-              // setShowLinkPreview(true);
-              // setUrl(val);
-              const timeoutID = setTimeout(() => {
+              const timeoutId = setTimeout(() => {
                 for (let i = 0; i < parts.length; i++) {
-                  if (regex.test(parts[i]) && !closedOnce) {
+                  if (LINK_PREVIEW_REGEX.test(parts[i]) && !closedOnce) {
                     setShowLinkPreview(true);
                     setUrl(parts[i]);
                     detectLinkPreview(parts[i]);
@@ -1017,14 +1010,14 @@ const InputBox = ({
                   }
                 }
               }, 500);
-              setLinkPreviewDebounceTimeout(timeoutID);
+              setLinkPreviewDebounceTimeout(timeoutId);
             }
           }
         });
       }
     }
     if (chatRequestState === 0 || chatRequestState === null) {
-      if (e.length >= MAX_LENGTH) {
+      if (event.length >= MAX_LENGTH) {
         dispatch({
           type: SHOW_TOAST,
           body: {
@@ -1032,17 +1025,17 @@ const InputBox = ({
             msg: CHARACTER_LIMIT_MESSAGE,
           },
         });
-      } else if (e.length < MAX_LENGTH) {
-        setMessage(e);
-        setFormattedConversation(e);
+      } else if (event.length < MAX_LENGTH) {
+        setMessage(event);
+        setFormattedConversation(event);
       }
     } else {
-      setMessage(e);
-      setFormattedConversation(e);
+      setMessage(event);
+      setFormattedConversation(event);
 
       // chatroomType === ChatroomType.DMCHATROOM (if DM don't detect and show user tags)
       const newMentions =
-        chatroomType === ChatroomType.DMCHATROOM ? [] : detectMentions(e);
+        chatroomType === ChatroomType.DMCHATROOM ? [] : detectMentions(event);
 
       if (newMentions.length > 0) {
         const length = newMentions.length;
@@ -1317,7 +1310,7 @@ const InputBox = ({
                   // height: userTaggingListHeight,
                 },
               ]}>
-              <LinkPreviewBox ogTags={ogTagsState} />
+              <LinkPreviewSnap ogTags={ogTagsState} />
               <TouchableOpacity
                 onPress={() => {
                   setShowLinkPreview(false);

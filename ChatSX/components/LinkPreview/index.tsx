@@ -4,31 +4,15 @@ import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {useAppSelector} from '../../../store';
 import {decode} from '../../commonFuctions';
-import {TouchableOpacity} from 'react-native-gesture-handler';
-
-interface LinkPreviewProps {
-  description: string;
-  title: string;
-  image: string;
-  url: string;
-  isTypeSent: any;
-  isIncluded: any;
-  item: any;
-}
-
-interface LinkPreviewBox {
-  description: string;
-  title: string;
-  image: string;
-  url: string;
-}
+import {LinkPreviewBoxProps} from './models/LinkPreviewBoxProps';
+import {LinkPreviewProps} from './models/LinkPreviewProps';
 
 export const LinkPreviewBox = ({
   description,
   title,
   image,
   url,
-}: LinkPreviewBox) => {
+}: LinkPreviewBoxProps) => {
   return (
     <Pressable
       onPress={async () => {
@@ -96,7 +80,6 @@ const LinkPreview = ({
             ) : null}
           </Text>
         )}
-        {/* here */}
         <LinkPreviewBox
           description={description}
           title={title}

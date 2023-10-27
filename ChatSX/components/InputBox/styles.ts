@@ -131,7 +131,7 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   replyBox: {marginHorizontal: 10, marginTop: 10},
-  linkPreviewBox: {
+  linkPreviewTextView: {
     marginHorizontal: 10,
     marginTop: 10,
     marginBottom: 10,
@@ -157,7 +157,7 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginLeft: 10,
   },
-  linkPreviewMainBox: {
+  linkPreviewBox: {
     display: 'flex',
     flexDirection: 'row',
     width: '100%',
