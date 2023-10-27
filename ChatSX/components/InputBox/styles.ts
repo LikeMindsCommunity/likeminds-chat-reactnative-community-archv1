@@ -35,6 +35,7 @@ export const styles = StyleSheet.create({
   emojiButton: {
     padding: 10,
   },
+
   emoji: {
     width: 22,
     height: 22,
@@ -187,6 +188,12 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.MSG,
+  },
+  recordTitle: {
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
+    marginTop: 3,
   },
   messageCustomTitle: {
     color: STYLES.$COLORS.SECONDARY,

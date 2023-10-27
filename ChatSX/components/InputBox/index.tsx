@@ -98,7 +98,12 @@ import {
 } from '../TaggingView/utils';
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
-import {InputBoxProps, LaunchActivityProps, VoiceNotesProps} from './models';
+import {
+  InputBoxProps,
+  LaunchActivityProps,
+  VoiceNotesPlayerProps,
+  VoiceNotesProps,
+} from './models';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
@@ -144,6 +149,16 @@ const InputBox = ({
     recordSecs: 0,
     recordTime: '',
   });
+  const [voiceNotesPlayer, setVoiceNotesPlayer] =
+    useState<VoiceNotesPlayerProps>({
+      currentPositionSec: 0,
+      currentDurationSec: 0,
+      playTime: '',
+      duration: '',
+    });
+  const [voiceNotesLink, setVoiceNotesLink] = useState('');
+  const [isVoiceResult, setIsVoiceResult] = useState(false);
+  const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -1067,6 +1082,8 @@ const InputBox = ({
   };
 
   // Audio and play section
+
+  // to start audio recording
   const startRecord = async () => {
     const result = await audioRecorderPlayer.startRecorder();
     audioRecorderPlayer.addRecordBackListener(e => {
@@ -1074,27 +1091,82 @@ const InputBox = ({
         recordSecs: e.currentPosition,
         recordTime: audioRecorderPlayer
           .mmssss(Math.floor(e.currentPosition))
-          .substring(3),
+          .slice(0, 5),
       });
       return;
     });
+    setVoiceNotesLink(result);
   };
 
+  // to stop audio recording
   const stopRecord = async () => {
     await audioRecorderPlayer.stopRecorder();
     audioRecorderPlayer.removeRecordBackListener();
+
+    // if isVoiceResult is true we show audio player instead of audio recorder
+    setIsVoiceResult(true);
+  };
+
+  // to reset all the recording data we had previously
+  const clearVoiceRecord = () => {
     setVoiceNotes({
       recordSecs: 0,
       recordTime: '',
     });
+    setVoiceNotesLink('');
+
+    // if isVoiceResult is false we show audio recorder instead of audio player
+    setIsVoiceResult(false);
   };
 
-  const startPlay = async () => {
-    await audioRecorderPlayer.startPlayer();
+  // to start playing audio recording
+  const startPlay = async (path: string) => {
+    await audioRecorderPlayer.startPlayer(path);
+    audioRecorderPlayer.addPlayBackListener(e => {
+      let playTime = audioRecorderPlayer.mmssss(Math.floor(e.currentPosition));
+      let duration = audioRecorderPlayer.mmssss(Math.floor(e.duration));
+      setVoiceNotesPlayer({
+        currentPositionSec: e.currentPosition,
+        currentDurationSec: e.duration,
+        playTime: audioRecorderPlayer
+          .mmssss(Math.floor(e.currentPosition))
+          .slice(0, 5),
+        duration: audioRecorderPlayer
+          .mmssss(Math.floor(e.duration))
+          .slice(0, 5),
+      });
+
+      // to reset the player after audio player completed it duration
+      if (playTime === duration) {
+        setIsVoiceNotePlaying(false);
+        setVoiceNotesPlayer({
+          currentPositionSec: 0,
+          currentDurationSec: 0,
+          playTime: '',
+          duration: '',
+        });
+      }
+      return;
+    });
+    setIsVoiceNotePlaying(true);
   };
 
+  // to stop playing audio recording
   const stopPlay = async () => {
     await audioRecorderPlayer.stopPlayer();
+    setIsVoiceNotePlaying(false);
+  };
+
+  // to pause playing audio recording
+  const onPausePlay = async () => {
+    await audioRecorderPlayer.pausePlayer();
+    setIsVoiceNotePlaying(false);
+  };
+
+  // to resume playing audio recording
+  const onResumePlay = async () => {
+    await audioRecorderPlayer.resumePlayer();
+    setIsVoiceNotePlaying(true);
   };
 
   return (
@@ -1269,13 +1341,6 @@ const InputBox = ({
             </View>
           ) : null}
 
-          <View>
-            <Button title="Start Recording" onPress={startRecord} />
-            <Button title="Stop Recording" onPress={stopRecord} />
-            <Button title="Start Playing" onPress={startPlay} />
-            <Button title="Stop Playing" onPress={stopPlay} />
-          </View>
-
           <View
             style={[
               styles.textInput,
@@ -1316,7 +1381,7 @@ const InputBox = ({
               </TouchableOpacity>
             ) : null}
 
-            {!!voiceNotes?.recordTime ? (
+            {!!voiceNotes?.recordTime && !isVoiceResult ? (
               <View
                 style={[
                   styles.voiceNotesInputParent,
@@ -1327,7 +1392,9 @@ const InputBox = ({
                     source={require('../../assets/images/record_icon3x.png')}
                     style={styles.emoji}
                   />
-                  <Text>{voiceNotes.recordTime}</Text>
+                  <Text style={styles.recordTitle}>
+                    {voiceNotes.recordTime}
+                  </Text>
                 </View>
                 <View style={styles.alignItems}>
                   <Image
@@ -1339,6 +1406,58 @@ const InputBox = ({
                     style={styles.emoji}
                   />
                 </View>
+              </View>
+            ) : isVoiceResult ? (
+              <View
+                style={[
+                  styles.voiceNotesInputParent,
+                  styles.voiceRecorderInput,
+                ]}>
+                <View style={styles.alignItems}>
+                  {isVoiceNotePlaying ? (
+                    <TouchableOpacity
+                      onPress={() => {
+                        // stopPlay();
+                        onPausePlay();
+                      }}>
+                      <Image
+                        source={require('../../assets/images/pause_icon3x.png')}
+                        style={styles.emoji}
+                      />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (voiceNotesPlayer?.playTime !== '') {
+                          onResumePlay();
+                        } else {
+                          startPlay(voiceNotesLink);
+                        }
+                      }}>
+                      <Image
+                        source={require('../../assets/images/play_icon3x.png')}
+                        style={styles.emoji}
+                      />
+                    </TouchableOpacity>
+                  )}
+                  {isVoiceNotePlaying || voiceNotesPlayer?.playTime ? (
+                    <Text style={styles.recordTitle}>
+                      {voiceNotesPlayer?.playTime}
+                    </Text>
+                  ) : (
+                    <Text style={styles.recordTitle}>
+                      {voiceNotes?.recordTime}
+                    </Text>
+                  )}
+                </View>
+                <TouchableOpacity
+                  onPress={clearVoiceRecord}
+                  style={styles.alignItems}>
+                  <Image
+                    source={require('../../assets/images/cross_circle_icon3x.png')}
+                    style={styles.emoji}
+                  />
+                </TouchableOpacity>
               </View>
             ) : (
               <View
