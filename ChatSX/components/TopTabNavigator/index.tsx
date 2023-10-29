@@ -161,7 +161,7 @@ export default function MyTabs({
       Events.REACTION_LIST_OPENED,
       new Map<string, string>([
         [Keys.MESSAGE_ID, item?.id],
-        [Keys.CHATROOM_ID, chatroomID.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
       ]),
     );
     if (reactionArr.length > 0) {

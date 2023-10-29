@@ -157,7 +157,7 @@ const ReplyConversations = ({
           Events.MESSAGE_SELECTED,
           new Map<string, string>([
             [Keys.TYPE, selectedKey],
-            [Keys.CHATROOM_ID, chatroomID.toString()],
+            [Keys.CHATROOM_ID, chatroomID?.toString()],
           ]),
         );
         if (!isStateIncluded) {

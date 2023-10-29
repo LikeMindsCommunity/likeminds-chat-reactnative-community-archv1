@@ -511,6 +511,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       dispatch({type: LONG_PRESSED, body: false});
                       setInitialHeader();
                       refInput.current.focus();
+                      LMChatAnalytics.track(
+                        Events.MESSAGE_REPLY,
+                        new Map<string, string>([
+                          [Keys.TYPE, 'text'],
+                          [Keys.CHATROOM_ID, chatroomID?.toString()],
+                          [
+                            Keys.REPLIED_TO_MEMBER_ID,
+                            selectedMessages[0]?.member?.id,
+                          ],
+                          [
+                            Keys.REPLIED_TO_MEMBER_STATE,
+                            selectedMessages[0]?.member?.state,
+                          ],
+                          [Keys.REPLIED_TO_MESSAGE_ID, selectedMessages[0]?.id],
+                        ]),
+                      );
                     }
                   }}>
                   <Image
@@ -600,7 +616,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                           Events.MESSAGE_DELETED,
                           new Map<string, string>([
                             [Keys.TYPE, selectedKey],
-                            [Keys.CHATROOM_ID, chatroomID.toString()],
+                            [Keys.CHATROOM_ID, chatroomID?.toString()],
                           ]),
                         );
                         updatedConversations =
@@ -835,12 +851,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     LMChatAnalytics.track(
       Events.CHAT_ROOM_OPENED,
       new Map<string, string>([
-        [Keys.CHATROOM_ID, chatroomID.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
         [Keys.CHATROOM_TYPE, chatroomType],
         [Keys.SOURCE, source],
       ]),
     );
-  }, []);
+  }, [chatroomType]);
 
   //this useEffect fetch chatroom details only after initiate API got fetched if `navigation from Notification` else fetch chatroom details
   useEffect(() => {
@@ -1138,7 +1154,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         LMChatAnalytics.track(
           Events.CHAT_ROOM_UN_FOLLOWED,
           new Map<string, string>([
-            [Keys.CHATROOM_ID, chatroomID.toString()],
+            [Keys.CHATROOM_ID, chatroomID?.toString()],
             [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
             [Keys.SOURCE, Sources.COMMUNITY_FEED],
           ]),
@@ -1201,9 +1217,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         LMChatAnalytics.track(
           Events.CHAT_ROOM_LEFT,
           new Map<string, string>([
-            [Keys.CHATROOM_NAME, chatroomName.toString()],
-            [Keys.CHATROOM_ID, chatroomID.toString()],
-            [Keys.CHATROOM_TYPE, chatroomType.toString()],
+            [Keys.CHATROOM_NAME, chatroomName?.toString()],
+            [Keys.CHATROOM_ID, chatroomID?.toString()],
+            [Keys.CHATROOM_TYPE, chatroomType?.toString()],
           ]),
         );
         if (previousRoute?.name === EXPLORE_FEED) {
@@ -1256,7 +1272,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         LMChatAnalytics.track(
           Events.CHAT_ROOM_FOLLOWED,
           new Map<string, string>([
-            [Keys.CHATROOM_ID, chatroomID.toString()],
+            [Keys.CHATROOM_ID, chatroomID?.toString()],
             [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
             [Keys.SOURCE, Sources.COMMUNITY_FEED],
           ]),
@@ -1313,7 +1329,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         LMChatAnalytics.track(
           Events.CHAT_ROOM_FOLLOWED,
           new Map<string, string>([
-            [Keys.CHATROOM_ID, chatroomID.toString()],
+            [Keys.CHATROOM_ID, chatroomID?.toString()],
             [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
             [Keys.SOURCE, Sources.COMMUNITY_FEED],
           ]),
@@ -1476,8 +1492,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       new Map<string, string>([
         [Keys.REACTION, reaction],
         [Keys.FROM, from],
-        [Keys.MESSAGE_ID, consversationID.toString()],
-        [Keys.CHATROOM_ID, chatroomID.toString()],
+        [Keys.MESSAGE_ID, consversationID?.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
       ]),
     );
   };
@@ -1676,7 +1692,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         Events.MESSAGE_SELECTED,
         new Map<string, string>([
           [Keys.TYPE, selectedKey],
-          [Keys.CHATROOM_ID, chatroomID.toString()],
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
         ]),
       );
       if (!isStateIncluded) {
@@ -1728,7 +1744,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           Events.MESSAGE_SELECTED,
           new Map<string, string>([
             [Keys.TYPE, selectedKey],
-            [Keys.CHATROOM_ID, chatroomID.toString()],
+            [Keys.CHATROOM_ID, chatroomID?.toString()],
           ]),
         );
         if (!isStateIncluded) {
@@ -1792,7 +1808,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       body: {conversation: response?.data?.conversation},
     });
     await myClient?.saveNewConversation(
-      chatroomID.toString(),
+      chatroomID?.toString(),
       response?.data?.conversation,
     );
   };
@@ -2055,7 +2071,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         };
 
         await myClient?.saveAttachmentUploadConversation(
-          id.toString(),
+          id?.toString(),
           JSON.stringify(message),
         );
         return error;
@@ -2080,6 +2096,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   const handleFileUpload = async (conversationID: any, isRetry: any) => {
+    LMChatAnalytics.track(
+      Events.ATTACHMENT_UPLOAD_ERROR,
+      new Map<string, string>([
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
+        [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
+        [Keys.CLICKED_RETRY, true],
+      ]),
+    );
     let selectedFilesToUpload = uploadingFilesMessages[conversationID];
     dispatch({
       type: SET_FILE_UPLOADING_MESSAGES,
@@ -2098,7 +2122,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
 
     await myClient?.saveAttachmentUploadConversation(
-      id.toString(),
+      id?.toString(),
       JSON.stringify(message),
     );
     const res = await uploadResource({
@@ -2109,14 +2133,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       uploadingFilesMessages,
       isRetry: isRetry,
     });
-    LMChatAnalytics.track(
-      Events.ATTACHMENT_UPLOAD_ERROR,
-      new Map<string, string>([
-        [Keys.CHATROOM_ID, chatroomID?.toString()],
-        [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
-        [Keys.CLICKED_RETRY, true],
-      ]),
-    );
     return res;
   };
 
@@ -2182,10 +2198,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     LMChatAnalytics.track(
       Events.REPLY_PRIVATELY,
       new Map<string, string>([
-        [Keys.CHATROOM_ID, chatroomID.toString()],
-        [Keys.MESSAGE_ID, conversationId.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
+        [Keys.MESSAGE_ID, conversationId?.toString()],
         [Keys.SENDER_ID, user?.sdkClientInfo?.uuid?.toString()],
-        [Keys.RECEIVER_ID, uuid.toString()],
+        [Keys.RECEIVER_ID, uuid?.toString()],
       ]),
     );
   };
@@ -2607,7 +2623,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   }}
                   isSecret={isSecret}
                   chatroomType={chatroomType}
-                  item={item}
                 />
               ) : //case to block normal users from messaging in an Announcement Room
               user.state !== 1 && chatroomDBDetails?.type === 7 ? (

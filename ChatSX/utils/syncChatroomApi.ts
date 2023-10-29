@@ -66,7 +66,10 @@ export const paginatedSyncAPI = async (
   if (DB_RESPONSE?.chatroomsData?.length === 0) {
     LMChatAnalytics.track(
       Events.SYNC_COMPLETE,
-      new Map<string, string>([[Keys.SYNC_COMPLETE, true.toString()]]),
+      new Map<string, string>([
+        [Keys.SYNC_COMPLETE, true?.toString()],
+        [Keys.TIME_TAKEN, (maxTimeStampNow - minTimeStampNow)?.toString()],
+      ]),
     );
     return;
   } else {

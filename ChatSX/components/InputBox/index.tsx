@@ -116,7 +116,6 @@ const InputBox = ({
   setIsEditable,
   isSecret,
   chatroomWithUser,
-  item,
   chatroomName,
 }: InputBoxProps) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
@@ -163,7 +162,6 @@ const InputBox = ({
     fileSent,
   }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
-  const [taggedUserCount, setTaggedUserCount] = useState(0);
   const [isGroupTag, setIsGroupTag] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -589,7 +587,6 @@ const InputBox = ({
         taggedUserNames.push(name);
         return `<<${name}|route://${newName}>>`;
       } else {
-        setTaggedUserCount(taggedUserCount + 1);
         taggedUserNames.push(name);
         return `<<${name}|route://${id}>>`;
       }
@@ -633,22 +630,6 @@ const InputBox = ({
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
-        LMChatAnalytics.track(
-          Events.MESSAGE_REPLY,
-          new Map<string, string>([
-            [Keys.TYPE, 'text'],
-            [Keys.CHATROOM_ID, item?.id],
-            [
-              Keys.REPLIED_TO_MEMBER_ID,
-              item?.replyConversationObject?.member?.id,
-            ],
-            [
-              Keys.REPLIED_TO_MEMBER_STATE,
-              item?.replyConversationObject?.member?.state,
-            ],
-            [Keys.REPLIED_TO_MESSAGE_ID, item?.replyConversationObject?.id],
-          ]),
-        );
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
@@ -697,12 +678,12 @@ const InputBox = ({
           if (attachmentsCount > 0) {
             const editedReplyObj = {...replyObj, isInProgress: SUCCESS};
             await myClient?.saveNewConversation(
-              chatroomID.toString(),
+              chatroomID?.toString(),
               editedReplyObj,
             );
           } else {
             await myClient?.saveNewConversation(
-              chatroomID.toString(),
+              chatroomID?.toString(),
               replyObj,
             );
           }
@@ -710,11 +691,11 @@ const InputBox = ({
           if (attachmentsCount > 0) {
             const editedObj = {...obj, isInProgress: SUCCESS};
             await myClient?.saveNewConversation(
-              chatroomID.toString(),
+              chatroomID?.toString(),
               editedObj,
             );
           } else {
-            await myClient?.saveNewConversation(chatroomID.toString(), obj);
+            await myClient?.saveNewConversation(chatroomID?.toString(), obj);
           }
         }
       }
@@ -758,11 +739,11 @@ const InputBox = ({
           body: {chatRequestState: ChatroomChatRequestState.INITIATED},
         });
         await myClient?.saveNewConversation(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           response?.data?.conversation,
         );
         await myClient?.updateChatRequestState(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           ChatroomChatRequestState.INITIATED,
         );
       } else if (
@@ -781,11 +762,11 @@ const InputBox = ({
           body: {chatRequestState: ChatroomChatRequestState.ACCEPTED},
         });
         await myClient?.saveNewConversation(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           response?.data?.conversation,
         );
         await myClient?.updateChatRequestState(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           ChatroomChatRequestState.ACCEPTED,
         );
       } else {
@@ -884,7 +865,7 @@ const InputBox = ({
                 };
 
             await myClient?.saveAttachmentUploadConversation(
-              id.toString(),
+              id?.toString(),
               JSON.stringify(message),
             );
 
@@ -908,10 +889,10 @@ const InputBox = ({
           [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
           [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
           [Keys.CHATROOM_NAME, chatroomName?.toString()],
-          [Keys.CHATROOM_LAST_CONVERSATION_TYPE, selectedType.toString()],
-          ['count_tagged_users', taggedUserCount.toString()],
-          ['name_tagged_users', taggedUserNames.toString()],
-          ['is_group_tag', isGroupTag.toString()],
+          [Keys.CHATROOM_LAST_CONVERSATION_TYPE, selectedType?.toString()],
+          ['count_tagged_users', taggedUserNames?.length?.toString()],
+          ['name_tagged_users', taggedUserNames?.toString()],
+          ['is_group_tag', isGroupTag?.toString()],
         ]),
       );
     }
@@ -1100,7 +1081,7 @@ const InputBox = ({
       text: editedConversation,
     });
     await myClient?.updateConversation(
-      conversationId.toString(),
+      conversationId?.toString(),
       editConversationResponse?.data?.conversation,
     );
 

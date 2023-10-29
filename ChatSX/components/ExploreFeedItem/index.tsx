@@ -71,9 +71,9 @@ const ExploreFeedItem: React.FC<Props> = ({
           LMChatAnalytics.track(
             Events.CHAT_ROOM_FOLLOWED,
             new Map<string, string>([
-              [Keys.CHATROOM_ID, chatroomID.toString()],
+              [Keys.CHATROOM_ID, chatroomID?.toString()],
               [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
-              [Keys.SOURCE, Sources.COMMUNITY_FEED],
+              [Keys.SOURCE, Sources.HOME_FEED],
             ]),
           );
         } else {
@@ -81,8 +81,16 @@ const ExploreFeedItem: React.FC<Props> = ({
           setIsToast(true);
           // Updating the followStatus of chatroom to false in case of leaving the chatroo
           await myClient?.updateChatroomFollowStatus(
-            chatroomID.toString(),
+            chatroomID?.toString(),
             false,
+          );
+          LMChatAnalytics.track(
+            Events.CHAT_ROOM_UN_FOLLOWED,
+            new Map<string, string>([
+              [Keys.CHATROOM_ID, chatroomID?.toString()],
+              [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
+              [Keys.SOURCE, Sources.HOME_FEED],
+            ]),
           );
         }
         dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});

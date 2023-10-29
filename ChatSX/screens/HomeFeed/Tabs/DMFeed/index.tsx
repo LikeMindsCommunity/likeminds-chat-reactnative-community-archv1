@@ -101,11 +101,13 @@ const DMFeed = ({navigation}: Props) => {
   }
 
   useEffect(() => {
-    LMChatAnalytics.track(
-      Events.DM_FEED_OPENED,
-      new Map<string, string>([[Keys.SOURCE, 'home_feed']]),
-    );
-  }, []);
+    if (isFocused) {
+      LMChatAnalytics.track(
+        Events.DM_FEED_OPENED,
+        new Map<string, string>([[Keys.SOURCE, 'home_feed']]),
+      );
+    }
+  }, [isFocused]);
 
   useLayoutEffect(() => {
     fetchData();
@@ -380,7 +382,7 @@ const DMFeed = ({navigation}: Props) => {
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
           ListFooterComponent={renderFooter}
-          keyExtractor={(item: any) => item?.id.toString()}
+          keyExtractor={(item: any) => item?.id?.toString()}
         />
       )}
       {showDM && dmFeedChatrooms?.length > 0 ? (

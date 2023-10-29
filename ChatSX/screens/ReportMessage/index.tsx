@@ -25,6 +25,7 @@ const ReportScreen = ({navigation, route}: Props) => {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [otherReason, setOtherReason] = useState('');
   const [selectedId, setSelectedId] = useState(-1);
+  const [selectedTagReason, setSelectedTagReason] = useState('');
 
   const {
     conversationID,
@@ -103,8 +104,9 @@ const ReportScreen = ({navigation, route}: Props) => {
         body: {isToast: true, msg: 'Reported succesfully'},
       });
       let selectedKey;
-      if (selectedMessages[0]?.attachmentCount > 0) {
-        selectedKey = selectedMessages[0]?.attachments[0]?.type;
+
+      if (selectedMessages?.attachmentCount > 0) {
+        selectedKey = selectedMessages?.attachments[0]?.type;
       } else {
         selectedKey = 'text';
       }
@@ -112,8 +114,8 @@ const ReportScreen = ({navigation, route}: Props) => {
         Events.MESSAGE_REPORTED,
         new Map<string, string>([
           [Keys.TYPE, selectedKey],
-          [Keys.CHATROOM_ID, chatroomID.toString()],
-          [Keys.REASON, otherReason != '' ? otherReason : ''],
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+          [Keys.REASON, otherReason != '' ? otherReason : selectedTagReason],
         ]),
       );
     } catch (error) {
@@ -144,6 +146,7 @@ const ReportScreen = ({navigation, route}: Props) => {
               onPress={() => {
                 setSelectedIndex(index);
                 setSelectedId(res.id);
+                setSelectedTagReason(res?.name);
               }}>
               <View
                 style={[

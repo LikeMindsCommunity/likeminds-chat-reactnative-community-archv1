@@ -30,8 +30,9 @@ export const onShare = async (chatroomID: number, chatroomType: number) => {
     LMChatAnalytics.track(
       Events.CHAT_ROOM_SHARED,
       new Map<string, string>([
-        [Keys.SOURCE, chatroomID.toString()],
-        [Keys.CHATROOM_TYPE, chatroomType.toString()],
+        [Keys.SOURCE, chatroomID?.toString()],
+        [Keys.CHATROOM_FEED, 'chatroom'],
+        [Keys.CHATROOM_TYPE, chatroomType?.toString()],
       ]),
     );
     await Share.share({

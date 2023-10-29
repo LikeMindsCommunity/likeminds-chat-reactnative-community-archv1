@@ -601,7 +601,7 @@ const Messages = ({
             Events.REACTION_REMOVED,
             new Map<string, string>([
               [Keys.MESSAGE_ID, item?.id],
-              [Keys.CHATROOM_ID, chatroomID.toString()],
+              [Keys.CHATROOM_ID, chatroomID?.toString()],
             ]),
           );
 

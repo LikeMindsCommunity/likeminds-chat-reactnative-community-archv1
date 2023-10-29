@@ -251,7 +251,7 @@ const FileUpload = ({navigation, route}: any) => {
         };
 
         await myClient?.saveAttachmentUploadConversation(
-          id.toString(),
+          id?.toString(),
           JSON.stringify(message),
         );
         return error;

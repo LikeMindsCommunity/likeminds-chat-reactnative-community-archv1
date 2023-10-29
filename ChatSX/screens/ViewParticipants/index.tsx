@@ -143,7 +143,7 @@ const ViewParticipants = ({navigation, route}: any) => {
     LMChatAnalytics.track(
       Events.VIEW_CHATROOM_PARTICIPANTS,
       new Map<string, string>([
-        [Keys.CHATROOM_ID, chatroomID.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
         [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community],
         [Keys.SOURCE, Sources.CHATROOM_OVERFLOW_MENU],
       ]),

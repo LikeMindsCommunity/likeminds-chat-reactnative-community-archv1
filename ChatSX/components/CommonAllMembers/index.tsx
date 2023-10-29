@@ -311,8 +311,8 @@ const CommonAllMembers = ({
       Events.MEMBER_GROUP_ADDED,
       new Map<string, string>([
         ['member_group', selectedParticipants],
-        [Keys.CHATROOM_NAME, chatroomName.toString()],
-        [Keys.CHATROOM_ID, chatroomID.toString()],
+        [Keys.CHATROOM_NAME, chatroomName?.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
       ]),
     );
   };
@@ -443,7 +443,17 @@ const CommonAllMembers = ({
             uuid: uuid,
           };
           const apiResponse = await myClient?.createDMChatroom(payload);
-          LMChatAnalytics.track(Events.DM_CHAT_ROOM_CREATED);
+
+          LMChatAnalytics.track(
+            Events.DM_CHAT_ROOM_CREATED,
+            new Map<string, string>([
+              [Keys.SENDER_ID, user?.id?.toString()],
+              [
+                Keys.RECEIVER_ID,
+                apiResponse?.data?.chatroom?.chatroomWithUser?.id?.toString(),
+              ],
+            ]),
+          );
           const response = apiResponse?.data;
           if (apiResponse?.success === false) {
             dispatch({
