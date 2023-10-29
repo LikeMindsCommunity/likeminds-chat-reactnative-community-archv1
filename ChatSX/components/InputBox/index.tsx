@@ -98,7 +98,7 @@ import {
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
-import {LINK_PREVIEW_REGEX, URL_REGEX} from '../../constants/Regex';
+import {LINK_PREVIEW_REGEX} from '../../constants/Regex';
 import {LinkPreviewSnapProps} from './models/LinkPreviewSnapProps';
 
 export const LinkPreviewSnap = ({ogTags}: LinkPreviewSnapProps) => {
@@ -127,7 +127,7 @@ export const LinkPreviewSnap = ({ogTags}: LinkPreviewSnapProps) => {
         </View>
         <View style={styles.alignRow}>
           <Text style={styles.linkPreviewMessageText} numberOfLines={1}>
-            {ogTags?.url}
+            {ogTags?.url?.toLowerCase()}
           </Text>
         </View>
       </View>
@@ -179,6 +179,7 @@ const InputBox = ({
   const [closedOnce, setClosedOnce] = useState(false);
   const [showLinkPreview, setShowLinkPreview] = useState(true);
   const [url, setUrl] = useState('');
+  const [closedPreview, setClosedPreview] = useState(false);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
@@ -526,6 +527,9 @@ const InputBox = ({
   };
 
   const onSend = async (conversation: string) => {
+    setClosedOnce(true);
+    setClosedPreview(true);
+    setShowLinkPreview(false);
     setMessage('');
     setInputHeight(25);
     // -- Code for local message handling for normal and reply for now
@@ -664,7 +668,7 @@ const InputBox = ({
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
-        replyObj.ogTags = ogTagsState;
+        if (!closedOnce || !closedPreview) replyObj.ogTags = ogTagsState;
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
@@ -692,7 +696,7 @@ const InputBox = ({
       obj.images = dummySelectedFileArr;
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
-      obj.ogTags = ogTagsState;
+      if (!closedOnce || !closedPreview) obj.ogTags = ogTagsState;
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
@@ -816,9 +820,13 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
 
-          if (Object.keys(ogTagsState).length !== 0 && url && !closedOnce) {
+          if (
+            Object.keys(ogTagsState).length !== 0 &&
+            url &&
+            (!closedOnce || !closedPreview)
+          ) {
             payload.ogTags = ogTagsState;
-          } else if (url && !closedOnce) {
+          } else if (url && (!closedOnce || !closedPreview)) {
             payload.shareLink = url;
           }
 
@@ -857,9 +865,13 @@ const InputBox = ({
             repliedConversationId: replyMessage?.id,
           };
 
-          if (Object.keys(ogTagsState).length !== 0 && url && !closedOnce) {
+          if (
+            Object.keys(ogTagsState).length !== 0 &&
+            url &&
+            (!closedOnce || !closedPreview)
+          ) {
             payload.ogTags = ogTagsState;
-          } else if (url && !closedOnce) {
+          } else if (url && (!closedOnce || !closedPreview)) {
             payload.shareLink = url;
           }
 
@@ -926,10 +938,10 @@ const InputBox = ({
         }
       }
     }
-    setShowLinkPreview(false);
     setOgTagsState({});
     setUrl('');
     setClosedOnce(false);
+    setClosedPreview(false);
   };
 
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
@@ -993,28 +1005,36 @@ const InputBox = ({
 
   const handleInputChange = async (event: string) => {
     let parts = event.split(LINK_PREVIEW_REGEX);
-    if (parts?.length > 0) {
+    if (parts?.length > 1) {
       {
-        parts?.map((value: string) => {
+        parts?.map((value: any) => {
           if (LINK_PREVIEW_REGEX.test(value) && !isUploadScreen) {
             clearTimeout(debounceLinkPreviewTimeout);
-            let isURL = URL_REGEX.test(value);
-            if (isURL) {
-              const timeoutId = setTimeout(() => {
-                for (let i = 0; i < parts.length; i++) {
-                  if (LINK_PREVIEW_REGEX.test(parts[i]) && !closedOnce) {
-                    setShowLinkPreview(true);
-                    setUrl(parts[i]);
-                    detectLinkPreview(parts[i]);
-                    break;
-                  }
+
+            const timeoutId = setTimeout(() => {
+              let i;
+              for (i = 0; i < parts.length; i++) {
+                setClosedOnce(false);
+                setShowLinkPreview(true);
+                if (
+                  LINK_PREVIEW_REGEX.test(parts[i]) &&
+                  !closedOnce &&
+                  !closedPreview
+                ) {
+                  setShowLinkPreview(true);
+                  setUrl(parts[i]);
+                  detectLinkPreview(parts[i]);
+                  break;
                 }
-              }, 500);
-              setLinkPreviewDebounceTimeout(timeoutId);
-            }
+              }
+            }, 500);
+            setLinkPreviewDebounceTimeout(timeoutId);
           }
         });
       }
+    } else {
+      setClosedOnce(true);
+      setShowLinkPreview(false);
     }
     if (chatRequestState === 0 || chatRequestState === null) {
       if (event.length >= MAX_LENGTH) {
@@ -1307,7 +1327,6 @@ const InputBox = ({
                 styles.taggableUsersBox,
                 {
                   backgroundColor: !!isUploadScreen ? 'black' : 'white',
-                  // height: userTaggingListHeight,
                 },
               ]}>
               <LinkPreviewSnap ogTags={ogTagsState} />
@@ -1315,6 +1334,7 @@ const InputBox = ({
                 onPress={() => {
                   setShowLinkPreview(false);
                   setClosedOnce(true);
+                  setClosedPreview(true);
                 }}
                 style={styles.replyBoxClose}>
                 <Image

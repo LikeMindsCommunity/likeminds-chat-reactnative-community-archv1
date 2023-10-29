@@ -309,7 +309,7 @@ const Messages = ({
               }}
             />
           </View>
-        ) : item?.ogTags?.url != null ? (
+        ) : item?.ogTags?.url != null && item?.ogTags != undefined ? (
           <LinkPreview
             description={item?.ogTags?.description}
             title={item?.ogTags?.title}

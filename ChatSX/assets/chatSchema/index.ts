@@ -41,14 +41,7 @@ export const chatSchema = {
     },
     reactions: [],
     state: 0,
-    ogTags: {
-      description:
-        'Latest news coverage, email, free stock quotes, live scores and video are just the beginning. Discover more every day at Yahoo!',
-      image: 'https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png',
-      title:
-        'Yahoo | Mail, Weather, Search, Politics, News, Finance, Sports & Videos',
-      url: 'https://Yahoo.com',
-    },
+    ogTags: {},
   },
   reply: {
     answer: 'Hey',
@@ -133,13 +126,6 @@ export const chatSchema = {
       state: 0,
     },
     state: 0,
-    ogTags: {
-      description:
-        'Latest news coverage, email, free stock quotes, live scores and video are just the beginning. Discover more every day at Yahoo!',
-      image: 'https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo.png',
-      title:
-        'Yahoo | Mail, Weather, Search, Politics, News, Finance, Sports & Videos',
-      url: 'https://Yahoo.com',
-    },
+    ogTags: {},
   },
 };
