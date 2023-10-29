@@ -145,7 +145,7 @@ const ReportScreen = ({navigation, route}: Props) => {
               key={res?.id}
               onPress={() => {
                 setSelectedIndex(index);
-                setSelectedId(res.id);
+                setSelectedId(res?.id);
                 setSelectedTagReason(res?.name);
               }}>
               <View

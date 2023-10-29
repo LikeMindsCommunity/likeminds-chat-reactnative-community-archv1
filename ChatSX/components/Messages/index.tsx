@@ -279,9 +279,11 @@ const Messages = ({
             navigation={navigation}
             handleFileUpload={handleFileUpload}
             chatroomID={chatroomID}
+            chatroomName={chatroomName}
           />
         ) : !!!item?.replyConversationObject && item?.attachmentCount > 0 ? (
           <AttachmentConversations
+            chatroomName={chatroomName}
             navigation={navigation}
             isIncluded={isIncluded}
             item={item}
@@ -365,26 +367,24 @@ const Messages = ({
                           ? decode(
                               answerTrimming(item?.answer),
                               true,
+                              chatroomName,
+                              user?.sdkClientInfo?.community,
                               false,
-
                               conversationCreator,
 
                               chatroomWithUserUuid,
                               chatroomWithUserMemberId,
-                              chatroomName,
-                              user?.sdkClientInfo?.community,
                             )
                           : decode(
                               item?.answer,
                               true,
+                              chatroomName,
+                              user?.sdkClientInfo?.community,
                               false,
-
                               conversationCreator,
 
                               chatroomWithUserUuid,
                               chatroomWithUserMemberId,
-                              chatroomName,
-                              user?.sdkClientInfo?.community,
                             )
                       }
                     </Text>
@@ -418,7 +418,14 @@ const Messages = ({
                       ) : null}
                     </Text>
                   )}
-                  <Text>{decode(item?.answer, true)}</Text>
+                  <Text>
+                    {decode(
+                      item?.answer,
+                      true,
+                      chatroomName,
+                      user?.sdkClientInfo?.community,
+                    )}
+                  </Text>
                   <View style={styles.alignTime}>
                     {item?.isEdited ? (
                       <Text style={styles.messageDate}>{`Edited • `}</Text>

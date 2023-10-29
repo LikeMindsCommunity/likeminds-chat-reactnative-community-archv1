@@ -117,12 +117,12 @@ export function getNameInitials(name: string) {
 export const decode = (
   text: string | undefined,
   enableClick: boolean,
+  chatroomName: string,
+  communityId: string,
   isLongPress?: boolean,
   memberUuid?: string,
   chatroomWithUserUuid?: string,
   chatroomWithUserMemberId?: string,
-  chatroomName?: string,
-  communityId?: string,
 ) => {
   if (!text) {
     return;
@@ -143,8 +143,8 @@ export const decode = (
           LMChatAnalytics.track(
             Events.USER_TAGS_SOMEONE,
             new Map<string, string>([
-              [Keys.COMMUNITY_ID, communityId?.toString() || ''],
-              [Keys.CHATROOM_NAME, chatroomName?.toString() || ''],
+              [Keys.COMMUNITY_ID, communityId?.toString()],
+              [Keys.CHATROOM_NAME, chatroomName?.toString()],
               [Keys.TAGGED_USER_ID, taggedUserId?.toString()],
               [Keys.TAGGED_USER_NAME, name?.toString()],
             ]),

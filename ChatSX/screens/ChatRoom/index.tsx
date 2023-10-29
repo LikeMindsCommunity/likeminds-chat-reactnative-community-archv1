@@ -838,6 +838,24 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }, []);
 
   useEffect(() => {
+    for (let i = 0; i < selectedMessages.length; i++) {
+      let selectedKey;
+      if (selectedMessages[i]?.attachmentCount > 0) {
+        selectedKey = selectedMessages[i]?.attachments[i]?.type;
+      } else {
+        selectedKey = 'text';
+      }
+      LMChatAnalytics.track(
+        Events.MESSAGE_SELECTED,
+        new Map<string, string>([
+          [Keys.TYPE, selectedKey],
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+        ]),
+      );
+    }
+  }, [selectedMessages]);
+
+  useEffect(() => {
     let source;
     if (previousRoute?.name === EXPLORE_FEED) {
       source = 'explore_feed';
@@ -1488,7 +1506,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       from = 'long press';
     }
     LMChatAnalytics.track(
-      Events.MESSAGE_REACTIONS,
+      Events.REACTION_ADDED,
       new Map<string, string>([
         [Keys.REACTION, reaction],
         [Keys.FROM, from],
@@ -1682,19 +1700,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         body: [...filterdMessages],
       });
     } else {
-      let selectedKey;
-      if (selectedMessages[0]?.attachmentCount > 0) {
-        selectedKey = selectedMessages[0]?.attachments[0]?.type;
-      } else {
-        selectedKey = 'text';
-      }
-      LMChatAnalytics.track(
-        Events.MESSAGE_SELECTED,
-        new Map<string, string>([
-          [Keys.TYPE, selectedKey],
-          [Keys.CHATROOM_ID, chatroomID?.toString()],
-        ]),
-      );
       if (!isStateIncluded) {
         dispatch({
           type: SELECTED_MESSAGES,
@@ -1734,19 +1739,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           dispatch({type: LONG_PRESSED, body: false});
         }
       } else {
-        let selectedKey;
-        if (selectedMessages[0]?.attachmentCount > 0) {
-          selectedKey = selectedMessages[0]?.attachments[0]?.type;
-        } else {
-          selectedKey = 'text';
-        }
-        LMChatAnalytics.track(
-          Events.MESSAGE_SELECTED,
-          new Map<string, string>([
-            [Keys.TYPE, selectedKey],
-            [Keys.CHATROOM_ID, chatroomID?.toString()],
-          ]),
-        );
         if (!isStateIncluded) {
           dispatch({
             type: SELECTED_MESSAGES,
