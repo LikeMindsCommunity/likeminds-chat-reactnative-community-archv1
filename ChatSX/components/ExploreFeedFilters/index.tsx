@@ -12,6 +12,8 @@ import STYLES from '../../constants/Styles';
 import {useAppDispatch} from '../../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
 import {styles} from './styles';
+import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface Props {
   isPinned: boolean;
@@ -85,6 +87,10 @@ const ExploreFeedFilters = ({
           <TouchableOpacity
             onPress={() => {
               setIsPinned(true);
+              LMChatAnalytics.track(
+                Events.PINNED_CHATROOM_VIEWED,
+                new Map<string, string>([[Keys.SOURCE, 'overflow_menu']]),
+              );
             }}>
             <Image
               source={require('../../assets/images/pin_icon_grey3x.png')}

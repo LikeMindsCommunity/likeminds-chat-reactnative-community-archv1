@@ -38,6 +38,8 @@ import Realm from 'realm';
 import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+import {LMChatAnalytics} from '../../../../analytics/LMChatAnalytics';
+import {Events, Keys} from '../../../../enums';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -69,6 +71,9 @@ const GroupFeed = ({navigation}: Props) => {
 
   const INITIAL_SYNC_PAGE = 1;
 
+  let startTime = 0;
+  let endTime = 0;
+
   const getExploreTabCount = async () => {
     const exploreTabCount = await myClient?.getExploreTabCount();
     dispatch({type: GET_HOMEFEED_CHAT_SUCCESS, body: exploreTabCount?.data});
@@ -94,22 +99,38 @@ const GroupFeed = ({navigation}: Props) => {
   const getAppConfig = async () => {
     const appConfig = await myClient?.getAppConfig();
     if (appConfig?.isGroupFeedChatroomsSynced === undefined) {
-      myClient?.initiateAppConfig();
-      myClient?.setAppConfig(false);
+      startTime = Date.now() / 1000;
+      setTimeout(() => {
+        myClient?.initiateAppConfig();
+        myClient?.setAppConfig(false);
+      }, 200);
     } else {
       setShimmerIsLoading(false);
     }
   };
 
   useEffect(() => {
-    getAppConfig();
-    if (!user?.sdkClientInfo?.community) return;
-    paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
-    setShimmerIsLoading(false);
-    setTimeout(() => {
-      getChatroomFromLocalDB();
-    }, 500);
-  }, [user]);
+    const initiate = async () => {
+      await getAppConfig();
+      if (!user?.sdkClientInfo?.community) return;
+      await paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
+      if (shimmerIsLoading == true) {
+        endTime = Date.now() / 1000;
+        LMChatAnalytics.track(
+          Events.SYNC_COMPLETE,
+          new Map<string, string>([
+            [Keys.SYNC_COMPLETE, true?.toString()],
+            [Keys.TIME_TAKEN, (endTime - startTime)?.toString()],
+          ]),
+        );
+      }
+      setShimmerIsLoading(false);
+      setTimeout(() => {
+        getChatroomFromLocalDB();
+      }, 500);
+    };
+    initiate();
+  }, [user, startTime, shimmerIsLoading]);
 
   useEffect(() => {
     const query = ref(db, `/community/${community?.id}`);

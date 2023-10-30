@@ -14,6 +14,9 @@ import STYLES from '../../constants/Styles';
 import styles from './styles';
 import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch} from '../../../store';
+import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {getConversationType} from '../../utils/analyticsUtils';
 interface Props {
   navigation: any;
   route: any;
@@ -23,8 +26,14 @@ const ReportScreen = ({navigation, route}: Props) => {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [otherReason, setOtherReason] = useState('');
   const [selectedId, setSelectedId] = useState(-1);
+  const [selectedTagReason, setSelectedTagReason] = useState('');
 
-  const {conversationID, isDM = false} = route.params;
+  const {
+    conversationID,
+    isDM = false,
+    chatroomID,
+    selectedMessages,
+  } = route.params;
 
   const dispatch = useAppDispatch();
 
@@ -76,7 +85,7 @@ const ReportScreen = ({navigation, route}: Props) => {
         const res = await myClient?.getReportTags({
           type: isDM === true ? 1 : 0,
         });
-        setReasons(res?.data?.report_tags);
+        setReasons(res?.data?.reportTags);
       } catch (error) {
         //    Alert.alert('API failed')
       }
@@ -86,7 +95,7 @@ const ReportScreen = ({navigation, route}: Props) => {
 
   const reportMessage = async () => {
     try {
-      const call = await myClient?.pushReport({
+      const call = await myClient?.postReport({
         conversationId: Number(conversationID),
         tagId: Number(selectedId),
         reason: otherReason != '' ? otherReason : '',
@@ -95,6 +104,14 @@ const ReportScreen = ({navigation, route}: Props) => {
         type: SHOW_TOAST,
         body: {isToast: true, msg: 'Reported succesfully'},
       });
+      LMChatAnalytics.track(
+        Events.MESSAGE_REPORTED,
+        new Map<string, string>([
+          [Keys.TYPE, getConversationType(selectedMessages)],
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+          [Keys.REASON, otherReason != '' ? otherReason : selectedTagReason],
+        ]),
+      );
     } catch (error) {
       //  Alert.alert('API failed')
     }
@@ -122,7 +139,8 @@ const ReportScreen = ({navigation, route}: Props) => {
               key={res?.id}
               onPress={() => {
                 setSelectedIndex(index);
-                setSelectedId(res.id);
+                setSelectedId(res?.id);
+                setSelectedTagReason(res?.name);
               }}>
               <View
                 style={[
