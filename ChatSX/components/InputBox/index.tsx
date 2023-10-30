@@ -976,10 +976,9 @@ const InputBox = ({
         parts?.map((value: string) => {
           if (LINK_PREVIEW_REGEX.test(value) && !isUploadScreen) {
             clearTimeout(debounceLinkPreviewTimeout);
-
             const timeoutId = setTimeout(() => {
-              let i;
-              for (i = 0; i < parts.length; i++) {
+              for (let i = 0; i < parts.length; i++) {
+                parts[i] = parts[i].concat(' ');
                 setClosedOnce(false);
                 setShowLinkPreview(true);
                 if (
