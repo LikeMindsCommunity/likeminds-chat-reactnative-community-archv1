@@ -99,41 +99,7 @@ import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
 import {LINK_PREVIEW_REGEX} from '../../constants/Regex';
-import {LinkPreviewSnapProps} from './models/LinkPreviewSnapProps';
-
-export const LinkPreviewSnap = ({ogTags}: LinkPreviewSnapProps) => {
-  return (
-    <View style={styles.linkPreviewBox}>
-      <View style={styles.linkPreviewImageView}>
-        {!!ogTags?.image ? (
-          <Image source={{uri: ogTags?.image}} style={styles.linkPreviewIcon} />
-        ) : (
-          <Image
-            source={require('../../assets/images/defaultLinkPreview.png')}
-            style={styles.linkPreviewIcon}
-          />
-        )}
-      </View>
-      <View style={styles.linkPreviewTextView}>
-        <View>
-          <Text style={styles.linkPreviewTitle} numberOfLines={2}>
-            {ogTags?.title}
-          </Text>
-        </View>
-        <View style={styles.alignRow}>
-          <Text style={styles.linkPreviewMessageText} numberOfLines={1}>
-            {ogTags?.description}
-          </Text>
-        </View>
-        <View style={styles.alignRow}>
-          <Text style={styles.linkPreviewMessageText} numberOfLines={1}>
-            {ogTags?.url?.toLowerCase()}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-};
+import LinkPreviewInputBox from '../linkPreviewInputBox';
 
 const InputBox = ({
   replyChatID,
@@ -1007,7 +973,7 @@ const InputBox = ({
     let parts = event.split(LINK_PREVIEW_REGEX);
     if (parts?.length > 1) {
       {
-        parts?.map((value: any) => {
+        parts?.map((value: string) => {
           if (LINK_PREVIEW_REGEX.test(value) && !isUploadScreen) {
             clearTimeout(debounceLinkPreviewTimeout);
 
@@ -1329,7 +1295,7 @@ const InputBox = ({
                   backgroundColor: !!isUploadScreen ? 'black' : 'white',
                 },
               ]}>
-              <LinkPreviewSnap ogTags={ogTagsState} />
+              <LinkPreviewInputBox ogTags={ogTagsState} />
               <TouchableOpacity
                 onPress={() => {
                   setShowLinkPreview(false);

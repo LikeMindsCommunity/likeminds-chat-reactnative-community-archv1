@@ -4,44 +4,8 @@ import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {useAppSelector} from '../../../store';
 import {decode} from '../../commonFuctions';
-import {LinkPreviewBoxProps} from './models/LinkPreviewBoxProps';
-import {LinkPreviewProps} from './models/LinkPreviewProps';
-
-export const LinkPreviewBox = ({
-  description,
-  title,
-  image,
-  url,
-}: LinkPreviewBoxProps) => {
-  return (
-    <Pressable
-      onPress={async () => {
-        await Linking.openURL(url);
-      }}>
-      <View style={styles.linkPreviewBox}>
-        <View>
-          {!!image ? (
-            <Image source={{uri: image}} style={styles.linkPreviewIcon} />
-          ) : null}
-        </View>
-        <View>
-          {!!title ? (
-            <Text style={styles.linkPreviewTitle} numberOfLines={2}>
-              {title}
-            </Text>
-          ) : null}
-        </View>
-        <View>
-          {!!description ? (
-            <Text style={styles.linkPreviewMessageText} numberOfLines={2}>
-              {description}
-            </Text>
-          ) : null}
-        </View>
-      </View>
-    </Pressable>
-  );
-};
+import {LinkPreviewProps} from './models';
+import LinkPreviewBox from '../linkPreviewBox';
 
 const LinkPreview = ({
   description,
