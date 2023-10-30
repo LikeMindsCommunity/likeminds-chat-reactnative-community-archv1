@@ -19,6 +19,7 @@ import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {UserSchemaResponse} from '../../db/models';
 import {USER_SCHEMA_RO} from '../../constants/Strings';
+import LinkPreview from '../LinkPreview';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface Messages {
@@ -317,6 +318,16 @@ const Messages = ({
               }}
             />
           </View>
+        ) : item?.ogTags?.url != null && item?.ogTags != undefined ? (
+          <LinkPreview
+            description={item?.ogTags?.description}
+            title={item?.ogTags?.title}
+            image={item?.ogTags?.image}
+            url={item?.ogTags?.url}
+            isTypeSent={isTypeSent}
+            isIncluded={isIncluded}
+            item={item}
+          />
         ) : (
           <View>
             {isItemIncludedInStateArr ? (
