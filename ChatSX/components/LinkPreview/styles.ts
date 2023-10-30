@@ -40,7 +40,7 @@ export const styles = StyleSheet.create({
   },
   linkPreviewIcon: {
     height: 250,
-    resizeMode: 'stretch',
+    resizeMode: 'cover',
   },
   displayRow: {flexDirection: 'row', alignItems: 'center', gap: 10},
   alignTime: {

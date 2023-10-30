@@ -493,7 +493,6 @@ const InputBox = ({
   };
 
   const onSend = async (conversation: string) => {
-    setClosedOnce(true);
     setClosedPreview(true);
     setShowLinkPreview(false);
     setMessage('');
@@ -978,14 +977,8 @@ const InputBox = ({
             clearTimeout(debounceLinkPreviewTimeout);
             const timeoutId = setTimeout(() => {
               for (let i = 0; i < parts.length; i++) {
-                parts[i] = parts[i].concat(' ');
-                setClosedOnce(false);
                 setShowLinkPreview(true);
-                if (
-                  LINK_PREVIEW_REGEX.test(parts[i]) &&
-                  !closedOnce &&
-                  !closedPreview
-                ) {
+                if (LINK_PREVIEW_REGEX.test(parts[i]) && !closedPreview) {
                   setShowLinkPreview(true);
                   setUrl(parts[i]);
                   detectLinkPreview(parts[i]);
@@ -998,8 +991,8 @@ const InputBox = ({
         });
       }
     } else {
-      setClosedOnce(true);
       setShowLinkPreview(false);
+      setOgTagsState({});
     }
     if (chatRequestState === 0 || chatRequestState === null) {
       if (event.length >= MAX_LENGTH) {
@@ -1286,7 +1279,9 @@ const InputBox = ({
             </View>
           )}
 
-          {Object.keys(ogTagsState).length !== 0 && showLinkPreview ? (
+          {Object.keys(ogTagsState).length !== 0 &&
+          showLinkPreview &&
+          !closedOnce ? (
             <View
               style={[
                 styles.taggableUsersBox,
