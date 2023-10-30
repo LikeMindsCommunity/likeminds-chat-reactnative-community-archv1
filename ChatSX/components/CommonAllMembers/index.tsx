@@ -308,9 +308,8 @@ const CommonAllMembers = ({
       body: {isToast: true, msg: 'Invitation sent'},
     });
     LMChatAnalytics.track(
-      Events.MEMBER_GROUP_ADDED,
+      Events.SECRET_CHATROOM_INVITE,
       new Map<string, string>([
-        ['member_group', selectedParticipants],
         [Keys.CHATROOM_NAME, chatroomName?.toString()],
         [Keys.CHATROOM_ID, chatroomID?.toString()],
       ]),

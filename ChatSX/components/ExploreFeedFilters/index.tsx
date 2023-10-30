@@ -89,7 +89,7 @@ const ExploreFeedFilters = ({
               setIsPinned(true);
               LMChatAnalytics.track(
                 Events.PINNED_CHATROOM_VIEWED,
-                new Map<string, string>([[Keys.SOURCE, 'banner']]),
+                new Map<string, string>([[Keys.SOURCE, 'overflow_menu']]),
               );
             }}>
             <Image

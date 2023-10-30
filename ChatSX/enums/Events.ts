@@ -23,6 +23,7 @@ export enum Events {
   DM_CHAT_ROOM_CREATED = 'DM Chatroom created',
   DM_FEED_OPENED = 'Direct messages screen opened',
   CHAT_ROOM_LEFT = 'Chatroom left',
+  SECRET_CHATROOM_INVITE = 'Secret Chatroom invite',
   CHAT_ROOM_OPENED = 'Chatroom opened',
   CHAT_ROOM_SHARED = 'Chatroom shared',
   CHAT_ROOM_UN_FOLLOWED = 'Chatroom unfollowed',

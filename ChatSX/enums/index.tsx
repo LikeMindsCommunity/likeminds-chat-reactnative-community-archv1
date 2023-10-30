@@ -5,6 +5,7 @@ import {ChatroomChatRequestState} from './ChatroomChatRequestState';
 import {Events} from './Events';
 import {Keys} from './Keys';
 import {Sources} from './Sources';
+import {MediaType} from './MediaType';
 
 export {
   ChatroomActions,
@@ -14,4 +15,5 @@ export {
   Events,
   Keys,
   Sources,
+  MediaType,
 };

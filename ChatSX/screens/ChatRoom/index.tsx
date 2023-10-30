@@ -136,6 +136,7 @@ import {onShare} from '../../shareUtils';
 import {ChatroomActions, Events} from '../../enums';
 import {UserSchemaResponse} from '../../db/models';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -514,7 +515,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       LMChatAnalytics.track(
                         Events.MESSAGE_REPLY,
                         new Map<string, string>([
-                          [Keys.TYPE, 'text'],
+                          [Keys.TYPE, getConversationType(selectedMessages[0])],
                           [Keys.CHATROOM_ID, chatroomID?.toString()],
                           [
                             Keys.REPLIED_TO_MEMBER_ID,
@@ -605,17 +606,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       dispatch({type: LONG_PRESSED, body: false});
                       let updatedConversations;
                       for (let i = 0; i < selectedMessagesIDArr.length; i++) {
-                        let selectedKey;
-                        if (selectedMessages[i]?.attachmentCount > 0) {
-                          selectedKey =
-                            selectedMessages[i]?.attachments[0]?.type;
-                        } else {
-                          selectedKey = 'text';
-                        }
                         LMChatAnalytics.track(
                           Events.MESSAGE_DELETED,
                           new Map<string, string>([
-                            [Keys.TYPE, selectedKey],
+                            [
+                              Keys.TYPE,
+                              getConversationType(selectedMessages[i]),
+                            ],
                             [Keys.CHATROOM_ID, chatroomID?.toString()],
                           ]),
                         );
@@ -837,24 +834,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     });
   }, []);
 
+  // To trigger analytics for Message Selected
   useEffect(() => {
     for (let i = 0; i < selectedMessages.length; i++) {
-      let selectedKey;
-      if (selectedMessages[i]?.attachmentCount > 0) {
-        selectedKey = selectedMessages[i]?.attachments[i]?.type;
-      } else {
-        selectedKey = 'text';
-      }
       LMChatAnalytics.track(
         Events.MESSAGE_SELECTED,
         new Map<string, string>([
-          [Keys.TYPE, selectedKey],
+          [Keys.TYPE, getConversationType(selectedMessages[i])],
           [Keys.CHATROOM_ID, chatroomID?.toString()],
         ]),
       );
     }
   }, [selectedMessages]);
 
+  // To trigger analytics for Chatroom opened
   useEffect(() => {
     let source;
     if (previousRoute?.name === EXPLORE_FEED) {
@@ -870,7 +863,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       Events.CHAT_ROOM_OPENED,
       new Map<string, string>([
         [Keys.CHATROOM_ID, chatroomID?.toString()],
-        [Keys.CHATROOM_TYPE, chatroomType],
+        [
+          Keys.CHATROOM_TYPE,
+          getChatroomType(chatroomType, chatroomDBDetails?.isSecret),
+        ],
         [Keys.SOURCE, source],
       ]),
     );
@@ -1237,7 +1233,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           new Map<string, string>([
             [Keys.CHATROOM_NAME, chatroomName?.toString()],
             [Keys.CHATROOM_ID, chatroomID?.toString()],
-            [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+            [
+              Keys.CHATROOM_TYPE,
+              getChatroomType(chatroomType, chatroomDBDetails?.isSecret),
+            ],
           ]),
         );
         if (previousRoute?.name === EXPLORE_FEED) {
@@ -2818,7 +2817,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         setModalVisible(false);
                       } else if (val?.id === ChatroomActions.SHARE) {
                         // Share flow
-                        onShare(chatroomID, chatroomType);
+                        onShare(
+                          chatroomID,
+                          chatroomType,
+                          chatroomDBDetails?.isSecret,
+                        );
                       }
                     }}
                     key={val?.id}

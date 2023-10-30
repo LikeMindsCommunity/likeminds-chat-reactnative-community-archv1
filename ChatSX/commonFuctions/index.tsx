@@ -6,6 +6,7 @@ import PdfThumbnail from 'react-native-pdf-thumbnail';
 import moment from 'moment';
 import {Events, Keys} from '../enums';
 import {LMChatAnalytics} from '../analytics/LMChatAnalytics';
+import {getConversationType} from '../utils/analyticsUtils';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/[^>]+>>)/gu;
 export const REGEX_USER_TAGGING =
@@ -299,7 +300,7 @@ export function copySelectedMessages(
   LMChatAnalytics.track(
     Events.MESSAGE_COPIED,
     new Map<string, string>([
-      [Keys.TYPE, 'text'],
+      [Keys.TYPE, getConversationType(selectedMessages[0])],
       [Keys.CHATROOM_ID, chatroomID],
     ]),
   );

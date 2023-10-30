@@ -3,6 +3,7 @@ import {VALID_URI_REGEX} from '../constants/Regex';
 import {ShareChatroomRequest} from './models';
 import {Events, Keys} from '../enums';
 import {LMChatAnalytics} from '../analytics/LMChatAnalytics';
+import {getChatroomType} from '../utils/analyticsUtils';
 
 // this method generates URL for share
 export const shareChatroomURL = ({
@@ -20,7 +21,11 @@ export function isValidURI(uri: string): boolean {
 }
 
 // this function helps to share chatroom url
-export const onShare = async (chatroomID: number, chatroomType: number) => {
+export const onShare = async (
+  chatroomID: number,
+  chatroomType: number,
+  isSecret?: boolean,
+) => {
   try {
     let shareChatroomRequest = {
       chatroomId: chatroomID,
@@ -32,7 +37,10 @@ export const onShare = async (chatroomID: number, chatroomType: number) => {
       new Map<string, string>([
         [Keys.SOURCE, chatroomID?.toString()],
         [Keys.CHATROOM_FEED, 'chatroom'],
-        [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+        [
+          Keys.CHATROOM_TYPE,
+          getChatroomType(chatroomType?.toString(), isSecret),
+        ],
       ]),
     );
     await Share.share({

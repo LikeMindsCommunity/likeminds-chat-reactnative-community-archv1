@@ -99,6 +99,7 @@ import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
 
 const InputBox = ({
   replyChatID,
@@ -630,6 +631,7 @@ const InputBox = ({
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
+        replyObj.ogTags = {};
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
@@ -657,6 +659,7 @@ const InputBox = ({
       obj.images = dummySelectedFileArr;
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
+      obj.ogTags = {};
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
@@ -878,15 +881,21 @@ const InputBox = ({
         }
       }
       let selectedType;
-      if (replyObj?.attachmentCount > 0 || obj?.attachmentCount > 0) {
-        selectedType = dummyAttachmentsArr?.type;
+      if (isReply) {
+        selectedType = getConversationType(replyObj);
       } else {
-        selectedType = 'text';
+        selectedType = getConversationType(obj);
       }
       LMChatAnalytics.track(
         Events.CHATROOM_RESPONDED,
         new Map<string, string>([
-          [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
+          [
+            Keys.CHATROOM_TYPE,
+            getChatroomType(
+              chatroomDBDetails?.type?.toString(),
+              chatroomDBDetails?.isSecret,
+            ),
+          ],
           [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
           [Keys.CHATROOM_NAME, chatroomName?.toString()],
           [Keys.CHATROOM_LAST_CONVERSATION_TYPE, selectedType?.toString()],
@@ -1021,6 +1030,7 @@ const InputBox = ({
   // this function is for editing a conversation
   const onEdit = async () => {
     let selectedConversation = editConversation;
+
     let conversationId = selectedConversation?.id;
     let previousConversation = selectedConversation;
 
@@ -1088,8 +1098,8 @@ const InputBox = ({
     LMChatAnalytics.track(
       Events.MESSAGE_EDITED,
       new Map<string, string>([
-        [Keys.TYPE, 'text'],
-        [Keys.UPDATED_DESCRIPTION, editedConversation],
+        [Keys.TYPE, getConversationType(selectedConversation)],
+        [Keys.DESCRIPTION_UPDATED, false?.toString()],
       ]),
     );
   };
@@ -1224,7 +1234,11 @@ const InputBox = ({
 
           {isReply && !isUploadScreen && (
             <View style={styles.replyBox}>
-              <ReplyBox isIncluded={false} item={replyMessage} />
+              <ReplyBox
+                isIncluded={false}
+                item={replyMessage}
+                chatroomName={chatroomName}
+              />
               <TouchableOpacity
                 onPress={() => {
                   dispatch({type: SET_IS_REPLY, body: {isReply: false}});
@@ -1241,7 +1255,11 @@ const InputBox = ({
 
           {isEditable ? (
             <View style={styles.replyBox}>
-              <ReplyBox isIncluded={false} item={editConversation} />
+              <ReplyBox
+                isIncluded={false}
+                item={editConversation}
+                chatroomName={chatroomName}
+              />
               <TouchableOpacity
                 onPress={() => {
                   setIsEditable(false);

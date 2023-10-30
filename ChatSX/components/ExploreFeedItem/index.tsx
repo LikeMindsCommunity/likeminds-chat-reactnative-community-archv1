@@ -73,7 +73,7 @@ const ExploreFeedItem: React.FC<Props> = ({
             new Map<string, string>([
               [Keys.CHATROOM_ID, chatroomID?.toString()],
               [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
-              [Keys.SOURCE, Sources.HOME_FEED],
+              [Keys.SOURCE, Sources.COMMUNITY_FEED],
             ]),
           );
         } else {
@@ -89,7 +89,7 @@ const ExploreFeedItem: React.FC<Props> = ({
             new Map<string, string>([
               [Keys.CHATROOM_ID, chatroomID?.toString()],
               [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
-              [Keys.SOURCE, Sources.HOME_FEED],
+              [Keys.SOURCE, Sources.COMMUNITY_FEED],
             ]),
           );
         }

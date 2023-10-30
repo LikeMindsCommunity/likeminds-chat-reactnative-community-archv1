@@ -12,7 +12,7 @@ export enum Keys {
   FROM = 'from',
   SENDER_ID = 'sender_id',
   RECEIVER_ID = 'receiver_id',
-  UPDATED_DESCRIPTION = 'description_updated',
+  DESCRIPTION_UPDATED = 'description_updated',
   REASON = 'reason',
   REPLIED_TO_MEMBER_ID = 'replied_to_member_id',
   REPLIED_TO_MEMBER_STATE = 'replied_to_member_state',
@@ -25,4 +25,5 @@ export enum Keys {
   REACTION = 'reaction',
   CHATROOM_LAST_CONVERSATION_TYPE = 'chatroom_last_conversation_type',
   EXTRA_KEY_1 = 'EXTRA_KEY_1',
+  USER_ID = 'user_id',
 }

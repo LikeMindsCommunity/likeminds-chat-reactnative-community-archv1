@@ -16,6 +16,7 @@ import {SHOW_TOAST} from '../../store/types/types';
 import {useAppDispatch} from '../../../store';
 import {Events, Keys} from '../../enums';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {getConversationType} from '../../utils/analyticsUtils';
 interface Props {
   navigation: any;
   route: any;
@@ -103,17 +104,10 @@ const ReportScreen = ({navigation, route}: Props) => {
         type: SHOW_TOAST,
         body: {isToast: true, msg: 'Reported succesfully'},
       });
-      let selectedKey;
-
-      if (selectedMessages?.attachmentCount > 0) {
-        selectedKey = selectedMessages?.attachments[0]?.type;
-      } else {
-        selectedKey = 'text';
-      }
       LMChatAnalytics.track(
         Events.MESSAGE_REPORTED,
         new Map<string, string>([
-          [Keys.TYPE, selectedKey],
+          [Keys.TYPE, getConversationType(selectedMessages)],
           [Keys.CHATROOM_ID, chatroomID?.toString()],
           [Keys.REASON, otherReason != '' ? otherReason : selectedTagReason],
         ]),
