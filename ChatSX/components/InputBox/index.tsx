@@ -95,11 +95,13 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
-import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps} from './models';
 import {LINK_PREVIEW_REGEX} from '../../constants/Regex';
 import LinkPreviewInputBox from '../linkPreviewInputBox';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
 
 const InputBox = ({
   replyChatID,
@@ -117,6 +119,7 @@ const InputBox = ({
   setIsEditable,
   isSecret,
   chatroomWithUser,
+  chatroomName,
 }: InputBoxProps) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -140,6 +143,7 @@ const InputBox = ({
   const [taggedUserName, setTaggedUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const {chatroomDBDetails}: any = useAppSelector(state => state.chatroom);
 
   const [ogTagsState, setOgTagsState] = useState<any>({});
   const [closedOnce, setClosedOnce] = useState(false);
@@ -149,6 +153,8 @@ const InputBox = ({
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
+
+  let taggedUserNames: any = [];
 
   const {
     selectedFilesToUpload = [],
@@ -167,6 +173,7 @@ const InputBox = ({
     fileSent,
   }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+  const [isGroupTag, setIsGroupTag] = useState(false);
 
   const dispatch = useAppDispatch();
   let conversationArrayLength = conversations.length;
@@ -589,8 +596,11 @@ const InputBox = ({
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
         let newName = name.substring(1);
+        setIsGroupTag(true);
+        taggedUserNames.push(name);
         return `<<${name}|route://${newName}>>`;
       } else {
+        taggedUserNames.push(name);
         return `<<${name}|route://${id}>>`;
       }
     });
@@ -683,12 +693,12 @@ const InputBox = ({
           if (attachmentsCount > 0) {
             const editedReplyObj = {...replyObj, isInProgress: SUCCESS};
             await myClient?.saveNewConversation(
-              chatroomID.toString(),
+              chatroomID?.toString(),
               editedReplyObj,
             );
           } else {
             await myClient?.saveNewConversation(
-              chatroomID.toString(),
+              chatroomID?.toString(),
               replyObj,
             );
           }
@@ -696,11 +706,11 @@ const InputBox = ({
           if (attachmentsCount > 0) {
             const editedObj = {...obj, isInProgress: SUCCESS};
             await myClient?.saveNewConversation(
-              chatroomID.toString(),
+              chatroomID?.toString(),
               editedObj,
             );
           } else {
-            await myClient?.saveNewConversation(chatroomID.toString(), obj);
+            await myClient?.saveNewConversation(chatroomID?.toString(), obj);
           }
         }
       }
@@ -744,11 +754,11 @@ const InputBox = ({
           body: {chatRequestState: ChatroomChatRequestState.INITIATED},
         });
         await myClient?.saveNewConversation(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           response?.data?.conversation,
         );
         await myClient?.updateChatRequestState(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           ChatroomChatRequestState.INITIATED,
         );
       } else if (
@@ -767,11 +777,11 @@ const InputBox = ({
           body: {chatRequestState: ChatroomChatRequestState.ACCEPTED},
         });
         await myClient?.saveNewConversation(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           response?.data?.conversation,
         );
         await myClient?.updateChatRequestState(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           ChatroomChatRequestState.ACCEPTED,
         );
       } else {
@@ -890,7 +900,7 @@ const InputBox = ({
                 };
 
             await myClient?.saveAttachmentUploadConversation(
-              id.toString(),
+              id?.toString(),
               JSON.stringify(message),
             );
 
@@ -902,6 +912,30 @@ const InputBox = ({
           });
         }
       }
+      let selectedType;
+      if (isReply) {
+        selectedType = getConversationType(replyObj);
+      } else {
+        selectedType = getConversationType(obj);
+      }
+      LMChatAnalytics.track(
+        Events.CHATROOM_RESPONDED,
+        new Map<string, string>([
+          [
+            Keys.CHATROOM_TYPE,
+            getChatroomType(
+              chatroomDBDetails?.type?.toString(),
+              chatroomDBDetails?.isSecret,
+            ),
+          ],
+          [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
+          [Keys.CHATROOM_NAME, chatroomName?.toString()],
+          [Keys.CHATROOM_LAST_CONVERSATION_TYPE, selectedType?.toString()],
+          ['count_tagged_users', taggedUserNames?.length?.toString()],
+          ['name_tagged_users', taggedUserNames?.toString()],
+          ['is_group_tag', isGroupTag?.toString()],
+        ]),
+      );
     }
     setOgTagsState({});
     setUrl('');
@@ -1066,6 +1100,7 @@ const InputBox = ({
   // this function is for editing a conversation
   const onEdit = async () => {
     let selectedConversation = editConversation;
+
     let conversationId = selectedConversation?.id;
     let previousConversation = selectedConversation;
 
@@ -1126,8 +1161,16 @@ const InputBox = ({
       text: editedConversation,
     });
     await myClient?.updateConversation(
-      conversationId.toString(),
+      conversationId?.toString(),
       editConversationResponse?.data?.conversation,
+    );
+
+    LMChatAnalytics.track(
+      Events.MESSAGE_EDITED,
+      new Map<string, string>([
+        [Keys.TYPE, getConversationType(selectedConversation)],
+        [Keys.DESCRIPTION_UPDATED, false?.toString()],
+      ]),
     );
   };
 
@@ -1264,7 +1307,11 @@ const InputBox = ({
 
           {isReply && !isUploadScreen && (
             <View style={styles.replyBox}>
-              <ReplyBox isIncluded={false} item={replyMessage} />
+              <ReplyBox
+                isIncluded={false}
+                item={replyMessage}
+                chatroomName={chatroomName}
+              />
               <TouchableOpacity
                 onPress={() => {
                   dispatch({type: SET_IS_REPLY, body: {isReply: false}});
@@ -1307,7 +1354,11 @@ const InputBox = ({
 
           {isEditable ? (
             <View style={styles.replyBox}>
-              <ReplyBox isIncluded={false} item={editConversation} />
+              <ReplyBox
+                isIncluded={false}
+                item={editConversation}
+                chatroomName={chatroomName}
+              />
               <TouchableOpacity
                 onPress={() => {
                   setIsEditable(false);

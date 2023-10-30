@@ -5,6 +5,8 @@ import STYLES from '../../constants/Styles';
 import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
 import Layout from '../../constants/Layout';
 import {useAppSelector} from '../../../store';
+import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface PeopleWhoReactedDefault {
   item: any;
@@ -129,6 +131,8 @@ interface MyTabs {
   defaultReactionArr: any;
   removeReaction: any;
   selectedReaction?: any;
+  item: any;
+  chatroomID: any;
 }
 
 export default function MyTabs({
@@ -136,6 +140,8 @@ export default function MyTabs({
   defaultReactionArr,
   removeReaction,
   selectedReaction,
+  item,
+  chatroomID,
 }: MyTabs) {
   const {user} = useAppSelector(state => state.homefeed);
   let index = reactionArr.findIndex(
@@ -151,6 +157,13 @@ export default function MyTabs({
       index: 0,
       routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
     };
+    LMChatAnalytics.track(
+      Events.REACTION_LIST_OPENED,
+      new Map<string, string>([
+        [Keys.MESSAGE_ID, item?.id],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
+      ]),
+    );
     if (reactionArr.length > 0) {
       for (let i = 0; i < reactionArr.length; i++) {
         initialState.routes = [

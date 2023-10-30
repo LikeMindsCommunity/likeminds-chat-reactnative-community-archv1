@@ -30,6 +30,8 @@ import {useQuery} from '@realm/react';
 import {parseDeepLink} from '../../components/ParseDeepLink';
 import {DeepLinkRequest} from '../../components/ParseDeepLink/models';
 import {UserSchemaResponse} from '../../db/models';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {Events, Keys} from '../../enums';
 
 interface Props {
   navigation: any;
@@ -141,6 +143,10 @@ const HomeFeed = ({navigation}: Props) => {
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
       await dispatch(getMemberState() as any);
+      LMChatAnalytics.track(
+        Events.COMMUNITY_TAB_CLICKED,
+        new Map<string, string>([[Keys.USER_ID, res?.user?.id]]),
+      );
     }
 
     return res;
