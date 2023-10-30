@@ -26,7 +26,7 @@ jobs:
           # Get the previous version from the last release tag
           export previous_version=$(git describe --tags --abbrev=0)
 
-          # Get the current version from pubspec.yaml
+          # Get the current version from package.json
           export current_version=$(cat package.json | grep '"versionName":' | awk -F'"' '{print $4}')
 
           if [[ "$previous_version" != "v$current_version" ]]; then
