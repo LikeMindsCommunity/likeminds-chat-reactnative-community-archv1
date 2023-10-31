@@ -173,7 +173,7 @@ const InputBox = ({
     fileSent,
   }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
-  const [isGroupTag, setIsGroupTag] = useState(false);
+  let isGroupTag = false;
 
   const dispatch = useAppDispatch();
   let conversationArrayLength = conversations.length;
@@ -599,7 +599,7 @@ const InputBox = ({
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
         let newName = name.substring(1);
-        setIsGroupTag(true);
+        isGroupTag = true;
         taggedUserNames.push(name);
         return `<<${name}|route://${newName}>>`;
       } else {
@@ -1028,8 +1028,8 @@ const InputBox = ({
         });
       }
     } else {
-      setShowLinkPreview(false);
       setOgTagsState({});
+      setShowLinkPreview(false);
     }
     if (chatRequestState === 0 || chatRequestState === null) {
       if (event.length >= MAX_LENGTH) {

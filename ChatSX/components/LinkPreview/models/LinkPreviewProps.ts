@@ -6,4 +6,5 @@ export interface LinkPreviewProps {
   isTypeSent: any;
   isIncluded: any;
   item: any;
+  chatroomName: string;
 }

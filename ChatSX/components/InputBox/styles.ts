@@ -157,6 +157,7 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginLeft: 10,
     borderRadius: 5,
+    marginBottom: 10,
   },
   linkPreviewBox: {
     display: 'flex',
