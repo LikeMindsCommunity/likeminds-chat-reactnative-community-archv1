@@ -395,7 +395,12 @@ const HomeFeedItem: React.FC<Props> = ({
                     ? getFeedIconAttachment(lastConversation)
                     : lastConversation?.state === 10
                     ? getFeedIconAttachment(lastConversation)
-                    : decode(lastMessage, false)}
+                    : decode(
+                        lastMessage,
+                        false,
+                        title,
+                        user?.sdkClientInfo?.community,
+                      )}
                 </Text>
               </Text>
             )}

@@ -12,6 +12,8 @@ import {
 import ToastMessage from '../ToastMessage';
 import {styles} from './styles';
 import {CHATROOM} from '../../constants/Screens';
+import {Events, Keys, Sources} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface Props {
   avatar: string;
@@ -66,13 +68,29 @@ const ExploreFeedItem: React.FC<Props> = ({
         if (val) {
           setMsg('Joined successfully');
           setIsToast(true);
+          LMChatAnalytics.track(
+            Events.CHAT_ROOM_FOLLOWED,
+            new Map<string, string>([
+              [Keys.CHATROOM_ID, chatroomID?.toString()],
+              [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
+              [Keys.SOURCE, Sources.COMMUNITY_FEED],
+            ]),
+          );
         } else {
           setMsg('Leaved chatroom successfully');
           setIsToast(true);
-          // Updating the followStatus of chatroom to false in case of leaving the chatroom
+          // Updating the followStatus of chatroom to false in case of leaving the chatroo
           await myClient?.updateChatroomFollowStatus(
-            chatroomID.toString(),
+            chatroomID?.toString(),
             false,
+          );
+          LMChatAnalytics.track(
+            Events.CHAT_ROOM_UN_FOLLOWED,
+            new Map<string, string>([
+              [Keys.CHATROOM_ID, chatroomID?.toString()],
+              [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
+              [Keys.SOURCE, Sources.COMMUNITY_FEED],
+            ]),
           );
         }
         dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});

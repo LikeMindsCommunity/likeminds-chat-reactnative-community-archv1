@@ -177,7 +177,7 @@ const TabScreenUI = ({pollID, conversationID}: any) => {
           // onEndReached={handleLoadMore}
           onEndReachedThreshold={0.1}
           // ListFooterComponent={renderFooter}
-          keyExtractor={(item: any) => item?.id.toString()}
+          keyExtractor={(item: any) => item?.id?.toString()}
         />
       )}
     </View>

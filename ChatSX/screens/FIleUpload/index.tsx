@@ -39,6 +39,8 @@ import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
 import {fetchResourceFromURI} from '../../commonFuctions';
 import {myClient} from '../../..';
 import {IMAGE_CROP_SCREEN} from '../../constants/Screens';
+import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface UploadResource {
   selectedImages: any;
@@ -64,6 +66,7 @@ const FileUpload = ({navigation, route}: any) => {
   const docItemType = selectedFileToView?.type?.split('/')[1];
   let len = selectedFilesToUpload.length;
   const dispatch = useAppDispatch();
+  const {chatroomDBDetails}: any = useAppSelector(state => state.chatroom);
 
   // Selected header of chatroom screen
   const setInitialHeader = () => {
@@ -219,6 +222,16 @@ const FileUpload = ({navigation, route}: any) => {
           };
 
           const uploadRes = await myClient?.putMultimedia(payload as any);
+
+          LMChatAnalytics.track(
+            Events.ATTACHMENT_UPLOADED,
+            new Map<string, string>([
+              [Keys.CHATROOM_ID, chatroomID?.toString()],
+              [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
+              [Keys.MESSAGE_ID, conversationID?.toString()],
+              [Keys.TYPE, attachmentType],
+            ]),
+          );
         }
       } catch (error) {
         dispatch({
@@ -238,7 +251,7 @@ const FileUpload = ({navigation, route}: any) => {
         };
 
         await myClient?.saveAttachmentUploadConversation(
-          id.toString(),
+          id?.toString(),
           JSON.stringify(message),
         );
         return error;
