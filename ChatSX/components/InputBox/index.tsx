@@ -375,43 +375,47 @@ const InputBox = ({
       }
     }
   };
-
   // this method launches native camera
   const openCamera = async () => {
-    const options: LaunchActivityProps = {
-      mediaType: 'photo',
-      selectionLimit: 0,
-    };
-    navigation.navigate(FILE_UPLOAD, {
-      chatroomID: chatroomID,
-      previousMessage: message, // to keep message on uploadScreen InputBox
-    });
-    await launchCamera(options, async (response: ImagePickerResponse) => {
-      if (response?.didCancel) {
-        if (selectedFilesToUpload.length === 0) {
-          navigation.goBack();
-        }
-      } else if (response.errorCode) {
-        return;
-      } else {
-        let selectedImages: Asset[] | undefined = response.assets; // selectedImages would be images only
-
-        if (!selectedImages) return;
-        if (selectedImages?.length > 0) {
-          let fileSize = selectedImages[0]?.fileSize;
-          if (Number(fileSize) >= MAX_FILE_SIZE) {
-            dispatch({
-              type: SHOW_TOAST,
-              body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
-            });
+    try {
+      const options: LaunchActivityProps = {
+        mediaType: 'photo',
+        selectionLimit: 0,
+      };
+      navigation.navigate(FILE_UPLOAD, {
+        chatroomID: chatroomID,
+        previousMessage: message, // to keep message on uploadScreen InputBox
+      });
+      await launchCamera(options, async (response: ImagePickerResponse) => {
+        if (response?.didCancel) {
+          if (selectedFilesToUpload.length === 0) {
             navigation.goBack();
-            return;
           }
-        }
+        } else if (response.errorCode) {
+          return;
+        } else {
+          let selectedImages: Asset[] | undefined = response.assets; // selectedImages would be images only
 
-        handleImageAndVideoUpload(selectedImages);
+          if (!selectedImages) return;
+          if (selectedImages?.length > 0) {
+            let fileSize = selectedImages[0]?.fileSize;
+            if (Number(fileSize) >= MAX_FILE_SIZE) {
+              dispatch({
+                type: SHOW_TOAST,
+                body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
+              });
+              navigation.goBack();
+              return;
+            }
+          }
+          await handleImageAndVideoUpload(selectedImages);
+        }
+      });
+    } catch (error) {
+      if (selectedFilesToUpload.length === 0) {
+        navigation.goBack();
       }
-    });
+    }
   };
 
   const handleModalClose = () => {
@@ -448,11 +452,11 @@ const InputBox = ({
   // function handles opening of camera functionality
   const handleCamera = async () => {
     if (Platform.OS === 'ios') {
-      openCamera();
+      await openCamera();
     } else {
       let res = await requestCameraPermission();
       if (res === true) {
-        openCamera();
+        await openCamera();
       }
     }
   };
@@ -1387,7 +1391,9 @@ const InputBox = ({
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
-                      handleCamera();
+                      setTimeout(() => {
+                        handleCamera();
+                      }, 50);
                     }}
                     style={styles.cameraStyle}>
                     <Image
