@@ -173,7 +173,7 @@ const InputBox = ({
     fileSent,
   }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
-  const [isGroupTag, setIsGroupTag] = useState(false);
+  let isGroupTag = false;
 
   const dispatch = useAppDispatch();
   let conversationArrayLength = conversations.length;
@@ -248,7 +248,6 @@ const InputBox = ({
         });
       } else {
         // to select more images and videos on FileUpload screen (isUploadScreen === true)
-
         const res = await getVideoThumbnail({
           // selected files will be saved in redux inside get video function
           selectedImages,
@@ -265,7 +264,7 @@ const InputBox = ({
         dispatch({
           type: SELECTED_FILES_TO_UPLOAD,
           body: {
-            images: selectedImages[0],
+            images: res?.selectedFilesToUpload,
           },
         });
       }
@@ -393,43 +392,47 @@ const InputBox = ({
       }
     }
   };
-
   // this method launches native camera
   const openCamera = async () => {
-    const options: LaunchActivityProps = {
-      mediaType: 'photo',
-      selectionLimit: 0,
-    };
-    navigation.navigate(FILE_UPLOAD, {
-      chatroomID: chatroomID,
-      previousMessage: message, // to keep message on uploadScreen InputBox
-    });
-    await launchCamera(options, async (response: ImagePickerResponse) => {
-      if (response?.didCancel) {
-        if (selectedFilesToUpload.length === 0) {
-          navigation.goBack();
-        }
-      } else if (response.errorCode) {
-        return;
-      } else {
-        let selectedImages: Asset[] | undefined = response.assets; // selectedImages would be images only
-
-        if (!selectedImages) return;
-        if (selectedImages?.length > 0) {
-          let fileSize = selectedImages[0]?.fileSize;
-          if (Number(fileSize) >= MAX_FILE_SIZE) {
-            dispatch({
-              type: SHOW_TOAST,
-              body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
-            });
+    try {
+      const options: LaunchActivityProps = {
+        mediaType: 'photo',
+        selectionLimit: 0,
+      };
+      navigation.navigate(FILE_UPLOAD, {
+        chatroomID: chatroomID,
+        previousMessage: message, // to keep message on uploadScreen InputBox
+      });
+      await launchCamera(options, async (response: ImagePickerResponse) => {
+        if (response?.didCancel) {
+          if (selectedFilesToUpload.length === 0) {
             navigation.goBack();
-            return;
           }
-        }
+        } else if (response.errorCode) {
+          return;
+        } else {
+          let selectedImages: Asset[] | undefined = response.assets; // selectedImages would be images only
 
-        handleImageAndVideoUpload(selectedImages);
+          if (!selectedImages) return;
+          if (selectedImages?.length > 0) {
+            let fileSize = selectedImages[0]?.fileSize;
+            if (Number(fileSize) >= MAX_FILE_SIZE) {
+              dispatch({
+                type: SHOW_TOAST,
+                body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
+              });
+              navigation.goBack();
+              return;
+            }
+          }
+          await handleImageAndVideoUpload(selectedImages);
+        }
+      });
+    } catch (error) {
+      if (selectedFilesToUpload.length === 0) {
+        navigation.goBack();
       }
-    });
+    }
   };
 
   const handleModalClose = () => {
@@ -466,11 +469,11 @@ const InputBox = ({
   // function handles opening of camera functionality
   const handleCamera = async () => {
     if (Platform.OS === 'ios') {
-      openCamera();
+      await openCamera();
     } else {
       let res = await requestCameraPermission();
       if (res === true) {
-        openCamera();
+        await openCamera();
       }
     }
   };
@@ -596,7 +599,7 @@ const InputBox = ({
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
         let newName = name.substring(1);
-        setIsGroupTag(true);
+        isGroupTag = true;
         taggedUserNames.push(name);
         return `<<${name}|route://${newName}>>`;
       } else {
@@ -1025,8 +1028,8 @@ const InputBox = ({
         });
       }
     } else {
-      setShowLinkPreview(false);
       setOgTagsState({});
+      setShowLinkPreview(false);
     }
     if (chatRequestState === 0 || chatRequestState === null) {
       if (event.length >= MAX_LENGTH) {
@@ -1540,7 +1543,9 @@ const InputBox = ({
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
-                      handleCamera();
+                      setTimeout(() => {
+                        handleCamera();
+                      }, 50);
                     }}
                     style={styles.cameraStyle}>
                     <Image

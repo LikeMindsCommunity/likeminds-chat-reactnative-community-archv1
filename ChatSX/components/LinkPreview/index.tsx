@@ -15,6 +15,7 @@ const LinkPreview = ({
   isTypeSent,
   isIncluded,
   item,
+  chatroomName,
 }: LinkPreviewProps) => {
   const {user} = useAppSelector(state => state.homefeed);
 
@@ -52,7 +53,12 @@ const LinkPreview = ({
         />
         <View>
           <View style={styles.messageText as any}>
-            {decode(item?.answer, true)}
+            {decode(
+              item?.answer,
+              true,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
           </View>
           <View style={styles.alignTime}>
             {item?.isEdited ? (

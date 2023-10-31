@@ -327,6 +327,7 @@ const Messages = ({
             isTypeSent={isTypeSent}
             isIncluded={isIncluded}
             item={item}
+            chatroomName={chatroomName}
           />
         ) : (
           <View>
