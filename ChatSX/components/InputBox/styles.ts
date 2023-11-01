@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
   input: {
     flexGrow: 1,
     fontSize: STYLES.$FONT_SIZES.XL,
-    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
     maxHeight: 120,
     padding: 0,
     marginBottom: 2,
@@ -114,7 +114,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginVertical: 20,
     flexWrap: 'wrap',
-    gap: 30,
     marginHorizontal: 40,
   },
   cameraStyle: {backgroundColor: '#06C3AF', padding: 15, borderRadius: 50},
@@ -185,7 +184,7 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
   },
-  iconContainer: {alignItems: 'center', gap: 5},
+  iconContainer: {alignItems: 'center', margin: 10},
   avatar: {
     width: 30,
     height: 30,
