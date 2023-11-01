@@ -47,6 +47,8 @@ import Realm from 'realm';
 import {paginatedSyncAPI} from '../../../../utils/syncChatroomApi';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
+import {Events, Keys, Sources} from '../../../../enums';
+import {LMChatAnalytics} from '../../../../analytics/LMChatAnalytics';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -76,6 +78,8 @@ const DMFeed = ({navigation}: Props) => {
   const db = myClient?.firebaseInstance();
   const chatrooms = [...myDMChatrooms];
   const INITIAL_SYNC_PAGE = 1;
+  let startTime = 0;
+  let endTime = 0;
 
   async function fetchData() {
     if (!!community?.id) {
@@ -97,6 +101,15 @@ const DMFeed = ({navigation}: Props) => {
       }
     }
   }
+
+  useEffect(() => {
+    if (isFocused) {
+      LMChatAnalytics.track(
+        Events.DM_FEED_OPENED,
+        new Map<string, string>([[Keys.SOURCE, Sources.HOME_FEED]]),
+      );
+    }
+  }, [isFocused]);
 
   useLayoutEffect(() => {
     fetchData();
@@ -130,8 +143,11 @@ const DMFeed = ({navigation}: Props) => {
   const getAppConfig = async () => {
     const appConfig = await myClient?.getAppConfig();
     if (appConfig?.isDmFeedChatroomsSynced === undefined) {
-      myClient?.initiateAppConfig();
-      myClient?.setAppConfig(true);
+      startTime = Date.now() / 1000;
+      setTimeout(() => {
+        myClient?.initiateAppConfig();
+        myClient?.setAppConfig(true);
+      }, 200);
     } else {
       setShimmerIsLoading(false);
     }
@@ -154,14 +170,27 @@ const DMFeed = ({navigation}: Props) => {
   }, [user, isFocused]);
 
   useEffect(() => {
-    getAppConfig();
-    if (!user?.sdkClientInfo?.community) return;
-    paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
-    setShimmerIsLoading(false);
-    setTimeout(() => {
-      getChatroomFromLocalDB();
-    }, 500);
-  }, [user]);
+    const initiate = async () => {
+      await getAppConfig();
+      if (!user?.sdkClientInfo?.community) return;
+      await paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
+      if (shimmerIsLoading == true && isFocused) {
+        endTime = Date.now() / 1000;
+        LMChatAnalytics.track(
+          Events.SYNC_COMPLETE,
+          new Map<string, string>([
+            [Keys.SYNC_COMPLETE, true?.toString()],
+            [Keys.TIME_TAKEN, (endTime - startTime)?.toString()],
+          ]),
+        );
+      }
+      setShimmerIsLoading(false);
+      setTimeout(() => {
+        getChatroomFromLocalDB();
+      }, 500);
+    };
+    initiate();
+  }, [user, isFocused, shimmerIsLoading, startTime]);
 
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {
@@ -371,7 +400,7 @@ const DMFeed = ({navigation}: Props) => {
             return <HomeFeedItem {...homeFeedProps} navigation={navigation} />;
           }}
           ListFooterComponent={renderFooter}
-          keyExtractor={(item: any) => item?.id.toString()}
+          keyExtractor={(item: any) => item?.id?.toString()}
         />
       )}
       {showDM && dmFeedChatrooms?.length > 0 ? (

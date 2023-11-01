@@ -17,6 +17,8 @@ interface ReactionGridModal {
   defaultReactionArr: any;
   removeReaction: any;
   selectedReaction?: any;
+  item: any;
+  chatroomID: any;
 }
 
 const ReactionGridModal = ({
@@ -26,6 +28,8 @@ const ReactionGridModal = ({
   defaultReactionArr,
   removeReaction,
   selectedReaction,
+  item,
+  chatroomID,
 }: ReactionGridModal) => {
   const handleModalClose = () => {
     setModalVisible(false);
@@ -49,6 +53,8 @@ const ReactionGridModal = ({
                 reactionArr={reactionArr}
                 selectedReaction={selectedReaction}
                 removeReaction={removeReaction}
+                item={item}
+                chatroomID={chatroomID}
               />
             </View>
           </Pressable>

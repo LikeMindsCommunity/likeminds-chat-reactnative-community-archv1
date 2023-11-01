@@ -15,10 +15,12 @@ import {
 import {PollConversationView} from '../Poll';
 import {useQuery} from '@realm/react';
 import {myClient} from '../../..';
-import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
-import { UserSchemaResponse } from '../../db/models';
-import { USER_SCHEMA_RO } from '../../constants/Strings';
+import {UserSchemaResponse} from '../../db/models';
+import {USER_SCHEMA_RO} from '../../constants/Strings';
+import LinkPreview from '../LinkPreview';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface Messages {
   item: any;
@@ -31,6 +33,8 @@ interface Messages {
   handleTapToUndo: any;
   handleFileUpload: any;
   chatroomType: any;
+  chatroomID: any;
+  chatroomName: any;
 }
 
 const Messages = ({
@@ -44,6 +48,8 @@ const Messages = ({
   handleTapToUndo,
   handleFileUpload,
   chatroomType,
+  chatroomID,
+  chatroomName,
 }: Messages) => {
   const {user} = useAppSelector(state => state.homefeed);
 
@@ -66,6 +72,7 @@ const Messages = ({
   const isItemIncludedInStateArr = stateArr.includes(item?.state);
 
   const dispatch = useAppDispatch();
+
   let defaultReactionArrLen = item?.reactions?.length;
 
   //this useEffect update setReactionArr in format of { reaction: 👌, memberArr: []}
@@ -272,9 +279,12 @@ const Messages = ({
             reactionArr={reactionArr}
             navigation={navigation}
             handleFileUpload={handleFileUpload}
+            chatroomID={chatroomID}
+            chatroomName={chatroomName}
           />
         ) : !!!item?.replyConversationObject && item?.attachmentCount > 0 ? (
           <AttachmentConversations
+            chatroomName={chatroomName}
             navigation={navigation}
             isIncluded={isIncluded}
             item={item}
@@ -308,6 +318,17 @@ const Messages = ({
               }}
             />
           </View>
+        ) : item?.ogTags?.url != null && item?.ogTags != undefined ? (
+          <LinkPreview
+            description={item?.ogTags?.description}
+            title={item?.ogTags?.title}
+            image={item?.ogTags?.image}
+            url={item?.ogTags?.url}
+            isTypeSent={isTypeSent}
+            isIncluded={isIncluded}
+            item={item}
+            chatroomName={chatroomName}
+          />
         ) : (
           <View>
             {isItemIncludedInStateArr ? (
@@ -358,8 +379,9 @@ const Messages = ({
                           ? decode(
                               answerTrimming(item?.answer),
                               true,
+                              chatroomName,
+                              user?.sdkClientInfo?.community,
                               false,
-
                               conversationCreator,
 
                               chatroomWithUserUuid,
@@ -368,8 +390,9 @@ const Messages = ({
                           : decode(
                               item?.answer,
                               true,
+                              chatroomName,
+                              user?.sdkClientInfo?.community,
                               false,
-
                               conversationCreator,
 
                               chatroomWithUserUuid,
@@ -407,7 +430,14 @@ const Messages = ({
                       ) : null}
                     </Text>
                   )}
-                  <Text>{decode(item?.answer, true)}</Text>
+                  <Text>
+                    {decode(
+                      item?.answer,
+                      true,
+                      chatroomName,
+                      user?.sdkClientInfo?.community,
+                    )}
+                  </Text>
                   <View style={styles.alignTime}>
                     {item?.isEdited ? (
                       <Text style={styles.messageDate}>{`Edited • `}</Text>
@@ -581,8 +611,18 @@ const Messages = ({
         setModalVisible={val => {
           setModalVisible(val);
         }}
+        item={item}
+        chatroomID={chatroomID}
         removeReaction={(reactionArr: any, removeFromList?: any) => {
           removeReaction(item, reactionArr, removeFromList);
+
+          LMChatAnalytics.track(
+            Events.REACTION_REMOVED,
+            new Map<string, string>([
+              [Keys.MESSAGE_ID, item?.id],
+              [Keys.CHATROOM_ID, chatroomID?.toString()],
+            ]),
+          );
 
           //logic to check clicked index and findIndex are same so that we can remove reaction
           let index = item?.reactions.findIndex(

@@ -1,6 +1,8 @@
-import {Platform, StyleSheet} from 'react-native';
+import {StyleSheet, PixelRatio} from 'react-native';
 import Layout from '../../constants/Layout';
 import STYLES from '../../constants/Styles';
+
+const pixelRatio = PixelRatio.get();
 
 export const styles = StyleSheet.create({
   textInput: {
@@ -54,7 +56,7 @@ export const styles = StyleSheet.create({
   input: {
     flexGrow: 1,
     fontSize: STYLES.$FONT_SIZES.XL,
-    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
     maxHeight: 120,
     padding: 0,
     marginBottom: 2,
@@ -111,11 +113,10 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent:'space-between',
+    justifyContent: 'space-between',
     marginVertical: 20,
     flexWrap: 'wrap',
-    gap: 30,
-    marginHorizontal: 40,
+    marginHorizontal: 20,
   },
   cameraStyle: {backgroundColor: '#06C3AF', padding: 15, borderRadius: 50},
   imageStyle: {backgroundColor: '#555feb', padding: 15, borderRadius: 50},
@@ -131,21 +132,61 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   replyBox: {marginHorizontal: 10, marginTop: 10},
+  linkPreviewTextView: {
+    marginHorizontal: 10,
+    marginTop: 10,
+    marginBottom: 10,
+    width: '45%',
+  },
+  linkPreviewTitle: {
+    color: 'black',
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.BOLD,
+    overflow: 'hidden',
+  },
+  alignRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  linkPreviewIcon: {
+    height: 80,
+    width: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    resizeMode: 'contain',
+    marginLeft: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  linkPreviewBox: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '100%',
+  },
+  linkPreviewMessageText: {
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.PRIMARY,
+    maxWidth: Layout.window.width - 150,
+    // textAlign: 'left',
+  },
   replyBoxClose: {
     position: 'absolute',
-    right: 5,
-    top: 5,
+    right: 10,
+    top: 10,
     backgroundColor: STYLES.$COLORS.SELECTED_BLUE,
     padding: 5,
     borderRadius: 10,
   },
-  replyCloseImg: {height: 5, width: 5, resizeMode: 'contain'},
+  replyCloseImg: {height: 7, width: 7, resizeMode: 'contain'},
   iconText: {
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
   },
-  iconContainer: {alignItems: 'center', gap: 5},
+  iconContainer: {alignItems: 'center', margin: 5 * pixelRatio},
   avatar: {
     width: 30,
     height: 30,
@@ -187,5 +228,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 10,
     marginTop: 10,
+  },
+  linkPreviewImageView: {
+    marginLeft: 10,
+    marginTop: 10,
+    width: '30%',
   },
 });
