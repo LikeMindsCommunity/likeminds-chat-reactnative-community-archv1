@@ -1,6 +1,8 @@
-import {Platform, StyleSheet} from 'react-native';
+import {StyleSheet, PixelRatio} from 'react-native';
 import Layout from '../../constants/Layout';
 import STYLES from '../../constants/Styles';
+
+const pixelRatio = PixelRatio.get();
 
 export const styles = StyleSheet.create({
   textInput: {
@@ -114,7 +116,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginVertical: 20,
     flexWrap: 'wrap',
-    marginHorizontal: 40,
+    marginHorizontal: 20,
   },
   cameraStyle: {backgroundColor: '#06C3AF', padding: 15, borderRadius: 50},
   imageStyle: {backgroundColor: '#555feb', padding: 15, borderRadius: 50},
@@ -184,7 +186,7 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
   },
-  iconContainer: {alignItems: 'center', margin: 10},
+  iconContainer: {alignItems: 'center', margin: 5 * pixelRatio},
   avatar: {
     width: 30,
     height: 30,
