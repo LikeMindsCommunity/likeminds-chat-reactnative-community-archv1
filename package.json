@@ -1,7 +1,7 @@
 {
   "name": "likeminds_chat_sx",
   "versionCode": "18",
-  "versionName": "1.5.1",
+  "versionName": "1.6.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -14,7 +14,7 @@
     "prettier:fix": "prettier --write ."
   },
   "dependencies": {
-    "@likeminds.community/chat-rn": "1.0.0",
+    "@likeminds.community/chat-rn": "1.1.0",
     "@notifee/react-native": "7.6.1",
     "@react-native-async-storage/async-storage": "1.18.1",
     "@react-native-clipboard/clipboard": "1.11.2",
