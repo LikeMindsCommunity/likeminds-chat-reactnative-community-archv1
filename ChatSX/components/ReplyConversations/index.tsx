@@ -21,6 +21,7 @@ import {
   IMAGE_TEXT,
   PDF_TEXT,
   VIDEO_TEXT,
+  VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import AttachmentConversations from '../AttachmentConversations';
 
@@ -68,6 +69,11 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
               source={require('../../assets/images/video_icon3x.png')}
               style={styles.icon}
             />
+          ) : item?.attachments[0]?.type === VOICE_NOTE_TEXT ? (
+            <Image
+              source={require('../../assets/images/mic_icon3x.png')}
+              style={[styles.icon, {tintColor: 'grey'}]}
+            />
           ) : null
         ) : null}
         <Text style={styles.messageText}>
@@ -80,6 +86,8 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
               ? `Photo`
               : item?.attachments[0]?.type === VIDEO_TEXT
               ? `Video`
+              : item?.attachments[0]?.type === VOICE_NOTE_TEXT
+              ? `Voice Note`
               : item?.attachments[0]?.type === AUDIO_TEXT
               ? `This message is not supported in this app yet.`
               : null,
