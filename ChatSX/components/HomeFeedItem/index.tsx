@@ -141,6 +141,7 @@ const HomeFeedItem: React.FC<Props> = ({
     let imageCount = 0;
     let videosCount = 0;
     let pdfCount = 0;
+    let voiceNoteCount = 0;
 
     for (let i = 0; i < attachments.length; i++) {
       if (attachments[i].type == DocumentType.IMAGE) {
@@ -149,6 +150,8 @@ const HomeFeedItem: React.FC<Props> = ({
         videosCount++;
       } else if (attachments[i].type == DocumentType.PDF) {
         pdfCount++;
+      } else if (attachments[i].type == DocumentType.VOICE_NOTE) {
+        voiceNoteCount++;
       }
     }
 
@@ -290,6 +293,22 @@ const HomeFeedItem: React.FC<Props> = ({
           <Text style={styles.attachment_msg}>
             {imageCount > 1 ? 'Photos' : 'Photo'}
           </Text>
+        </View>
+      );
+    } else if (voiceNoteCount > 0) {
+      return (
+        <View
+          style={[
+            styles.alignCenter,
+            {
+              marginBottom: -2,
+            },
+          ]}>
+          <Image
+            source={require('../../assets/images/mic_icon3x.png')}
+            style={[styles.icon, {tintColor: 'grey'}]}
+          />
+          <Text style={styles.attachment_msg}>{'Voice Note'}</Text>
         </View>
       );
     } else if (val?.state === 10) {
