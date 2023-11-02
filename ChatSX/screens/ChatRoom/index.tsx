@@ -1811,10 +1811,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     isRetry,
   }: UploadResource) => {
     LogBox.ignoreLogs(['new NativeEventEmitter']);
-    console.log('7');
     for (let i = 0; i < selectedImages?.length; i++) {
-      console.log('8');
-
       let item = selectedImages[i];
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
@@ -1973,7 +1970,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     isAudio?: boolean,
   ) => {
     if (isAudio) {
-      console.log('6', selectedAudioFilesToUpload, conversationID);
       const res = await uploadResource({
         selectedImages: selectedAudioFilesToUpload,
         conversationID: conversationID,

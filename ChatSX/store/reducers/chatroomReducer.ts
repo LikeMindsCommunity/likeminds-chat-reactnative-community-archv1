@@ -237,7 +237,6 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case SELECTED_AUDIO_FILES_TO_UPLOAD: {
       const {audio} = action.body;
-      console.log('100 =', audio);
       return {...state, selectedAudioFilesToUpload: [...audio]};
     }
     case SELECTED_FILES_TO_UPLOAD_THUMBNAILS: {

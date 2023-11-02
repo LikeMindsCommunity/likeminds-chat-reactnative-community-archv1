@@ -518,7 +518,6 @@ const InputBox = ({
   const onSend = async (conversation: string) => {
     setMessage('');
     setInputHeight(25);
-    console.log('0');
     // -- Code for local message handling for normal and reply for now
     let months = [
       'Jan',
@@ -547,12 +546,7 @@ const InputBox = ({
 
     // for making data for `images`, `videos` and `pdf` key
     if (attachmentsCount > 0) {
-      console.log('1.4');
       for (let i = 0; i < attachmentsCount; i++) {
-        console.log(
-          'selectedFilesToUpload[i]?.type?.split[0] ==',
-          selectedFilesToUpload[i]?.type?.split('/')[0],
-        );
         let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
         let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
         if (attachmentType === IMAGE_TEXT) {
@@ -580,7 +574,6 @@ const InputBox = ({
 
     // for making data for `attachments` key
     if (attachmentsCount > 0) {
-      console.log('1.5');
       for (let i = 0; i < attachmentsCount; i++) {
         let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
         let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
@@ -615,7 +608,6 @@ const InputBox = ({
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         } else if (audioAttachmentType === VOICE_NOTE_TEXT) {
-          console.log('1.6');
           let obj = {
             ...selectedAudioFilesToUpload[i],
             type: audioAttachmentType,
@@ -645,11 +637,8 @@ const InputBox = ({
 
     const isMessageTrimmed = !!conversation.trim() || isVoiceResult;
 
-    console.log('1.7');
-
     // check if message is empty string or not
     if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
-      console.log('1.71');
       let replyObj = chatSchema.reply;
       if (isReply) {
         replyObj.replyConversation = replyMessage?.id?.toString();
@@ -712,8 +701,6 @@ const InputBox = ({
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
 
-      console.log('1.72');
-
       dispatch({
         type: UPDATE_CONVERSATIONS,
         body: isReply
@@ -726,7 +713,6 @@ const InputBox = ({
         body: isReply ? {id: replyObj?.id} : {id: obj?.id},
       });
 
-      console.log('1.73');
       if (
         chatroomType !== ChatroomType.DMCHATROOM && // if not DM
         chatRequestState !== null // if not first DM message sent to an user
@@ -758,7 +744,6 @@ const InputBox = ({
       }
 
       if (isUploadScreen) {
-        console.log('1.74');
         dispatch({
           type: CLEAR_SELECTED_FILES_TO_UPLOAD,
         });
@@ -767,15 +752,12 @@ const InputBox = ({
         });
       }
 
-      console.log('1.75');
-
       if (isReply) {
         dispatch({type: SET_IS_REPLY, body: {isReply: false}});
         dispatch({type: SET_REPLY_MESSAGE, body: {replyMessage: ''}});
       }
 
       // -- Code for local message handling ended
-      console.log('1.8');
       // condition for request DM for the first time
       if (
         chatroomType === ChatroomType.DMCHATROOM && // if DM
@@ -830,9 +812,7 @@ const InputBox = ({
           ChatroomChatRequestState.ACCEPTED,
         );
       } else {
-        console.log('1.9');
         if (!isUploadScreen) {
-          console.log('2');
           let payload = {
             chatroomId: chatroomID,
             hasFiles: false,
@@ -844,11 +824,9 @@ const InputBox = ({
 
           let response = await dispatch(onConversationsCreate(payload) as any);
 
-          console.log('3');
           if (!!response) {
             await myClient?.replaceSavedConversation(response?.conversation);
           }
-          console.log('4');
 
           //Handling conversation failed case
           if (response === undefined) {
@@ -904,10 +882,6 @@ const InputBox = ({
               id.toString(),
               JSON.stringify(message),
             );
-
-            console.log('voiceNoteLink', voiceNotesLink);
-
-            console.log('5');
 
             await handleFileUpload(response?.id, false, true);
           }
@@ -1203,7 +1177,6 @@ const InputBox = ({
       meteringEnabled,
     );
     audioRecorderPlayer.addRecordBackListener(e => {
-      console.log('audio sjkndck e', e);
       setVoiceNotes({
         recordSecs: e.currentPosition,
         recordTime: audioRecorderPlayer
@@ -1212,7 +1185,6 @@ const InputBox = ({
       });
       return;
     });
-    console.log('startRecord ==', result);
     setVoiceNotesLink(result);
   };
 
@@ -1221,8 +1193,6 @@ const InputBox = ({
     await audioRecorderPlayer.stopRecorder();
     audioRecorderPlayer.removeRecordBackListener();
 
-    console.log('voiceNotes =', Math.floor(voiceNotes.recordSecs / 1000));
-
     // if isVoiceResult is true we show audio player instead of audio recorder
     const voiceNote = {
       uri: voiceNotesLink,
@@ -1230,7 +1200,6 @@ const InputBox = ({
       name: `sound.${Platform.OS === 'ios' ? 'm4a' : 'mp3'}`,
       duration: Math.floor(voiceNotes.recordSecs / 1000),
     };
-    console.log('voiceNote ==', voiceNote);
     dispatch({
       type: SELECTED_AUDIO_FILES_TO_UPLOAD,
       body: {
@@ -1262,7 +1231,6 @@ const InputBox = ({
     audioRecorderPlayer.addPlayBackListener(e => {
       let playTime = audioRecorderPlayer.mmssss(Math.floor(e.currentPosition));
       let duration = audioRecorderPlayer.mmssss(Math.floor(e.duration));
-      console.log('startPlay');
       setVoiceNotesPlayer({
         currentPositionSec: e.currentPosition,
         currentDurationSec: e.duration,
@@ -1277,7 +1245,6 @@ const InputBox = ({
       // to reset the player after audio player completed it duration
       if (playTime === duration) {
         setIsVoiceNotePlaying(false);
-        console.log('startPlay playTime ===');
         setVoiceNotesPlayer({
           currentPositionSec: 0,
           currentDurationSec: 0,
