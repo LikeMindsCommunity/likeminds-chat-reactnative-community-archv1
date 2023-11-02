@@ -19,6 +19,7 @@ import {parseDeepLink} from './ChatSX/components/ParseDeepLink';
 import {DeepLinkRequest} from './ChatSX/components/ParseDeepLink/models';
 import {UserSchemaResponse} from './ChatSX/db/models';
 import {USER_SCHEMA_RO} from './ChatSX/constants/Strings';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 function App(): JSX.Element {
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
@@ -42,7 +43,6 @@ function App(): JSX.Element {
           RootNavigation.navigate(routes.route, routes.params);
         }, 1000);
       }
-      
     }
     bootstrap();
   }, []);
@@ -73,13 +73,15 @@ function App(): JSX.Element {
   }, []);
 
   return userUniqueID && userName ? (
-    <ReduxProvider store={store}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1}}>
-        <SwitchComponent />
-      </KeyboardAvoidingView>
-    </ReduxProvider>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <ReduxProvider store={store}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{flex: 1}}>
+          <SwitchComponent />
+        </KeyboardAvoidingView>
+      </ReduxProvider>
+    </GestureHandlerRootView>
   ) : (
     <FetchKeyInputScreen isTrue={isTrue} setIsTrue={setIsTrue} />
   );

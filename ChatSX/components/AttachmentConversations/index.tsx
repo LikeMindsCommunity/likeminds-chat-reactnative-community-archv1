@@ -30,7 +30,13 @@ import {
   PDF_TEXT,
   SUCCESS,
   VIDEO_TEXT,
+  VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
+import Slider from '@react-native-community/slider';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import {VoiceNotesPlayerProps} from '../InputBox/models';
+
+const audioRecorderPlayer = new AudioRecorderPlayer();
 
 interface AttachmentConversations {
   item: any;
@@ -55,8 +61,67 @@ const AttachmentConversations = ({
   handleFileUpload,
   isReply,
 }: AttachmentConversations) => {
+  const [voiceNotesPlayer, setVoiceNotesPlayer] =
+    useState<VoiceNotesPlayerProps>({
+      currentPositionSec: 0,
+      currentDurationSec: 0,
+      playTime: '',
+      duration: '',
+    });
+  const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
+
+  const startPlay = async (path: string) => {
+
+    await audioRecorderPlayer.startPlayer(path);
+    audioRecorderPlayer.addPlayBackListener(e => {
+      let playTime = audioRecorderPlayer.mmssss(Math.floor(e.currentPosition));
+      let duration = audioRecorderPlayer.mmssss(Math.floor(e.duration));
+      setVoiceNotesPlayer({
+        currentPositionSec: e.currentPosition,
+        currentDurationSec: e.duration,
+        playTime: audioRecorderPlayer
+          .mmssss(Math.floor(e.currentPosition))
+          .slice(0, 5),
+        duration: audioRecorderPlayer
+          .mmssss(Math.floor(e.duration))
+          .slice(0, 5),
+      });
+
+      // to reset the player after audio player completed it duration
+      if (playTime === duration) {
+        setIsVoiceNotePlaying(false);
+        setVoiceNotesPlayer({
+          currentPositionSec: 0,
+          currentDurationSec: 0,
+          playTime: '',
+          duration: '',
+        });
+      }
+      return;
+    });
+    setIsVoiceNotePlaying(true);
+  };
+
+  // to stop playing audio recording
+  const stopPlay = async () => {
+    await audioRecorderPlayer.stopPlayer();
+    setIsVoiceNotePlaying(false);
+  };
+
+  // to pause playing audio recording
+  const onPausePlay = async () => {
+    await audioRecorderPlayer.pausePlayer();
+    setIsVoiceNotePlaying(false);
+  };
+
+  // to resume playing audio recording
+  const onResumePlay = async () => {
+    await audioRecorderPlayer.resumePlayer();
+    setIsVoiceNotePlaying(true);
+  };
+
   let firstAttachment = item?.attachments[0];
   return (
     <View
@@ -118,6 +183,51 @@ const AttachmentConversations = ({
             <Text style={styles.deletedMsg}>
               This message is not supported in this app yet.
             </Text>
+          </View>
+        ) : firstAttachment?.type === VOICE_NOTE_TEXT ? (
+          <View style={styles.voiceNotesParentBox}>
+            {isVoiceNotePlaying ? (
+              <TouchableOpacity
+                onPress={() => {
+                  onPausePlay();
+                }}
+                style={styles.playPauseBox}>
+                <Image
+                  source={require('../../assets/images/pause_icon3x.png')}
+                  style={styles.playPauseImage}
+                />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => {
+                  if (voiceNotesPlayer?.playTime !== '') {
+                    onResumePlay();
+                  } else {
+                    startPlay(firstAttachment?.url);
+                  }
+                }}
+                style={styles.playPauseBox}>
+                <Image
+                  style={styles.playPauseImage}
+                  source={require('../../assets/images/play_icon3x.png')}
+                />
+              </TouchableOpacity>
+            )}
+            <View style={{flex: 1}}>
+              <Slider
+                minimumValue={0}
+                maximumValue={100}
+                step={1}
+                value={
+                  (voiceNotesPlayer.currentPositionSec /
+                    voiceNotesPlayer.currentDurationSec) *
+                  100
+                }
+                minimumTrackTintColor="#ffad31"
+                maximumTrackTintColor="grey"
+                disabled={true}
+              />
+            </View>
           </View>
         ) : null}
 

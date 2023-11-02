@@ -153,4 +153,22 @@ export const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginTop: 3,
   },
+  voiceNotesParentBox: {
+    display: 'flex',
+    flexDirection: 'row',
+    flex: 1,
+    gap: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  playPauseBox: {
+    height: 40,
+    width: 40,
+    borderRadius: 30,
+    backgroundColor: '#ffad31',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playPauseImage: {height: 30, width: 30, tintColor: 'white'},
 });
