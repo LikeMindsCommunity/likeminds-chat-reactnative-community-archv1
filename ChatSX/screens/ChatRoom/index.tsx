@@ -4,7 +4,6 @@ import {
   useIsFocused,
 } from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
 import {
   View,
   Text,
@@ -114,6 +113,7 @@ import {
   WARNING_MSG_PRIVATE_CHATROOM,
   WARNING_MSG_PUBLIC_CHATROOM,
   USER_SCHEMA_RO,
+  VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -124,7 +124,7 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import {SyncConversationRequest} from '@likeminds.community/chat-rn';
+import {SyncConversationRequest} from '@likeminds.community/chat-rn-beta';
 import {useQuery} from '@realm/react';
 import {Share} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -223,6 +223,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   );
 
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+  const {selectedAudioFilesToUpload = []}: any = useAppSelector(
+    state => state.chatroom,
+  );
 
   const INITIAL_SYNC_PAGE = 1;
   const PAGE_SIZE = 200;
@@ -1808,10 +1811,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     isRetry,
   }: UploadResource) => {
     LogBox.ignoreLogs(['new NativeEventEmitter']);
+    console.log('7');
     for (let i = 0; i < selectedImages?.length; i++) {
+      console.log('8');
+
       let item = selectedImages[i];
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
+      let audioAttachmentType = item?.type;
       let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
@@ -1879,6 +1886,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             fileType = VIDEO_TEXT;
           } else if (attachmentType === IMAGE_TEXT) {
             fileType = IMAGE_TEXT;
+          } else if (audioAttachmentType === VOICE_NOTE_TEXT) {
+            fileType = VOICE_NOTE_TEXT;
           }
 
           let payload = {
@@ -1891,6 +1900,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     size: selectedFilesToUpload[i]?.fileSize,
                     duration: selectedFilesToUpload[i]?.duration,
                   }
+                : fileType === VOICE_NOTE_TEXT
+                ? {
+                    size: null,
+                    duration: item?.duration,
+                  }
                 : {
                     size:
                       docAttachmentType === PDF_TEXT
@@ -1900,6 +1914,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             name:
               docAttachmentType === PDF_TEXT
                 ? selectedFilesToUpload[i]?.name
+                : audioAttachmentType === VOICE_NOTE_TEXT
+                ? item?.name
                 : selectedFilesToUpload[i]?.fileName,
             type: fileType,
             url: awsResponse,
@@ -1951,37 +1967,55 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     );
   };
 
-  const handleFileUpload = async (conversationID: any, isRetry: any) => {
-    let selectedFilesToUpload = uploadingFilesMessages[conversationID];
-    dispatch({
-      type: SET_FILE_UPLOADING_MESSAGES,
-      body: {
-        message: {
-          ...selectedFilesToUpload,
-          isInProgress: SUCCESS,
-        },
-        ID: conversationID,
-      },
-    });
-    let id = conversationID;
-    let message = {
-      ...selectedFilesToUpload,
-      isInProgress: SUCCESS,
-    };
+  const handleFileUpload = async (
+    conversationID: number,
+    isRetry: boolean,
+    isAudio?: boolean,
+  ) => {
+    if (isAudio) {
+      console.log('6', selectedAudioFilesToUpload, conversationID);
+      const res = await uploadResource({
+        selectedImages: selectedAudioFilesToUpload,
+        conversationID: conversationID,
+        chatroomID: chatroomID,
+        selectedFilesToUpload: selectedAudioFilesToUpload,
+        uploadingFilesMessages,
+        isRetry: isRetry,
+      });
 
-    await myClient?.saveAttachmentUploadConversation(
-      id.toString(),
-      JSON.stringify(message),
-    );
-    const res = await uploadResource({
-      selectedImages: selectedFilesToUpload?.attachments,
-      conversationID: conversationID,
-      chatroomID: chatroomID,
-      selectedFilesToUpload: selectedFilesToUpload,
-      uploadingFilesMessages,
-      isRetry: isRetry,
-    });
-    return res;
+      return res;
+    } else {
+      let selectedFilesToUpload = uploadingFilesMessages[conversationID];
+      dispatch({
+        type: SET_FILE_UPLOADING_MESSAGES,
+        body: {
+          message: {
+            ...selectedFilesToUpload,
+            isInProgress: SUCCESS,
+          },
+          ID: conversationID,
+        },
+      });
+      let id = conversationID;
+      let message = {
+        ...selectedFilesToUpload,
+        isInProgress: SUCCESS,
+      };
+
+      await myClient?.saveAttachmentUploadConversation(
+        id.toString(),
+        JSON.stringify(message),
+      );
+      const res = await uploadResource({
+        selectedImages: selectedFilesToUpload?.attachments,
+        conversationID: conversationID,
+        chatroomID: chatroomID,
+        selectedFilesToUpload: selectedFilesToUpload,
+        uploadingFilesMessages,
+        isRetry: isRetry,
+      });
+      return res;
+    }
   };
 
   const onReplyPrivatelyClick = async (uuid: any) => {
@@ -2289,7 +2323,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 conversations,
               ],
             }}
-            estimatedItemSize={50}
+            estimatedItemSize={150}
             renderItem={({item: value, index}: any) => {
               let uploadingFilesMessagesIDArr = Object.keys(
                 uploadingFilesMessages,
