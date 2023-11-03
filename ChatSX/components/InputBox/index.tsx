@@ -43,6 +43,7 @@ import {
   EMPTY_BLOCK_DELETION,
   UPDATE_MULTIMEDIA_CONVERSATIONS,
   GET_CONVERSATIONS_SUCCESS,
+  SET_CHATROOM_TOPIC,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -1162,6 +1163,13 @@ const InputBox = ({
     const editConversationResponse = await myClient?.editConversation({
       conversationId: conversationId,
       text: editedConversation,
+    });
+    console.log('editConversationResponse', editConversationResponse);
+    dispatch({
+      type: SET_CHATROOM_TOPIC,
+      body: {
+        currentChatroomTopic: editConversationResponse?.data?.conversation,
+      },
     });
     await myClient?.updateConversation(
       conversationId?.toString(),

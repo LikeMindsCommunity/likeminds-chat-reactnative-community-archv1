@@ -54,6 +54,7 @@ import {
   ADD_STATE_MESSAGE,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  CLEAR_CHATROOM_TOPIC,
   CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
@@ -647,6 +648,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                             [Keys.CHATROOM_ID, chatroomID?.toString()],
                           ]),
                         );
+                        console.log(
+                          'selectedMessagesIDArr[i]',
+                          selectedMessagesIDArr[i],
+                        );
+
+                        if (
+                          selectedMessagesIDArr[i] == currentChatroomTopic?.id
+                        ) {
+                          dispatch({
+                            type: CLEAR_CHATROOM_TOPIC,
+                          });
+                        }
                         updatedConversations =
                           await myClient?.deleteConversation(
                             selectedMessagesIDArr[i],
@@ -2403,13 +2416,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   };
 
-  const getFeedIconAttachment = (val: any) => {
-    const attachments = val.attachments;
+  const getIconAttachment = (val: any) => {
+    const attachments = val?.attachments;
     let imageCount = 0;
     let videosCount = 0;
     let pdfCount = 0;
+    let ogTags = val?.ogTags;
 
-    for (let i = 0; i < attachments.length; i++) {
+    for (let i = 0; i < attachments?.length; i++) {
       if (attachments[i].type == DocumentType.IMAGE) {
         imageCount++;
       } else if (attachments[i].type == DocumentType.VIDEO) {
@@ -2591,6 +2605,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           <Text style={styles.attachment_msg}>{val?.answer}</Text>
         </View>
       );
+    } else if (ogTags) {
+      return (
+        <View
+          style={[
+            styles.alignCenter,
+            {
+              marginBottom: -2,
+            },
+          ]}>
+          <Image
+            source={require('../../assets/images/link_icon.png')}
+            style={styles.chatroomTopicIcon}
+          />
+          <Text style={styles.attachment_msg}>{val?.answer}</Text>
+        </View>
+      );
     } else {
       return (
         <Text style={styles.deletedMessage}>
@@ -2684,56 +2714,85 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         <>
           {!(Object.keys(currentChatroomTopic).length === 0) &&
           chatroomType !== ChatroomType.DMCHATROOM ? (
-            <View style={styles.chatroomTopic}>
-              <View>
-                <Image
-                  source={
-                    !!user?.imageUrl
-                      ? {uri: user?.imageUrl}
-                      : require('../../assets/images/default_pic.png')
-                  }
-                  style={styles.chatroomTopicAvatar}
-                />
-              </View>
-              <View style={styles.chatRoomTopicInfo}>
-                <Text
-                  ellipsizeMode="tail"
-                  numberOfLines={1}
-                  style={{
-                    color: STYLES.$COLORS.PRIMARY,
-                    fontSize: STYLES.$FONT_SIZES.LARGE,
-                    fontFamily: STYLES.$FONT_TYPES.BOLD,
-                    maxWidth: 150,
-                  }}>
-                  Current Topic
-                </Text>
-                <Text
-                  style={{
-                    color: STYLES.$COLORS.MSG,
-                    fontSize: STYLES.$FONT_SIZES.SMALL,
-                    fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                  }}>
-                  {currentChatroomTopic?.hasFiles > 0
-                    ? getFeedIconAttachment(currentChatroomTopic)
-                    : currentChatroomTopic?.state === 10
-                    ? getFeedIconAttachment(currentChatroomTopic)
-                    : currentChatroomTopic?.answer}
-                </Text>
-              </View>
-              <View>
-                {currentChatroomTopic?.attachmentCount > 0 ? (
+            <Pressable
+              onPress={() => {
+                let index = conversations.findIndex(
+                  (element: any) => element?.id === currentChatroomTopic?.id,
+                );
+                if (index >= 0) {
+                  flatlistRef.current?.scrollToIndex({
+                    animated: true,
+                    index,
+                  });
+                }
+              }}>
+              <View style={styles.chatroomTopic}>
+                <View>
                   <Image
-                    source={{
-                      uri:
-                        currentChatroomTopic?.attachments[0]?.type == 'image'
-                          ? currentChatroomTopic?.attachments[0]?.url
-                          : currentChatroomTopic?.attachments[0]?.thumbnailUrl,
-                    }}
-                    style={styles.chatroomTopicAttachment}
+                    source={
+                      !!user?.imageUrl
+                        ? {uri: user?.imageUrl}
+                        : require('../../assets/images/default_pic.png')
+                    }
+                    style={styles.chatroomTopicAvatar}
                   />
-                ) : null}
+                </View>
+                <View style={styles.chatRoomTopicInfo}>
+                  <Text
+                    ellipsizeMode="tail"
+                    numberOfLines={1}
+                    style={{
+                      color: STYLES.$COLORS.PRIMARY,
+                      fontSize: STYLES.$FONT_SIZES.LARGE,
+                      fontFamily: STYLES.$FONT_TYPES.BOLD,
+                      maxWidth: 150,
+                    }}>
+                    Current Topic
+                  </Text>
+                  <Text
+                    style={{
+                      color: STYLES.$COLORS.MSG,
+                      fontSize: STYLES.$FONT_SIZES.SMALL,
+                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                      width: '100%',
+                      flexWrap: 'wrap',
+                    }}
+                    numberOfLines={2}>
+                    {currentChatroomTopic?.hasFiles == true
+                      ? getIconAttachment(currentChatroomTopic)
+                      : currentChatroomTopic?.state === 10
+                      ? getIconAttachment(currentChatroomTopic)
+                      : currentChatroomTopic?.ogTags?.url !== null &&
+                        currentChatroomTopic?.ogTags
+                      ? getIconAttachment(currentChatroomTopic)
+                      : currentChatroomTopic?.answer}
+                  </Text>
+                </View>
+                <View>
+                  {currentChatroomTopic?.attachmentCount > 0 &&
+                  currentChatroomTopic?.attachments[0]?.type !== 'pdf' ? (
+                    <Image
+                      source={{
+                        uri:
+                          currentChatroomTopic?.attachments[0]?.type == 'image'
+                            ? currentChatroomTopic?.attachments[0]?.url
+                            : currentChatroomTopic?.attachments[0]
+                                ?.thumbnailUrl,
+                      }}
+                      style={styles.chatroomTopicAttachment}
+                    />
+                  ) : currentChatroomTopic?.ogTags?.url !== null &&
+                    currentChatroomTopic?.ogTags?.image !== '' ? (
+                    <Image
+                      source={{
+                        uri: currentChatroomTopic?.ogTags?.image,
+                      }}
+                      style={styles.chatroomTopicAttachment}
+                    />
+                  ) : null}
+                </View>
               </View>
-            </View>
+            </Pressable>
           ) : null}
           <FlashList
             ref={flatlistRef}

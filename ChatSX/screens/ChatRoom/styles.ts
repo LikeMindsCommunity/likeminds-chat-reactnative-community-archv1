@@ -36,8 +36,9 @@ export const styles = StyleSheet.create({
   },
   chatRoomTopicInfo: {
     gap: 5,
+    width: '60%',
+    marginLeft: 10,
     marginTop: -10,
-    marginLeft: -130,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -229,7 +230,6 @@ export const styles = StyleSheet.create({
     paddingTop: 10,
     borderTopWidth: 0.5,
     borderTopColor: 'gray',
-    justifyContent: 'space-between',
   },
   profile: {
     width: 45,

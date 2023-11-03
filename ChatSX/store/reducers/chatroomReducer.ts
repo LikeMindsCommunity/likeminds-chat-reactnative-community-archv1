@@ -34,6 +34,7 @@ import {
   SET_CHATROOM_CREATOR,
   SET_CHATROOM_TOPIC,
   CLEAR_SELECTED_MESSAGES,
+  CLEAR_CHATROOM_TOPIC,
 } from '../types/types';
 
 const initialState = {
@@ -70,6 +71,12 @@ export function chatroomReducer(state = initialState, action: any) {
       return {
         ...state,
         currentChatroomTopic: currentChatroomTopic,
+      };
+    }
+    case CLEAR_CHATROOM_TOPIC: {
+      return {
+        ...state,
+        currentChatroomTopic: {},
       };
     }
     case EMPTY_BLOCK_DELETION: {

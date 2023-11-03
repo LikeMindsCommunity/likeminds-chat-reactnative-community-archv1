@@ -141,6 +141,7 @@ const HomeFeedItem: React.FC<Props> = ({
     let imageCount = 0;
     let videosCount = 0;
     let pdfCount = 0;
+    let ogTags = val?.ogTags;
 
     for (let i = 0; i < attachments.length; i++) {
       if (attachments[i].type == DocumentType.IMAGE) {
@@ -302,6 +303,22 @@ const HomeFeedItem: React.FC<Props> = ({
           <Text style={styles.attachment_msg}>{val?.answer}</Text>
         </View>
       );
+    } else if (ogTags) {
+      return (
+        <View
+          style={[
+            styles.alignCenter,
+            {
+              marginBottom: -2,
+            },
+          ]}>
+          <Image
+            source={require('../../assets/images/link_icon.png')}
+            style={styles.icon}
+          />
+          <Text style={styles.attachment_msg}>{val?.answer}</Text>
+        </View>
+      );
     } else {
       return (
         <Text style={styles.deletedMessage}>
@@ -394,6 +411,9 @@ const HomeFeedItem: React.FC<Props> = ({
                   {lastConversation.hasFiles > 0
                     ? getFeedIconAttachment(lastConversation)
                     : lastConversation?.state === 10
+                    ? getFeedIconAttachment(lastConversation)
+                    : lastConversation?.ogTags &&
+                      lastConversation?.ogTags?.url !== null
                     ? getFeedIconAttachment(lastConversation)
                     : decode(
                         lastMessage,
