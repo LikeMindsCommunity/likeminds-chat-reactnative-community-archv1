@@ -31,8 +31,14 @@ export const styles = StyleSheet.create({
     width: 30,
     resizeMode: 'contain',
   },
-  chatRoomInfo: {gap: 5},
-
+  chatRoomInfo: {
+    gap: 5,
+  },
+  chatRoomTopicInfo: {
+    gap: 5,
+    marginTop: -10,
+    marginLeft: -130,
+  },
   inputContainer: {
     flexDirection: 'row',
     flexGrow: 1,
@@ -190,11 +196,40 @@ export const styles = StyleSheet.create({
     borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
     marginRight: STYLES.$MARGINS.SMALL,
   },
+  chatroomTopicAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
+  },
+  chatroomTopicAttachment: {
+    width: 50,
+    height: 50,
+    marginRight: STYLES.$MARGINS.LARGE,
+  },
+  chatroomTopicIcon: {
+    height: 15,
+    width: 15,
+    resizeMode: 'contain',
+    marginRight: 5,
+  },
   alignRow: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+  },
+  chatroomTopic: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'white',
+    paddingLeft: 15,
+    paddingBottom: 10,
+    paddingTop: 10,
+    borderTopWidth: 0.5,
+    borderTopColor: 'gray',
+    justifyContent: 'space-between',
   },
   profile: {
     width: 45,
@@ -221,4 +256,24 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
   dmRequestButtonBox: {marginTop: 30, gap: 20},
+  alignCenter: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  attachment_msg: {
+    color: STYLES.$COLORS.PRIMARY,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    marginRight: 5,
+    alignSelf: 'flex-end',
+    marginBottom: Platform.OS === 'android' ? -3 : -1,
+  },
+  deletedMessage: {
+    color: STYLES.$COLORS.PRIMARY,
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    fontStyle: 'italic',
+    width: '85%',
+  },
 });

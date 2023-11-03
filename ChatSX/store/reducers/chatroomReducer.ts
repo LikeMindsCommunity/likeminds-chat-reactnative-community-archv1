@@ -31,6 +31,9 @@ import {
   GET_CHATROOM_DB_SUCCESS,
   GET_CHATROOM_ACTIONS_SUCCESS,
   ADD_STATE_MESSAGE,
+  SET_CHATROOM_CREATOR,
+  SET_CHATROOM_TOPIC,
+  CLEAR_SELECTED_MESSAGES,
 } from '../types/types';
 
 const initialState = {
@@ -49,10 +52,26 @@ const initialState = {
   editConversation: '',
   fileSent: 0,
   chatroomDBDetails: {},
+  chatroomCreator: '',
+  currentChatroomTopic: {},
 };
 
 export function chatroomReducer(state = initialState, action: any) {
   switch (action.type) {
+    case SET_CHATROOM_CREATOR: {
+      const {chatroomCreator = {}} = action.body;
+      return {
+        ...state,
+        chatroomCreator: chatroomCreator,
+      };
+    }
+    case SET_CHATROOM_TOPIC: {
+      const {currentChatroomTopic = {}} = action.body;
+      return {
+        ...state,
+        currentChatroomTopic: currentChatroomTopic,
+      };
+    }
     case EMPTY_BLOCK_DELETION: {
       let newArr = [...state.conversations].splice(1);
       return {
@@ -72,6 +91,12 @@ export function chatroomReducer(state = initialState, action: any) {
       return {
         ...state,
         isLongPress: isLongPressed,
+      };
+    }
+    case CLEAR_SELECTED_MESSAGES: {
+      return {
+        ...state,
+        selectedMessages: [],
       };
     }
     case SELECTED_MESSAGES: {
