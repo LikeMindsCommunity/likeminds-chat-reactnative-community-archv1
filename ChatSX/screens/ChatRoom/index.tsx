@@ -24,7 +24,7 @@ import {
   ScrollViewProps,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
-import {myClient} from '../../..';
+import {SyncConversationRequest, myClient} from '../../..';
 import {
   SHOW_LIST_REGEX,
   copySelectedMessages,
@@ -124,7 +124,6 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import {SyncConversationRequest} from '@likeminds.community/chat-rn-beta';
 import {useQuery} from '@realm/react';
 import {Share} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';

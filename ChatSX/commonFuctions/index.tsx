@@ -495,3 +495,15 @@ export const formatDate = (date: any, time: any) => {
   let formattedTime = moment(date).format('DD/MM/YYYY hh:mm');
   return formattedTime;
 };
+
+// this function converts seconds count to mm:ss time format
+export function convertSecondsToTime(seconds: number) {
+  let minutes = String(Math.floor(seconds / 60));
+  let remainingSeconds = String(seconds % 60);
+
+  // Add leading zeros if necessary
+  minutes = minutes.padStart(2, '0');
+  remainingSeconds = remainingSeconds.padStart(2, '0');
+
+  return `${minutes}:${remainingSeconds}`;
+}

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import {styles} from './styles';
-import {decode} from '../../commonFuctions';
+import {convertSecondsToTime, decode} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
 import {
   LONG_PRESSED,
@@ -225,8 +225,25 @@ const AttachmentConversations = ({
                 }
                 minimumTrackTintColor="#ffad31"
                 maximumTrackTintColor="grey"
-                disabled={true}
+                tapToSeek={true}
               />
+              <View style={{display: 'flex', flexDirection: 'row'}}>
+                <Image
+                  source={require('../../assets/images/mic_icon3x.png')}
+                  style={[styles.smallIcon, {tintColor: 'grey'}]}
+                />
+                {isVoiceNotePlaying || voiceNotesPlayer?.playTime ? (
+                  <Text style={styles.recordTitle}>
+                    {voiceNotesPlayer?.playTime === ''
+                      ? convertSecondsToTime(0)
+                      : voiceNotesPlayer?.playTime}
+                  </Text>
+                ) : (
+                  <Text style={styles.recordTitle}>
+                    {convertSecondsToTime(firstAttachment?.metaRO?.duration)}
+                  </Text>
+                )}
+              </View>
             </View>
           </View>
         ) : null}

@@ -8,6 +8,12 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginRight: 5,
   },
+  smallIcon: {
+    height: 15,
+    width: 15,
+    resizeMode: 'contain',
+    marginRight: 5,
+  },
   attachmentMessage: {
     padding: 10,
     width: '80%',
@@ -171,4 +177,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playPauseImage: {height: 30, width: 30, tintColor: 'white'},
+  recordTitle: {
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
+    marginTop: 3,
+  },
 });

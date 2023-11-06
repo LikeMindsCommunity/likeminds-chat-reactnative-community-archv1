@@ -116,7 +116,7 @@ import AudioRecorderPlayer, {
   AudioSourceAndroidType,
 } from 'react-native-audio-recorder-player';
 
-const audioRecorderPlayer = new AudioRecorderPlayer();
+const audioRecorderPlayerAttachment = new AudioRecorderPlayer();
 
 const InputBox = ({
   replyChatID,
@@ -518,6 +518,11 @@ const InputBox = ({
   const onSend = async (conversation: string) => {
     setMessage('');
     setInputHeight(25);
+    setIsVoiceResult(false);
+    setVoiceNotes({
+      recordSecs: 0,
+      recordTime: '',
+    });
     // -- Code for local message handling for normal and reply for now
     let months = [
       'Jan',
@@ -963,6 +968,9 @@ const InputBox = ({
         }
       }
     }
+
+    dispatch({type: CLEAR_SELECTED_AUDIO_FILES_TO_UPLOAD});
+    stopPlay();
   };
 
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
@@ -1171,15 +1179,15 @@ const InputBox = ({
       android: `sound.mp3`,
     });
 
-    const result = await audioRecorderPlayer.startRecorder(
+    const result = await audioRecorderPlayerAttachment.startRecorder(
       path,
       audioSet,
       meteringEnabled,
     );
-    audioRecorderPlayer.addRecordBackListener(e => {
+    audioRecorderPlayerAttachment.addRecordBackListener(e => {
       setVoiceNotes({
         recordSecs: e.currentPosition,
-        recordTime: audioRecorderPlayer
+        recordTime: audioRecorderPlayerAttachment
           .mmssss(Math.floor(e.currentPosition))
           .slice(0, 5),
       });
@@ -1190,8 +1198,8 @@ const InputBox = ({
 
   // to stop audio recording
   const stopRecord = async () => {
-    await audioRecorderPlayer.stopRecorder();
-    audioRecorderPlayer.removeRecordBackListener();
+    await audioRecorderPlayerAttachment.stopRecorder();
+    audioRecorderPlayerAttachment.removeRecordBackListener();
 
     // if isVoiceResult is true we show audio player instead of audio recorder
     const voiceNote = {
@@ -1223,21 +1231,26 @@ const InputBox = ({
 
     // if isVoiceResult is false we show audio recorder instead of audio player
     setIsVoiceResult(false);
+    stopPlay();
   };
 
   // to start playing audio recording
   const startPlay = async (path: string) => {
-    await audioRecorderPlayer.startPlayer(path);
-    audioRecorderPlayer.addPlayBackListener(e => {
-      let playTime = audioRecorderPlayer.mmssss(Math.floor(e.currentPosition));
-      let duration = audioRecorderPlayer.mmssss(Math.floor(e.duration));
+    await audioRecorderPlayerAttachment.startPlayer(path);
+    audioRecorderPlayerAttachment.addPlayBackListener(e => {
+      let playTime = audioRecorderPlayerAttachment.mmssss(
+        Math.floor(e.currentPosition),
+      );
+      let duration = audioRecorderPlayerAttachment.mmssss(
+        Math.floor(e.duration),
+      );
       setVoiceNotesPlayer({
         currentPositionSec: e.currentPosition,
         currentDurationSec: e.duration,
-        playTime: audioRecorderPlayer
+        playTime: audioRecorderPlayerAttachment
           .mmssss(Math.floor(e.currentPosition))
           .slice(0, 5),
-        duration: audioRecorderPlayer
+        duration: audioRecorderPlayerAttachment
           .mmssss(Math.floor(e.duration))
           .slice(0, 5),
       });
@@ -1259,19 +1272,19 @@ const InputBox = ({
 
   // to stop playing audio recording
   const stopPlay = async () => {
-    await audioRecorderPlayer.stopPlayer();
+    await audioRecorderPlayerAttachment.stopPlayer();
     setIsVoiceNotePlaying(false);
   };
 
   // to pause playing audio recording
   const onPausePlay = async () => {
-    await audioRecorderPlayer.pausePlayer();
+    await audioRecorderPlayerAttachment.pausePlayer();
     setIsVoiceNotePlaying(false);
   };
 
   // to resume playing audio recording
   const onResumePlay = async () => {
-    await audioRecorderPlayer.resumePlayer();
+    await audioRecorderPlayerAttachment.resumePlayer();
     setIsVoiceNotePlaying(true);
   };
 
@@ -1637,7 +1650,7 @@ const InputBox = ({
         </View>
 
         {/* Send message and send voice notes UI */}
-        {!!message || isVoiceResult ? (
+        {!!message || isVoiceResult || isUploadScreen ? (
           <TouchableOpacity
             onPressOut={() => {
               if (
