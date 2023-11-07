@@ -248,6 +248,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
   let chatRequestState = chatroomDBDetails?.chatRequestState;
   const [isChatroomTopic, setIsChatroomTopic] = useState(false);
+  const [isFound, setIsFound] = useState(false);
 
   console.log('currentChatroomTopicHeader', currentChatroomTopic);
 
@@ -862,19 +863,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             currentChatroomTopic: DB_DATA?.topic,
           },
         });
-      } else if (DB_DATA?.topicId) {
-        // const topicConversation = await myClient?.getConversation(
-        //   DB_DATA?.topicId?.toString(),
-        // );
-        // console.log('topicConversationNewUser', topicConversation[0]);
-        // if (topicConversation[0]?.chatroomId == chatroomID) {
-        //   dispatch({
-        //     type: SET_CHATROOM_TOPIC,
-        //     body: {
-        //       currentChatroomTopic: topicConversation[0],
-        //     },
-        //   });
-        // }
       } else if (!DB_DATA?.topic && !DB_DATA?.topicId) {
         dispatch({
           type: CLEAR_CHATROOM_TOPIC,
@@ -922,6 +910,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       body: {replyMessage: ''},
     });
   }, []);
+
+  useEffect(() => {
+    if (isFound) {
+      setTimeout(() => {
+        setIsFound(false);
+      }, 1000);
+    }
+  }, [isFound]);
 
   // save chatroom topic in localDb
   useEffect(() => {
@@ -2772,6 +2768,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     animated: true,
                     index,
                   });
+                  setIsFound(true);
                 } else {
                   const topicConversation = await myClient?.getConversation(
                     currentChatroomTopic?.id,
@@ -2899,6 +2896,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               let isIncluded = selectedMessages.some(
                 (val: any) => val?.id === item?.id && !isStateIncluded,
               );
+
+              if (isFound && item?.id == currentChatroomTopic?.id) {
+                isIncluded = true;
+              }
 
               return (
                 <View>
