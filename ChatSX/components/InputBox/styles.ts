@@ -42,6 +42,12 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
 
+  chevron: {
+    width: 12,
+    height: 12,
+    resizeMode: 'contain',
+  },
+
   send: {
     width: 22,
     height: 22,
@@ -245,5 +251,17 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  lockRecording: {
+    backgroundColor: 'pink',
+    height: 150,
+    width: 50,
+    borderRadius: 50,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
 });

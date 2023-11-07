@@ -77,6 +77,7 @@ export const POLL_MULTIPLE_STATE_EXACTLY = 0;
 export const POLL_MULTIPLE_STATE_MAX = 1;
 export const POLL_MULTIPLE_STATE_LEAST = 2;
 
+export const SLIDE_TO_CANCEL = 'Slide to cancel';
 export const QUESTION_WARNING = 'Question Field cannot be empty';
 export const EXPIRY_TIME_WARNING = 'Please select expiry time';
 export const POLLS_OPTIONS_WARNING = "Poll options can't be the same";

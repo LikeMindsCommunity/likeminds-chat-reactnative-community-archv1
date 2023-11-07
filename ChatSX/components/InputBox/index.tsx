@@ -13,6 +13,8 @@ import {
   Linking,
   ActivityIndicator,
   Button,
+  TextStyle,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import React, {FC, useEffect, useRef, useState} from 'react';
 import {styles} from './styles';
@@ -71,6 +73,7 @@ import {
   PDF_TEXT,
   PHOTOS_AND_VIDEOS_TEXT,
   POLL_TEXT,
+  SLIDE_TO_CANCEL,
   SUCCESS,
   VIDEO_TEXT,
   VOICE_NOTE_TEXT,
@@ -115,6 +118,19 @@ import AudioRecorderPlayer, {
   AudioSet,
   AudioSourceAndroidType,
 } from 'react-native-audio-recorder-player';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import {
+  Gesture,
+  GestureDetector,
+} from 'react-native-gesture-handler';
+import LottieView from 'lottie-react-native';
 
 const audioRecorderPlayerAttachment = new AudioRecorderPlayer();
 
@@ -169,9 +185,146 @@ const InputBox = ({
   const [voiceNotesLink, setVoiceNotesLink] = useState('');
   const [isVoiceResult, setIsVoiceResult] = useState(false);
   const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
+  const [isDraggable, setIsDraggable] = useState(true);
+  const [isRecordingLocked, setIsRecordingLocked] = useState(false);
+  const [isDeleteAnimation, setIsDeleteAnimation] = useState(false);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
+
+  // Animation
+
+  const pressed = useSharedValue(false);
+  const x = useSharedValue(0);
+  const y = useSharedValue(0);
+  const lockOffset = useSharedValue(4);
+  const upChevronOffset = useSharedValue(3);
+  const micIconOpacity = useSharedValue(1); // Initial opacity value
+
+  // lock icon animation styles
+  const lockAnimatedStyles = useAnimatedStyle(() => ({
+    transform: [{translateY: lockOffset.value}],
+  }));
+
+  // up chevron animated styles
+  const upChevronanimatedStyles = useAnimatedStyle(() => ({
+    transform: [{translateY: upChevronOffset.value}],
+  }));
+
+  // recorder mic icon animation effect
+  useEffect(() => {
+    micIconOpacity.value = withRepeat(
+      withTiming(0, {duration: 800, easing: Easing.inOut(Easing.ease)}),
+      -1, // Infinite repetition (-1)
+      true, // Reverse the animation direction after each iteration
+    );
+  }, []);
+
+  // lock icon animation useEffect
+  useEffect(() => {
+    lockOffset.value = withRepeat(
+      withTiming(-lockOffset.value, {duration: 800}),
+      -1, // Infinite repetition (-1)
+      true, // Reverse the animation direction after each iteration
+    );
+  }, []);
+
+  // up chevron animation useEffect
+  useEffect(() => {
+    upChevronOffset.value = withRepeat(
+      withTiming(-upChevronOffset.value, {duration: 400}),
+      -1,
+      true,
+    );
+  }, []);
+
+  // to hide delete animation
+  useEffect(() => {
+    if (isDeleteAnimation) {
+      setTimeout(() => {
+        setIsDeleteAnimation(false);
+      }, 2000);
+    }
+  }, [isDeleteAnimation]);
+
+  // draggle mic pan gesture on x-axis and y-axis
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .enabled(isDraggable)
+    .onBegin(() => {
+      pressed.value = true;
+      startRecord();
+    })
+    .onUpdate(event => {
+      if (Math.abs(x.value) > 120) {
+        x.value = withSpring(0);
+        if (isDraggable) {
+          setIsDraggable(false);
+          setIsDeleteAnimation(true);
+          setTimeout(() => {
+            console.log('aaaa');
+            clearVoiceRecord();
+            setIsDraggable(true);
+          }, 200);
+        }
+        // clearVoiceRecord();
+        // handleStopRecord();
+        pressed.value = false;
+      } else if (Math.abs(y.value) > 140) {
+        y.value = withSpring(0);
+        if (isDraggable) {
+          setIsDraggable(false);
+          setTimeout(() => {
+            setIsDraggable(true);
+            setIsRecordingLocked(true);
+          }, 200);
+        }
+      } else if (Math.abs(x.value) > 5) {
+        x.value = event.translationX;
+      } else if (Math.abs(y.value) > 5) {
+        y.value = event.translationY;
+      } else {
+        x.value = event.translationX;
+        y.value = event.translationY;
+      }
+    })
+    .onEnd(() => {
+      console.log('skjds', x.value, y.value);
+      if (
+        (Math.abs(x.value) > 0 && Math.abs(x.value) < 120) ||
+        (Math.abs(y.value) > 0 && Math.abs(y.value) < 140)
+      ) {
+        setIsRecordingLocked(false);
+        handleStopRecord();
+      }
+      x.value = withSpring(0);
+      y.value = withSpring(0);
+      pressed.value = false;
+    })
+    .onFinalize(() => {
+      pressed.value = false;
+      setIsDraggable(true);
+    })
+    .onTouchesCancelled(() => {
+      setIsDraggable(true);
+    });
+
+  // draggle mic panGesture styles
+  const panStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateX: x.value,
+        },
+        {
+          translateY: y.value,
+        },
+        {scale: withTiming(pressed.value ? 1.5 : 1)},
+      ],
+    };
+  }, [x, y]);
+
+  // Animation stop
 
   const {
     selectedFilesToUpload = [],
@@ -971,6 +1124,7 @@ const InputBox = ({
 
     dispatch({type: CLEAR_SELECTED_AUDIO_FILES_TO_UPLOAD});
     stopPlay();
+    setIsRecordingLocked(false);
   };
 
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
@@ -1198,6 +1352,7 @@ const InputBox = ({
 
   // to stop audio recording
   const stopRecord = async () => {
+    // bounce();
     await audioRecorderPlayerAttachment.stopRecorder();
     audioRecorderPlayerAttachment.removeRecordBackListener();
 
@@ -1214,16 +1369,23 @@ const InputBox = ({
         audio: [voiceNote],
       },
     });
+  };
+
+  const handleStopRecord = async () => {
+    await stopRecord();
     setIsVoiceResult(true);
+    setIsRecordingLocked(false);
   };
 
   // to reset all the recording data we had previously
   const clearVoiceRecord = () => {
+    stopRecord();
     setVoiceNotes({
       recordSecs: 0,
       recordTime: '',
     });
     setVoiceNotesLink('');
+    setIsRecordingLocked(false);
 
     dispatch({
       type: CLEAR_SELECTED_AUDIO_FILES_TO_UPLOAD,
@@ -1500,31 +1662,72 @@ const InputBox = ({
               </TouchableOpacity>
             ) : null}
 
-            {!!voiceNotes?.recordTime && !isVoiceResult ? (
+            {isDeleteAnimation ? (
+              <View
+                style={[
+                  styles.voiceNotesInputParent,
+                  styles.voiceRecorderInput,
+                  {
+                    paddingVertical: 0,
+                    marginVertical: 0,
+                    marginHorizontal: 10,
+                  },
+                ]}>
+                <View style={styles.alignItems}>
+                  <LottieView
+                    source={require('../../assets/lottieJSON/delete.json')}
+                    style={{height: 40, width: 40}}
+                    autoPlay
+                    // loop
+                  />
+                </View>
+              </View>
+            ) : !!voiceNotes?.recordTime && !isVoiceResult ? (
               <View
                 style={[
                   styles.voiceNotesInputParent,
                   styles.voiceRecorderInput,
                 ]}>
                 <View style={styles.alignItems}>
-                  <Image
-                    source={require('../../assets/images/record_icon3x.png')}
-                    style={styles.emoji}
-                  />
+                  <Animated.View
+                    style={[
+                      {opacity: micIconOpacity},
+                      // deletedVoiceNotesStyle,
+                    ]}>
+                    <Image
+                      source={require('../../assets/images/record_icon3x.png')}
+                      style={[styles.emoji]}
+                    />
+                  </Animated.View>
+
                   <Text style={styles.recordTitle}>
                     {voiceNotes.recordTime}
                   </Text>
                 </View>
-                <View style={styles.alignItems}>
-                  <Image
-                    source={require('../../assets/images/stop_recording_icon3x.png')}
-                    style={styles.emoji}
-                  />
-                  <Image
-                    source={require('../../assets/images/cross_circle_icon3x.png')}
-                    style={styles.emoji}
-                  />
-                </View>
+                {isRecordingLocked ? (
+                  <View style={styles.alignItems}>
+                    <TouchableOpacity onPress={handleStopRecord}>
+                      <Image
+                        source={require('../../assets/images/stop_recording_icon3x.png')}
+                        style={styles.emoji}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={clearVoiceRecord}>
+                      <Image
+                        source={require('../../assets/images/cross_circle_icon3x.png')}
+                        style={styles.emoji}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={styles.alignItems}>
+                    <Image
+                      style={styles.chevron}
+                      source={require('../../assets/images/left_chevron_icon3x.png')}
+                    />
+                    <Text style={styles.recordTitle}>{SLIDE_TO_CANCEL}</Text>
+                  </View>
+                )}
               </View>
             ) : isVoiceResult ? (
               <View
@@ -1633,7 +1836,8 @@ const InputBox = ({
             {!isUploadScreen &&
             !(chatRequestState === 0 || chatRequestState === null) &&
             !isEditable &&
-            !voiceNotes?.recordTime ? (
+            !voiceNotes?.recordTime &&
+            !isDeleteAnimation ? (
               <TouchableOpacity
                 style={styles.emojiButton}
                 onPress={() => {
@@ -1650,7 +1854,7 @@ const InputBox = ({
         </View>
 
         {/* Send message and send voice notes UI */}
-        {!!message || isVoiceResult || isUploadScreen ? (
+        {!!message || isVoiceResult || isUploadScreen || isRecordingLocked ? (
           <TouchableOpacity
             onPressOut={() => {
               if (
@@ -1674,19 +1878,37 @@ const InputBox = ({
             />
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            onLongPress={() => {
-              startRecord();
-            }}
-            onPressOut={() => {
-              stopRecord();
-            }}
-            style={styles.sendButton}>
-            <Image
-              source={require('../../assets/images/mic_icon3x.png')}
-              style={styles.mic}
-            />
-          </TouchableOpacity>
+          <GestureDetector
+            gesture={panGesture}
+          >
+            <Animated.View>
+              {voiceNotes.recordTime && !isRecordingLocked && (
+                <View style={styles.lockRecording}>
+                  <Animated.View style={lockAnimatedStyles}>
+                    <Image
+                      source={require('../../assets/images/lock_icon3x.png')}
+                      style={[styles.emoji, {marginTop: 20}]}
+                    />
+                  </Animated.View>
+                  <Animated.View style={upChevronanimatedStyles}>
+                    <Image
+                      source={require('../../assets/images/up_chevron_icon3x.png')}
+                      style={[styles.chevron, {marginTop: 20}]}
+                    />
+                  </Animated.View>
+                </View>
+              )}
+              <Animated.View style={[styles.sendButton, panStyle]}>
+                <TouchableWithoutFeedback
+                  style={[styles.sendButton, {position: 'absolute'}]}>
+                  <Image
+                    source={require('../../assets/images/mic_icon3x.png')}
+                    style={styles.mic}
+                  />
+                </TouchableWithoutFeedback>
+              </Animated.View>
+            </Animated.View>
+          </GestureDetector>
         )}
       </View>
 
