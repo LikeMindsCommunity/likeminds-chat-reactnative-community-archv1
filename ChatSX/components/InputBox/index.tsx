@@ -262,7 +262,6 @@ const InputBox = ({
           setIsDraggable(false);
           setIsDeleteAnimation(true);
           setTimeout(() => {
-            console.log('aaaa');
             clearVoiceRecord();
             setIsDraggable(true);
           }, 200);
@@ -289,7 +288,6 @@ const InputBox = ({
       }
     })
     .onEnd(() => {
-      console.log('skjds', x.value, y.value);
       if (
         (Math.abs(x.value) > 0 && Math.abs(x.value) < 120) ||
         (Math.abs(y.value) > 0 && Math.abs(y.value) < 140)
