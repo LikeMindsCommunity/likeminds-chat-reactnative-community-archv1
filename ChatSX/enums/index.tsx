@@ -6,6 +6,7 @@ import {Events} from './Events';
 import {Keys} from './Keys';
 import {Sources} from './Sources';
 import {MediaType} from './MediaType';
+import {GetConversationsType} from './GetConversationsType';
 
 export {
   ChatroomActions,
@@ -16,4 +17,5 @@ export {
   Keys,
   Sources,
   MediaType,
+  GetConversationsType,
 };

@@ -1,5 +1,6 @@
 import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
 import {myClient} from '../../';
+import {SET_CHATROOM_TOPIC} from '../store/types/types';
 
 // Sync Chatrrom API
 async function syncChatroomAPI(
@@ -53,11 +54,25 @@ export const paginatedSyncAPI = async (
   }
 
   if (DB_RESPONSE?.chatroomsData.length !== 0) {
-    myClient?.saveChatroomResponse(
+    await myClient?.saveChatroomResponse(
       DB_RESPONSE,
       DB_RESPONSE?.chatroomsData,
       user?.sdkClientInfo?.community,
     );
+    for (let i = 0; i < DB_RESPONSE?.chatroomsData.length; i++) {
+      const chatroom = DB_RESPONSE?.chatroomsData[i];
+      console.log('chatroom', chatroom);
+
+      const chatroomTopic = DB_RESPONSE?.conversationMeta[chatroom?.topicId];
+      console.log('chatroomTopic', chatroomTopic);
+
+      if (chatroomTopic) {
+        await myClient?.updateChatroomTopic(
+          chatroom?.id?.toString(),
+          chatroomTopic,
+        );
+      }
+    }
   }
   await myClient.updateTimeStamp(maxTimeStampNow, isDm);
 

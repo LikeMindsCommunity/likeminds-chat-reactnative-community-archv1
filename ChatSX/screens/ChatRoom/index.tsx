@@ -137,6 +137,7 @@ import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 import {
   ChatroomChatRequestState,
   DocumentType,
+  GetConversationsType,
   Keys,
   Sources,
 } from '../../enums';
@@ -239,7 +240,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const INITIAL_SYNC_PAGE = 1;
-  const PAGE_SIZE = 200;
+  const PAGE_SIZE = 50;
 
   let chatroomType = chatroomDBDetails?.type;
   let chatroomFollowStatus = chatroomDBDetails?.followStatus;
@@ -659,6 +660,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                           dispatch({
                             type: CLEAR_CHATROOM_TOPIC,
                           });
+                          await myClient?.deleteChatroomTopic(
+                            chatroomID?.toString(),
+                          );
                         }
                         updatedConversations =
                           await myClient?.deleteConversation(
@@ -726,7 +730,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         .setPage(page)
         .setMinTimestamp(minTimeStamp)
         .setMaxTimestamp(maxTimeStamp)
-        .setPageSize(500)
+        .setPageSize(50)
         .setConversationId(conversationId)
         .build(),
     );
@@ -841,11 +845,41 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       setShimmerIsLoading(false);
     }
     if (DB_DATA) {
+      console.log('DB_DATA', DB_DATA);
+
       dispatch({
         type: GET_CHATROOM_DB_SUCCESS,
         body: {chatroomDBDetails: DB_DATA},
       });
       setIsRealmDataPresent(true);
+      console.log('DB_DATA?.topic', DB_DATA?.topic);
+      console.log('DB_DATA?.topicId', DB_DATA?.topicId);
+
+      if (DB_DATA?.topic && DB_DATA?.topicId) {
+        dispatch({
+          type: SET_CHATROOM_TOPIC,
+          body: {
+            currentChatroomTopic: DB_DATA?.topic,
+          },
+        });
+      } else if (DB_DATA?.topicId) {
+        // const topicConversation = await myClient?.getConversation(
+        //   DB_DATA?.topicId?.toString(),
+        // );
+        // console.log('topicConversationNewUser', topicConversation[0]);
+        // if (topicConversation[0]?.chatroomId == chatroomID) {
+        //   dispatch({
+        //     type: SET_CHATROOM_TOPIC,
+        //     body: {
+        //       currentChatroomTopic: topicConversation[0],
+        //     },
+        //   });
+        // }
+      } else if (!DB_DATA?.topic && !DB_DATA?.topicId) {
+        dispatch({
+          type: CLEAR_CHATROOM_TOPIC,
+        });
+      }
     }
     let response = await myClient?.getChatroomActions(payload);
     dispatch({
@@ -888,6 +922,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       body: {replyMessage: ''},
     });
   }, []);
+
+  // save chatroom topic in localDb
+  useEffect(() => {
+    const addChatroomTopic = async () => {
+      console.log('currentChatroomTopicInsideeeee', currentChatroomTopic);
+      await myClient?.updateChatroomTopic(
+        chatroomID?.toString(),
+        currentChatroomTopic,
+      );
+    };
+    if (selectedMessages.length !== 0) {
+      addChatroomTopic();
+    }
+  }, [currentChatroomTopic]);
 
   // To trigger analytics for Message Selected
   useEffect(() => {
@@ -2715,7 +2763,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           {!(Object.keys(currentChatroomTopic).length === 0) &&
           chatroomType !== ChatroomType.DMCHATROOM ? (
             <Pressable
-              onPress={() => {
+              onPress={async () => {
                 let index = conversations.findIndex(
                   (element: any) => element?.id === currentChatroomTopic?.id,
                 );
@@ -2723,6 +2771,33 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   flatlistRef.current?.scrollToIndex({
                     animated: true,
                     index,
+                  });
+                } else {
+                  const topicConversation = await myClient?.getConversation(
+                    currentChatroomTopic?.id,
+                  );
+                  let payload = {
+                    type: GetConversationsType.ABOVE,
+                    limit: 10,
+                    medianConversation: currentChatroomTopic,
+                  };
+                  const aboveConversations =
+                    await myClient?.getPaginatedConversations(payload);
+                  payload.type = GetConversationsType.BELOW;
+                  console.log('currentPayload', payload);
+                  const belowConversations =
+                    await myClient?.getPaginatedConversations(payload);
+                  console.log('aboveConversations', aboveConversations);
+
+                  console.log('topicConversation', topicConversation);
+                  console.log('belowConversations', belowConversations);
+                  const newConversation = aboveConversations.concat(
+                    topicConversation,
+                    belowConversations,
+                  );
+                  dispatch({
+                    type: GET_CONVERSATIONS_SUCCESS,
+                    body: {conversations: newConversation.reverse()},
                   });
                 }
               }}>
@@ -2920,6 +2995,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             onEndReached={async () => {
               if (shouldLoadMoreChat && conversations.length > 0) {
                 handleLoadMore();
+                console.log('loaded moreeeee');
               }
               return;
             }}
@@ -3230,7 +3306,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
               {isChatroomTopic && chatroomType !== ChatroomType.DMCHATROOM ? (
                 <TouchableOpacity
-                  onPress={() => {
+                  onPress={async () => {
                     setChatroomTopic();
                     setReportModalVisible(false);
                   }}

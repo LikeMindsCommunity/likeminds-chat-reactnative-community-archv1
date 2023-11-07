@@ -1175,7 +1175,10 @@ const InputBox = ({
       conversationId?.toString(),
       editConversationResponse?.data?.conversation,
     );
-
+    await myClient?.updateChatroomTopic(
+      chatroomID?.toString(),
+      editConversationResponse?.data?.conversation,
+    );
     LMChatAnalytics.track(
       Events.MESSAGE_EDITED,
       new Map<string, string>([
