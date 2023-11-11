@@ -1164,7 +1164,6 @@ const InputBox = ({
       conversationId: conversationId,
       text: editedConversation,
     });
-    console.log('editConversationResponse', editConversationResponse);
     dispatch({
       type: SET_CHATROOM_TOPIC,
       body: {

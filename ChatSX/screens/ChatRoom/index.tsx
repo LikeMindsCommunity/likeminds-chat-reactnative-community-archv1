@@ -240,7 +240,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const INITIAL_SYNC_PAGE = 1;
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE = 10;
 
   let chatroomType = chatroomDBDetails?.type;
   let chatroomFollowStatus = chatroomDBDetails?.followStatus;
@@ -249,8 +249,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let chatRequestState = chatroomDBDetails?.chatRequestState;
   const [isChatroomTopic, setIsChatroomTopic] = useState(false);
   const [isFound, setIsFound] = useState(false);
-
-  console.log('currentChatroomTopicHeader', currentChatroomTopic);
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -650,11 +648,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                             [Keys.CHATROOM_ID, chatroomID?.toString()],
                           ]),
                         );
-                        console.log(
-                          'selectedMessagesIDArr[i]',
-                          selectedMessagesIDArr[i],
-                        );
-
                         if (
                           selectedMessagesIDArr[i] == currentChatroomTopic?.id
                         ) {
@@ -759,8 +752,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         DB_RESPONSE?.chatroomMeta[chatroomID]?.userId;
       const chatroomCreator = DB_RESPONSE?.userMeta[chatroomCreatorUserId];
 
-      console.log('chatroomCreator', chatroomCreator);
-
       dispatch({
         type: SET_CHATROOM_CREATOR,
         body: {chatroomCreator: chatroomCreator},
@@ -846,16 +837,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       setShimmerIsLoading(false);
     }
     if (DB_DATA) {
-      console.log('DB_DATA', DB_DATA);
-
       dispatch({
         type: GET_CHATROOM_DB_SUCCESS,
         body: {chatroomDBDetails: DB_DATA},
       });
       setIsRealmDataPresent(true);
-      console.log('DB_DATA?.topic', DB_DATA?.topic);
-      console.log('DB_DATA?.topicId', DB_DATA?.topicId);
-
       if (DB_DATA?.topic && DB_DATA?.topicId) {
         dispatch({
           type: SET_CHATROOM_TOPIC,
@@ -922,7 +908,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // save chatroom topic in localDb
   useEffect(() => {
     const addChatroomTopic = async () => {
-      console.log('currentChatroomTopicInsideeeee', currentChatroomTopic);
       await myClient?.updateChatroomTopic(
         chatroomID?.toString(),
         currentChatroomTopic,
@@ -1206,10 +1191,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   useEffect(() => {
     let selectedMessagesLength = selectedMessages.length;
-    console.log('selectedMessages', selectedMessages);
-
     let selectedMessage = selectedMessages[0];
-    console.log('selectedMessage', selectedMessage);
 
     if (
       selectedMessagesLength == 1 &&
@@ -1239,13 +1221,42 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     setIsLoading(true);
     const newConversations = await myClient.getConversations(
       chatroomID,
-      100,
+      10,
       conversations[conversations.length - 1].createdEpoch,
     );
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
       body: {conversations: [...conversations, ...newConversations]},
     });
+    if (!!newConversations) {
+      setIsLoading(false);
+    }
+  };
+
+  // function shows loader in between calling the API and getting the response
+  const loadStartData = async (newPage?: number) => {
+    setIsLoading(true);
+    console.log('conversations[0]', conversations[0]);
+
+    let newConversations = await myClient.paginateDown(
+      chatroomID,
+      conversations[0],
+      10,
+    );
+    // console.log('newConversationsBeforeREversing', newConversations);
+
+    // newConversations = newConversations.reverse();
+    console.log('newConversations', newConversations);
+    newConversations = newConversations.reverse();
+    dispatch({
+      type: GET_CONVERSATIONS_SUCCESS,
+      body: {conversations: [...newConversations, ...conversations]},
+    });
+    console.log('newConversationsLength', newConversations.length);
+    if (newConversations.length !== 0 && !isFound) {
+      console.log('gfghfghfhffg');
+      scrollToVisibleIndex(newConversations.length + 1);
+    }
     if (!!newConversations) {
       setIsLoading(false);
     }
@@ -2424,7 +2435,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   const onStartReached = () => {
-    handleOnStartReached();
+    // handleOnStartReached();
+    loadStartData();
   };
 
   const onEndReached = () => {
@@ -2445,18 +2457,19 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const isScrollAtEnd =
       contentLength - visibleLength - offset < onEndReachedThreshold;
 
-    if (isScrollAtStart && shouldLoadMoreChatStart && lastScrollOffset) {
+    if (isScrollAtStart && shouldLoadMoreChatStart) {
+      console.log('aayaAndarFinally');
       renderFooter();
       onStartReached();
-      setLastScrollOffset(false);
-      setTimeout(() => {
-        setLastScrollOffset(true);
-      }, 1000);
+      // setLastScrollOffset(false);
+      // setTimeout(() => {
+      //   setLastScrollOffset(true);
+      // }, 1000);
     }
 
     if (isScrollAtEnd && shouldLoadMoreChatEnd) {
       renderFooter();
-      onEndReached();
+      handleLoadMore();
     }
   };
 
@@ -2775,35 +2788,42 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   );
                   let payload = {
                     type: GetConversationsType.ABOVE,
-                    limit: 10,
+                    limit: 5,
                     medianConversation: currentChatroomTopic,
                   };
                   const aboveConversations =
                     await myClient?.getPaginatedConversations(payload);
                   payload.type = GetConversationsType.BELOW;
-                  console.log('currentPayload', payload);
                   const belowConversations =
                     await myClient?.getPaginatedConversations(payload);
-                  console.log('aboveConversations', aboveConversations);
-
-                  console.log('topicConversation', topicConversation);
-                  console.log('belowConversations', belowConversations);
-                  const newConversation = aboveConversations.concat(
+                  let newConversation = aboveConversations.concat(
                     topicConversation,
                     belowConversations,
                   );
+                  newConversation = newConversation.reverse();
+
                   dispatch({
                     type: GET_CONVERSATIONS_SUCCESS,
-                    body: {conversations: newConversation.reverse()},
+                    body: {conversations: newConversation},
                   });
+                  let index = newConversation.findIndex(
+                    (element: any) => element?.id === currentChatroomTopic?.id,
+                  );
+                  if (index >= 0) {
+                    flatlistRef.current?.scrollToIndex({
+                      animated: true,
+                      index,
+                    });
+                    setIsFound(true);
+                  }
                 }
               }}>
               <View style={styles.chatroomTopic}>
                 <View>
                   <Image
                     source={
-                      !!user?.imageUrl
-                        ? {uri: user?.imageUrl}
+                      !!currentChatroomTopic?.member?.imageUrl
+                        ? {uri: currentChatroomTopic?.member?.imageUrl}
                         : require('../../assets/images/default_pic.png')
                     }
                     style={styles.chatroomTopicAvatar}
@@ -2822,14 +2842,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     Current Topic
                   </Text>
                   <Text
+                    ellipsizeMode="tail"
+                    numberOfLines={2}
                     style={{
                       color: STYLES.$COLORS.MSG,
                       fontSize: STYLES.$FONT_SIZES.SMALL,
                       fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                      width: '100%',
-                      flexWrap: 'wrap',
-                    }}
-                    numberOfLines={2}>
+                    }}>
                     {currentChatroomTopic?.hasFiles == true
                       ? getIconAttachment(currentChatroomTopic)
                       : currentChatroomTopic?.state === 10
@@ -2993,13 +3012,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </View>
               );
             }}
-            onEndReached={async () => {
-              if (shouldLoadMoreChat && conversations.length > 0) {
-                handleLoadMore();
-                console.log('loaded moreeeee');
-              }
-              return;
-            }}
+            onScroll={handleOnScroll}
+            // onEndReached={async () => {
+            //   if (shouldLoadMoreChat && conversations.length > 0) {
+            //     handleLoadMore();
+            //   }
+            //   return;
+            // }}
             onEndReachedThreshold={10}
             ListFooterComponent={renderFooter}
             keyboardShouldPersistTaps={'handled'}

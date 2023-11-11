@@ -61,11 +61,7 @@ export const paginatedSyncAPI = async (
     );
     for (let i = 0; i < DB_RESPONSE?.chatroomsData.length; i++) {
       const chatroom = DB_RESPONSE?.chatroomsData[i];
-      console.log('chatroom', chatroom);
-
       const chatroomTopic = DB_RESPONSE?.conversationMeta[chatroom?.topicId];
-      console.log('chatroomTopic', chatroomTopic);
-
       if (chatroomTopic) {
         await myClient?.updateChatroomTopic(
           chatroom?.id?.toString(),
