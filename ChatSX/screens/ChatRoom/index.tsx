@@ -908,6 +908,25 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // save chatroom topic in localDb
   useEffect(() => {
     const addChatroomTopic = async () => {
+      let temporaryStateMessage = {...currentChatroomTopic};
+      temporaryStateMessage.answer = `<<${user?.name}|route://member_profile/${user?.id}?member_id=${user?.id}&community_id=${user?.sdkClientInfo?.community}>> changed current topic to ${currentChatroomTopic?.answer}`;
+      temporaryStateMessage.state = 12;
+      const currentDate = new Date();
+      const options: Intl.DateTimeFormatOptions = {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      };
+      const formattedDate = currentDate.toLocaleDateString('en-GB', options);
+      temporaryStateMessage.date = formattedDate;
+      temporaryStateMessage.id = Date.now();
+      dispatch({
+        type: ADD_STATE_MESSAGE,
+        body: {conversation: temporaryStateMessage},
+      });
+
+      console.log('currentChatroomTopicAfterwardssss', currentChatroomTopic);
+
       await myClient?.updateChatroomTopic(
         chatroomID?.toString(),
         currentChatroomTopic,
@@ -1222,13 +1241,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const newConversations = await myClient.getConversations(
       chatroomID,
       10,
-      conversations[conversations.length - 1].createdEpoch,
+      conversations[conversations.length - 1]?.createdEpoch,
     );
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
       body: {conversations: [...conversations, ...newConversations]},
     });
+    if (newConversations.length == 0) {
+      setShouldLoadMoreChatEnd(false);
+    }
     if (!!newConversations) {
+      console.log('neaskdaskdasd', newConversations.length);
       setIsLoading(false);
     }
   };
@@ -1257,7 +1280,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       console.log('gfghfghfhffg');
       scrollToVisibleIndex(newConversations.length + 1);
     }
+    if (newConversations.length == 0) {
+      setShouldLoadMoreChatStart(false);
+    }
     if (!!newConversations) {
+      console.log('newConversationsLennnnnnnnn', newConversations.length);
       setIsLoading(false);
     }
   };
@@ -3019,7 +3046,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             //   }
             //   return;
             // }}
-            onEndReachedThreshold={10}
+            // onEndReachedThreshold={10}
+            ListHeaderComponent={renderFooter}
             ListFooterComponent={renderFooter}
             keyboardShouldPersistTaps={'handled'}
             inverted
