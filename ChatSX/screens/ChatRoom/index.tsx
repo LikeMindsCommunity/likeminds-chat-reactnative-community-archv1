@@ -920,6 +920,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       const formattedDate = currentDate.toLocaleDateString('en-GB', options);
       temporaryStateMessage.date = formattedDate;
       temporaryStateMessage.id = Date.now();
+      temporaryStateMessage.attachments = [];
+      temporaryStateMessage.attachmentCount = null;
+      temporaryStateMessage.hasFiles = false;
+      console.log('temporaryStateMessage', temporaryStateMessage);
+
       dispatch({
         type: ADD_STATE_MESSAGE,
         body: {conversation: temporaryStateMessage},
@@ -2652,6 +2657,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         </View>
       );
     } else if (imageCount > 0) {
+      console.log('hainajiiii');
+
       return (
         <View
           style={[
@@ -2864,7 +2871,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       color: STYLES.$COLORS.PRIMARY,
                       fontSize: STYLES.$FONT_SIZES.LARGE,
                       fontFamily: STYLES.$FONT_TYPES.BOLD,
-                      maxWidth: 150,
                     }}>
                     Current Topic
                   </Text>
