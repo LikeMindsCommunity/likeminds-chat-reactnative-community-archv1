@@ -1281,6 +1281,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       body: {conversations: [...newConversations, ...conversations]},
     });
     console.log('newConversationsLength', newConversations.length);
+    console.log('isFoundLoadStartData', isFound);
+
     if (newConversations.length !== 0 && !isFound) {
       console.log('gfghfghfhffg');
       scrollToVisibleIndex(newConversations.length + 1);
@@ -2489,7 +2491,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const isScrollAtEnd =
       contentLength - visibleLength - offset < onEndReachedThreshold;
 
-    if (isScrollAtStart && shouldLoadMoreChatStart) {
+    console.log('isFoundHnaldeOnScroll', isFound);
+
+    if (isScrollAtStart && shouldLoadMoreChatStart && !isFound) {
       console.log('aayaAndarFinally');
       renderFooter();
       onStartReached();
@@ -2506,6 +2510,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   const getIconAttachment = (val: any) => {
+    // console.log('valChatroom', val);
+
     const attachments = val?.attachments;
     let imageCount = 0;
     let videosCount = 0;
@@ -2894,6 +2900,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </View>
                 <View>
                   {currentChatroomTopic?.attachmentCount > 0 &&
+                  currentChatroomTopic?.attachments.length > 0 &&
                   currentChatroomTopic?.attachments[0]?.type !== 'pdf' ? (
                     <Image
                       source={{
