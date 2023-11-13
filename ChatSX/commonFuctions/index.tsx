@@ -498,6 +498,11 @@ export const formatDate = (date: any, time: any) => {
 
 // this function converts seconds count to mm:ss time format
 export function convertSecondsToTime(seconds: number) {
+  // Ensure that seconds is a non-negative number
+  if (isNaN(seconds) || seconds < 0) {
+    return 'Invalid input';
+  }
+
   let minutes = String(Math.floor(seconds / 60));
   let remainingSeconds = String(seconds % 60);
 
