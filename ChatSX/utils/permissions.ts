@@ -103,3 +103,73 @@ export async function requestCameraPermission() {
     }
   }
 }
+
+export async function requestAudioRecordPermission() {
+  if (Platform.OS === 'android') {
+    try {
+      const grants = await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+      ]);
+
+      console.log('write external stroage', grants);
+
+      if (
+        // grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+        //   PermissionsAndroid.RESULTS.GRANTED &&
+        grants['android.permission.READ_EXTERNAL_STORAGE'] ===
+          PermissionsAndroid.RESULTS.GRANTED &&
+        grants['android.permission.RECORD_AUDIO'] ===
+          PermissionsAndroid.RESULTS.GRANTED
+      ) {
+        console.log('Permissions granted');
+        return true;
+      } 
+      // else if (
+      //   grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+      //   PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+      // ) {
+      //   Alert.alert(
+      //     'Write Storage Permission Required',
+      //     'App needs write access to your storage. Please go to app settings and grant permission.',
+      //     [
+      //       {text: 'Cancel', style: 'cancel'},
+      //       {text: 'Open Settings', onPress: Linking.openSettings},
+      //     ],
+      //   );
+      // } 
+      else if (
+        grants['android.permission.READ_EXTERNAL_STORAGE'] ===
+        PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+      ) {
+        Alert.alert(
+          'Read Storage Permission Required',
+          'App needs read access to your storage. Please go to app settings and grant permission.',
+          [
+            {text: 'Cancel', style: 'cancel'},
+            {text: 'Open Settings', onPress: Linking.openSettings},
+          ],
+        );
+      } else if (
+        grants['android.permission.RECORD_AUDIO'] ===
+        PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+      ) {
+        Alert.alert(
+          'Camera Permission Required',
+          'App needs microphone access to record audio. Please go to app settings and grant permission.',
+          [
+            {text: 'Cancel', style: 'cancel'},
+            {text: 'Open Settings', onPress: Linking.openSettings},
+          ],
+        );
+      } else {
+        console.log('All required permissions not granted');
+        return false;
+      }
+    } catch (err) {
+      console.warn(err);
+      return;
+    }
+  }
+}

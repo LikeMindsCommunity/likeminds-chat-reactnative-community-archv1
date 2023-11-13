@@ -134,6 +134,7 @@ import {ChatroomType} from '../../enums';
 import {onShare} from '../../shareUtils';
 import {ChatroomActions} from '../../enums';
 import {UserSchemaResponse} from '../../db/models';
+import TrackPlayer from 'react-native-track-player';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -831,6 +832,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       if (previousRoute?.name !== EXPLORE_FEED) {
         closingChatroom();
       }
+    };
+  }, []);
+
+  // this useEffect is to stop audio player when going out of chatroom, if any audio is running
+  useEffect(() => {
+    return () => {
+      TrackPlayer.reset();
     };
   }, []);
 

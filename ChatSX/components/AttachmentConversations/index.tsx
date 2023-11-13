@@ -7,7 +7,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import {convertSecondsToTime, decode} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
@@ -35,6 +35,17 @@ import {
 import Slider from '@react-native-community/slider';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import {VoiceNotesPlayerProps} from '../InputBox/models';
+import TrackPlayer, {
+  useActiveTrack,
+  useProgress,
+} from 'react-native-track-player';
+import {
+  onPausePlay,
+  onResumePlay,
+  setupPlayer,
+  startPlay,
+  stopPlay,
+} from '../../audio';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
@@ -69,60 +80,52 @@ const AttachmentConversations = ({
       duration: '',
     });
   const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
+  const progress = useProgress();
+  const activeTrack = useActiveTrack();
+
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
 
-  const startPlay = async (path: string) => {
+  useEffect(() => {
+    if (progress.duration <= progress.position) {
+      TrackPlayer.reset();
+    }
+  }, [progress]);
 
-    await audioRecorderPlayer.startPlayer(path);
-    audioRecorderPlayer.addPlayBackListener(e => {
-      let playTime = audioRecorderPlayer.mmssss(Math.floor(e.currentPosition));
-      let duration = audioRecorderPlayer.mmssss(Math.floor(e.duration));
-      setVoiceNotesPlayer({
-        currentPositionSec: e.currentPosition,
-        currentDurationSec: e.duration,
-        playTime: audioRecorderPlayer
-          .mmssss(Math.floor(e.currentPosition))
-          .slice(0, 5),
-        duration: audioRecorderPlayer
-          .mmssss(Math.floor(e.duration))
-          .slice(0, 5),
-      });
+  useEffect(() => {
+    async function setup() {
+      await setupPlayer();
+    }
+    setup();
+  }, []);
 
-      // to reset the player after audio player completed it duration
-      if (playTime === duration) {
-        setIsVoiceNotePlaying(false);
-        setVoiceNotesPlayer({
-          currentPositionSec: 0,
-          currentDurationSec: 0,
-          playTime: '',
-          duration: '',
-        });
-      }
-      return;
-    });
-    setIsVoiceNotePlaying(true);
+  // to handle start player
+  const handleStartPlay = async (path: string) => {
+    const value = await startPlay(path);
+    setIsVoiceNotePlaying(value);
   };
 
   // to stop playing audio recording
-  const stopPlay = async () => {
-    await audioRecorderPlayer.stopPlayer();
-    setIsVoiceNotePlaying(false);
+  const handleStopPlay = async () => {
+    const value = await stopPlay();
+    setIsVoiceNotePlaying(value);
   };
 
   // to pause playing audio recording
-  const onPausePlay = async () => {
-    await audioRecorderPlayer.pausePlayer();
-    setIsVoiceNotePlaying(false);
+  const handleOnPausePlay = async () => {
+    const value = await onPausePlay();
+    setIsVoiceNotePlaying(value);
   };
 
   // to resume playing audio recording
-  const onResumePlay = async () => {
-    await audioRecorderPlayer.resumePlayer();
-    setIsVoiceNotePlaying(true);
+  const handleOnResumePlay = async () => {
+    const value = await onResumePlay();
+    setIsVoiceNotePlaying(value);
   };
 
   let firstAttachment = item?.attachments[0];
+  const isAudioActive =
+    activeTrack?.url === firstAttachment?.url ? true : false;
   return (
     <View
       style={[
@@ -185,66 +188,100 @@ const AttachmentConversations = ({
             </Text>
           </View>
         ) : firstAttachment?.type === VOICE_NOTE_TEXT ? (
-          <View style={styles.voiceNotesParentBox}>
-            {isVoiceNotePlaying ? (
-              <TouchableOpacity
-                onPress={() => {
-                  onPausePlay();
-                }}
-                style={styles.playPauseBox}>
-                <Image
-                  source={require('../../assets/images/pause_icon3x.png')}
-                  style={styles.playPauseImage}
-                />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={() => {
-                  if (voiceNotesPlayer?.playTime !== '') {
-                    onResumePlay();
-                  } else {
-                    startPlay(firstAttachment?.url);
+          <View>
+            <View style={styles.voiceNotesParentBox}>
+              {isVoiceNotePlaying && isAudioActive ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    handleOnPausePlay();
+                  }}
+                  style={styles.playPauseBox}>
+                  <Image
+                    source={require('../../assets/images/pause_icon3x.png')}
+                    style={styles.playPauseImage}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (voiceNotesPlayer?.playTime !== '') {
+                      handleOnResumePlay();
+                    } else {
+                      handleStartPlay(firstAttachment?.url);
+                    }
+                  }}
+                  style={styles.playPauseBox}>
+                  <Image
+                    style={styles.playPauseImage}
+                    source={require('../../assets/images/play_icon3x.png')}
+                  />
+                </TouchableOpacity>
+              )}
+              <View style={{flex: 1}}>
+                <Slider
+                  minimumValue={0}
+                  maximumValue={100}
+                  step={1}
+                  // value={
+                  //   (voiceNotesPlayer.currentPositionSec /
+                  //     voiceNotesPlayer.currentDurationSec) *
+                  //   100
+                  // }
+                  value={
+                    isAudioActive
+                      ? (progress.position / progress.duration) * 100
+                      : 0
                   }
-                }}
-                style={styles.playPauseBox}>
-                <Image
-                  style={styles.playPauseImage}
-                  source={require('../../assets/images/play_icon3x.png')}
+                  minimumTrackTintColor="#ffad31"
+                  maximumTrackTintColor="grey"
+                  tapToSeek={true}
                 />
-              </TouchableOpacity>
-            )}
-            <View style={{flex: 1}}>
-              <Slider
-                minimumValue={0}
-                maximumValue={100}
-                step={1}
-                value={
-                  (voiceNotesPlayer.currentPositionSec /
-                    voiceNotesPlayer.currentDurationSec) *
-                  100
-                }
-                minimumTrackTintColor="#ffad31"
-                maximumTrackTintColor="grey"
-                tapToSeek={true}
-              />
-              <View style={{display: 'flex', flexDirection: 'row'}}>
-                <Image
-                  source={require('../../assets/images/mic_icon3x.png')}
-                  style={[styles.smallIcon, {tintColor: 'grey'}]}
-                />
-                {isVoiceNotePlaying || voiceNotesPlayer?.playTime ? (
-                  <Text style={styles.recordTitle}>
-                    {voiceNotesPlayer?.playTime === ''
-                      ? convertSecondsToTime(0)
-                      : voiceNotesPlayer?.playTime}
-                  </Text>
-                ) : (
-                  <Text style={styles.recordTitle}>
-                    {convertSecondsToTime(firstAttachment?.metaRO?.duration)}
-                  </Text>
-                )}
+                <View style={{display: 'flex', flexDirection: 'row'}}>
+                  <Image
+                    source={require('../../assets/images/mic_icon3x.png')}
+                    style={[styles.smallIcon, {tintColor: 'grey'}]}
+                  />
+                  {isVoiceNotePlaying || progress.position ? (
+                    <Text style={styles.recordTitle}>
+                      {!isAudioActive && !!progress.position
+                        ? convertSecondsToTime(0)
+                        : convertSecondsToTime(Math.floor(progress.position))}
+                    </Text>
+                  ) : (
+                    <Text style={styles.recordTitle}>
+                      {convertSecondsToTime(firstAttachment?.metaRO?.duration)}
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
+            {item?.isInProgress === SUCCESS ? (
+              <View style={styles.uploadingIndicator}>
+                <ActivityIndicator
+                  size="large"
+                  color={STYLES.$COLORS.SECONDARY}
+                />
+              </View>
+            ) : item?.isInProgress === FAILED ? (
+              <View style={styles.uploadingIndicator}>
+                <Pressable
+                  onPress={() => {
+                    handleFileUpload(item?.id, true);
+                  }}
+                  style={({pressed}) => [
+                    {
+                      opacity: pressed ? 0.5 : 1,
+                    },
+                    styles.retryButton,
+                  ]}>
+                  <Image
+                    style={styles.retryIcon}
+                    source={require('../../assets/images/retry_file_upload3x.png')}
+                  />
+                  <Text style={styles.retryText}>RETRY</Text>
+                </Pressable>
+              </View>
+            ) : null}
           </View>
         ) : null}
 

@@ -93,6 +93,7 @@ import {
   replaceLastMention,
 } from '../../commonFuctions';
 import {
+  requestAudioRecordPermission,
   requestCameraPermission,
   requestStoragePermission,
 } from '../../utils/permissions';
@@ -126,11 +127,10 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {
-  Gesture,
-  GestureDetector,
-} from 'react-native-gesture-handler';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import LottieView from 'lottie-react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import {generateVoiceNoteName} from '../../audio';
 
 const audioRecorderPlayerAttachment = new AudioRecorderPlayer();
 
@@ -174,6 +174,7 @@ const InputBox = ({
   const [voiceNotes, setVoiceNotes] = useState<VoiceNotesProps>({
     recordSecs: 0,
     recordTime: '',
+    name: '',
   });
   const [voiceNotesPlayer, setVoiceNotesPlayer] =
     useState<VoiceNotesPlayerProps>({
@@ -188,9 +189,41 @@ const InputBox = ({
   const [isDraggable, setIsDraggable] = useState(true);
   const [isRecordingLocked, setIsRecordingLocked] = useState(false);
   const [isDeleteAnimation, setIsDeleteAnimation] = useState(false);
+  const [isRecordingPermission, setIsRecordingPermission] = useState(false);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
+
+  const {
+    selectedFilesToUpload = [],
+    selectedAudioFilesToUpload = [],
+    selectedFilesToUploadThumbnails = [],
+    conversations = [],
+    selectedMessages = [],
+  }: any = useAppSelector(state => state.chatroom);
+  const {myChatrooms, user, community}: any = useAppSelector(
+    state => state.homefeed,
+  );
+  const {
+    chatroomDetails,
+    isReply,
+    replyMessage,
+    editConversation,
+    fileSent,
+  }: any = useAppSelector(state => state.chatroom);
+  const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+
+  const dispatch = useAppDispatch();
+  let conversationArrayLength = conversations.length;
+
+  AWS.config.update({
+    region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
+    credentials: new CognitoIdentityCredentials({
+      IdentityPoolId: POOL_ID, // Replace with your Identity Pool ID
+    }),
+  });
+
+  const s3 = new S3();
 
   // Animation
 
@@ -200,6 +233,7 @@ const InputBox = ({
   const lockOffset = useSharedValue(4);
   const upChevronOffset = useSharedValue(3);
   const micIconOpacity = useSharedValue(1); // Initial opacity value
+  const isLongPressed = useSharedValue(false);
 
   // lock icon animation styles
   const lockAnimatedStyles = useAnimatedStyle(() => ({
@@ -247,18 +281,27 @@ const InputBox = ({
     }
   }, [isDeleteAnimation]);
 
+  // long press gesture
+  const longPressGesture = Gesture.LongPress()
+    .minDuration(250)
+    .onStart(event => {
+      isLongPressed.value = true;
+    });
+
   // draggle mic pan gesture on x-axis and y-axis
   const panGesture = Gesture.Pan()
     .runOnJS(true)
     .enabled(isDraggable)
-    .onBegin(() => {
+    .onBegin(e => {
       pressed.value = true;
       startRecord();
     })
     .onUpdate(event => {
+      console.log(' onUpdate x.value , y.value =', x.value, y.value);
       if (Math.abs(x.value) > 120) {
         x.value = withSpring(0);
         if (isDraggable) {
+          stopRecord();
           setIsDraggable(false);
           setIsDeleteAnimation(true);
           setTimeout(() => {
@@ -266,9 +309,8 @@ const InputBox = ({
             setIsDraggable(true);
           }, 200);
         }
-        // clearVoiceRecord();
-        // handleStopRecord();
         pressed.value = false;
+        isLongPressed.value = false;
       } else if (Math.abs(y.value) > 140) {
         y.value = withSpring(0);
         if (isDraggable) {
@@ -289,8 +331,8 @@ const InputBox = ({
     })
     .onEnd(() => {
       if (
-        (Math.abs(x.value) > 0 && Math.abs(x.value) < 120) ||
-        (Math.abs(y.value) > 0 && Math.abs(y.value) < 140)
+        (Math.abs(x.value) > 5 && Math.abs(x.value) < 120) ||
+        (Math.abs(y.value) > 5 && Math.abs(y.value) < 140)
       ) {
         setIsRecordingLocked(false);
         handleStopRecord();
@@ -298,6 +340,7 @@ const InputBox = ({
       x.value = withSpring(0);
       y.value = withSpring(0);
       pressed.value = false;
+      isLongPressed.value = false;
     })
     .onFinalize(() => {
       pressed.value = false;
@@ -305,7 +348,9 @@ const InputBox = ({
     })
     .onTouchesCancelled(() => {
       setIsDraggable(true);
-    });
+    })
+    .simultaneousWithExternalGesture(longPressGesture);
+  const composedGesture = Gesture.Race(longPressGesture, panGesture);
 
   // draggle mic panGesture styles
   const panStyle = useAnimatedStyle(() => {
@@ -324,36 +369,14 @@ const InputBox = ({
 
   // Animation stop
 
-  const {
-    selectedFilesToUpload = [],
-    selectedAudioFilesToUpload = [],
-    selectedFilesToUploadThumbnails = [],
-    conversations = [],
-    selectedMessages = [],
-  }: any = useAppSelector(state => state.chatroom);
-  const {myChatrooms, user, community}: any = useAppSelector(
-    state => state.homefeed,
-  );
-  const {
-    chatroomDetails,
-    isReply,
-    replyMessage,
-    editConversation,
-    fileSent,
-  }: any = useAppSelector(state => state.chatroom);
-  const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
-
-  const dispatch = useAppDispatch();
-  let conversationArrayLength = conversations.length;
-
-  AWS.config.update({
-    region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
-    credentials: new CognitoIdentityCredentials({
-      IdentityPoolId: POOL_ID, // Replace with your Identity Pool ID
-    }),
-  });
-
-  const s3 = new S3();
+  // to ask audio recording permission
+  useEffect(() => {
+    async function askPermission() {
+      const permission = await requestAudioRecordPermission();
+      setIsRecordingPermission(!!permission);
+    }
+    askPermission();
+  }, []);
 
   // to clear message on ChatScreen InputBox when fileSent from UploadScreen
   useEffect(() => {
@@ -673,6 +696,7 @@ const InputBox = ({
     setVoiceNotes({
       recordSecs: 0,
       recordTime: '',
+      name: '',
     });
     // -- Code for local message handling for normal and reply for now
     let months = [
@@ -770,7 +794,7 @@ const InputBox = ({
             url: audioURI,
             index: i,
             name: selectedAudioFilesToUpload[i].name,
-            meta: {
+            metaRO: {
               size: null,
               duration: selectedAudioFilesToUpload[i].duration,
             },
@@ -999,6 +1023,8 @@ const InputBox = ({
             });
           } else if (response && attachmentsCount > 0) {
             // start uploading
+
+            console.log('response ===', response);
             dispatch({
               type: SET_FILE_UPLOADING_MESSAGES,
               body: {
@@ -1325,16 +1351,17 @@ const InputBox = ({
       AVNumberOfChannelsKeyIOS: 2,
       AVFormatIDKeyIOS: AVEncodingOption.aac,
     };
-    const meteringEnabled = false;
-    const path = Platform.select({
-      ios: 'sound.m4a',
-      android: `sound.mp3`,
-    });
+
+    let name = generateVoiceNoteName();
+    const path =
+      Platform.OS === 'android'
+        ? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${name}.m4a`
+        : `${name}.m4a`;
+
 
     const result = await audioRecorderPlayerAttachment.startRecorder(
       path,
       audioSet,
-      meteringEnabled,
     );
     audioRecorderPlayerAttachment.addRecordBackListener(e => {
       setVoiceNotes({
@@ -1342,6 +1369,7 @@ const InputBox = ({
         recordTime: audioRecorderPlayerAttachment
           .mmssss(Math.floor(e.currentPosition))
           .slice(0, 5),
+        name: name,
       });
       return;
     });
@@ -1358,7 +1386,7 @@ const InputBox = ({
     const voiceNote = {
       uri: voiceNotesLink,
       type: VOICE_NOTE_TEXT,
-      name: `sound.${Platform.OS === 'ios' ? 'm4a' : 'mp3'}`,
+      name: `${voiceNotes.name}.${Platform.OS === 'ios' ? 'm4a' : 'm4a'}`,
       duration: Math.floor(voiceNotes.recordSecs / 1000),
     };
     dispatch({
@@ -1371,16 +1399,18 @@ const InputBox = ({
 
   const handleStopRecord = async () => {
     await stopRecord();
+    console.log('handleStopRecord');
     setIsVoiceResult(true);
     setIsRecordingLocked(false);
   };
 
   // to reset all the recording data we had previously
   const clearVoiceRecord = () => {
-    stopRecord();
+    // stopRecord();
     setVoiceNotes({
       recordSecs: 0,
       recordTime: '',
+      name: '',
     });
     setVoiceNotesLink('');
     setIsRecordingLocked(false);
@@ -1876,28 +1906,48 @@ const InputBox = ({
             />
           </TouchableOpacity>
         ) : (
-          <GestureDetector
-            gesture={panGesture}
-          >
-            <Animated.View>
-              {voiceNotes.recordTime && !isRecordingLocked && (
-                <View style={styles.lockRecording}>
-                  <Animated.View style={lockAnimatedStyles}>
-                    <Image
-                      source={require('../../assets/images/lock_icon3x.png')}
-                      style={[styles.emoji, {marginTop: 20}]}
-                    />
+          <View>
+            {!!isRecordingPermission ? (
+              <GestureDetector gesture={composedGesture}>
+                <Animated.View>
+                  {voiceNotes.recordTime && !isRecordingLocked && (
+                    <View style={styles.lockRecording}>
+                      <Animated.View style={lockAnimatedStyles}>
+                        <Image
+                          source={require('../../assets/images/lock_icon3x.png')}
+                          style={[styles.emoji, {marginTop: 20}]}
+                        />
+                      </Animated.View>
+                      <Animated.View style={upChevronanimatedStyles}>
+                        <Image
+                          source={require('../../assets/images/up_chevron_icon3x.png')}
+                          style={[styles.chevron, {marginTop: 20}]}
+                        />
+                      </Animated.View>
+                    </View>
+                  )}
+                  <Animated.View style={[styles.sendButton, panStyle]}>
+                    <TouchableWithoutFeedback
+                      style={[styles.sendButton, {position: 'absolute'}]}>
+                      <Image
+                        source={require('../../assets/images/mic_icon3x.png')}
+                        style={styles.mic}
+                      />
+                    </TouchableWithoutFeedback>
                   </Animated.View>
-                  <Animated.View style={upChevronanimatedStyles}>
-                    <Image
-                      source={require('../../assets/images/up_chevron_icon3x.png')}
-                      style={[styles.chevron, {marginTop: 20}]}
-                    />
-                  </Animated.View>
-                </View>
-              )}
+                </Animated.View>
+              </GestureDetector>
+            ) : (
               <Animated.View style={[styles.sendButton, panStyle]}>
                 <TouchableWithoutFeedback
+                  onPress={async () => {
+                    const permission = await requestAudioRecordPermission();
+                    setIsRecordingPermission(!!permission);
+                  }}
+                  onLongPress={async () => {
+                    const permission = await requestAudioRecordPermission();
+                    setIsRecordingPermission(!!permission);
+                  }}
                   style={[styles.sendButton, {position: 'absolute'}]}>
                   <Image
                     source={require('../../assets/images/mic_icon3x.png')}
@@ -1905,8 +1955,8 @@ const InputBox = ({
                   />
                 </TouchableWithoutFeedback>
               </Animated.View>
-            </Animated.View>
-          </GestureDetector>
+            )}
+          </View>
         )}
       </View>
 
