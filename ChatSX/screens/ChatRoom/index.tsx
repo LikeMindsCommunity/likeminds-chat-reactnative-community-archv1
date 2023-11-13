@@ -923,14 +923,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       temporaryStateMessage.attachments = [];
       temporaryStateMessage.attachmentCount = null;
       temporaryStateMessage.hasFiles = false;
-      console.log('temporaryStateMessage', temporaryStateMessage);
 
       dispatch({
         type: ADD_STATE_MESSAGE,
         body: {conversation: temporaryStateMessage},
       });
-
-      console.log('currentChatroomTopicAfterwardssss', currentChatroomTopic);
 
       await myClient?.updateChatroomTopic(
         chatroomID?.toString(),
@@ -1256,7 +1253,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       setShouldLoadMoreChatEnd(false);
     }
     if (!!newConversations) {
-      console.log('neaskdaskdasd', newConversations.length);
       setIsLoading(false);
     }
   };
@@ -1264,34 +1260,23 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // function shows loader in between calling the API and getting the response
   const loadStartData = async (newPage?: number) => {
     setIsLoading(true);
-    console.log('conversations[0]', conversations[0]);
-
     let newConversations = await myClient.paginateDown(
       chatroomID,
       conversations[0],
       10,
     );
-    // console.log('newConversationsBeforeREversing', newConversations);
-
-    // newConversations = newConversations.reverse();
-    console.log('newConversations', newConversations);
     newConversations = newConversations.reverse();
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
       body: {conversations: [...newConversations, ...conversations]},
     });
-    console.log('newConversationsLength', newConversations.length);
-    console.log('isFoundLoadStartData', isFound);
-
     if (newConversations.length !== 0 && !isFound) {
-      console.log('gfghfghfhffg');
       scrollToVisibleIndex(newConversations.length + 1);
     }
     if (newConversations.length == 0) {
       setShouldLoadMoreChatStart(false);
     }
     if (!!newConversations) {
-      console.log('newConversationsLennnnnnnnn', newConversations.length);
       setIsLoading(false);
     }
   };
@@ -2491,16 +2476,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const isScrollAtEnd =
       contentLength - visibleLength - offset < onEndReachedThreshold;
 
-    console.log('isFoundHnaldeOnScroll', isFound);
-
     if (isScrollAtStart && shouldLoadMoreChatStart && !isFound) {
-      console.log('aayaAndarFinally');
       renderFooter();
       onStartReached();
-      // setLastScrollOffset(false);
-      // setTimeout(() => {
-      //   setLastScrollOffset(true);
-      // }, 1000);
     }
 
     if (isScrollAtEnd && shouldLoadMoreChatEnd) {
@@ -2510,8 +2488,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   const getIconAttachment = (val: any) => {
-    // console.log('valChatroom', val);
-
     const attachments = val?.attachments;
     let imageCount = 0;
     let videosCount = 0;
@@ -2663,8 +2639,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         </View>
       );
     } else if (imageCount > 0) {
-      console.log('hainajiiii');
-
       return (
         <View
           style={[
