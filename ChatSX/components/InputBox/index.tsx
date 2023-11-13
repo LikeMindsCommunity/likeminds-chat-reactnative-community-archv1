@@ -297,7 +297,6 @@ const InputBox = ({
       startRecord();
     })
     .onUpdate(event => {
-      console.log(' onUpdate x.value , y.value =', x.value, y.value);
       if (Math.abs(x.value) > 120) {
         x.value = withSpring(0);
         if (isDraggable) {
@@ -1024,7 +1023,6 @@ const InputBox = ({
           } else if (response && attachmentsCount > 0) {
             // start uploading
 
-            console.log('response ===', response);
             dispatch({
               type: SET_FILE_UPLOADING_MESSAGES,
               body: {
@@ -1378,7 +1376,6 @@ const InputBox = ({
 
   // to stop audio recording
   const stopRecord = async () => {
-    // bounce();
     await audioRecorderPlayerAttachment.stopRecorder();
     audioRecorderPlayerAttachment.removeRecordBackListener();
 
@@ -1399,7 +1396,6 @@ const InputBox = ({
 
   const handleStopRecord = async () => {
     await stopRecord();
-    console.log('handleStopRecord');
     setIsVoiceResult(true);
     setIsRecordingLocked(false);
   };

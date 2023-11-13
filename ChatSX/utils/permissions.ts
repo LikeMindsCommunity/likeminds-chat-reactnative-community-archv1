@@ -113,33 +113,28 @@ export async function requestAudioRecordPermission() {
         PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
       ]);
 
-      console.log('write external stroage', grants);
-
       if (
-        // grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
-        //   PermissionsAndroid.RESULTS.GRANTED &&
+        grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+          PermissionsAndroid.RESULTS.GRANTED &&
         grants['android.permission.READ_EXTERNAL_STORAGE'] ===
           PermissionsAndroid.RESULTS.GRANTED &&
         grants['android.permission.RECORD_AUDIO'] ===
           PermissionsAndroid.RESULTS.GRANTED
       ) {
-        console.log('Permissions granted');
         return true;
-      } 
-      // else if (
-      //   grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
-      //   PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
-      // ) {
-      //   Alert.alert(
-      //     'Write Storage Permission Required',
-      //     'App needs write access to your storage. Please go to app settings and grant permission.',
-      //     [
-      //       {text: 'Cancel', style: 'cancel'},
-      //       {text: 'Open Settings', onPress: Linking.openSettings},
-      //     ],
-      //   );
-      // } 
-      else if (
+      } else if (
+        grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+        PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+      ) {
+        Alert.alert(
+          'Write Storage Permission Required',
+          'App needs write access to your storage. Please go to app settings and grant permission.',
+          [
+            {text: 'Cancel', style: 'cancel'},
+            {text: 'Open Settings', onPress: Linking.openSettings},
+          ],
+        );
+      } else if (
         grants['android.permission.READ_EXTERNAL_STORAGE'] ===
         PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
       ) {
@@ -164,11 +159,9 @@ export async function requestAudioRecordPermission() {
           ],
         );
       } else {
-        console.log('All required permissions not granted');
         return false;
       }
     } catch (err) {
-      console.warn(err);
       return;
     }
   }

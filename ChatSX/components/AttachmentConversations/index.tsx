@@ -222,11 +222,6 @@ const AttachmentConversations = ({
                   minimumValue={0}
                   maximumValue={100}
                   step={1}
-                  // value={
-                  //   (voiceNotesPlayer.currentPositionSec /
-                  //     voiceNotesPlayer.currentDurationSec) *
-                  //   100
-                  // }
                   value={
                     isAudioActive
                       ? (progress.position / progress.duration) * 100
