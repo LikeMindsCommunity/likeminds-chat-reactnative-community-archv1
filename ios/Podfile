@@ -26,6 +26,8 @@ end
 target 'Scalix' do
   config = use_native_modules!
   pod 'react-native-image-crop-tools', :path => '../node_modules/react-native-image-crop-tools'
+  pod 'react-native-blob-util',
+    :path => '../node_modules/react-native-blob-util'
   use_frameworks! :linkage => :static
   $RNFirebaseAsStaticFramework = true
 
