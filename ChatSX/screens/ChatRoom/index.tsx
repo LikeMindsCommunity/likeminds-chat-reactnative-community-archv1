@@ -3027,13 +3027,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               );
             }}
             onScroll={handleOnScroll}
-            // onEndReached={async () => {
-            //   if (shouldLoadMoreChat && conversations.length > 0) {
-            //     handleLoadMore();
-            //   }
-            //   return;
-            // }}
-            // onEndReachedThreshold={10}
             ListHeaderComponent={renderFooter}
             ListFooterComponent={renderFooter}
             keyboardShouldPersistTaps={'handled'}
