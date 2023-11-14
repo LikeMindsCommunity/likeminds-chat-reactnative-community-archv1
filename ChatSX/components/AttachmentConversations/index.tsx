@@ -47,8 +47,6 @@ import {
   stopPlay,
 } from '../../audio';
 
-const audioRecorderPlayer = new AudioRecorderPlayer();
-
 interface AttachmentConversations {
   item: any;
   isTypeSent: boolean;
@@ -86,18 +84,20 @@ const AttachmentConversations = ({
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
 
-  useEffect(() => {
-    if (progress.duration <= progress.position) {
-      TrackPlayer.reset();
-    }
-  }, [progress]);
-
+  // to initialise track player
   useEffect(() => {
     async function setup() {
       await setupPlayer();
     }
     setup();
   }, []);
+
+  // to stop the audio if move out of the chatroom
+  useEffect(() => {
+    if (progress.duration <= progress.position) {
+      TrackPlayer.reset();
+    }
+  }, [progress]);
 
   // to handle start player
   const handleStartPlay = async (path: string) => {

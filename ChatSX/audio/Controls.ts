@@ -1,5 +1,6 @@
 import TrackPlayer, {AddTrack} from 'react-native-track-player';
 import {setupPlayer} from './TrackPlayerServices';
+import {AUDIO_NOTIFICATION_TITLE} from '../constants/Strings';
 
 // to add track in queue so that we can play it
 export async function addTracks(track: AddTrack) {
@@ -13,13 +14,12 @@ export const startPlay = async (path: string) => {
   const track = {
     id: '1',
     url: path,
-    title: 'Audio is being played in chatroom',
+    title: AUDIO_NOTIFICATION_TITLE,
   };
   if (isSetup) {
     await TrackPlayer.reset();
     await addTracks(track);
 
-    const bool = await TrackPlayer.getPlayWhenReady();
     await TrackPlayer.play();
 
     return true;

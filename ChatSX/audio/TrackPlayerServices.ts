@@ -16,10 +16,13 @@ export async function setupPlayer() {
 }
 
 export async function playbackService() {
+
+  // to pause audio from notification
   TrackPlayer.addEventListener(Event.RemotePause, () => {
     TrackPlayer.pause();
   });
 
+  // to play audio from notification
   TrackPlayer.addEventListener(Event.RemotePlay, () => {
     TrackPlayer.play();
   });

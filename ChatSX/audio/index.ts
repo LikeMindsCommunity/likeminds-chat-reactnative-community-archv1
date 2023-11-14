@@ -6,6 +6,7 @@ import {stopPlay} from './Controls';
 import {onPausePlay} from './Controls';
 import {onResumePlay} from './Controls';
 import {generateVoiceNoteName} from './Utils';
+import {generateAudioSet} from './Utils';
 
 export {
   setupPlayer,
@@ -16,4 +17,5 @@ export {
   onPausePlay,
   onResumePlay,
   generateVoiceNoteName,
+  generateAudioSet,
 };

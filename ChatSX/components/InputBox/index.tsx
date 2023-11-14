@@ -2,31 +2,23 @@ import {
   View,
   Text,
   TouchableOpacity,
-  TextInput,
   Image,
   Platform,
   Modal,
   Pressable,
   Keyboard,
-  Alert,
-  PermissionsAndroid,
-  Linking,
   ActivityIndicator,
-  Button,
-  TextStyle,
   TouchableWithoutFeedback,
 } from 'react-native';
-import React, {FC, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
 import {
-  CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   EDIT_CONVERSATION,
   FILE_SENT,
-  IS_FILE_UPLOADING,
   LONG_PRESSED,
   MESSAGE_SENT,
   SELECTED_FILES_TO_UPLOAD,
@@ -44,8 +36,6 @@ import {
   UPDATE_CONVERSATIONS,
   UPDATE_LAST_CONVERSATION,
   EMPTY_BLOCK_DELETION,
-  UPDATE_MULTIMEDIA_CONVERSATIONS,
-  GET_CONVERSATIONS_SUCCESS,
   SELECTED_AUDIO_FILES_TO_UPLOAD,
   CLEAR_SELECTED_AUDIO_FILES_TO_UPLOAD,
 } from '../../store/types/types';
@@ -63,12 +53,10 @@ import {CREATE_POLL_SCREEN, FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {
-  AUDIO_TEXT,
   BLOCKED_DM,
   CAMERA_TEXT,
   CHARACTER_LIMIT_MESSAGE,
   DOCUMENTS_TEXT,
-  FAILED,
   IMAGE_TEXT,
   PDF_TEXT,
   PHOTOS_AND_VIDEOS_TEXT,
@@ -80,13 +68,10 @@ import {
 } from '../../constants/Strings';
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
-import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
+import {POOL_ID, REGION} from '../../aws-exports';
 import {
-  REGEX_USER_TAGGING,
-  decode,
   detectMentions,
   extractPathfromRouteQuery,
-  fetchResourceFromURI,
   getAllPdfThumbnail,
   getPdfThumbnail,
   getVideoThumbnail,
@@ -111,14 +96,7 @@ import {
   VoiceNotesPlayerProps,
   VoiceNotesProps,
 } from './models';
-import AudioRecorderPlayer, {
-  AVEncoderAudioQualityIOSType,
-  AVEncodingOption,
-  AVModeIOSOption,
-  AudioEncoderAndroidType,
-  AudioSet,
-  AudioSourceAndroidType,
-} from 'react-native-audio-recorder-player';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -130,7 +108,7 @@ import Animated, {
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import LottieView from 'lottie-react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import {generateVoiceNoteName} from '../../audio';
+import {generateAudioSet, generateVoiceNoteName} from '../../audio';
 
 const audioRecorderPlayerAttachment = new AudioRecorderPlayer();
 
@@ -1341,21 +1319,13 @@ const InputBox = ({
 
   // to start audio recording
   const startRecord = async () => {
-    const audioSet: AudioSet = {
-      AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
-      AudioSourceAndroid: AudioSourceAndroidType.MIC,
-      AVModeIOS: AVModeIOSOption.measurement,
-      AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
-      AVNumberOfChannelsKeyIOS: 2,
-      AVFormatIDKeyIOS: AVEncodingOption.aac,
-    };
+    const audioSet = generateAudioSet();
 
     let name = generateVoiceNoteName();
     const path =
       Platform.OS === 'android'
         ? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${name}.m4a`
         : `${name}.m4a`;
-
 
     const result = await audioRecorderPlayerAttachment.startRecorder(
       path,
@@ -1383,7 +1353,7 @@ const InputBox = ({
     const voiceNote = {
       uri: voiceNotesLink,
       type: VOICE_NOTE_TEXT,
-      name: `${voiceNotes.name}.${Platform.OS === 'ios' ? 'm4a' : 'm4a'}`,
+      name: `${voiceNotes.name}.m4a}`,
       duration: Math.floor(voiceNotes.recordSecs / 1000),
     };
     dispatch({
@@ -1903,8 +1873,8 @@ const InputBox = ({
           </TouchableOpacity>
         ) : (
           <View>
-            {!!isRecordingPermission ? (
-              <GestureDetector gesture={composedGesture}>
+            {!!isRecordingPermission || Platform.OS === 'ios' ? (
+              <GestureDetector gesture={panGesture}>
                 <Animated.View>
                   {voiceNotes.recordTime && !isRecordingLocked && (
                     <View style={styles.lockRecording}>
