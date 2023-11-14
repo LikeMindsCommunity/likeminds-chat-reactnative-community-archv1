@@ -6,7 +6,7 @@ import {
   Alert,
   Pressable,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
@@ -24,6 +24,8 @@ import {
   VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import AttachmentConversations from '../AttachmentConversations';
+import {Events, Keys} from '../../enums';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 
 interface ReplyConversations {
   item: any;
@@ -35,14 +37,17 @@ interface ReplyConversations {
   reactionArr: any;
   navigation: any;
   handleFileUpload: any;
+  chatroomID: any;
+  chatroomName: string;
 }
 
 interface ReplyBox {
   item: any;
   isIncluded: boolean;
+  chatroomName: string;
 }
 
-export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
+export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
   const {user} = useAppSelector(state => state.homefeed);
 
   return (
@@ -92,6 +97,8 @@ export const ReplyBox = ({item, isIncluded}: ReplyBox) => {
               ? `This message is not supported in this app yet.`
               : null,
             false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
           )}
         </Text>
         {!!item?.hasFiles && item?.attachments.length > 1 ? (
@@ -116,6 +123,8 @@ const ReplyConversations = ({
   reactionArr,
   navigation,
   handleFileUpload,
+  chatroomID,
+  chatroomName,
 }: ReplyConversations) => {
   const dispatch = useAppDispatch();
   const {conversations, selectedMessages, stateArr, isLongPress}: any =
@@ -200,6 +209,7 @@ const ReplyConversations = ({
           <ReplyBox
             isIncluded={isIncluded}
             item={item?.replyConversationObject}
+            chatroomName={chatroomName}
           />
         </TouchableOpacity>
         {item?.attachmentCount > 0 ? (
@@ -217,11 +227,17 @@ const ReplyConversations = ({
             }}
             handleFileUpload={handleFileUpload}
             isReply={true}
+            chatroomName={chatroomName}
           />
         ) : (
           <View>
             <View style={styles.messageText as any}>
-              {decode(item?.answer, true)}
+              {decode(
+                item?.answer,
+                true,
+                chatroomName,
+                user?.sdkClientInfo?.community,
+              )}
             </View>
             <View style={styles.alignTime}>
               {item?.isEdited ? (

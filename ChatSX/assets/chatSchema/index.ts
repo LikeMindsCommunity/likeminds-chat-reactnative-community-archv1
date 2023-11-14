@@ -41,6 +41,7 @@ export const chatSchema = {
     },
     reactions: [],
     state: 0,
+    ogTags: {},
   },
   reply: {
     answer: 'Hey',
@@ -125,5 +126,6 @@ export const chatSchema = {
       state: 0,
     },
     state: 0,
+    ogTags: {},
   },
 };

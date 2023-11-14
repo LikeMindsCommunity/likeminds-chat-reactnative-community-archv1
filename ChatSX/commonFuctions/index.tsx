@@ -4,6 +4,9 @@ import {PDF_TEXT, VIDEO_TEXT} from '../constants/Strings';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import moment from 'moment';
+import {Events, Keys} from '../enums';
+import {LMChatAnalytics} from '../analytics/LMChatAnalytics';
+import {getConversationType} from '../utils/analyticsUtils';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/[^>]+>>)/gu;
 export const REGEX_USER_TAGGING =
@@ -115,6 +118,8 @@ export function getNameInitials(name: string) {
 export const decode = (
   text: string | undefined,
   enableClick: boolean,
+  chatroomName: string,
+  communityId: string,
   isLongPress?: boolean,
   memberUuid?: string,
   chatroomWithUserUuid?: string,
@@ -132,6 +137,19 @@ export const decode = (
         let match = REGEX_USER_TAGGING.exec(matchResult);
         if (match !== null) {
           let {name, route} = match?.groups!;
+
+          const startingIndex = route.indexOf('/');
+          const taggedUserId = route.substring(startingIndex + 1);
+
+          LMChatAnalytics.track(
+            Events.USER_TAGS_SOMEONE,
+            new Map<string, string>([
+              [Keys.COMMUNITY_ID, communityId?.toString()],
+              [Keys.CHATROOM_NAME, chatroomName?.toString()],
+              [Keys.TAGGED_USER_ID, taggedUserId?.toString()],
+              [Keys.TAGGED_USER_NAME, name?.toString()],
+            ]),
+          );
 
           if (memberUuid && chatroomWithUserUuid && chatroomWithUserMemberId) {
             const startingIndex = route.indexOf('/');
@@ -275,8 +293,18 @@ export function decodeStr(text: string | undefined) {
 }
 
 // this function return copied messages in formatted form using decodeStr
-export function copySelectedMessages(selectedMessages: any) {
-  if (selectedMessages?.length === 1 && !!!selectedMessages[0]?.deleted_by) {
+export function copySelectedMessages(
+  selectedMessages: any,
+  chatroomID: string,
+) {
+  LMChatAnalytics.track(
+    Events.MESSAGE_COPIED,
+    new Map<string, string>([
+      [Keys.TYPE, getConversationType(selectedMessages[0])],
+      [Keys.CHATROOM_ID, chatroomID],
+    ]),
+  );
+  if (selectedMessages?.length === 1 && !!!selectedMessages[0]?.deletedBy) {
     if (!!selectedMessages[0]?.answer) {
       return decodeStr(selectedMessages[0]?.answer);
     } else {
@@ -285,8 +313,8 @@ export function copySelectedMessages(selectedMessages: any) {
   } else {
     const copiedMessages = selectedMessages
       .map((message: any) => {
-        if (!!message?.answer && !!!message?.deleted_by) {
-          const timestamp = `[${message?.date}, ${message?.created_at}]`;
+        if (!!message?.answer && !!!message?.deletedBy) {
+          const timestamp = `[${message?.date}, ${message?.createdAt}]`;
           const sender = message?.member?.name;
           const text = decodeStr(message?.answer);
           return `${timestamp} ${sender}: ${text}`;

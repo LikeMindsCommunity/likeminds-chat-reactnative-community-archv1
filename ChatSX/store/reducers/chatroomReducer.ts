@@ -138,9 +138,11 @@ export function chatroomReducer(state = initialState, action: any) {
     case ON_CONVERSATIONS_CREATE_SUCCESS: {
       const data = action.body;
       const {conversation = []} = data;
+
       if (conversation?.hasFiles || !!conversation?.replyConversation) {
         return {...state};
       }
+
       let temporaryID = conversation?.temporaryId;
       let conversationsList = [...state.conversations];
       let conversationArr: any = [...conversationsList];

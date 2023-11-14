@@ -184,7 +184,7 @@ const ExploreFeed = ({navigation}: Props) => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
-        keyExtractor={(item: any) => (item?.id ? item?.id.toString() : null)}
+        keyExtractor={(item: any) => (item?.id ? item?.id?.toString() : null)}
       />
       {count > 0 && <LoaderComponent />}
     </View>
