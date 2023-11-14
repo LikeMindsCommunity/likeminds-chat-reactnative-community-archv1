@@ -286,7 +286,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   let routes = navigation.getState()?.routes;
 
-  let previousRoute = routes[routes.length - 2];
+  let previousRoute = routes[routes?.length - 2];
 
   let isSecret = chatroomDBDetails?.isSecret;
 
@@ -325,7 +325,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               style={styles.backBtn}
             />
           </TouchableOpacity>
-          {!(Object.keys(chatroomDBDetails).length === 0) ? (
+          {!(Object.keys(chatroomDBDetails)?.length === 0) ? (
             <View style={styles.alignRow}>
               {chatroomType === ChatroomType.DMCHATROOM ? (
                 <View style={styles.profile}>
@@ -413,13 +413,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 fontSize: STYLES.$FONT_SIZES.LARGE,
                 fontFamily: STYLES.$FONT_TYPES.BOLD,
               }}>
-              {selectedMessages.length}
+              {selectedMessages?.length}
             </Text>
           </View>
         </View>
       ),
       headerRight: () => {
-        let len = selectedMessages.length;
+        let len = selectedMessages?.length;
         let communityManagerState = 1;
         let userCanDeleteParticularMessageArr: any = [];
         let selectedMessagesIDArr: any = [];
@@ -428,7 +428,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let isDelete = false;
         let isFirstMessageDeleted = selectedMessages[0]?.deletedBy;
         let isSelectedMessageEditable = false;
-        let selectedMessagesLength = selectedMessages.length;
+        let selectedMessagesLength = selectedMessages?.length;
 
         //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
         if (selectedMessagesLength === 1) {
@@ -483,7 +483,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         if (userCanDeleteParticularMessageArr.includes(false)) {
           if (
             user?.state === communityManagerState &&
-            userCanDeleteParticularMessageArr.length === 1 &&
+            userCanDeleteParticularMessageArr?.length === 1 &&
             !!!isFirstMessageDeleted
           ) {
             isDelete = true;
@@ -583,7 +583,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       dispatch({type: SELECTED_MESSAGES, body: []});
                       dispatch({type: LONG_PRESSED, body: false});
                       let updatedConversations;
-                      for (let i = 0; i < selectedMessagesIDArr.length; i++) {
+                      for (let i = 0; i < selectedMessagesIDArr?.length; i++) {
                         updatedConversations =
                           await myClient?.deleteConversation(
                             selectedMessagesIDArr[i],
@@ -673,7 +673,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     const DB_RESPONSE = val?.data;
 
-    if (DB_RESPONSE?.conversationsData.length !== 0) {
+    if (DB_RESPONSE?.conversationsData?.length !== 0) {
       await myClient?.saveConversationData(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomMeta,
@@ -935,7 +935,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this useEffect scroll to Index of latest message when we send the message.
   useEffect(() => {
-    if (conversations.length > 0) {
+    if (conversations?.length > 0) {
       flatlistRef?.current?.scrollToIndex({
         animated: false,
         index: 0,
@@ -944,7 +944,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }, [messageSent]);
   // this useEffect update headers when we longPress or update selectedMessages array.
   useEffect(() => {
-    if (selectedMessages.length === 0) {
+    if (selectedMessages?.length === 0) {
       setInitialHeader();
     } else if (!!isLongPress) {
       setSelectedHeader();
@@ -965,7 +965,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       conversationId,
     );
     const DB_RESPONSE = val?.data;
-    if (DB_RESPONSE?.conversationsData.length !== 0) {
+    if (DB_RESPONSE?.conversationsData?.length !== 0) {
       await myClient?.saveConversationData(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomMeta,
@@ -1016,13 +1016,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     if (isFocused) {
       routes = navigation.getState()?.routes;
-      previousRoute = routes[routes.length - 2];
+      previousRoute = routes[routes?.length - 2];
     }
   }, [isFocused]);
 
   //This useEffect has logic to or hide message privately when long press on a message
   useEffect(() => {
-    if (selectedMessages.length === 1) {
+    if (selectedMessages?.length === 1) {
       let selectedMessagesMember = selectedMessages[0]?.member;
       if (
         showDM &&
@@ -1046,7 +1046,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function paginatedData(newPage: number) {
     let payload = {
       chatroomID: chatroomID,
-      conversationID: conversations[conversations.length - 1]?.id,
+      conversationID: conversations[conversations?.length - 1]?.id,
       scrollDirection: 0,
       paginateBy: 50,
       topNavigate: false,
@@ -1061,7 +1061,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const newConversations = await myClient.getConversations(
       chatroomID,
       100,
-      conversations[conversations.length - 1].createdEpoch,
+      conversations[conversations?.length - 1].createdEpoch,
     );
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
@@ -1402,11 +1402,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const sendReaction = (val: any) => {
     let previousMsg = selectedMessages[0];
     let changedMsg;
-    if (selectedMessages[0]?.reactions.length > 0) {
+    if (selectedMessages[0]?.reactions?.length > 0) {
       let isReactedArr = selectedMessages[0]?.reactions.filter(
         (val: any) => val?.member?.id == user?.id,
       );
-      if (isReactedArr.length > 0) {
+      if (isReactedArr?.length > 0) {
         // Reacted different emoji
         if (isReactedArr[0].reaction !== val) {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
@@ -1600,7 +1600,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         const filterdMessages = selectedMessages.filter(
           (val: any) => val?.id !== item?.id && !isStateIncluded,
         );
-        if (filterdMessages.length > 0) {
+        if (filterdMessages?.length > 0) {
           dispatch({
             type: SELECTED_MESSAGES,
             body: [...filterdMessages],
@@ -1626,7 +1626,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         const filterdMessages = selectedMessages.filter(
           (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
         );
-        if (filterdMessages.length > 0) {
+        if (filterdMessages?.length > 0) {
           dispatch({
             type: SELECTED_MESSAGES,
             body: [...filterdMessages],
@@ -2086,7 +2086,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function endOfPaginatedData() {
     let payload = {
       chatroomID: chatroomID,
-      conversationID: conversations[conversations.length - 1]?.id,
+      conversationID: conversations[conversations?.length - 1]?.id,
       scrollDirection: 0, //scroll up -> 0
       paginateBy: 50,
       topNavigate: false,
@@ -2114,9 +2114,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // Function checks the pagination logic, if it verifies the condition then call endLoadData
   const handleOnEndReached = () => {
-    if (!isLoading && conversations.length > 0) {
+    if (!isLoading && conversations?.length > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
+      if (conversations?.length > 15) {
         const newPage = endPage + 1;
         setEndPage(newPage);
         endLoadData();
@@ -2182,9 +2182,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // Function checks the pagination logic, if it verifies the condition then call startLoadData
   const handleOnStartReached = () => {
-    if (!isLoading && conversations.length > 0) {
+    if (!isLoading && conversations?.length > 0) {
       // Checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
+      if (conversations?.length > 15) {
         const newPage = startPage + 1;
         setStartPage(newPage);
         startLoadData();
@@ -2344,7 +2344,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
               return (
                 <View>
-                  {index < conversations.length &&
+                  {index < conversations?.length &&
                   conversations[index]?.date !==
                     conversations[index + 1]?.date ? (
                     <View style={[styles.statusMessage]}>
@@ -2433,7 +2433,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               );
             }}
             onEndReached={async () => {
-              if (shouldLoadMoreChat && conversations.length > 0) {
+              if (shouldLoadMoreChat && conversations?.length > 0) {
                 handleLoadMore();
               }
               return;
@@ -2451,9 +2451,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           marginTop: 'auto',
         }}>
         {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
-        {chatroomType !== ChatroomType.DMCHATROOM && memberRights.length > 0 ? (
+        {chatroomType !== ChatroomType.DMCHATROOM &&
+        memberRights?.length > 0 ? (
           <View>
-            {!(Object.keys(chatroomDBDetails).length === 0) &&
+            {!(Object.keys(chatroomDBDetails)?.length === 0) &&
             previousRoute?.name === EXPLORE_FEED
               ? !!!chatroomFollowStatus && (
                   <TouchableOpacity
@@ -2469,7 +2470,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </TouchableOpacity>
                 )
               : null}
-            {!(Object.keys(chatroomDBDetails).length === 0) ? (
+            {!(Object.keys(chatroomDBDetails)?.length === 0) ? (
               //case to block normal user from messaging in a chatroom where only CMs can message
               user.state !== 1 &&
               chatroomDBDetails?.memberCanMessage === false ? (
@@ -2510,7 +2511,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     here.
                   </Text>
                 </View>
-              ) : !(Object.keys(chatroomDBDetails).length === 0) &&
+              ) : !(Object.keys(chatroomDBDetails)?.length === 0) &&
                 previousRoute?.name === HOMEFEED &&
                 isRealmDataPresent ? (
                 <View
@@ -2575,7 +2576,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             )}
           </View>
         ) : chatroomType === ChatroomType.DMCHATROOM &&
-          memberRights.length > 0 ? (
+          memberRights?.length > 0 ? (
           <View>
             {chatRequestState === 0 &&
             (!!chatroomDBDetails?.chatRequestedBy
@@ -2714,7 +2715,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       {/* Report Action Modal */}
       <Modal
         transparent={true}
-        visible={reportModalVisible && selectedMessages.length == 1}
+        visible={reportModalVisible && selectedMessages?.length == 1}
         onRequestClose={() => {
           setReportModalVisible(!modalVisible);
         }}>
