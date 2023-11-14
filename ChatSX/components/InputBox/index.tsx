@@ -242,7 +242,7 @@ const InputBox = ({
   }));
 
   // up chevron animated styles
-  const upChevronanimatedStyles = useAnimatedStyle(() => ({
+  const upChevronAnimatedStyles = useAnimatedStyle(() => ({
     transform: [{translateY: upChevronOffset.value}],
   }));
 
@@ -2085,7 +2085,7 @@ const InputBox = ({
                           style={[styles.emoji, {marginTop: 20}]}
                         />
                       </Animated.View>
-                      <Animated.View style={upChevronanimatedStyles}>
+                      <Animated.View style={upChevronAnimatedStyles}>
                         <Image
                           source={require('../../assets/images/up_chevron_icon3x.png')}
                           style={[styles.chevron, {marginTop: 20}]}
