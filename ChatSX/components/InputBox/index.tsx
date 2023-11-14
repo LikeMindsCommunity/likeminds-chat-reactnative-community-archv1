@@ -104,7 +104,12 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {
+  Gesture,
+  GestureDetector,
+  GestureUpdateEvent,
+  PanGestureHandlerEventPayload,
+} from 'react-native-gesture-handler';
 import LottieView from 'lottie-react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {generateAudioSet, generateVoiceNoteName} from '../../audio';
@@ -284,59 +289,70 @@ const InputBox = ({
       isLongPressed.value = true;
     });
 
+  // this method handles onBegin callback of pan gesture
+  const onBeginPanGesture = () => {
+    pressed.value = true;
+    startRecord();
+  };
+
+  // this method handles onUpdate callback of pan gesture
+  const onUpdatePanGesture = (
+    event: GestureUpdateEvent<PanGestureHandlerEventPayload>,
+  ) => {
+    if (Math.abs(x.value) > 120) {
+      x.value = withSpring(0);
+      if (isDraggable) {
+        stopRecord();
+        setIsDraggable(false);
+        setIsDeleteAnimation(true);
+        setTimeout(() => {
+          clearVoiceRecord();
+          setIsDraggable(true);
+        }, 200);
+      }
+      pressed.value = false;
+      isLongPressed.value = false;
+    } else if (Math.abs(y.value) > 140) {
+      y.value = withSpring(0);
+      if (isDraggable) {
+        setIsDraggable(false);
+        setTimeout(() => {
+          setIsDraggable(true);
+          setIsRecordingLocked(true);
+        }, 200);
+      }
+    } else if (Math.abs(x.value) > 5) {
+      x.value = event.translationX;
+    } else if (Math.abs(y.value) > 5) {
+      y.value = event.translationY;
+    } else {
+      x.value = event.translationX;
+      y.value = event.translationY;
+    }
+  };
+
+  // this method handles onEnd callback of pan gesture
+  const onEndPanGesture = () => {
+    if (
+      (Math.abs(x.value) > 5 && Math.abs(x.value) < 120) ||
+      (Math.abs(y.value) > 5 && Math.abs(y.value) < 140)
+    ) {
+      setIsRecordingLocked(false);
+      handleStopRecord();
+    }
+    x.value = withSpring(0);
+    y.value = withSpring(0);
+    pressed.value = false;
+    isLongPressed.value = false;
+  };
+
   // draggle mic pan gesture on x-axis and y-axis
   const panGesture = Gesture.Pan()
     .runOnJS(true)
     .enabled(isDraggable)
-    .onBegin(e => {
-      pressed.value = true;
-      startRecord();
-    })
-    .onUpdate(event => {
-      if (Math.abs(x.value) > 120) {
-        x.value = withSpring(0);
-        if (isDraggable) {
-          stopRecord();
-          setIsDraggable(false);
-          setIsDeleteAnimation(true);
-          setTimeout(() => {
-            clearVoiceRecord();
-            setIsDraggable(true);
-          }, 200);
-        }
-        pressed.value = false;
-        isLongPressed.value = false;
-      } else if (Math.abs(y.value) > 140) {
-        y.value = withSpring(0);
-        if (isDraggable) {
-          setIsDraggable(false);
-          setTimeout(() => {
-            setIsDraggable(true);
-            setIsRecordingLocked(true);
-          }, 200);
-        }
-      } else if (Math.abs(x.value) > 5) {
-        x.value = event.translationX;
-      } else if (Math.abs(y.value) > 5) {
-        y.value = event.translationY;
-      } else {
-        x.value = event.translationX;
-        y.value = event.translationY;
-      }
-    })
-    .onEnd(() => {
-      if (
-        (Math.abs(x.value) > 5 && Math.abs(x.value) < 120) ||
-        (Math.abs(y.value) > 5 && Math.abs(y.value) < 140)
-      ) {
-        setIsRecordingLocked(false);
-        handleStopRecord();
-      }
-      x.value = withSpring(0);
-      y.value = withSpring(0);
-      pressed.value = false;
-      isLongPressed.value = false;
-    })
+    .onBegin(onBeginPanGesture)
+    .onUpdate(onUpdatePanGesture)
+    .onEnd(onEndPanGesture)
     .onFinalize(() => {
       pressed.value = false;
       setIsDraggable(true);
@@ -345,6 +361,7 @@ const InputBox = ({
       setIsDraggable(true);
     })
     .simultaneousWithExternalGesture(longPressGesture);
+
   const composedGesture = Gesture.Race(longPressGesture, panGesture);
 
   // draggle mic panGesture styles
@@ -720,7 +737,9 @@ const InputBox = ({
     let ID = Date.now();
     let filesToUpload = selectedFilesToUpload?.length;
     let attachmentsCount =
-      filesToUpload > 0 ? filesToUpload : selectedVoiceNoteFilesToUpload?.length; //if any
+      filesToUpload > 0
+        ? filesToUpload
+        : selectedVoiceNoteFilesToUpload?.length; //if any
 
     let dummySelectedFileArr: any = []; //if any
     let dummyAttachmentsArr: any = []; //if any
