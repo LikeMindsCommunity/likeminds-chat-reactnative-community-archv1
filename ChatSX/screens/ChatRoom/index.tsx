@@ -240,7 +240,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const INITIAL_SYNC_PAGE = 1;
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 100;
 
   let chatroomType = chatroomDBDetails?.type;
   let chatroomFollowStatus = chatroomDBDetails?.followStatus;
@@ -724,7 +724,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         .setPage(page)
         .setMinTimestamp(minTimeStamp)
         .setMaxTimestamp(maxTimeStamp)
-        .setPageSize(50)
+        .setPageSize(500)
         .setConversationId(conversationId)
         .build(),
     );
@@ -905,30 +905,33 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [isFound]);
 
+  const createTemporaryStateMessage = () => {
+    let temporaryStateMessage = {...currentChatroomTopic};
+    temporaryStateMessage.answer = `<<${user?.name}|route://member_profile/${user?.id}?member_id=${user?.id}&community_id=${user?.sdkClientInfo?.community}>> changed current topic to ${currentChatroomTopic?.answer}`;
+    temporaryStateMessage.state = 12;
+    const currentDate = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    };
+    const formattedDate = currentDate.toLocaleDateString('en-GB', options);
+    temporaryStateMessage.date = formattedDate;
+    temporaryStateMessage.id = Date.now();
+    temporaryStateMessage.attachments = [];
+    temporaryStateMessage.attachmentCount = null;
+    temporaryStateMessage.hasFiles = false;
+
+    dispatch({
+      type: ADD_STATE_MESSAGE,
+      body: {conversation: temporaryStateMessage},
+    });
+  };
+
   // save chatroom topic in localDb
   useEffect(() => {
     const addChatroomTopic = async () => {
-      let temporaryStateMessage = {...currentChatroomTopic};
-      temporaryStateMessage.answer = `<<${user?.name}|route://member_profile/${user?.id}?member_id=${user?.id}&community_id=${user?.sdkClientInfo?.community}>> changed current topic to ${currentChatroomTopic?.answer}`;
-      temporaryStateMessage.state = 12;
-      const currentDate = new Date();
-      const options: Intl.DateTimeFormatOptions = {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      };
-      const formattedDate = currentDate.toLocaleDateString('en-GB', options);
-      temporaryStateMessage.date = formattedDate;
-      temporaryStateMessage.id = Date.now();
-      temporaryStateMessage.attachments = [];
-      temporaryStateMessage.attachmentCount = null;
-      temporaryStateMessage.hasFiles = false;
-
-      dispatch({
-        type: ADD_STATE_MESSAGE,
-        body: {conversation: temporaryStateMessage},
-      });
-
+      createTemporaryStateMessage();
       await myClient?.updateChatroomTopic(
         chatroomID?.toString(),
         currentChatroomTopic,
@@ -2802,7 +2805,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   );
                   let payload = {
                     type: GetConversationsType.ABOVE,
-                    limit: 5,
+                    limit: 100,
                     medianConversation: currentChatroomTopic,
                   };
                   const aboveConversations =
