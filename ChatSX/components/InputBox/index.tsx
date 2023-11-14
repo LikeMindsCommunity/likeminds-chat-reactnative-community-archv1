@@ -1877,7 +1877,8 @@ const InputBox = ({
               <GestureDetector gesture={panGesture}>
                 <Animated.View>
                   {voiceNotes.recordTime && !isRecordingLocked && (
-                    <View style={styles.lockRecording}>
+                    <View
+                      style={[styles.lockRecording, styles.inputBoxWithShadow]}>
                       <Animated.View style={lockAnimatedStyles}>
                         <Image
                           source={require('../../assets/images/lock_icon3x.png')}

@@ -253,7 +253,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   lockRecording: {
-    backgroundColor: 'pink',
+    backgroundColor: 'white',
     height: 150,
     width: 50,
     borderRadius: 50,
