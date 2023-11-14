@@ -96,7 +96,6 @@ import {
   VoiceNotesPlayerProps,
   VoiceNotesProps,
 } from './models';
-import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -109,6 +108,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import LottieView from 'lottie-react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {generateAudioSet, generateVoiceNoteName} from '../../audio';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import {LINK_PREVIEW_REGEX} from '../../constants/Regex';
 import LinkPreviewInputBox from '../linkPreviewInputBox';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
