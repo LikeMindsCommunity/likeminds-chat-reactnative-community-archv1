@@ -2109,9 +2109,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const handleFileUpload = async (
     conversationID: number,
     isRetry: boolean,
-    isAudio?: boolean,
+    isVoiceNote?: boolean,
   ) => {
-    if (isAudio) {
+    if (isVoiceNote) {
       const res = await uploadResource({
         selectedImages: selectedAudioFilesToUpload,
         conversationID: conversationID,
@@ -2120,6 +2120,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         uploadingFilesMessages,
         isRetry: isRetry,
       });
+
+      LMChatAnalytics.track(
+        Events.VOICE_NOTE_SENT,
+        new Map<string, string>([
+          [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+        ]),
+      );
 
       return res;
     } else {

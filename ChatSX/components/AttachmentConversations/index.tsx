@@ -46,6 +46,8 @@ import {
   startPlay,
   stopPlay,
 } from '../../audio';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {Events, Keys} from '../../enums';
 
 interface AttachmentConversations {
   item: any;
@@ -105,6 +107,14 @@ const AttachmentConversations = ({
   const handleStartPlay = async (path: string) => {
     const value = await startPlay(path);
     setIsVoiceNotePlaying(value);
+    LMChatAnalytics.track(
+      Events.VOICE_NOTE_PLAYED,
+      new Map<string, string>([
+        [Keys.CHATROOM_TYPE, item?.state?.toString()],
+        [Keys.CHATROOM_ID, item?.chatroomId?.toString()],
+        [Keys.MESSAGE_ID, item?.id?.toString()],
+      ]),
+    );
   };
 
   // to stop playing audio recording

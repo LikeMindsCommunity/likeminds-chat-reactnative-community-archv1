@@ -1482,6 +1482,14 @@ const InputBox = ({
         audio: [voiceNote],
       },
     });
+
+    LMChatAnalytics.track(
+      Events.VOICE_NOTE_RECORDED,
+      new Map<string, string>([
+        [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
+      ]),
+    );
   };
 
   const handleStopRecord = async () => {
@@ -1508,6 +1516,14 @@ const InputBox = ({
     // if isVoiceResult is false we show audio recorder instead of audio player
     setIsVoiceResult(false);
     stopPlay();
+
+    LMChatAnalytics.track(
+      Events.VOICE_NOTE_CANCELED,
+      new Map<string, string>([
+        [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
+      ]),
+    );
   };
 
   // to start playing audio recording
@@ -1543,6 +1559,14 @@ const InputBox = ({
       }
       return;
     });
+
+    LMChatAnalytics.track(
+      Events.VOICE_NOTE_PREVIEWED,
+      new Map<string, string>([
+        [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
+      ]),
+    );
     setIsVoiceNotePlaying(true);
   };
 
