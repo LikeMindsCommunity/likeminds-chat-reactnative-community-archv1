@@ -226,7 +226,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   );
 
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
-  const {selectedAudioFilesToUpload = []}: any = useAppSelector(
+  const {selectedVoiceNoteFilesToUpload = []}: any = useAppSelector(
     state => state.chatroom,
   );
 
@@ -1957,7 +1957,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let item = selectedImages[i];
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
-      let audioAttachmentType = item?.type;
+      let voiceNoteAttachmentType = item?.type;
       let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
@@ -2025,7 +2025,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             fileType = VIDEO_TEXT;
           } else if (attachmentType === IMAGE_TEXT) {
             fileType = IMAGE_TEXT;
-          } else if (audioAttachmentType === VOICE_NOTE_TEXT) {
+          } else if (voiceNoteAttachmentType === VOICE_NOTE_TEXT) {
             fileType = VOICE_NOTE_TEXT;
           }
 
@@ -2053,7 +2053,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             name:
               docAttachmentType === PDF_TEXT
                 ? selectedFilesToUpload[i]?.name
-                : audioAttachmentType === VOICE_NOTE_TEXT
+                : voiceNoteAttachmentType === VOICE_NOTE_TEXT
                 ? item?.name
                 : selectedFilesToUpload[i]?.fileName,
             type: fileType,
@@ -2113,10 +2113,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   ) => {
     if (isVoiceNote) {
       const res = await uploadResource({
-        selectedImages: selectedAudioFilesToUpload,
+        selectedImages: selectedVoiceNoteFilesToUpload,
         conversationID: conversationID,
         chatroomID: chatroomID,
-        selectedFilesToUpload: selectedAudioFilesToUpload,
+        selectedFilesToUpload: selectedVoiceNoteFilesToUpload,
         uploadingFilesMessages,
         isRetry: isRetry,
       });

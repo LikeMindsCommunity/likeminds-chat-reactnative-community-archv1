@@ -36,8 +36,8 @@ import {
   UPDATE_CONVERSATIONS,
   UPDATE_LAST_CONVERSATION,
   EMPTY_BLOCK_DELETION,
-  SELECTED_AUDIO_FILES_TO_UPLOAD,
-  CLEAR_SELECTED_AUDIO_FILES_TO_UPLOAD,
+  SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
+  CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -191,7 +191,7 @@ const InputBox = ({
 
   const {
     selectedFilesToUpload = [],
-    selectedAudioFilesToUpload = [],
+    selectedVoiceNoteFilesToUpload = [],
     selectedFilesToUploadThumbnails = [],
     conversations = [],
     selectedMessages = [],
@@ -720,7 +720,7 @@ const InputBox = ({
     let ID = Date.now();
     let filesToUpload = selectedFilesToUpload?.length;
     let attachmentsCount =
-      filesToUpload > 0 ? filesToUpload : selectedAudioFilesToUpload?.length; //if any
+      filesToUpload > 0 ? filesToUpload : selectedVoiceNoteFilesToUpload?.length; //if any
 
     let dummySelectedFileArr: any = []; //if any
     let dummyAttachmentsArr: any = []; //if any
@@ -758,8 +758,8 @@ const InputBox = ({
       for (let i = 0; i < attachmentsCount; i++) {
         let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
         let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
-        let audioAttachmentType = selectedAudioFilesToUpload[i]?.type;
-        let audioURI = selectedAudioFilesToUpload[i]?.uri;
+        let audioAttachmentType = selectedVoiceNoteFilesToUpload[i]?.type;
+        let audioURI = selectedVoiceNoteFilesToUpload[i]?.uri;
         let URI = selectedFilesToUpload[i]?.uri;
         if (attachmentType === IMAGE_TEXT) {
           let obj = {
@@ -790,14 +790,14 @@ const InputBox = ({
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         } else if (audioAttachmentType === VOICE_NOTE_TEXT) {
           let obj = {
-            ...selectedAudioFilesToUpload[i],
+            ...selectedVoiceNoteFilesToUpload[i],
             type: audioAttachmentType,
             url: audioURI,
             index: i,
-            name: selectedAudioFilesToUpload[i].name,
+            name: selectedVoiceNoteFilesToUpload[i].name,
             metaRO: {
               size: null,
-              duration: selectedAudioFilesToUpload[i].duration,
+              duration: selectedVoiceNoteFilesToUpload[i].duration,
             },
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
@@ -1195,7 +1195,7 @@ const InputBox = ({
       );
     }
 
-    dispatch({type: CLEAR_SELECTED_AUDIO_FILES_TO_UPLOAD});
+    dispatch({type: CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD});
     stopPlay();
     setIsRecordingLocked(false);
     setOgTagsState({});
@@ -1477,7 +1477,7 @@ const InputBox = ({
       duration: Math.floor(voiceNotes.recordSecs / 1000),
     };
     dispatch({
-      type: SELECTED_AUDIO_FILES_TO_UPLOAD,
+      type: SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
       body: {
         audio: [voiceNote],
       },
@@ -1510,7 +1510,7 @@ const InputBox = ({
     setIsRecordingLocked(false);
 
     dispatch({
-      type: CLEAR_SELECTED_AUDIO_FILES_TO_UPLOAD,
+      type: CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
     });
 
     // if isVoiceResult is false we show audio recorder instead of audio player

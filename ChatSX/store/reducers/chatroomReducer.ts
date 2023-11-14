@@ -31,8 +31,8 @@ import {
   GET_CHATROOM_DB_SUCCESS,
   GET_CHATROOM_ACTIONS_SUCCESS,
   ADD_STATE_MESSAGE,
-  SELECTED_AUDIO_FILES_TO_UPLOAD,
-  CLEAR_SELECTED_AUDIO_FILES_TO_UPLOAD,
+  SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
+  CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
 } from '../types/types';
 
 const initialState = {
@@ -51,7 +51,7 @@ const initialState = {
   editConversation: '',
   fileSent: 0,
   chatroomDBDetails: {},
-  selectedAudioFilesToUpload: [],
+  selectedVoiceNoteFilesToUpload: [],
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -237,9 +237,9 @@ export function chatroomReducer(state = initialState, action: any) {
       const {images} = action.body;
       return {...state, selectedFilesToUpload: [...images]};
     }
-    case SELECTED_AUDIO_FILES_TO_UPLOAD: {
+    case SELECTED_VOICE_NOTE_FILES_TO_UPLOAD: {
       const {audio} = action.body;
-      return {...state, selectedAudioFilesToUpload: [...audio]};
+      return {...state, selectedVoiceNoteFilesToUpload: [...audio]};
     }
     case SELECTED_FILES_TO_UPLOAD_THUMBNAILS: {
       const {images} = action.body;
@@ -259,8 +259,8 @@ export function chatroomReducer(state = initialState, action: any) {
     case CLEAR_SELECTED_FILES_TO_UPLOAD: {
       return {...state, selectedFilesToUpload: []};
     }
-    case CLEAR_SELECTED_AUDIO_FILES_TO_UPLOAD: {
-      return {...state, selectedAudioFilesToUpload: []};
+    case CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD: {
+      return {...state, selectedVoiceNoteFilesToUpload: []};
     }
     case CLEAR_SELECTED_FILE_TO_VIEW: {
       return {...state, selectedFileToView: {}};
