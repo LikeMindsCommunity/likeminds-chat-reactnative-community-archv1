@@ -96,10 +96,14 @@ import {
   convertToMentionValues,
   replaceMentionValues,
 } from '../TaggingView/utils';
-import {ChatroomChatRequestState} from '../../enums';
+import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {InputBoxProps, LaunchActivityProps, VoiceNotesProps} from './models';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import {LINK_PREVIEW_REGEX} from '../../constants/Regex';
+import LinkPreviewInputBox from '../linkPreviewInputBox';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
@@ -119,6 +123,7 @@ const InputBox = ({
   setIsEditable,
   isSecret,
   chatroomWithUser,
+  chatroomName,
 }: InputBoxProps) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -133,6 +138,8 @@ const InputBox = ({
   const [s3UploadResponse, setS3UploadResponse] = useState<any>();
   const [DMSentAlertModalVisible, setDMSentAlertModalVisible] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
+  const [debounceLinkPreviewTimeout, setLinkPreviewDebounceTimeout] =
+    useState<any>(null);
   const [isUserTagging, setIsUserTagging] = useState(false);
   const [userTaggingList, setUserTaggingList] = useState<any>([]);
   const [userTaggingListHeight, setUserTaggingListHeight] = useState<any>(116);
@@ -144,9 +151,18 @@ const InputBox = ({
     recordSecs: 0,
     recordTime: '',
   });
+  const {chatroomDBDetails}: any = useAppSelector(state => state.chatroom);
+
+  const [ogTagsState, setOgTagsState] = useState<any>({});
+  const [closedOnce, setClosedOnce] = useState(false);
+  const [showLinkPreview, setShowLinkPreview] = useState(true);
+  const [url, setUrl] = useState('');
+  const [closedPreview, setClosedPreview] = useState(false);
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
+
+  let taggedUserNames: any = [];
 
   const {
     selectedFilesToUpload = [],
@@ -165,6 +181,7 @@ const InputBox = ({
     fileSent,
   }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+  let isGroupTag = false;
 
   const dispatch = useAppDispatch();
   let conversationArrayLength = conversations.length;
@@ -383,43 +400,47 @@ const InputBox = ({
       }
     }
   };
-
   // this method launches native camera
   const openCamera = async () => {
-    const options: LaunchActivityProps = {
-      mediaType: 'photo',
-      selectionLimit: 0,
-    };
-    navigation.navigate(FILE_UPLOAD, {
-      chatroomID: chatroomID,
-      previousMessage: message, // to keep message on uploadScreen InputBox
-    });
-    await launchCamera(options, async (response: ImagePickerResponse) => {
-      if (response?.didCancel) {
-        if (selectedFilesToUpload.length === 0) {
-          navigation.goBack();
-        }
-      } else if (response.errorCode) {
-        return;
-      } else {
-        let selectedImages: Asset[] | undefined = response.assets; // selectedImages would be images only
-
-        if (!selectedImages) return;
-        if (selectedImages?.length > 0) {
-          let fileSize = selectedImages[0]?.fileSize;
-          if (Number(fileSize) >= MAX_FILE_SIZE) {
-            dispatch({
-              type: SHOW_TOAST,
-              body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
-            });
+    try {
+      const options: LaunchActivityProps = {
+        mediaType: 'photo',
+        selectionLimit: 0,
+      };
+      navigation.navigate(FILE_UPLOAD, {
+        chatroomID: chatroomID,
+        previousMessage: message, // to keep message on uploadScreen InputBox
+      });
+      await launchCamera(options, async (response: ImagePickerResponse) => {
+        if (response?.didCancel) {
+          if (selectedFilesToUpload.length === 0) {
             navigation.goBack();
-            return;
           }
-        }
+        } else if (response.errorCode) {
+          return;
+        } else {
+          let selectedImages: Asset[] | undefined = response.assets; // selectedImages would be images only
 
-        handleImageAndVideoUpload(selectedImages);
+          if (!selectedImages) return;
+          if (selectedImages?.length > 0) {
+            let fileSize = selectedImages[0]?.fileSize;
+            if (Number(fileSize) >= MAX_FILE_SIZE) {
+              dispatch({
+                type: SHOW_TOAST,
+                body: {isToast: true, msg: 'Files above 100 MB is not allowed'},
+              });
+              navigation.goBack();
+              return;
+            }
+          }
+          await handleImageAndVideoUpload(selectedImages);
+        }
+      });
+    } catch (error) {
+      if (selectedFilesToUpload.length === 0) {
+        navigation.goBack();
       }
-    });
+    }
   };
 
   const handleModalClose = () => {
@@ -456,11 +477,11 @@ const InputBox = ({
   // function handles opening of camera functionality
   const handleCamera = async () => {
     if (Platform.OS === 'ios') {
-      openCamera();
+      await openCamera();
     } else {
       let res = await requestCameraPermission();
       if (res === true) {
-        openCamera();
+        await openCamera();
       }
     }
   };
@@ -490,6 +511,8 @@ const InputBox = ({
   };
 
   const onSend = async (conversation: string) => {
+    setClosedPreview(true);
+    setShowLinkPreview(false);
     setMessage('');
     setInputHeight(25);
     // -- Code for local message handling for normal and reply for now
@@ -584,8 +607,11 @@ const InputBox = ({
       let PATH = extractPathfromRouteQuery(id);
       if (!!!PATH) {
         let newName = name.substring(1);
+        isGroupTag = true;
+        taggedUserNames.push(name);
         return `<<${name}|route://${newName}>>`;
       } else {
+        taggedUserNames.push(name);
         return `<<${name}|route://${id}>>`;
       }
     });
@@ -628,6 +654,7 @@ const InputBox = ({
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
+        if (!closedOnce || !closedPreview) replyObj.ogTags = ogTagsState;
       }
       let obj = chatSchema.normal;
       obj.member.name = user?.name;
@@ -655,6 +682,7 @@ const InputBox = ({
       obj.images = dummySelectedFileArr;
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
+      if (!closedOnce || !closedPreview) obj.ogTags = ogTagsState;
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
@@ -676,12 +704,12 @@ const InputBox = ({
           if (attachmentsCount > 0) {
             const editedReplyObj = {...replyObj, isInProgress: SUCCESS};
             await myClient?.saveNewConversation(
-              chatroomID.toString(),
+              chatroomID?.toString(),
               editedReplyObj,
             );
           } else {
             await myClient?.saveNewConversation(
-              chatroomID.toString(),
+              chatroomID?.toString(),
               replyObj,
             );
           }
@@ -689,11 +717,11 @@ const InputBox = ({
           if (attachmentsCount > 0) {
             const editedObj = {...obj, isInProgress: SUCCESS};
             await myClient?.saveNewConversation(
-              chatroomID.toString(),
+              chatroomID?.toString(),
               editedObj,
             );
           } else {
-            await myClient?.saveNewConversation(chatroomID.toString(), obj);
+            await myClient?.saveNewConversation(chatroomID?.toString(), obj);
           }
         }
       }
@@ -737,11 +765,11 @@ const InputBox = ({
           body: {chatRequestState: ChatroomChatRequestState.INITIATED},
         });
         await myClient?.saveNewConversation(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           response?.data?.conversation,
         );
         await myClient?.updateChatRequestState(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           ChatroomChatRequestState.INITIATED,
         );
       } else if (
@@ -760,16 +788,16 @@ const InputBox = ({
           body: {chatRequestState: ChatroomChatRequestState.ACCEPTED},
         });
         await myClient?.saveNewConversation(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           response?.data?.conversation,
         );
         await myClient?.updateChatRequestState(
-          chatroomID.toString(),
+          chatroomID?.toString(),
           ChatroomChatRequestState.ACCEPTED,
         );
       } else {
         if (!isUploadScreen) {
-          let payload = {
+          let payload: any = {
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText?.trim(),
@@ -777,6 +805,16 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
+
+          if (
+            Object.keys(ogTagsState).length !== 0 &&
+            url &&
+            (!closedOnce || !closedPreview)
+          ) {
+            payload.ogTags = ogTagsState;
+          } else if (url && (!closedOnce || !closedPreview)) {
+            payload.shareLink = url;
+          }
 
           let response = await dispatch(onConversationsCreate(payload) as any);
 
@@ -804,7 +842,7 @@ const InputBox = ({
             body: {status: !fileSent},
           });
           navigation.goBack();
-          let payload = {
+          let payload: any = {
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText?.trim(),
@@ -812,6 +850,16 @@ const InputBox = ({
             attachmentCount: attachmentsCount,
             repliedConversationId: replyMessage?.id,
           };
+
+          if (
+            Object.keys(ogTagsState).length !== 0 &&
+            url &&
+            (!closedOnce || !closedPreview)
+          ) {
+            payload.ogTags = ogTagsState;
+          } else if (url && (!closedOnce || !closedPreview)) {
+            payload.shareLink = url;
+          }
 
           let response = await dispatch(onConversationsCreate(payload) as any);
 
@@ -863,7 +911,7 @@ const InputBox = ({
                 };
 
             await myClient?.saveAttachmentUploadConversation(
-              id.toString(),
+              id?.toString(),
               JSON.stringify(message),
             );
 
@@ -875,7 +923,35 @@ const InputBox = ({
           });
         }
       }
+      let selectedType;
+      if (isReply) {
+        selectedType = getConversationType(replyObj);
+      } else {
+        selectedType = getConversationType(obj);
+      }
+      LMChatAnalytics.track(
+        Events.CHATROOM_RESPONDED,
+        new Map<string, string>([
+          [
+            Keys.CHATROOM_TYPE,
+            getChatroomType(
+              chatroomDBDetails?.type?.toString(),
+              chatroomDBDetails?.isSecret,
+            ),
+          ],
+          [Keys.COMMUNITY_ID, user?.sdkClientInfo?.community?.toString()],
+          [Keys.CHATROOM_NAME, chatroomName?.toString()],
+          [Keys.CHATROOM_LAST_CONVERSATION_TYPE, selectedType?.toString()],
+          ['count_tagged_users', taggedUserNames?.length?.toString()],
+          ['name_tagged_users', taggedUserNames?.toString()],
+          ['is_group_tag', isGroupTag?.toString()],
+        ]),
+      );
     }
+    setOgTagsState({});
+    setUrl('');
+    setClosedOnce(false);
+    setClosedPreview(false);
   };
 
   const taggingAPI = async ({page, searchName, chatroomId, isSecret}: any) => {
@@ -928,9 +1004,43 @@ const InputBox = ({
     ) : null;
   };
 
-  const handleInputChange = async (e: any) => {
+  async function detectLinkPreview(link: string) {
+    const payload = {
+      url: link,
+    };
+    const decodeUrlResponse = await myClient?.decodeUrl(payload);
+    const ogTags = decodeUrlResponse?.data?.ogTags;
+    if (ogTags !== undefined) setOgTagsState(ogTags);
+  }
+
+  const handleInputChange = async (event: string) => {
+    let parts = event.split(LINK_PREVIEW_REGEX);
+    if (parts?.length > 1) {
+      {
+        parts?.map((value: string) => {
+          if (LINK_PREVIEW_REGEX.test(value) && !isUploadScreen) {
+            clearTimeout(debounceLinkPreviewTimeout);
+            const timeoutId = setTimeout(() => {
+              for (let i = 0; i < parts.length; i++) {
+                setShowLinkPreview(true);
+                if (LINK_PREVIEW_REGEX.test(parts[i]) && !closedPreview) {
+                  setShowLinkPreview(true);
+                  setUrl(parts[i]);
+                  detectLinkPreview(parts[i]);
+                  break;
+                }
+              }
+            }, 500);
+            setLinkPreviewDebounceTimeout(timeoutId);
+          }
+        });
+      }
+    } else {
+      setOgTagsState({});
+      setShowLinkPreview(false);
+    }
     if (chatRequestState === 0 || chatRequestState === null) {
-      if (e.length >= MAX_LENGTH) {
+      if (event.length >= MAX_LENGTH) {
         dispatch({
           type: SHOW_TOAST,
           body: {
@@ -938,17 +1048,17 @@ const InputBox = ({
             msg: CHARACTER_LIMIT_MESSAGE,
           },
         });
-      } else if (e.length < MAX_LENGTH) {
-        setMessage(e);
-        setFormattedConversation(e);
+      } else if (event.length < MAX_LENGTH) {
+        setMessage(event);
+        setFormattedConversation(event);
       }
     } else {
-      setMessage(e);
-      setFormattedConversation(e);
+      setMessage(event);
+      setFormattedConversation(event);
 
       // chatroomType === ChatroomType.DMCHATROOM (if DM don't detect and show user tags)
       const newMentions =
-        chatroomType === ChatroomType.DMCHATROOM ? [] : detectMentions(e);
+        chatroomType === ChatroomType.DMCHATROOM ? [] : detectMentions(event);
 
       if (newMentions.length > 0) {
         const length = newMentions.length;
@@ -1001,6 +1111,7 @@ const InputBox = ({
   // this function is for editing a conversation
   const onEdit = async () => {
     let selectedConversation = editConversation;
+
     let conversationId = selectedConversation?.id;
     let previousConversation = selectedConversation;
 
@@ -1061,8 +1172,16 @@ const InputBox = ({
       text: editedConversation,
     });
     await myClient?.updateConversation(
-      conversationId.toString(),
+      conversationId?.toString(),
       editConversationResponse?.data?.conversation,
+    );
+
+    LMChatAnalytics.track(
+      Events.MESSAGE_EDITED,
+      new Map<string, string>([
+        [Keys.TYPE, getConversationType(selectedConversation)],
+        [Keys.DESCRIPTION_UPDATED, false?.toString()],
+      ]),
     );
   };
 
@@ -1116,7 +1235,10 @@ const InputBox = ({
         ]}>
         <View
           style={
-            (isReply && !isUploadScreen) || isUserTagging || isEditable
+            (isReply && !isUploadScreen) ||
+            isUserTagging ||
+            isEditable ||
+            Object.keys(ogTagsState).length !== 0
               ? [
                   styles.replyBoxParent,
                   {
@@ -1227,7 +1349,11 @@ const InputBox = ({
 
           {isReply && !isUploadScreen && (
             <View style={styles.replyBox}>
-              <ReplyBox isIncluded={false} item={replyMessage} />
+              <ReplyBox
+                isIncluded={false}
+                item={replyMessage}
+                chatroomName={chatroomName}
+              />
               <TouchableOpacity
                 onPress={() => {
                   dispatch({type: SET_IS_REPLY, body: {isReply: false}});
@@ -1242,9 +1368,39 @@ const InputBox = ({
             </View>
           )}
 
+          {Object.keys(ogTagsState).length !== 0 &&
+          showLinkPreview &&
+          !closedOnce ? (
+            <View
+              style={[
+                styles.taggableUsersBox,
+                {
+                  backgroundColor: !!isUploadScreen ? 'black' : 'white',
+                },
+              ]}>
+              <LinkPreviewInputBox ogTags={ogTagsState} />
+              <TouchableOpacity
+                onPress={() => {
+                  setShowLinkPreview(false);
+                  setClosedOnce(true);
+                  setClosedPreview(true);
+                }}
+                style={styles.replyBoxClose}>
+                <Image
+                  style={styles.replyCloseImg}
+                  source={require('../../assets/images/close_icon.png')}
+                />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+
           {isEditable ? (
             <View style={styles.replyBox}>
-              <ReplyBox isIncluded={false} item={editConversation} />
+              <ReplyBox
+                isIncluded={false}
+                item={editConversation}
+                chatroomName={chatroomName}
+              />
               <TouchableOpacity
                 onPress={() => {
                   setIsEditable(false);
@@ -1469,7 +1625,9 @@ const InputBox = ({
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
-                      handleCamera();
+                      setTimeout(() => {
+                        handleCamera();
+                      }, 50);
                     }}
                     style={styles.cameraStyle}>
                     <Image

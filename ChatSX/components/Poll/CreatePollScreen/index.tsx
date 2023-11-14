@@ -42,6 +42,7 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
   const [userVoteForOptionsArrValue, setUserVoteForOptionsArrValue] = useState(
     [],
   );
+  const PAGE_SIZE = 200;
 
   const userCanVoteForArr = ['Exactly', 'At max', 'At least'];
 
@@ -297,12 +298,13 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
       const res = await myClient.postPollConversation(payload);
 
       await myClient?.saveNewConversation(
-        chatroomID.toString(),
+        chatroomID?.toString(),
         res?.data?.conversation,
       );
 
       const conversations = await myClient?.getConversations(
-        chatroomID.toString(),
+        chatroomID?.toString(),
+        PAGE_SIZE,
       );
 
       dispatch({

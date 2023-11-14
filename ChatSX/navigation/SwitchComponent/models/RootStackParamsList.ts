@@ -1,3 +1,5 @@
+import {ImageCropScreen} from './ImageCropScreen';
+
 export type RootStackParamList = {
   Homefeed: undefined;
   ExploreFeed: undefined;
@@ -12,5 +14,5 @@ export type RootStackParamList = {
   CarouselScreen: undefined;
   PollResult: undefined;
   CreatePollScreen: undefined;
-  ImageCropScreen: {uri: string; fileName: string};
+  ImageCropScreen: ImageCropScreen;
 };
