@@ -248,7 +248,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
   const INITIAL_SYNC_PAGE = 1;
-  const PAGE_SIZE = 100;
+  const PAGE_SIZE = 200;
 
   let chatroomType = chatroomDBDetails?.type;
   let chatroomFollowStatus = chatroomDBDetails?.followStatus;
@@ -1276,7 +1276,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const payload = GetConversationsRequestBuilder.builder()
       .setChatroomId(chatroomID?.toString())
       .setLimit(PAGE_SIZE)
-      .setMedianConversation(conversations[conversations.length - 1])
+      .setMedianConversation(conversations[0])
       .setType(GetConversationsType.BELOW)
       .build();
 
@@ -1287,8 +1287,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       type: GET_CONVERSATIONS_SUCCESS,
       body: {conversations: [...newConversations, ...conversations]},
     });
+
     if (newConversations.length !== 0 && !isFound) {
-      scrollToVisibleIndex(newConversations.length + 1);
+      const length = newConversations.length;
+      let index = length;
+      if (
+        conversations[index + 1].attachmentCount == 0 &&
+        conversations[index + 1].polls == undefined
+      ) {
+        index = length - 2;
+      } else if (length < PAGE_SIZE) {
+        index = length;
+      } else {
+        index = length + 8;
+      }
+      scrollToVisibleIndex(index);
     }
     if (newConversations.length == 0) {
       setShouldLoadMoreChatStart(false);

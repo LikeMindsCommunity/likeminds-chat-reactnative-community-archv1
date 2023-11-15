@@ -9,20 +9,47 @@ export const createTemporaryStateMessage = (
   user: UserInfo,
 ) => {
   let temporaryStateMessage = {...currentChatroomTopic};
-  temporaryStateMessage.answer = `<<${user?.name}|route://member_profile/${user?.id}?member_id=${user?.id}&community_id=${user?.sdkClientInfo?.community}>> changed current topic to ${currentChatroomTopic?.answer}`;
-  temporaryStateMessage.state = 12;
-  const currentDate = new Date();
-  const options: Intl.DateTimeFormatOptions = {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  };
-  const formattedDate = currentDate.toLocaleDateString('en-GB', options);
-  temporaryStateMessage.date = formattedDate;
-  temporaryStateMessage.id = Date.now()?.toString();
-  temporaryStateMessage.attachments = [];
-  temporaryStateMessage.attachmentCount = undefined;
-  temporaryStateMessage.hasFiles = false;
+  if (
+    temporaryStateMessage?.hasFiles == false ||
+    (temporaryStateMessage?.hasFiles == true &&
+      temporaryStateMessage?.answer) ||
+    temporaryStateMessage?.answer
+  ) {
+    temporaryStateMessage.answer = `<<${user?.name}|route://member_profile/${user?.id}?member_id=${user?.id}&community_id=${user?.sdkClientInfo?.community}>> changed current topic to ${currentChatroomTopic?.answer}`;
+    temporaryStateMessage.state = 12;
+    const currentDate = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    };
+    const formattedDate = currentDate.toLocaleDateString('en-GB', options);
+    temporaryStateMessage.date = formattedDate;
+    temporaryStateMessage.id = Date.now()?.toString();
+    temporaryStateMessage.attachments = [];
+    temporaryStateMessage.attachmentCount = undefined;
+    temporaryStateMessage.hasFiles = false;
+    temporaryStateMessage.ogTags = undefined;
+  } else if (
+    temporaryStateMessage?.hasFiles == true &&
+    temporaryStateMessage?.attachments
+  ) {
+    temporaryStateMessage.answer = `<<${user?.name}|route://member_profile/${user?.id}?member_id=${user?.id}&community_id=${user?.sdkClientInfo?.community}>> set a ${temporaryStateMessage?.attachments[0]?.type} message as current topic`;
+    temporaryStateMessage.state = 12;
+    const currentDate = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    };
+    const formattedDate = currentDate.toLocaleDateString('en-GB', options);
+    temporaryStateMessage.date = formattedDate;
+    temporaryStateMessage.id = Date.now()?.toString();
+    temporaryStateMessage.attachments = [];
+    temporaryStateMessage.attachmentCount = undefined;
+    temporaryStateMessage.hasFiles = false;
+    temporaryStateMessage.ogTags = undefined;
+  }
 
   return temporaryStateMessage;
 };
