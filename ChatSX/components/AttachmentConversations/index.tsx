@@ -18,11 +18,7 @@ import {
   STATUS_BAR_STYLE,
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../../store';
-import {
-  CAROUSEL_SCREEN,
-  IMAGE_SCREEN,
-  VIDEO_PLAYER,
-} from '../../constants/Screens';
+import {CAROUSEL_SCREEN} from '../../constants/Screens';
 import {
   AUDIO_TEXT,
   FAILED,
@@ -33,7 +29,6 @@ import {
   VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import Slider from '@react-native-community/slider';
-import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import {VoiceNotesPlayerProps} from '../InputBox/models';
 import TrackPlayer, {
   useActiveTrack,
@@ -48,6 +43,8 @@ import {
 } from '../../audio';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import {Base64} from '../../aws-exports';
 
 interface AttachmentConversations {
   item: any;
@@ -105,8 +102,22 @@ const AttachmentConversations = ({
 
   // to handle start player
   const handleStartPlay = async (path: string) => {
-    const value = await startPlay(path);
-    setIsVoiceNotePlaying(value);
+    const fileExtension = 'm4a';
+
+    const dir = ReactNativeBlobUtil.fs.dirs.DocumentDir;
+    const localPath = `${dir}/${Base64.btoa(path)}.${fileExtension}`;
+    ReactNativeBlobUtil.config({
+      fileCache: true,
+      appendExt: fileExtension,
+      path: localPath,
+    })
+      .fetch('GET', path)
+      .then(async res => {
+        const internalUrl = `file://${res.path()}`;
+        await startPlay(internalUrl);
+
+        setIsVoiceNotePlaying(true);
+      });
     LMChatAnalytics.track(
       Events.VOICE_NOTE_PLAYED,
       new Map<string, string>([
