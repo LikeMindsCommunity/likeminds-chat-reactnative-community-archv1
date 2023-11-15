@@ -154,6 +154,7 @@ import {
   createTemporaryStateMessage,
   getCurrentConversation,
 } from '../../utils/chatroomUtils';
+import {GetConversationsRequestBuilder} from '@likeminds.community/chat-rn';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -786,10 +787,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
 
     if (page === 1) {
-      const payload: GetConversationsRequest = {
-        chatroomId: chatroomID?.toString(),
-        limit: PAGE_SIZE,
-      };
+      const payload = GetConversationsRequestBuilder.builder()
+        .setChatroomId(chatroomID?.toString())
+        .setLimit(PAGE_SIZE)
+        .build();
+
       let conversationsFromRealm = await myClient?.getConversations(payload);
 
       dispatch({
@@ -825,10 +827,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
       // Warm start
       if (chatroomDetails?.isChatroomVisited) {
-        const payload: GetConversationsRequest = {
-          chatroomId: chatroomID?.toString(),
-          limit: PAGE_SIZE,
-        };
+        const payload = GetConversationsRequestBuilder.builder()
+          .setChatroomId(chatroomID?.toString())
+          .setLimit(PAGE_SIZE)
+          .build();
+
         conversationsFromRealm = await myClient?.getConversations(payload);
 
         dispatch({
@@ -1149,10 +1152,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       );
     }
     if (page === 1) {
-      const payload: GetConversationsRequest = {
-        chatroomId: chatroomID?.toString(),
-        limit: PAGE_SIZE,
-      };
+      const payload = GetConversationsRequestBuilder.builder()
+        .setChatroomId(chatroomID?.toString())
+        .setLimit(PAGE_SIZE)
+        .build();
       let conversationsFromRealm = await myClient?.getConversations(payload);
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
@@ -1249,11 +1252,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // function shows loader in between calling the API and getting the response
   const loadData = async (newPage?: number) => {
     setIsLoading(true);
-    const payload: GetConversationsRequest = {
-      chatroomId: chatroomID?.toString(),
-      limit: PAGE_SIZE,
-      medianConversation: conversations[conversations.length - 1],
-    };
+    const payload = GetConversationsRequestBuilder.builder()
+      .setChatroomId(chatroomID?.toString())
+      .setLimit(PAGE_SIZE)
+      .setMedianConversation(conversations[conversations.length - 1])
+      .build();
     const newConversations = await myClient.getConversations(payload);
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
@@ -1270,13 +1273,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // function shows loader in between calling the API and getting the response
   const loadStartData = async (newPage?: number) => {
     setIsLoading(true);
+    const payload = GetConversationsRequestBuilder.builder()
+      .setChatroomId(chatroomID?.toString())
+      .setLimit(PAGE_SIZE)
+      .setMedianConversation(conversations[conversations.length - 1])
+      .setType(GetConversationsType.BELOW)
+      .build();
 
-    const payload: GetConversationsRequest = {
-      chatroomId: chatroomID?.toString(),
-      limit: PAGE_SIZE,
-      medianConversation: conversations[0],
-      type: GetConversationsType.BELOW,
-    };
     let newConversations = await myClient.getConversations(payload);
     newConversations = newConversations.reverse();
 
