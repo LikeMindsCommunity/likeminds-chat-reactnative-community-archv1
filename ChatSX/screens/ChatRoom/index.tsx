@@ -1271,14 +1271,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const loadStartData = async (newPage?: number) => {
     setIsLoading(true);
 
-    let newConversations = await myClient.getPaginatedConversaton(
-      chatroomID,
-      conversations[0],
-      10,
-      GetConversationsType.BELOW,
-    );
-
+    const payload: GetConversationsRequest = {
+      chatroomId: chatroomID?.toString(),
+      limit: PAGE_SIZE,
+      medianConversation: conversations[0],
+      type: GetConversationsType.BELOW,
+    };
+    let newConversations = await myClient.getConversations(payload);
     newConversations = newConversations.reverse();
+
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
       body: {conversations: [...newConversations, ...conversations]},
@@ -3139,6 +3140,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   }}
                   isSecret={isSecret}
                   chatroomType={chatroomType}
+                  currentChatroomTopic={currentChatroomTopic}
                 />
               ) : //case to block normal users from messaging in an Announcement Room
               user.state !== 1 && chatroomDBDetails?.type === 7 ? (

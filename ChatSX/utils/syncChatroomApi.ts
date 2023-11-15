@@ -59,23 +59,6 @@ export const paginatedSyncAPI = async (
       DB_RESPONSE?.chatroomsData,
       user?.sdkClientInfo?.community,
     );
-    for (let i = 0; i < DB_RESPONSE?.chatroomsData.length; i++) {
-      const chatroom = DB_RESPONSE?.chatroomsData[i];
-      let chatroomTopic = DB_RESPONSE?.conversationMeta[chatroom?.topicId];
-      if (chatroomTopic) {
-        if (chatroomTopic?.hasFiles == true) {
-          chatroomTopic.attachments =
-            DB_RESPONSE?.convAttachmentsMeta[chatroom?.topicId];
-        }
-        if (chatroomTopic?.state == 10) {
-          chatroomTopic.polls = DB_RESPONSE?.convPollsMeta[chatroom?.topicId];
-        }
-        await myClient?.updateChatroomTopic(
-          chatroom?.id?.toString(),
-          chatroomTopic,
-        );
-      }
-    }
   }
   await myClient.updateTimeStamp(maxTimeStampNow, isDm);
 

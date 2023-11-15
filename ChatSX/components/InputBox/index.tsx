@@ -121,6 +121,7 @@ const InputBox = ({
   isSecret,
   chatroomWithUser,
   chatroomName,
+  currentChatroomTopic,
 }: InputBoxProps) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -1160,22 +1161,30 @@ const InputBox = ({
     setMessage('');
     setIsEditable(false);
 
-    const editConversationResponse = await myClient?.editConversation({
+    const payload = {
       conversationId: conversationId,
       text: editedConversation,
-    });
-    dispatch({
-      type: SET_CHATROOM_TOPIC,
-      body: {
-        currentChatroomTopic: editConversationResponse?.data?.conversation,
-      },
-    });
+    };
+
+    let editConversationResponse;
+    if (currentChatroomTopic) {
+      editConversationResponse = await myClient?.editConversation(
+        payload,
+        currentChatroomTopic,
+      );
+    } else {
+      editConversationResponse = await myClient?.editConversation(payload);
+    }
+    if (conversationId == currentChatroomTopic?.id) {
+      dispatch({
+        type: SET_CHATROOM_TOPIC,
+        body: {
+          currentChatroomTopic: editConversationResponse?.data?.conversation,
+        },
+      });
+    }
     await myClient?.updateConversation(
       conversationId?.toString(),
-      editConversationResponse?.data?.conversation,
-    );
-    await myClient?.updateChatroomTopic(
-      chatroomID?.toString(),
       editConversationResponse?.data?.conversation,
     );
     LMChatAnalytics.track(
