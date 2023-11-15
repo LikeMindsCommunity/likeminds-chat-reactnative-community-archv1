@@ -6,6 +6,7 @@ import {
   Linking,
   Pressable,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
@@ -45,6 +46,7 @@ import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Base64} from '../../aws-exports';
+import {onSeekTo} from '../../audio/Controls';
 
 interface AttachmentConversations {
   item: any;
@@ -97,27 +99,32 @@ const AttachmentConversations = ({
   useEffect(() => {
     if (progress.duration <= progress.position) {
       TrackPlayer.reset();
+      setIsVoiceNotePlaying(false);
     }
   }, [progress]);
 
   // to handle start player
   const handleStartPlay = async (path: string) => {
-    const fileExtension = 'm4a';
+    if (Platform.OS === 'ios') {
+      const fileExtension = 'm4a';
 
-    const dir = ReactNativeBlobUtil.fs.dirs.DocumentDir;
-    const localPath = `${dir}/${Base64.btoa(path)}.${fileExtension}`;
-    ReactNativeBlobUtil.config({
-      fileCache: true,
-      appendExt: fileExtension,
-      path: localPath,
-    })
-      .fetch('GET', path)
-      .then(async res => {
-        const internalUrl = `file://${res.path()}`;
-        await startPlay(internalUrl);
-
-        setIsVoiceNotePlaying(true);
-      });
+      const dir = ReactNativeBlobUtil.fs.dirs.DocumentDir;
+      const localPath = `${dir}/${Base64.btoa(path)}.${fileExtension}`;
+      ReactNativeBlobUtil.config({
+        fileCache: true,
+        appendExt: fileExtension,
+        path: localPath,
+      })
+        .fetch('GET', path)
+        .then(async res => {
+          const internalUrl = `file://${res.path()}`;
+          await startPlay(internalUrl, path);
+          setIsVoiceNotePlaying(true);
+        });
+    } else {
+      await startPlay(path, path);
+      setIsVoiceNotePlaying(true);
+    }
     LMChatAnalytics.track(
       Events.VOICE_NOTE_PLAYED,
       new Map<string, string>([
@@ -146,9 +153,15 @@ const AttachmentConversations = ({
     setIsVoiceNotePlaying(value);
   };
 
+  // to seek player to the provided time
+  const handleOnSeekTo = async (value: number) => {
+    let secondsToSeek = value * (firstAttachment?.metaRO?.duration / 100);
+    await onSeekTo(secondsToSeek);
+  };
+
   let firstAttachment = item?.attachments[0];
   const isAudioActive =
-    activeTrack?.url === firstAttachment?.url ? true : false;
+    activeTrack?.externalUrl === firstAttachment?.url ? true : false;
   return (
     <View
       style={[
@@ -253,6 +266,7 @@ const AttachmentConversations = ({
                   minimumTrackTintColor="#ffad31"
                   maximumTrackTintColor="grey"
                   tapToSeek={true}
+                  onSlidingComplete={handleOnSeekTo}
                 />
                 <View style={{display: 'flex', flexDirection: 'row'}}>
                   <Image
@@ -267,7 +281,9 @@ const AttachmentConversations = ({
                     </Text>
                   ) : (
                     <Text style={styles.recordTitle}>
-                      {convertSecondsToTime(firstAttachment?.metaRO?.duration)}
+                      {convertSecondsToTime(
+                        Math.floor(firstAttachment?.metaRO?.duration),
+                      )}
                     </Text>
                   )}
                 </View>
@@ -374,9 +390,6 @@ export const VideoConversations = ({
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
-  );
-  const {isFileUploading, fileUploadingID}: any = useAppSelector(
-    state => state.upload,
   );
   const [isFullList, setIsFullList] = useState(false);
 

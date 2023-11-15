@@ -1464,7 +1464,7 @@ const InputBox = ({
     const path =
       Platform.OS === 'android'
         ? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${name}.m4a`
-        : `${name}.m4a`;
+        : `${name}.mp4`;
 
     const result = await audioRecorderPlayerAttachment.startRecorder(
       path,
@@ -1492,7 +1492,7 @@ const InputBox = ({
     const voiceNote = {
       uri: voiceNotesLink,
       type: VOICE_NOTE_TEXT,
-      name: `${voiceNotes.name}.m4a}`,
+      name: `${voiceNotes.name}.${Platform.OS === 'ios' ? 'm4a' : 'mp4'}`,
       duration: Math.floor(voiceNotes.recordSecs / 1000),
     };
     dispatch({
@@ -2048,7 +2048,19 @@ const InputBox = ({
         </View>
 
         {/* Send message and send voice notes UI */}
-        {!!message || isVoiceResult || isUploadScreen || isRecordingLocked ? (
+
+        {/* {
+          is message ||
+          is voice recorded ||
+          is File upload screen ||
+          is recording locked ||
+          is first DM message
+        } */}
+        {!!message ||
+        isVoiceResult ||
+        isUploadScreen ||
+        isRecordingLocked ||
+        (chatroomType === 10 && chatRequestState === null) ? (
           <TouchableOpacity
             onPressOut={() => {
               if (

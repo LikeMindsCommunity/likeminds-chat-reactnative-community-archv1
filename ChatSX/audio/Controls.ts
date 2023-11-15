@@ -8,13 +8,14 @@ export async function addTracks(track: AddTrack) {
 }
 
 // to start audio player
-export const startPlay = async (path: string) => {
+export const startPlay = async (path: string, url: string) => {
   let isSetup = await setupPlayer();
 
   const track = {
     id: '1',
     url: path,
     title: AUDIO_NOTIFICATION_TITLE,
+    externalUrl: url,
   };
   if (isSetup) {
     await TrackPlayer.reset();
@@ -45,4 +46,9 @@ export const onPausePlay = async () => {
 export const onResumePlay = async () => {
   await TrackPlayer.play();
   return true;
+};
+
+// seek to player on provided seconds
+export const onSeekTo = async (seconds: number) => {
+  await TrackPlayer.seekTo(seconds);
 };
