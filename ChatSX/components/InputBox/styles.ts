@@ -214,7 +214,7 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
   },
-  iconContainer: {alignItems: 'center', margin: 5 * pixelRatio},
+  iconContainer: {alignItems: 'center', margin: 5 * pixelRatio, gap: 5},
   avatar: {
     width: 30,
     height: 30,

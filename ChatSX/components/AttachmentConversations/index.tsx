@@ -253,7 +253,12 @@ const AttachmentConversations = ({
                   />
                 </TouchableOpacity>
               )}
-              <View style={{flex: 1, marginTop: 10, gap: 3}}>
+              <View
+                style={{
+                  flex: 1,
+                  marginTop: Platform.OS === 'ios' ? 0 : 10,
+                  gap: 3,
+                }}>
                 <Slider
                   minimumValue={0}
                   maximumValue={100}
