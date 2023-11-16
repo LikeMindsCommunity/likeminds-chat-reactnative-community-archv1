@@ -1284,7 +1284,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     let newConversations = await myClient.getConversations(payload);
     newConversations = newConversations.reverse();
-
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
       body: {conversations: [...newConversations, ...conversations]},
@@ -3022,7 +3021,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       style={styles.chatroomTopicAttachment}
                     />
                   ) : currentChatroomTopic?.ogTags?.url !== null &&
-                    currentChatroomTopic?.ogTags?.image !== '' ? (
+                    currentChatroomTopic?.ogTags?.image !== '' &&
+                    currentChatroomTopic?.ogTags !== undefined &&
+                    currentChatroomTopic?.ogTags !== null &&
+                    Object.keys(currentChatroomTopic).length !== 0 ? (
                     <Image
                       source={{
                         uri: currentChatroomTopic?.ogTags?.image,

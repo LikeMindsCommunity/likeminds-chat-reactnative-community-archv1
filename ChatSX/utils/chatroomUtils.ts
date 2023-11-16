@@ -25,8 +25,7 @@ export const createTemporaryStateMessage = (
     };
     const formattedDate = currentDate.toLocaleDateString('en-GB', options);
     temporaryStateMessage.date = formattedDate;
-    if (temporaryStateMessage?.id)
-      temporaryStateMessage.id = temporaryStateMessage.id + 1;
+    temporaryStateMessage.id = Date.now()?.toString();
     temporaryStateMessage.attachments = [];
     temporaryStateMessage.attachmentCount = undefined;
     temporaryStateMessage.hasFiles = false;
@@ -46,8 +45,7 @@ export const createTemporaryStateMessage = (
     };
     const formattedDate = currentDate.toLocaleDateString('en-GB', options);
     temporaryStateMessage.date = formattedDate;
-    if (temporaryStateMessage?.id)
-      temporaryStateMessage.id = temporaryStateMessage.id + 1;
+    temporaryStateMessage.id = Date.now()?.toString();
     temporaryStateMessage.attachments = [];
     temporaryStateMessage.attachmentCount = undefined;
     temporaryStateMessage.hasFiles = false;
