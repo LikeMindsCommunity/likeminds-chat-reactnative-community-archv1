@@ -1,4 +1,5 @@
 import {Alert, Linking, PermissionsAndroid, Platform} from 'react-native';
+import {atLeastAndroid13} from '../commonFuctions';
 
 // function checks if we have access of storage in Android.
 export async function requestStoragePermission() {
@@ -107,59 +108,103 @@ export async function requestCameraPermission() {
 export async function requestAudioRecordPermission() {
   if (Platform.OS === 'android') {
     try {
-      const grants = await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-      ]);
+      let isAtLeastAndroid13 = atLeastAndroid13();
+      const permissions = isAtLeastAndroid13
+        ? [
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
+          ]
+        : [
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          ];
+      const grants = await PermissionsAndroid.requestMultiple(permissions);
 
-      if (
-        grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
-          PermissionsAndroid.RESULTS.GRANTED &&
-        grants['android.permission.READ_EXTERNAL_STORAGE'] ===
-          PermissionsAndroid.RESULTS.GRANTED &&
-        grants['android.permission.RECORD_AUDIO'] ===
-          PermissionsAndroid.RESULTS.GRANTED
-      ) {
-        return true;
-      } else if (
-        grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
-        PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
-      ) {
-        Alert.alert(
-          'Write Storage Permission Required',
-          'App needs write access to your storage. Please go to app settings and grant permission.',
-          [
-            {text: 'Cancel', style: 'cancel'},
-            {text: 'Open Settings', onPress: Linking.openSettings},
-          ],
-        );
-      } else if (
-        grants['android.permission.READ_EXTERNAL_STORAGE'] ===
-        PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
-      ) {
-        Alert.alert(
-          'Read Storage Permission Required',
-          'App needs read access to your storage. Please go to app settings and grant permission.',
-          [
-            {text: 'Cancel', style: 'cancel'},
-            {text: 'Open Settings', onPress: Linking.openSettings},
-          ],
-        );
-      } else if (
-        grants['android.permission.RECORD_AUDIO'] ===
-        PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
-      ) {
-        Alert.alert(
-          'Camera Permission Required',
-          'App needs microphone access to record audio. Please go to app settings and grant permission.',
-          [
-            {text: 'Cancel', style: 'cancel'},
-            {text: 'Open Settings', onPress: Linking.openSettings},
-          ],
-        );
+      if (isAtLeastAndroid13) {
+        if (
+          grants['android.permission.READ_MEDIA_AUDIO'] ===
+            PermissionsAndroid.RESULTS.GRANTED &&
+          grants['android.permission.RECORD_AUDIO'] ===
+            PermissionsAndroid.RESULTS.GRANTED
+        ) {
+          return true;
+        } else if (
+          grants['android.permission.READ_MEDIA_AUDIO'] ===
+          PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+        ) {
+          Alert.alert(
+            'Read Storage Permission Required',
+            'App needs read access to your storage. Please go to app settings and grant permission.',
+            [
+              {text: 'Cancel', style: 'cancel'},
+              {text: 'Open Settings', onPress: Linking.openSettings},
+            ],
+          );
+        } else if (
+          grants['android.permission.RECORD_AUDIO'] ===
+          PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+        ) {
+          Alert.alert(
+            'Microphone Permission Required',
+            'App needs microphone access to record audio. Please go to app settings and grant permission.',
+            [
+              {text: 'Cancel', style: 'cancel'},
+              {text: 'Open Settings', onPress: Linking.openSettings},
+            ],
+          );
+        } else {
+          return false;
+        }
       } else {
-        return false;
+        if (
+          grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+            PermissionsAndroid.RESULTS.GRANTED &&
+          grants['android.permission.READ_EXTERNAL_STORAGE'] ===
+            PermissionsAndroid.RESULTS.GRANTED &&
+          grants['android.permission.RECORD_AUDIO'] ===
+            PermissionsAndroid.RESULTS.GRANTED
+        ) {
+          return true;
+        } else if (
+          grants['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+          PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+        ) {
+          Alert.alert(
+            'Write Storage Permission Required',
+            'App needs write access to your storage. Please go to app settings and grant permission.',
+            [
+              {text: 'Cancel', style: 'cancel'},
+              {text: 'Open Settings', onPress: Linking.openSettings},
+            ],
+          );
+        } else if (
+          grants['android.permission.READ_EXTERNAL_STORAGE'] ===
+          PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+        ) {
+          Alert.alert(
+            'Read Storage Permission Required',
+            'App needs read access to your storage. Please go to app settings and grant permission.',
+            [
+              {text: 'Cancel', style: 'cancel'},
+              {text: 'Open Settings', onPress: Linking.openSettings},
+            ],
+          );
+        } else if (
+          grants['android.permission.RECORD_AUDIO'] ===
+          PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+        ) {
+          Alert.alert(
+            'Microphone Permission Required',
+            'App needs microphone access to record audio. Please go to app settings and grant permission.',
+            [
+              {text: 'Cancel', style: 'cancel'},
+              {text: 'Open Settings', onPress: Linking.openSettings},
+            ],
+          );
+        } else {
+          return false;
+        }
       }
     } catch (err) {
       return;

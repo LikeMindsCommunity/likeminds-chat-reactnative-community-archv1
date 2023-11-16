@@ -1,4 +1,4 @@
-import React, {Alert, Linking, Text} from 'react-native';
+import React, {Alert, Linking, Platform, Text} from 'react-native';
 import STYLES from '../constants/Styles';
 import {PDF_TEXT, VIDEO_TEXT} from '../constants/Strings';
 import {createThumbnail} from 'react-native-create-thumbnail';
@@ -540,3 +540,8 @@ export function convertSecondsToTime(seconds: number) {
 
   return `${minutes}:${remainingSeconds}`;
 }
+
+// to check if device version greater than or equal to 13 or not
+export const atLeastAndroid13 = (): boolean => {
+  return Platform.OS === 'android' && Platform.Version >= 33;
+};
