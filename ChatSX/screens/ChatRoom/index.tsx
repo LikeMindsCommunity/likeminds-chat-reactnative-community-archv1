@@ -1228,9 +1228,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let selectedMessagesLength = selectedMessages.length;
     let selectedMessage = selectedMessages[0];
 
-    console.log('user?.state', user?.state);
-    console.log('MemberState.ADMIN', MemberState.ADMIN);
-
     if (
       selectedMessagesLength == 1 &&
       (user?.sdkClientInfo?.uuid == chatroomCreator?.sdkClientInfo?.uuid ||
