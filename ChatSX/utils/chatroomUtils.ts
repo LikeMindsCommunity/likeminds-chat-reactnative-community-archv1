@@ -25,11 +25,13 @@ export const createTemporaryStateMessage = (
     };
     const formattedDate = currentDate.toLocaleDateString('en-GB', options);
     temporaryStateMessage.date = formattedDate;
-    temporaryStateMessage.id = Date.now()?.toString();
+    if (temporaryStateMessage?.id)
+      temporaryStateMessage.id = temporaryStateMessage.id + 1;
     temporaryStateMessage.attachments = [];
     temporaryStateMessage.attachmentCount = undefined;
     temporaryStateMessage.hasFiles = false;
     temporaryStateMessage.ogTags = undefined;
+    temporaryStateMessage.createdEpoch = temporaryStateMessage.createdEpoch + 1;
   } else if (
     temporaryStateMessage?.hasFiles == true &&
     temporaryStateMessage?.attachments
@@ -44,11 +46,13 @@ export const createTemporaryStateMessage = (
     };
     const formattedDate = currentDate.toLocaleDateString('en-GB', options);
     temporaryStateMessage.date = formattedDate;
-    temporaryStateMessage.id = Date.now()?.toString();
+    if (temporaryStateMessage?.id)
+      temporaryStateMessage.id = temporaryStateMessage.id + 1;
     temporaryStateMessage.attachments = [];
     temporaryStateMessage.attachmentCount = undefined;
     temporaryStateMessage.hasFiles = false;
     temporaryStateMessage.ogTags = undefined;
+    temporaryStateMessage.createdEpoch = temporaryStateMessage.createdEpoch + 1;
   }
 
   return temporaryStateMessage;

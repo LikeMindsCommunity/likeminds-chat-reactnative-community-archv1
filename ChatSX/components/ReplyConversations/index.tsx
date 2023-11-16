@@ -163,7 +163,7 @@ const ReplyConversations = ({
       }
     } else {
       let index = conversations.findIndex(
-        (element: any) => element?.id === item?.replyConversationObject?.id,
+        (element: any) => element?.id == item?.replyConversationObject?.id,
       );
       if (index >= 0) {
         onScrollToIndex(index);
@@ -177,7 +177,7 @@ const ReplyConversations = ({
           body: {conversations: newConversation},
         });
         let index = newConversation.findIndex(
-          element => element?.id === item?.replyConversationObject?.id,
+          element => element?.id == item?.replyConversationObject?.id,
         );
         if (index >= 0) {
           onScrollToIndex(index);

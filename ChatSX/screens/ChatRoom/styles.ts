@@ -268,6 +268,7 @@ export const styles = StyleSheet.create({
     marginRight: 5,
     alignSelf: 'flex-end',
     marginBottom: Platform.OS === 'android' ? -3 : -1,
+    lineHeight: 18,
   },
   deletedMessage: {
     color: STYLES.$COLORS.PRIMARY,

@@ -29,6 +29,7 @@ import {myClient} from '../../..';
 import {
   SHOW_LIST_REGEX,
   copySelectedMessages,
+  decode,
   fetchResourceFromURI,
   formatTime,
 } from '../../commonFuctions';
@@ -478,7 +479,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         if (selectedMessagesLength === 1) {
           if (
             selectedMessages[0]?.member?.id == user?.id &&
-            !!selectedMessages[0]?.answer
+            !!selectedMessages[0]?.answer &&
+            selectedMessages[0]?.deletedBy == null
           ) {
             isSelectedMessageEditable = true;
           } else {
@@ -1225,6 +1227,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     let selectedMessagesLength = selectedMessages.length;
     let selectedMessage = selectedMessages[0];
+
+    console.log('user?.state', user?.state);
+    console.log('MemberState.ADMIN', MemberState.ADMIN);
 
     if (
       selectedMessagesLength == 1 &&
@@ -2524,28 +2529,29 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   ) => {
     return (
       <View style={styles.alignCenter}>
-        <View style={styles.alignCenter}>
-          <Text style={styles.attachment_msg}>{imageCount}</Text>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Text style={styles.attachment_msg}>{imageCount}</Text>{' '}
           <Image
             source={require('../../assets/images/image_icon3x.png')}
             style={styles.chatroomTopicIcon}
-          />
-        </View>
-        <View style={styles.alignCenter}>
-          <Text style={styles.attachment_msg}>{videosCount}</Text>
+          />{' '}
+          <Text style={styles.attachment_msg}>{videosCount}</Text>{' '}
           <Image
             source={require('../../assets/images/video_icon3x.png')}
             style={styles.chatroomTopicIcon}
-          />
-        </View>
-        <View style={styles.alignCenter}>
-          <Text style={styles.attachment_msg}>{pdfCount}</Text>
+          />{' '}
+          <Text style={styles.attachment_msg}>{pdfCount}</Text>{' '}
           <Image
             source={require('../../assets/images/document_icon3x.png')}
             style={styles.chatroomTopicIcon}
-          />
-          <Text style={styles.attachment_msg}>{val?.answer}</Text>
-        </View>
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
       </View>
     );
   };
@@ -2557,21 +2563,24 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   ) => {
     return (
       <View style={styles.alignCenter}>
-        <View style={styles.alignCenter}>
-          <Text style={styles.attachment_msg}>{imageCount}</Text>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Text style={styles.attachment_msg}>{imageCount}</Text>{' '}
           <Image
             source={require('../../assets/images/image_icon3x.png')}
             style={styles.chatroomTopicIcon}
-          />
-        </View>
-        <View style={styles.alignCenter}>
-          <Text style={styles.attachment_msg}>{videosCount}</Text>
+          />{' '}
+          <Text style={styles.attachment_msg}>{videosCount}</Text>{' '}
           <Image
             source={require('../../assets/images/video_icon3x.png')}
             style={styles.chatroomTopicIcon}
-          />
-          <Text style={styles.attachment_msg}>{val?.answer}</Text>
-        </View>
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
       </View>
     );
   };
@@ -2583,21 +2592,24 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   ) => {
     return (
       <View style={styles.alignCenter}>
-        <View style={styles.alignCenter}>
-          <Text style={styles.attachment_msg}>{videosCount}</Text>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Text style={styles.attachment_msg}>{videosCount}</Text>{' '}
           <Image
             source={require('../../assets/images/video_icon3x.png')}
             style={styles.chatroomTopicIcon}
-          />
-        </View>
-        <View style={styles.alignCenter}>
-          <Text style={styles.attachment_msg}>{pdfCount}</Text>
+          />{' '}
+          <Text style={styles.attachment_msg}>{pdfCount}</Text>{' '}
           <Image
             source={require('../../assets/images/document_icon3x.png')}
             style={styles.chatroomTopicIcon}
-          />
-          <Text style={styles.attachment_msg}>{val?.answer}</Text>
-        </View>
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
       </View>
     );
   };
@@ -2609,21 +2621,24 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   ) => {
     return (
       <View style={styles.alignCenter}>
-        <View style={styles.alignCenter}>
-          <Text style={styles.attachment_msg}>{imageCount}</Text>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Text style={styles.attachment_msg}>{imageCount}</Text>{' '}
           <Image
             source={require('../../assets/images/image_icon3x.png')}
             style={styles.chatroomTopicIcon}
-          />
-        </View>
-        <View style={styles.alignCenter}>
-          <Text style={styles.attachment_msg}>{pdfCount}</Text>
+          />{' '}
+          <Text style={styles.attachment_msg}>{pdfCount}</Text>{' '}
           <Image
             source={require('../../assets/images/document_icon3x.png')}
             style={styles.chatroomTopicIcon}
-          />
-          <Text style={styles.attachment_msg}>{val?.answer}</Text>
-        </View>
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
       </View>
     );
   };
@@ -2632,16 +2647,27 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     return (
       <View style={[styles.alignCenter]}>
         {pdfCount > 1 && <Text style={styles.attachment_msg}>{pdfCount}</Text>}
-        <Image
-          source={require('../../assets/images/document_icon3x.png')}
-          style={styles.chatroomTopicIcon}
-        />
         {!val?.answer ? (
           <Text style={styles.attachment_msg}>
+            <Image
+              source={require('../../assets/images/document_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
             {pdfCount > 1 ? 'Documents' : 'Document'}
           </Text>
         ) : (
-          <Text style={styles.attachment_msg}>{val?.answer}</Text>
+          <Text numberOfLines={2} style={styles.attachment_msg}>
+            <Image
+              source={require('../../assets/images/document_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
+            {decode(
+              val?.answer,
+              false,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </Text>
         )}
       </View>
     );
@@ -2659,19 +2685,27 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         {videosCount > 1 && (
           <Text style={styles.attachment_msg}>{videosCount}</Text>
         )}
-        <Image
-          source={require('../../assets/images/video_icon3x.png')}
-          style={[
-            styles.chatroomTopicIcon,
-            {height: Platform.OS === 'ios' ? 15 : 10},
-          ]}
-        />
         {!val?.answer ? (
           <Text style={styles.attachment_msg}>
+            <Image
+              source={require('../../assets/images/video_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
             {videosCount > 1 ? 'Videos' : 'Video'}
           </Text>
         ) : (
-          <Text style={styles.attachment_msg}>{val?.answer}</Text>
+          <Text numberOfLines={2} style={styles.attachment_msg}>
+            <Image
+              source={require('../../assets/images/video_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
+            {decode(
+              val?.answer,
+              false,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </Text>
         )}
       </View>
     );
@@ -2689,16 +2723,27 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         {imageCount > 1 && (
           <Text style={styles.attachment_msg}>{imageCount}</Text>
         )}
-        <Image
-          source={require('../../assets/images/image_icon3x.png')}
-          style={styles.chatroomTopicIcon}
-        />
         {!val?.answer ? (
           <Text style={styles.attachment_msg}>
+            <Image
+              source={require('../../assets/images/image_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
             {imageCount > 1 ? 'Photos' : 'Photo'}
           </Text>
         ) : (
-          <Text style={styles.attachment_msg}>{val?.answer}</Text>
+          <Text numberOfLines={2} style={styles.attachment_msg}>
+            <Image
+              source={require('../../assets/images/image_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
+            {decode(
+              val?.answer,
+              false,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </Text>
         )}
       </View>
     );
@@ -2707,14 +2752,21 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const renderPoll = (val: Conversation) => {
     return (
       <View style={[styles.alignCenter]}>
-        <Image
-          source={require('../../assets/images/poll_icon3x.png')}
-          style={[
-            styles.chatroomTopicIcon,
-            {tintColor: STYLES.$COLORS.PRIMARY},
-          ]}
-        />
-        <Text style={styles.attachment_msg}>{val?.answer}</Text>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Image
+            source={require('../../assets/images/poll_icon3x.png')}
+            style={[
+              styles.chatroomTopicIcon,
+              {tintColor: STYLES.$COLORS.PRIMARY},
+            ]}
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
       </View>
     );
   };
@@ -2728,11 +2780,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             marginBottom: -2,
           },
         ]}>
-        <Image
-          source={require('../../assets/images/link_icon.png')}
-          style={styles.chatroomTopicIcon}
-        />
-        <Text style={styles.attachment_msg}>{val?.answer}</Text>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Image
+            source={require('../../assets/images/link_icon.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
       </View>
     );
   };
@@ -2873,7 +2932,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             <Pressable
               onPress={async () => {
                 let index = conversations.findIndex(
-                  (element: any) => element?.id === currentChatroomTopic?.id,
+                  (element: any) => element?.id == currentChatroomTopic?.id,
                 );
                 if (index >= 0) {
                   flatlistRef.current?.scrollToIndex({
@@ -2891,7 +2950,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     body: {conversations: newConversation},
                   });
                   let index = newConversation.findIndex(
-                    element => element?.id === currentChatroomTopic?.id,
+                    element => element?.id == currentChatroomTopic?.id,
                   );
                   if (index >= 0) {
                     flatlistRef.current?.scrollToIndex({
@@ -2924,23 +2983,32 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     }}>
                     Current Topic
                   </Text>
-                  <Text
-                    ellipsizeMode="tail"
-                    numberOfLines={2}
-                    style={{
-                      color: STYLES.$COLORS.MSG,
-                      fontSize: STYLES.$FONT_SIZES.SMALL,
-                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                    }}>
-                    {currentChatroomTopic?.hasFiles == true
-                      ? getIconAttachment(currentChatroomTopic)
-                      : currentChatroomTopic?.state === 10
-                      ? getIconAttachment(currentChatroomTopic)
-                      : currentChatroomTopic?.ogTags?.url !== null &&
-                        currentChatroomTopic?.ogTags
-                      ? getIconAttachment(currentChatroomTopic)
-                      : currentChatroomTopic?.answer}
-                  </Text>
+
+                  {currentChatroomTopic?.hasFiles == true ? (
+                    getIconAttachment(currentChatroomTopic)
+                  ) : currentChatroomTopic?.state === 10 ? (
+                    getIconAttachment(currentChatroomTopic)
+                  ) : currentChatroomTopic?.ogTags?.url !== null &&
+                    currentChatroomTopic?.ogTags ? (
+                    getIconAttachment(currentChatroomTopic)
+                  ) : (
+                    <Text
+                      ellipsizeMode="tail"
+                      numberOfLines={2}
+                      style={{
+                        color: STYLES.$COLORS.MSG,
+                        fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                        fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                        lineHeight: 18,
+                      }}>
+                      {decode(
+                        currentChatroomTopic?.answer,
+                        false,
+                        chatroomName,
+                        user?.sdkClientInfo?.community,
+                      )}
+                    </Text>
+                  )}
                 </View>
                 <View>
                   {currentChatroomTopic?.attachmentCount > 0 &&
