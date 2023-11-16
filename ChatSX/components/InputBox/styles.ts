@@ -240,7 +240,7 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.LARGE,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.MSG,
-    marginTop: 3,
+    marginTop: Platform.OS === 'ios' ? 3 : 0,
   },
   messageCustomTitle: {
     color: STYLES.$COLORS.SECONDARY,
@@ -285,6 +285,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    textAlign: 'center',
   },
   voiceRecorderInput: {
     marginHorizontal: 20,

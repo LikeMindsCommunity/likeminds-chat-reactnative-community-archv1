@@ -9,6 +9,7 @@ import {
   Keyboard,
   ActivityIndicator,
   TouchableWithoutFeedback,
+  PermissionsAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
@@ -57,6 +58,7 @@ import {
   CAMERA_TEXT,
   CHARACTER_LIMIT_MESSAGE,
   DOCUMENTS_TEXT,
+  GRANTED,
   IMAGE_TEXT,
   PDF_TEXT,
   PHOTOS_AND_VIDEOS_TEXT,
@@ -70,6 +72,7 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {POOL_ID, REGION} from '../../aws-exports';
 import {
+  atLeastAndroid13,
   detectMentions,
   extractPathfromRouteQuery,
   getAllPdfThumbnail,
@@ -118,6 +121,7 @@ import {LINK_PREVIEW_REGEX} from '../../constants/Regex';
 import LinkPreviewInputBox from '../linkPreviewInputBox';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
+import {PERMISSIONS, check, request} from 'react-native-permissions';
 
 // to intialise audio recorder player
 const audioRecorderPlayerAttachment = new AudioRecorderPlayer();
@@ -177,8 +181,10 @@ const InputBox = ({
   const [voiceNotesLink, setVoiceNotesLink] = useState('');
   const [isVoiceResult, setIsVoiceResult] = useState(false);
   const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
+  const [isVoiceNoteRecording, setIsVoiceNoteRecording] = useState(false);
   const [isDraggable, setIsDraggable] = useState(true);
   const [isRecordingLocked, setIsRecordingLocked] = useState(false);
+  const [stopRecording, setStopRecording] = useState(false);
   const [isDeleteAnimation, setIsDeleteAnimation] = useState(false);
   const [isRecordingPermission, setIsRecordingPermission] = useState(false);
   const {chatroomDBDetails}: any = useAppSelector(state => state.chatroom);
@@ -191,6 +197,8 @@ const InputBox = ({
 
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
+
+  const isIOS = Platform.OS === 'ios' ? true : false;
 
   let taggedUserNames: any = [];
 
@@ -299,7 +307,7 @@ const InputBox = ({
   const onUpdatePanGesture = (
     event: GestureUpdateEvent<PanGestureHandlerEventPayload>,
   ) => {
-    if (Math.abs(x.value) > 120) {
+    if (Math.abs(x.value) >= 120) {
       x.value = withSpring(0);
       if (isDraggable) {
         stopRecord();
@@ -312,7 +320,7 @@ const InputBox = ({
       }
       pressed.value = false;
       isLongPressed.value = false;
-    } else if (Math.abs(y.value) > 140) {
+    } else if (Math.abs(y.value) >= 100) {
       y.value = withSpring(0);
       if (isDraggable) {
         setIsDraggable(false);
@@ -335,7 +343,7 @@ const InputBox = ({
   const onEndPanGesture = () => {
     if (
       (Math.abs(x.value) > 5 && Math.abs(x.value) < 120) ||
-      (Math.abs(y.value) > 5 && Math.abs(y.value) < 140)
+      (Math.abs(y.value) > 5 && Math.abs(y.value) < 100)
     ) {
       setIsRecordingLocked(false);
       handleStopRecord();
@@ -383,11 +391,50 @@ const InputBox = ({
 
   // to ask audio recording permission
   useEffect(() => {
-    async function askPermission() {
-      const permission = await requestAudioRecordPermission();
-      setIsRecordingPermission(!!permission);
+    async function checkAndroidPermission() {
+      const isAtLeastAndroid13 = atLeastAndroid13();
+      if (isAtLeastAndroid13) {
+        const isRecordAudioPermission = await PermissionsAndroid.check(
+          'android.permission.RECORD_AUDIO',
+        );
+        const isReadMediaAudioPermission = await PermissionsAndroid.check(
+          'android.permission.READ_MEDIA_AUDIO',
+        );
+        if (isRecordAudioPermission && isReadMediaAudioPermission) {
+          setIsRecordingPermission(true);
+        }
+      } else {
+        const isRecordAudioPermission = await PermissionsAndroid.check(
+          'android.permission.RECORD_AUDIO',
+        );
+        const isReadExternalStoragePermission = await PermissionsAndroid.check(
+          'android.permission.READ_EXTERNAL_STORAGE',
+        );
+        const isWriteExternalStoragePermission = await PermissionsAndroid.check(
+          'android.permission.WRITE_EXTERNAL_STORAGE',
+        );
+        if (
+          isRecordAudioPermission &&
+          isReadExternalStoragePermission &&
+          isWriteExternalStoragePermission
+        ) {
+          setIsRecordingPermission(true);
+        }
+      }
     }
-    askPermission();
+
+    async function checkIosPermission() {
+      const val = await check(PERMISSIONS.IOS.MICROPHONE);
+      if (val === GRANTED) {
+        setIsRecordingPermission(true);
+      }
+    }
+
+    if (Platform.OS === 'android') {
+      checkAndroidPermission();
+    } else {
+      checkIosPermission();
+    }
   }, []);
 
   // to clear message on ChatScreen InputBox when fileSent from UploadScreen
@@ -398,6 +445,14 @@ const InputBox = ({
       setInputHeight(25);
     }
   }, [fileSent]);
+
+  // this useEffect is to stop audio player when going out of chatroom, if any audio is running
+  useEffect(() => {
+    return () => {
+      stopRecord();
+      stopPlay();
+    };
+  }, []);
 
   // to clear message on ChatScreen InputBox when fileSent from UploadScreen
   useEffect(() => {
@@ -671,7 +726,7 @@ const InputBox = ({
 
   // function handles opening of camera functionality
   const handleCamera = async () => {
-    if (Platform.OS === 'ios') {
+    if (isIOS) {
       await openCamera();
     } else {
       let res = await requestCameraPermission();
@@ -683,7 +738,7 @@ const InputBox = ({
 
   // function handles the selection of images and videos
   const handleGallery = async () => {
-    if (Platform.OS === 'ios') {
+    if (isIOS) {
       selectGallery();
     } else {
       let res = await requestStoragePermission();
@@ -695,7 +750,7 @@ const InputBox = ({
 
   // function handles the slection of documents
   const handleDoc = async () => {
-    if (Platform.OS === 'ios') {
+    if (isIOS) {
       selectDoc();
     } else {
       let res = await requestStoragePermission();
@@ -705,7 +760,11 @@ const InputBox = ({
     }
   };
 
-  const onSend = async (conversation: string) => {
+  const onSend = async (
+    conversation: string,
+    voiceNote?: any,
+    isSendWhileVoiceNoteRecorderPlayerRunning?: boolean,
+  ) => {
     setClosedPreview(true);
     setShowLinkPreview(false);
     setMessage('');
@@ -736,10 +795,10 @@ const InputBox = ({
     let min = time.getMinutes();
     let ID = Date.now();
     let filesToUpload = selectedFilesToUpload?.length;
+    let voiceNotesToUpload =
+      voiceNote?.length > 0 ? voiceNote : selectedVoiceNoteFilesToUpload;
     let attachmentsCount =
-      filesToUpload > 0
-        ? filesToUpload
-        : selectedVoiceNoteFilesToUpload?.length; //if any
+      filesToUpload > 0 ? filesToUpload : voiceNotesToUpload?.length; //if any
 
     let dummySelectedFileArr: any = []; //if any
     let dummyAttachmentsArr: any = []; //if any
@@ -777,8 +836,8 @@ const InputBox = ({
       for (let i = 0; i < attachmentsCount; i++) {
         let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
         let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
-        let audioAttachmentType = selectedVoiceNoteFilesToUpload[i]?.type;
-        let audioURI = selectedVoiceNoteFilesToUpload[i]?.uri;
+        let audioAttachmentType = voiceNotesToUpload[i]?.type;
+        let audioURI = voiceNotesToUpload[i]?.uri;
         let URI = selectedFilesToUpload[i]?.uri;
         if (attachmentType === IMAGE_TEXT) {
           let obj = {
@@ -809,14 +868,14 @@ const InputBox = ({
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         } else if (audioAttachmentType === VOICE_NOTE_TEXT) {
           let obj = {
-            ...selectedVoiceNoteFilesToUpload[i],
+            ...voiceNotesToUpload[i],
             type: audioAttachmentType,
             url: audioURI,
             index: i,
-            name: selectedVoiceNoteFilesToUpload[i].name,
+            name: voiceNotesToUpload[i].name,
             metaRO: {
               size: null,
-              duration: selectedVoiceNoteFilesToUpload[i].duration,
+              duration: voiceNotesToUpload[i].duration,
             },
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
@@ -838,7 +897,10 @@ const InputBox = ({
       }
     });
 
-    const isMessageTrimmed = !!conversation.trim() || isVoiceResult;
+    const isMessageTrimmed =
+      !!conversation.trim() ||
+      isVoiceResult ||
+      isSendWhileVoiceNoteRecorderPlayerRunning;
 
     // check if message is empty string or not
     if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
@@ -1099,7 +1161,16 @@ const InputBox = ({
               JSON.stringify(message),
             );
 
-            await handleFileUpload(response?.id, false, true);
+            if (voiceNotesToUpload?.length > 0) {
+              await handleFileUpload(
+                response?.id,
+                false,
+                true,
+                voiceNotesToUpload,
+              );
+            } else {
+              await handleFileUpload(response?.id, false);
+            }
           }
         } else {
           dispatch({
@@ -1215,7 +1286,6 @@ const InputBox = ({
     }
 
     dispatch({type: CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD});
-    stopPlay();
     setIsRecordingLocked(false);
     setOgTagsState({});
     setUrl('');
@@ -1456,70 +1526,97 @@ const InputBox = ({
 
   // Audio and play section
 
+  // to stop recorder after 15 min
+  useEffect(() => {
+    (async function stopRecorder() {
+      if (isVoiceNoteRecording) {
+        await handleStopRecord();
+      }
+    })();
+  }, [stopRecording]);
+
   // to start audio recording
   const startRecord = async () => {
-    const audioSet = generateAudioSet();
+    if (!isVoiceNoteRecording) {
+      const audioSet = generateAudioSet();
 
-    let name = generateVoiceNoteName();
-    const path =
-      Platform.OS === 'android'
-        ? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${name}.m4a`
-        : `${name}.mp4`;
+      let name = generateVoiceNoteName();
+      const path =
+        Platform.OS === 'android'
+          ? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${name}.mp3`
+          : `${name}.m4a`;
 
-    const result = await audioRecorderPlayerAttachment.startRecorder(
-      path,
-      audioSet,
-    );
-    audioRecorderPlayerAttachment.addRecordBackListener(e => {
-      setVoiceNotes({
-        recordSecs: e.currentPosition,
-        recordTime: audioRecorderPlayerAttachment
-          .mmssss(Math.floor(e.currentPosition))
-          .slice(0, 5),
-        name: name,
+      const result = await audioRecorderPlayerAttachment.startRecorder(
+        path,
+        audioSet,
+      );
+      setIsVoiceNoteRecording(true);
+      setVoiceNotesLink(result);
+      audioRecorderPlayerAttachment.addRecordBackListener(e => {
+        const seconds = Math.floor(e.currentPosition / 1000);
+        if (seconds >= 900) {
+          setStopRecording(!stopRecording);
+        }
+        setVoiceNotes({
+          recordSecs: e.currentPosition,
+          recordTime: audioRecorderPlayerAttachment
+            .mmssss(Math.floor(e.currentPosition))
+            .slice(0, 5),
+          name: name,
+        });
+        return;
       });
-      return;
-    });
-    setVoiceNotesLink(result);
+    }
   };
 
   // to stop audio recording
   const stopRecord = async () => {
-    await audioRecorderPlayerAttachment.stopRecorder();
-    audioRecorderPlayerAttachment.removeRecordBackListener();
+    if (isVoiceNoteRecording) {
+      await audioRecorderPlayerAttachment.stopRecorder();
+      audioRecorderPlayerAttachment.removeRecordBackListener();
 
-    // if isVoiceResult is true we show audio player instead of audio recorder
-    const voiceNote = {
-      uri: voiceNotesLink,
-      type: VOICE_NOTE_TEXT,
-      name: `${voiceNotes.name}.${Platform.OS === 'ios' ? 'm4a' : 'mp4'}`,
-      duration: Math.floor(voiceNotes.recordSecs / 1000),
-    };
-    dispatch({
-      type: SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
-      body: {
-        audio: [voiceNote],
-      },
-    });
+      // if isVoiceResult is true we show audio player instead of audio recorder
+      const voiceNote = {
+        uri: voiceNotesLink,
+        type: VOICE_NOTE_TEXT,
+        name: `${voiceNotes.name}.${isIOS ? 'm4a' : 'mp3'}`,
+        duration: Math.floor(voiceNotes.recordSecs / 1000),
+      };
+      dispatch({
+        type: SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
+        body: {
+          audio: [voiceNote],
+        },
+      });
 
-    LMChatAnalytics.track(
-      Events.VOICE_NOTE_RECORDED,
-      new Map<string, string>([
-        [Keys.CHATROOM_TYPE, chatroomType?.toString()],
-        [Keys.CHATROOM_ID, chatroomID?.toString()],
-      ]),
-    );
+      setIsVoiceNoteRecording(false);
+
+      LMChatAnalytics.track(
+        Events.VOICE_NOTE_RECORDED,
+        new Map<string, string>([
+          [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+        ]),
+      );
+    }
   };
 
   const handleStopRecord = async () => {
-    await stopRecord();
-    setIsVoiceResult(true);
-    setIsRecordingLocked(false);
+    // to give some time for initiating the start recorder, then only stop it
+    setTimeout(async () => {
+      await stopRecord();
+      setIsVoiceResult(true);
+      setIsRecordingLocked(false);
+    }, 500);
   };
 
   // to reset all the recording data we had previously
-  const clearVoiceRecord = () => {
-    // stopRecord();
+  const clearVoiceRecord = async () => {
+    if (isVoiceNoteRecording) {
+      await stopRecord();
+    } else if (isVoiceNotePlaying) {
+      await stopPlay();
+    }
     setVoiceNotes({
       recordSecs: 0,
       recordTime: '',
@@ -1607,6 +1704,18 @@ const InputBox = ({
     setIsVoiceNotePlaying(true);
   };
 
+  const askPermission = async () => {
+    if (!isIOS) {
+      const permission = await requestAudioRecordPermission();
+      setIsRecordingPermission(!!permission);
+    } else {
+      const permission = await request(PERMISSIONS.IOS.MICROPHONE);
+      if (permission === GRANTED) {
+        setIsRecordingPermission(true);
+      }
+    }
+  };
+
   return (
     <View>
       <View
@@ -1618,7 +1727,7 @@ const InputBox = ({
                   ? Platform.OS === 'android'
                     ? 45
                     : 5
-                  : Platform.OS === 'ios'
+                  : isIOS
                   ? 20
                   : 5,
               }
@@ -1689,7 +1798,7 @@ const InputBox = ({
                           styles.infoContainer,
                           {
                             borderBottomWidth: 0.2,
-                            gap: Platform.OS === 'ios' ? 5 : 0,
+                            gap: isIOS ? 5 : 0,
                           },
                         ]}>
                         <Text
@@ -1828,7 +1937,7 @@ const InputBox = ({
               (isReply && !isUploadScreen) || isEditable || isUserTagging
                 ? {
                     borderWidth: 0,
-                    margin: Platform.OS === 'ios' ? 0 : 2,
+                    margin: isIOS ? 0 : 2,
                   }
                 : null,
             ]}>
@@ -1883,11 +1992,7 @@ const InputBox = ({
                   styles.voiceRecorderInput,
                 ]}>
                 <View style={styles.alignItems}>
-                  <Animated.View
-                    style={[
-                      {opacity: micIconOpacity},
-                      // deletedVoiceNotesStyle,
-                    ]}>
+                  <Animated.View style={[{opacity: micIconOpacity}]}>
                     <Image
                       source={require('../../assets/images/record_icon3x.png')}
                       style={[styles.emoji]}
@@ -2062,7 +2167,7 @@ const InputBox = ({
         isRecordingLocked ||
         (chatroomType === 10 && chatRequestState === null) ? (
           <TouchableOpacity
-            onPressOut={() => {
+            onPressOut={async () => {
               if (
                 chatroomType === ChatroomType.DMCHATROOM && // if DM
                 chatRequestState === null &&
@@ -2073,7 +2178,23 @@ const InputBox = ({
                 if (isEditable) {
                   onEdit();
                 } else {
-                  onSend(message);
+                  const voiceNote = [
+                    {
+                      uri: voiceNotesLink,
+                      type: VOICE_NOTE_TEXT,
+                      name: `${voiceNotes.name}.${isIOS ? 'm4a' : 'mp3'}`,
+                      duration: Math.floor(voiceNotes.recordSecs / 1000),
+                    },
+                  ];
+                  if (isVoiceNoteRecording) {
+                    await stopRecord();
+                    onSend(message, voiceNote, true);
+                  } else if (isVoiceNotePlaying) {
+                    await stopPlay();
+                    onSend(message, voiceNote, true);
+                  } else {
+                    onSend(message);
+                  }
                 }
               }
             }}
@@ -2085,7 +2206,7 @@ const InputBox = ({
           </TouchableOpacity>
         ) : (
           <View>
-            {!!isRecordingPermission || Platform.OS === 'ios' ? (
+            {!!isRecordingPermission ? (
               <GestureDetector gesture={panGesture}>
                 <Animated.View>
                   {voiceNotes.recordTime && !isRecordingLocked && (
@@ -2119,14 +2240,8 @@ const InputBox = ({
             ) : (
               <Animated.View style={[styles.sendButton, panStyle]}>
                 <TouchableWithoutFeedback
-                  onPress={async () => {
-                    const permission = await requestAudioRecordPermission();
-                    setIsRecordingPermission(!!permission);
-                  }}
-                  onLongPress={async () => {
-                    const permission = await requestAudioRecordPermission();
-                    setIsRecordingPermission(!!permission);
-                  }}
+                  onPress={askPermission}
+                  onLongPress={askPermission}
                   style={[styles.sendButton, {position: 'absolute'}]}>
                   <Image
                     source={require('../../assets/images/mic_icon3x.png')}

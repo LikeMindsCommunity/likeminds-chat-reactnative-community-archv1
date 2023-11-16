@@ -2110,13 +2110,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     conversationID: number,
     isRetry: boolean,
     isVoiceNote?: boolean,
+    voiceNotesToUpload?: any,
   ) => {
     if (isVoiceNote) {
       const res = await uploadResource({
-        selectedImages: selectedVoiceNoteFilesToUpload,
+        selectedImages: voiceNotesToUpload,
         conversationID: conversationID,
         chatroomID: chatroomID,
-        selectedFilesToUpload: selectedVoiceNoteFilesToUpload,
+        selectedFilesToUpload: voiceNotesToUpload,
         uploadingFilesMessages,
         isRetry: isRetry,
       });

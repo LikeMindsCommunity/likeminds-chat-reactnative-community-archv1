@@ -101,3 +101,4 @@ export const POLL_ENDED_WARNING = 'Poll ended. Vote cannot be submitted now';
 export const POLL_SUBMITTED_SUCCESSFULLY = 'Your vote is submitted succesfully';
 export const USER_SCHEMA_RO = 'UserSchemaRO';
 export const AUDIO_NOTIFICATION_TITLE = 'Audio is being played in chatroom';
+export const GRANTED = 'granted';

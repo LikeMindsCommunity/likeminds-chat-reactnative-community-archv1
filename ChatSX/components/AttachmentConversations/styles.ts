@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import STYLES from '../../constants/Styles';
 
 export const styles = StyleSheet.create({
@@ -163,7 +163,7 @@ export const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     flex: 1,
-    gap: 20,
+    gap: 10,
     paddingVertical: 5,
     paddingHorizontal: 10,
   },
@@ -181,6 +181,6 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.MSG,
-    marginTop: 3,
+    marginTop: Platform.OS === 'ios' ? 3 : 0,
   },
 });

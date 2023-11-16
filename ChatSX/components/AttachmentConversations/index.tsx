@@ -253,7 +253,7 @@ const AttachmentConversations = ({
                   />
                 </TouchableOpacity>
               )}
-              <View style={{flex: 1}}>
+              <View style={{flex: 1, marginTop: 10, gap: 3}}>
                 <Slider
                   minimumValue={0}
                   maximumValue={100}
@@ -267,13 +267,20 @@ const AttachmentConversations = ({
                   maximumTrackTintColor="grey"
                   tapToSeek={true}
                   onSlidingComplete={handleOnSeekTo}
+                  thumbTintColor="#ffad31"
                 />
-                <View style={{display: 'flex', flexDirection: 'row'}}>
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    marginLeft: 10,
+                    alignItems: 'center',
+                  }}>
                   <Image
                     source={require('../../assets/images/mic_icon3x.png')}
                     style={[styles.smallIcon, {tintColor: 'grey'}]}
                   />
-                  {isVoiceNotePlaying || progress.position ? (
+                  {isVoiceNotePlaying ? (
                     <Text style={styles.recordTitle}>
                       {!isAudioActive && !!progress.position
                         ? convertSecondsToTime(0)
