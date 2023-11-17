@@ -35,6 +35,7 @@ import {
   SET_CHATROOM_TOPIC,
   CLEAR_SELECTED_MESSAGES,
   CLEAR_CHATROOM_TOPIC,
+  SET_TEMP_STATE_MESSAGE,
 } from '../types/types';
 
 const initialState = {
@@ -55,6 +56,7 @@ const initialState = {
   chatroomDBDetails: {},
   chatroomCreator: '',
   currentChatroomTopic: {},
+  temporaryStateMessage: {},
 };
 
 export function chatroomReducer(state = initialState, action: any) {
@@ -71,6 +73,13 @@ export function chatroomReducer(state = initialState, action: any) {
       return {
         ...state,
         currentChatroomTopic: currentChatroomTopic,
+      };
+    }
+    case SET_TEMP_STATE_MESSAGE: {
+      const {temporaryStateMessage = {}} = action.body;
+      return {
+        ...state,
+        temporaryStateMessage: temporaryStateMessage,
       };
     }
     case CLEAR_CHATROOM_TOPIC: {

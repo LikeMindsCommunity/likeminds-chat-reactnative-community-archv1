@@ -1159,6 +1159,7 @@ const InputBox = ({
     dispatch({type: SELECTED_MESSAGES, body: []});
     dispatch({type: LONG_PRESSED, body: false});
     setMessage('');
+    setInputHeight(25);
     setIsEditable(false);
 
     const payload = {

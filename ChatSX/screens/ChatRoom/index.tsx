@@ -79,6 +79,7 @@ import {
   SET_PAGE,
   SET_POSITION,
   SET_REPLY_MESSAGE,
+  SET_TEMP_STATE_MESSAGE,
   SHOW_TOAST,
   TO_BE_DELETED,
   UPDATE_CHAT_REQUEST_STATE,
@@ -241,6 +242,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     position,
     chatroomCreator,
     currentChatroomTopic,
+    temporaryStateMessage,
   }: any = useAppSelector(state => state.chatroom);
   const {user, community, memberRights} = useAppSelector(
     state => state.homefeed,
@@ -937,14 +939,22 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // local handling for chatroom topic updation's state message
   useEffect(() => {
     const addChatroomTopic = async () => {
-      const temporaryStateMessage = createTemporaryStateMessage(
+      const tempStateMessage = createTemporaryStateMessage(
         currentChatroomTopic,
         user,
       );
       dispatch({
         type: ADD_STATE_MESSAGE,
-        body: {conversation: temporaryStateMessage},
+        body: {conversation: tempStateMessage},
       });
+      dispatch({
+        type: SET_TEMP_STATE_MESSAGE,
+        body: {temporaryStateMessage: tempStateMessage},
+      });
+      await myClient?.saveNewConversation(
+        chatroomID?.toString(),
+        tempStateMessage,
+      );
     };
     if (selectedMessages.length !== 0) {
       addChatroomTopic();
@@ -1014,13 +1024,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         chatroomId: chatroomID,
       });
       await myClient?.updateUnseenCount(chatroomID?.toString());
+      await myClient?.deleteConversationFromRealm(temporaryStateMessage?.id);
     };
     return () => {
       if (previousRoute?.name !== EXPLORE_FEED) {
         closingChatroom();
       }
     };
-  }, []);
+  }, [temporaryStateMessage]);
 
   //Logic for navigation backAction
   function backAction() {
@@ -2642,9 +2653,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const renderPdf = (pdfCount: number, val: Conversation) => {
     return (
       <View style={[styles.alignCenter]}>
-        {pdfCount > 1 && <Text style={styles.attachment_msg}>{pdfCount}</Text>}
         {!val?.answer ? (
           <Text style={styles.attachment_msg}>
+            {pdfCount > 1 && (
+              <Text style={styles.attachment_msg}>{pdfCount}</Text>
+            )}{' '}
             <Image
               source={require('../../assets/images/document_icon3x.png')}
               style={styles.chatroomTopicIcon}
@@ -2653,6 +2666,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           </Text>
         ) : (
           <Text numberOfLines={2} style={styles.attachment_msg}>
+            {pdfCount > 1 && (
+              <>
+                <Text style={styles.attachment_msg}>{pdfCount}</Text>
+                &nbsp;
+              </>
+            )}
             <Image
               source={require('../../assets/images/document_icon3x.png')}
               style={styles.chatroomTopicIcon}
@@ -2678,11 +2697,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             marginBottom: -2,
           },
         ]}>
-        {videosCount > 1 && (
-          <Text style={styles.attachment_msg}>{videosCount}</Text>
-        )}
         {!val?.answer ? (
           <Text style={styles.attachment_msg}>
+            {videosCount > 1 && (
+              <Text style={styles.attachment_msg}>{videosCount}</Text>
+            )}{' '}
             <Image
               source={require('../../assets/images/video_icon3x.png')}
               style={styles.chatroomTopicIcon}
@@ -2691,6 +2710,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           </Text>
         ) : (
           <Text numberOfLines={2} style={styles.attachment_msg}>
+            {videosCount > 1 && (
+              <>
+                <Text style={styles.attachment_msg}>{videosCount}</Text>
+                &nbsp;
+              </>
+            )}
             <Image
               source={require('../../assets/images/video_icon3x.png')}
               style={styles.chatroomTopicIcon}
@@ -2709,18 +2734,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   const renderImage = (imageCount: number, val: Conversation) => {
     return (
-      <View
-        style={[
-          styles.alignCenter,
-          {
-            marginBottom: -2,
-          },
-        ]}>
-        {imageCount > 1 && (
-          <Text style={styles.attachment_msg}>{imageCount}</Text>
-        )}
+      <View style={[styles.alignCenter]}>
         {!val?.answer ? (
           <Text style={styles.attachment_msg}>
+            {imageCount > 1 && (
+              <Text style={styles.attachment_msg}>{imageCount}</Text>
+            )}{' '}
             <Image
               source={require('../../assets/images/image_icon3x.png')}
               style={styles.chatroomTopicIcon}
@@ -2729,6 +2748,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           </Text>
         ) : (
           <Text numberOfLines={2} style={styles.attachment_msg}>
+            {imageCount > 1 && (
+              <>
+                <Text style={styles.attachment_msg}>{imageCount}</Text>
+                &nbsp;
+              </>
+            )}
             <Image
               source={require('../../assets/images/image_icon3x.png')}
               style={styles.chatroomTopicIcon}
