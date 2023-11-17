@@ -625,6 +625,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                             user,
                             conversations,
                           );
+
+                        // to stop audio player if we delete the message
+                        const conversation: any =
+                          await myClient.getConversation(
+                            selectedMessagesIDArr[i],
+                          );
+                        if (
+                          conversation[0]?.attachments[0]?.type ==
+                          VOICE_NOTE_TEXT
+                        ) {
+                          await TrackPlayer.reset();
+                        }
                       }
                       dispatch({
                         type: GET_CONVERSATIONS_SUCCESS,
@@ -914,6 +926,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       TrackPlayer.reset();
     };
   }, []);
+
+  console.log('AppState.currentState  ==', AppState.currentState);
+
+  // this useEffect is to stop audio player when the app is in background
+  useEffect(() => {
+    if (!isFocused) {
+      TrackPlayer.reset();
+    }
+  }, [isFocused]);
 
   //Logic for navigation backAction
   function backAction() {

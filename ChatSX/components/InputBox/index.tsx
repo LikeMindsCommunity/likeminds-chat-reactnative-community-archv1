@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   PermissionsAndroid,
+  Vibration,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
@@ -183,6 +184,7 @@ const InputBox = ({
   const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
   const [isVoiceNoteRecording, setIsVoiceNoteRecording] = useState(false);
   const [isDraggable, setIsDraggable] = useState(true);
+  const [isLongPressedState, setIsLongPressedState] = useState(false);
   const [isRecordingLocked, setIsRecordingLocked] = useState(false);
   const [stopRecording, setStopRecording] = useState(false);
   const [isDeleteAnimation, setIsDeleteAnimation] = useState(false);
@@ -286,61 +288,80 @@ const InputBox = ({
     if (isDeleteAnimation) {
       setTimeout(() => {
         setIsDeleteAnimation(false);
-      }, 2000);
+        setIsVoiceResult(false);
+      }, 2200);
     }
   }, [isDeleteAnimation]);
 
+  // to stop the recorder
+  useEffect(() => {
+    setTimeout(async () => {
+      if (!isLongPressedState && isVoiceNoteRecording && !isRecordingLocked) {
+        // setIsRecordingLocked(false);
+        await stopRecord();
+        setIsVoiceResult(true);
+      }
+    }, 300);
+  }, [isLongPressedState, isRecordingLocked]);
+
+  // to start Recorder
+  useEffect(() => {
+    if (isLongPressedState && !isVoiceNoteRecording) {
+      Vibration.vibrate(1 * 1000);
+      startRecord();
+    }
+  }, [isLongPressedState]);
+
   // long press gesture
   const longPressGesture = Gesture.LongPress()
+    .runOnJS(true)
     .minDuration(250)
-    .onStart(event => {
+    .onStart(() => {
       isLongPressed.value = true;
+      setIsLongPressedState(true);
     });
-
-  // this method handles onBegin callback of pan gesture
-  const onBeginPanGesture = () => {
-    pressed.value = true;
-    startRecord();
-  };
 
   // this method handles onUpdate callback of pan gesture
   const onUpdatePanGesture = (
     event: GestureUpdateEvent<PanGestureHandlerEventPayload>,
   ) => {
-    if (Math.abs(x.value) >= 120) {
-      x.value = withSpring(0);
-      if (isDraggable) {
-        stopRecord();
-        setIsDraggable(false);
-        setIsDeleteAnimation(true);
-        setTimeout(() => {
+    'worklet';
+    if (isLongPressed.value) {
+      if (Math.abs(x.value) >= 120) {
+        x.value = withSpring(0);
+        if (isDraggable) {
+          stopRecord();
+          setIsDraggable(false);
+          setIsDeleteAnimation(true);
           clearVoiceRecord();
           setIsDraggable(true);
-        }, 200);
-      }
-      pressed.value = false;
-      isLongPressed.value = false;
-    } else if (Math.abs(y.value) >= 100) {
-      y.value = withSpring(0);
-      if (isDraggable) {
-        setIsDraggable(false);
-        setTimeout(() => {
+          isLongPressed.value = false;
+        }
+        pressed.value = false;
+        isLongPressed.value = false;
+      } else if (Math.abs(y.value) >= 100) {
+        y.value = withSpring(0);
+        if (isDraggable) {
+          setIsDraggable(false);
           setIsDraggable(true);
           setIsRecordingLocked(true);
-        }, 200);
+          setIsLongPressedState(false);
+          isLongPressed.value = false;
+        }
+      } else if (Math.abs(x.value) > 5) {
+        x.value = event.translationX;
+      } else if (Math.abs(y.value) > 5) {
+        y.value = event.translationY;
+      } else {
+        x.value = event.translationX;
+        y.value = event.translationY;
       }
-    } else if (Math.abs(x.value) > 5) {
-      x.value = event.translationX;
-    } else if (Math.abs(y.value) > 5) {
-      y.value = event.translationY;
-    } else {
-      x.value = event.translationX;
-      y.value = event.translationY;
     }
   };
 
   // this method handles onEnd callback of pan gesture
   const onEndPanGesture = () => {
+    'worklet';
     if (
       (Math.abs(x.value) > 5 && Math.abs(x.value) < 120) ||
       (Math.abs(y.value) > 5 && Math.abs(y.value) < 100)
@@ -352,17 +373,20 @@ const InputBox = ({
     y.value = withSpring(0);
     pressed.value = false;
     isLongPressed.value = false;
+    setIsLongPressedState(false);
   };
 
   // draggle mic pan gesture on x-axis and y-axis
   const panGesture = Gesture.Pan()
     .runOnJS(true)
     .enabled(isDraggable)
-    .onBegin(onBeginPanGesture)
     .onUpdate(onUpdatePanGesture)
     .onEnd(onEndPanGesture)
     .onFinalize(() => {
+      'worklet';
       pressed.value = false;
+      isLongPressed.value = false;
+      setIsLongPressedState(false);
       setIsDraggable(true);
     })
     .onTouchesCancelled(() => {
@@ -370,7 +394,7 @@ const InputBox = ({
     })
     .simultaneousWithExternalGesture(longPressGesture);
 
-  const composedGesture = Gesture.Race(longPressGesture, panGesture);
+  const composedGesture = Gesture.Simultaneous(longPressGesture, panGesture);
 
   // draggle mic panGesture styles
   const panStyle = useAnimatedStyle(() => {
@@ -382,7 +406,7 @@ const InputBox = ({
         {
           translateY: y.value,
         },
-        {scale: withTiming(pressed.value ? 1.5 : 1)},
+        {scale: withTiming(isLongPressed.value ? 1.5 : 1)},
       ],
     };
   }, [x, y]);
@@ -2207,7 +2231,7 @@ const InputBox = ({
         ) : (
           <View>
             {!!isRecordingPermission ? (
-              <GestureDetector gesture={panGesture}>
+              <GestureDetector gesture={composedGesture}>
                 <Animated.View>
                   {voiceNotes.recordTime && !isRecordingLocked && (
                     <View
