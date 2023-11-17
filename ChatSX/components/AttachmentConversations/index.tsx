@@ -240,7 +240,7 @@ const AttachmentConversations = ({
               ) : (
                 <TouchableOpacity
                   onPress={() => {
-                    if (voiceNotesPlayer?.playTime !== '') {
+                    if (progress.position > 0 && isAudioActive) {
                       handleOnResumePlay();
                     } else {
                       handleStartPlay(firstAttachment?.url);

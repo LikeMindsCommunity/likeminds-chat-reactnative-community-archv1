@@ -311,4 +311,14 @@ export const styles = StyleSheet.create({
     marginTop: 10,
     width: '30%',
   },
+  tapAndHold: {
+    opacity: 0.8,
+    backgroundColor: 'black',
+    padding: 10,
+    position: 'absolute',
+    bottom: 80,
+    right: 35,
+    borderRadius: 10,
+    borderBottomRightRadius: 0,
+  },
 });

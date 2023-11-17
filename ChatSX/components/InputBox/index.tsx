@@ -66,6 +66,7 @@ import {
   POLL_TEXT,
   SLIDE_TO_CANCEL,
   SUCCESS,
+  TAP_AND_HOLD,
   VIDEO_TEXT,
   VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
@@ -189,6 +190,7 @@ const InputBox = ({
   const [stopRecording, setStopRecording] = useState(false);
   const [isDeleteAnimation, setIsDeleteAnimation] = useState(false);
   const [isRecordingPermission, setIsRecordingPermission] = useState(false);
+  const [isVoiceNoteIconPress, setIsVoiceNoteIconPress] = useState(false);
   const {chatroomDBDetails}: any = useAppSelector(state => state.chatroom);
 
   const [ogTagsState, setOgTagsState] = useState<any>({});
@@ -297,7 +299,7 @@ const InputBox = ({
   useEffect(() => {
     setTimeout(async () => {
       if (!isLongPressedState && isVoiceNoteRecording && !isRecordingLocked) {
-        // setIsRecordingLocked(false);
+        console.log('11');
         await stopRecord();
         setIsVoiceResult(true);
       }
@@ -307,7 +309,7 @@ const InputBox = ({
   // to start Recorder
   useEffect(() => {
     if (isLongPressedState && !isVoiceNoteRecording) {
-      Vibration.vibrate(1 * 1000);
+      Vibration.vibrate(0.5 * 100);
       startRecord();
     }
   }, [isLongPressedState]);
@@ -1646,6 +1648,12 @@ const InputBox = ({
       recordTime: '',
       name: '',
     });
+    setVoiceNotesPlayer({
+      currentPositionSec: 0,
+      currentDurationSec: 0,
+      playTime: '',
+      duration: '',
+    });
     setVoiceNotesLink('');
     setIsRecordingLocked(false);
 
@@ -1655,7 +1663,6 @@ const InputBox = ({
 
     // if isVoiceResult is false we show audio recorder instead of audio player
     setIsVoiceResult(false);
-    stopPlay();
 
     LMChatAnalytics.track(
       Events.VOICE_NOTE_CANCELED,
@@ -1740,8 +1747,25 @@ const InputBox = ({
     }
   };
 
+  useEffect(() => {
+    if (isVoiceNoteIconPress) {
+      setTimeout(() => {
+        setIsVoiceNoteIconPress(false);
+      }, 2000);
+    }
+  }, [isVoiceNoteIconPress]);
+
   return (
     <View>
+      {/* shows message how we record voice note */}
+      {isVoiceNoteIconPress && (
+        <View style={styles.tapAndHold}>
+          <Text style={[styles.subTitle, {color: STYLES.$COLORS.TERTIARY}]}>
+            {TAP_AND_HOLD}
+          </Text>
+        </View>
+      )}
+
       <View
         style={[
           styles.inputContainer,
@@ -1881,7 +1905,10 @@ const InputBox = ({
               <TouchableOpacity
                 onPress={() => {
                   dispatch({type: SET_IS_REPLY, body: {isReply: false}});
-                  dispatch({type: SET_REPLY_MESSAGE, body: {replyMessage: ''}});
+                  dispatch({
+                    type: SET_REPLY_MESSAGE,
+                    body: {replyMessage: ''},
+                  });
                 }}
                 style={styles.replyBoxClose}>
                 <Image
@@ -2250,8 +2277,13 @@ const InputBox = ({
                       </Animated.View>
                     </View>
                   )}
+
                   <Animated.View style={[styles.sendButton, panStyle]}>
                     <TouchableWithoutFeedback
+                      onPress={() => {
+                        setIsVoiceNoteIconPress(true);
+                        Vibration.vibrate(0.5 * 100);
+                      }}
                       style={[styles.sendButton, {position: 'absolute'}]}>
                       <Image
                         source={require('../../assets/images/mic_icon3x.png')}

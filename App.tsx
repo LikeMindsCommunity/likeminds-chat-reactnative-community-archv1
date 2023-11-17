@@ -1,16 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Linking,
-  Platform,
-  View,
-} from 'react-native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {KeyboardAvoidingView, Linking, Platform} from 'react-native';
 import {Provider as ReduxProvider} from 'react-redux';
 import store from './store';
 import SwitchComponent from './ChatSX/navigation/SwitchComponent';
-import notifee, {EventType} from '@notifee/react-native';
+import notifee from '@notifee/react-native';
 import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './RootNavigation';
 import FetchKeyInputScreen from './Sample';

@@ -927,8 +927,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
   }, []);
 
-  console.log('AppState.currentState  ==', AppState.currentState);
-
   // this useEffect is to stop audio player when the app is in background
   useEffect(() => {
     if (!isFocused) {
