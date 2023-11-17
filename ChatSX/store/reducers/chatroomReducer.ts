@@ -33,6 +33,11 @@ import {
   ADD_STATE_MESSAGE,
   SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
   CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
+  SET_CHATROOM_CREATOR,
+  SET_CHATROOM_TOPIC,
+  CLEAR_SELECTED_MESSAGES,
+  CLEAR_CHATROOM_TOPIC,
+  SET_TEMP_STATE_MESSAGE,
 } from '../types/types';
 
 const initialState = {
@@ -52,10 +57,40 @@ const initialState = {
   fileSent: 0,
   chatroomDBDetails: {},
   selectedVoiceNoteFilesToUpload: [],
+  chatroomCreator: '',
+  currentChatroomTopic: {},
+  temporaryStateMessage: {},
 };
 
 export function chatroomReducer(state = initialState, action: any) {
   switch (action.type) {
+    case SET_CHATROOM_CREATOR: {
+      const {chatroomCreator = {}} = action.body;
+      return {
+        ...state,
+        chatroomCreator: chatroomCreator,
+      };
+    }
+    case SET_CHATROOM_TOPIC: {
+      const {currentChatroomTopic = {}} = action.body;
+      return {
+        ...state,
+        currentChatroomTopic: currentChatroomTopic,
+      };
+    }
+    case SET_TEMP_STATE_MESSAGE: {
+      const {temporaryStateMessage = {}} = action.body;
+      return {
+        ...state,
+        temporaryStateMessage: temporaryStateMessage,
+      };
+    }
+    case CLEAR_CHATROOM_TOPIC: {
+      return {
+        ...state,
+        currentChatroomTopic: {},
+      };
+    }
     case EMPTY_BLOCK_DELETION: {
       let newArr = [...state.conversations].splice(1);
       return {
@@ -75,6 +110,12 @@ export function chatroomReducer(state = initialState, action: any) {
       return {
         ...state,
         isLongPress: isLongPressed,
+      };
+    }
+    case CLEAR_SELECTED_MESSAGES: {
+      return {
+        ...state,
+        selectedMessages: [],
       };
     }
     case SELECTED_MESSAGES: {
