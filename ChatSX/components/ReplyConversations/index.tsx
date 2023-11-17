@@ -12,6 +12,7 @@ import {styles} from './styles';
 import {decode} from '../../commonFuctions';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {
+  GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   SELECTED_MESSAGES,
   SET_POSITION,
@@ -25,6 +26,7 @@ import {
 import AttachmentConversations from '../AttachmentConversations';
 import {Events, Keys} from '../../enums';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {getCurrentConversation} from '../../utils/chatroomUtils';
 
 interface ReplyConversations {
   item: any;
@@ -132,7 +134,7 @@ const ReplyConversations = ({
     longPressOpenKeyboard();
   };
 
-  const handleOnPress = () => {
+  const handleOnPress = async () => {
     let isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
@@ -161,10 +163,25 @@ const ReplyConversations = ({
       }
     } else {
       let index = conversations.findIndex(
-        (element: any) => element?.id === item?.replyConversationObject?.id,
+        (element: any) => element?.id == item?.replyConversationObject?.id,
       );
       if (index >= 0) {
         onScrollToIndex(index);
+      } else {
+        const newConversation = await getCurrentConversation(
+          item?.replyConversationObject,
+          chatroomID?.toString(),
+        );
+        dispatch({
+          type: GET_CONVERSATIONS_SUCCESS,
+          body: {conversations: newConversation},
+        });
+        let index = newConversation.findIndex(
+          element => element?.id == item?.replyConversationObject?.id,
+        );
+        if (index >= 0) {
+          onScrollToIndex(index);
+        }
       }
     }
   };

@@ -1,3 +1,5 @@
+import {Conversation} from '@likeminds.community/chat-rn/dist/shared/responseModels/Conversation';
+
 export interface InputBoxProps {
   replyChatID?: any;
   chatroomID: any;
@@ -15,4 +17,5 @@ export interface InputBoxProps {
   isSecret?: any;
   chatroomWithUser?: any;
   chatroomName?: any;
+  currentChatroomTopic?: Conversation;
 }

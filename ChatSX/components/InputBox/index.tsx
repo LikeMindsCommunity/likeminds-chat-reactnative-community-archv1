@@ -43,6 +43,7 @@ import {
   EMPTY_BLOCK_DELETION,
   UPDATE_MULTIMEDIA_CONVERSATIONS,
   GET_CONVERSATIONS_SUCCESS,
+  SET_CHATROOM_TOPIC,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
 import {chatSchema} from '../../assets/chatSchema';
@@ -120,6 +121,7 @@ const InputBox = ({
   isSecret,
   chatroomWithUser,
   chatroomName,
+  currentChatroomTopic,
 }: InputBoxProps) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -1157,17 +1159,35 @@ const InputBox = ({
     dispatch({type: SELECTED_MESSAGES, body: []});
     dispatch({type: LONG_PRESSED, body: false});
     setMessage('');
+    setInputHeight(25);
     setIsEditable(false);
 
-    const editConversationResponse = await myClient?.editConversation({
+    const payload = {
       conversationId: conversationId,
       text: editedConversation,
-    });
+    };
+
+    let editConversationResponse;
+    if (currentChatroomTopic) {
+      editConversationResponse = await myClient?.editConversation(
+        payload,
+        currentChatroomTopic,
+      );
+    } else {
+      editConversationResponse = await myClient?.editConversation(payload);
+    }
+    if (conversationId == currentChatroomTopic?.id) {
+      dispatch({
+        type: SET_CHATROOM_TOPIC,
+        body: {
+          currentChatroomTopic: editConversationResponse?.data?.conversation,
+        },
+      });
+    }
     await myClient?.updateConversation(
       conversationId?.toString(),
       editConversationResponse?.data?.conversation,
     );
-
     LMChatAnalytics.track(
       Events.MESSAGE_EDITED,
       new Map<string, string>([
