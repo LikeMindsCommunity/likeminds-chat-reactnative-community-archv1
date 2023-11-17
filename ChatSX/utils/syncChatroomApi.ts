@@ -1,6 +1,5 @@
-import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
-import {myClient} from '../../';
-import {SET_CHATROOM_TOPIC} from '../store/types/types';
+
+import {SyncChatroomRequest, myClient} from '../../';
 
 // Sync Chatrrom API
 async function syncChatroomAPI(

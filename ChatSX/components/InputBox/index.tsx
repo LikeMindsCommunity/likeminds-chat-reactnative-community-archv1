@@ -2,28 +2,25 @@ import {
   View,
   Text,
   TouchableOpacity,
-  TextInput,
   Image,
   Platform,
   Modal,
   Pressable,
   Keyboard,
-  Alert,
-  PermissionsAndroid,
-  Linking,
   ActivityIndicator,
+  TouchableWithoutFeedback,
+  PermissionsAndroid,
+  Vibration,
 } from 'react-native';
-import React, {FC, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
 import {
-  CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
   EDIT_CONVERSATION,
   FILE_SENT,
-  IS_FILE_UPLOADING,
   LONG_PRESSED,
   MESSAGE_SENT,
   SELECTED_FILES_TO_UPLOAD,
@@ -41,6 +38,8 @@ import {
   UPDATE_CONVERSATIONS,
   UPDATE_LAST_CONVERSATION,
   EMPTY_BLOCK_DELETION,
+  SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
+  CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
   UPDATE_MULTIMEDIA_CONVERSATIONS,
   GET_CONVERSATIONS_SUCCESS,
   SET_CHATROOM_TOPIC,
@@ -59,34 +58,35 @@ import {CREATE_POLL_SCREEN, FILE_UPLOAD} from '../../constants/Screens';
 import STYLES from '../../constants/Styles';
 import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {
-  AUDIO_TEXT,
   BLOCKED_DM,
   CAMERA_TEXT,
   CHARACTER_LIMIT_MESSAGE,
   DOCUMENTS_TEXT,
-  FAILED,
+  GRANTED,
   IMAGE_TEXT,
   PDF_TEXT,
   PHOTOS_AND_VIDEOS_TEXT,
   POLL_TEXT,
+  SLIDE_TO_CANCEL,
   SUCCESS,
+  TAP_AND_HOLD,
   VIDEO_TEXT,
+  VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
-import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
+import {POOL_ID, REGION} from '../../aws-exports';
 import {
-  REGEX_USER_TAGGING,
-  decode,
+  atLeastAndroid13,
   detectMentions,
   extractPathfromRouteQuery,
-  fetchResourceFromURI,
   getAllPdfThumbnail,
   getPdfThumbnail,
   getVideoThumbnail,
   replaceLastMention,
 } from '../../commonFuctions';
 import {
+  requestAudioRecordPermission,
   requestCameraPermission,
   requestStoragePermission,
 } from '../../utils/permissions';
@@ -98,11 +98,38 @@ import {
 } from '../TaggingView/utils';
 import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
-import {InputBoxProps, LaunchActivityProps} from './models';
+import {
+  InputBoxProps,
+  LaunchActivityProps,
+  VoiceNotesPlayerProps,
+  VoiceNotesProps,
+} from './models';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import {
+  Gesture,
+  GestureDetector,
+  GestureUpdateEvent,
+  PanGestureHandlerEventPayload,
+} from 'react-native-gesture-handler';
+import LottieView from 'lottie-react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import {generateAudioSet, generateVoiceNoteName} from '../../audio';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import {LINK_PREVIEW_REGEX} from '../../constants/Regex';
 import LinkPreviewInputBox from '../linkPreviewInputBox';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
+import {PERMISSIONS, check, request} from 'react-native-permissions';
+
+// to intialise audio recorder player
+const audioRecorderPlayerAttachment = new AudioRecorderPlayer();
 
 const InputBox = ({
   replyChatID,
@@ -145,6 +172,29 @@ const InputBox = ({
   const [taggedUserName, setTaggedUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [voiceNotes, setVoiceNotes] = useState<VoiceNotesProps>({
+    recordSecs: 0,
+    recordTime: '',
+    name: '',
+  });
+  const [voiceNotesPlayer, setVoiceNotesPlayer] =
+    useState<VoiceNotesPlayerProps>({
+      currentPositionSec: 0,
+      currentDurationSec: 0,
+      playTime: '',
+      duration: '',
+    });
+  const [voiceNotesLink, setVoiceNotesLink] = useState('');
+  const [isVoiceResult, setIsVoiceResult] = useState(false);
+  const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
+  const [isVoiceNoteRecording, setIsVoiceNoteRecording] = useState(false);
+  const [isDraggable, setIsDraggable] = useState(true);
+  const [isLongPressedState, setIsLongPressedState] = useState(false);
+  const [isRecordingLocked, setIsRecordingLocked] = useState(false);
+  const [stopRecording, setStopRecording] = useState(false);
+  const [isDeleteAnimation, setIsDeleteAnimation] = useState(false);
+  const [isRecordingPermission, setIsRecordingPermission] = useState(false);
+  const [isVoiceNoteIconPress, setIsVoiceNoteIconPress] = useState(false);
   const {chatroomDBDetails}: any = useAppSelector(state => state.chatroom);
 
   const [ogTagsState, setOgTagsState] = useState<any>({});
@@ -156,10 +206,13 @@ const InputBox = ({
   const MAX_FILE_SIZE = 104857600; // 100MB in bytes
   const MAX_LENGTH = 300;
 
+  const isIOS = Platform.OS === 'ios' ? true : false;
+
   let taggedUserNames: any = [];
 
   const {
     selectedFilesToUpload = [],
+    selectedVoiceNoteFilesToUpload = [],
     selectedFilesToUploadThumbnails = [],
     conversations = [],
     selectedMessages = [],
@@ -189,6 +242,230 @@ const InputBox = ({
 
   const s3 = new S3();
 
+  // Animation
+
+  const pressed = useSharedValue(false);
+  const x = useSharedValue(0);
+  const y = useSharedValue(0);
+  const lockOffset = useSharedValue(4);
+  const upChevronOffset = useSharedValue(3);
+  const micIconOpacity = useSharedValue(1); // Initial opacity value
+  const isLongPressed = useSharedValue(false);
+
+  // lock icon animation styles
+  const lockAnimatedStyles = useAnimatedStyle(() => ({
+    transform: [{translateY: lockOffset.value}],
+  }));
+
+  // up chevron animated styles
+  const upChevronAnimatedStyles = useAnimatedStyle(() => ({
+    transform: [{translateY: upChevronOffset.value}],
+  }));
+
+  // recorder mic icon animation effect
+  useEffect(() => {
+    micIconOpacity.value = withRepeat(
+      withTiming(0, {duration: 800, easing: Easing.inOut(Easing.ease)}),
+      -1, // Infinite repetition (-1)
+      true, // Reverse the animation direction after each iteration
+    );
+  }, []);
+
+  // lock icon animation useEffect
+  useEffect(() => {
+    lockOffset.value = withRepeat(
+      withTiming(-lockOffset.value, {duration: 800}),
+      -1, // Infinite repetition (-1)
+      true, // Reverse the animation direction after each iteration
+    );
+  }, []);
+
+  // up chevron animation useEffect
+  useEffect(() => {
+    upChevronOffset.value = withRepeat(
+      withTiming(-upChevronOffset.value, {duration: 400}),
+      -1,
+      true,
+    );
+  }, []);
+
+  // to hide delete animation
+  useEffect(() => {
+    if (isDeleteAnimation) {
+      setTimeout(() => {
+        setIsDeleteAnimation(false);
+        setIsVoiceResult(false);
+      }, 2200);
+    }
+  }, [isDeleteAnimation]);
+
+  // to stop the recorder
+  useEffect(() => {
+    setTimeout(async () => {
+      if (!isLongPressedState && isVoiceNoteRecording && !isRecordingLocked) {
+        await stopRecord();
+        setIsVoiceResult(true);
+      }
+    }, 300);
+  }, [isLongPressedState, isRecordingLocked]);
+
+  // to start Recorder
+  useEffect(() => {
+    if (isLongPressedState && !isVoiceNoteRecording) {
+      Vibration.vibrate(0.5 * 100);
+      startRecord();
+    }
+  }, [isLongPressedState]);
+
+  // long press gesture
+  const longPressGesture = Gesture.LongPress()
+    .runOnJS(true)
+    .minDuration(250)
+    .onStart(() => {
+      isLongPressed.value = true;
+      setIsLongPressedState(true);
+    });
+
+  // this method handles onUpdate callback of pan gesture
+  const onUpdatePanGesture = (
+    event: GestureUpdateEvent<PanGestureHandlerEventPayload>,
+  ) => {
+    'worklet';
+    if (isLongPressed.value) {
+      if (Math.abs(x.value) >= 120) {
+        x.value = withSpring(0);
+        if (isDraggable) {
+          stopRecord();
+          setIsDraggable(false);
+          setIsDeleteAnimation(true);
+          clearVoiceRecord();
+          setIsDraggable(true);
+          isLongPressed.value = false;
+        }
+        pressed.value = false;
+        isLongPressed.value = false;
+      } else if (Math.abs(y.value) >= 100) {
+        y.value = withSpring(0);
+        if (isDraggable) {
+          setIsDraggable(false);
+          setIsDraggable(true);
+          setIsRecordingLocked(true);
+          setIsLongPressedState(false);
+          isLongPressed.value = false;
+        }
+      } else if (Math.abs(x.value) > 5) {
+        x.value = event.translationX;
+      } else if (Math.abs(y.value) > 5) {
+        y.value = event.translationY;
+      } else {
+        x.value = event.translationX;
+        y.value = event.translationY;
+      }
+    }
+  };
+
+  // this method handles onEnd callback of pan gesture
+  const onEndPanGesture = () => {
+    'worklet';
+    if (
+      (Math.abs(x.value) > 5 && Math.abs(x.value) < 120) ||
+      (Math.abs(y.value) > 5 && Math.abs(y.value) < 100)
+    ) {
+      setIsRecordingLocked(false);
+      handleStopRecord();
+    }
+    x.value = withSpring(0);
+    y.value = withSpring(0);
+    pressed.value = false;
+    isLongPressed.value = false;
+    setIsLongPressedState(false);
+  };
+
+  // draggle mic pan gesture on x-axis and y-axis
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .enabled(isDraggable)
+    .onUpdate(onUpdatePanGesture)
+    .onEnd(onEndPanGesture)
+    .onFinalize(() => {
+      'worklet';
+      pressed.value = false;
+      isLongPressed.value = false;
+      setIsLongPressedState(false);
+      setIsDraggable(true);
+    })
+    .onTouchesCancelled(() => {
+      setIsDraggable(true);
+    })
+    .simultaneousWithExternalGesture(longPressGesture);
+
+  const composedGesture = Gesture.Simultaneous(longPressGesture, panGesture);
+
+  // draggle mic panGesture styles
+  const panStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateX: x.value,
+        },
+        {
+          translateY: y.value,
+        },
+        {scale: withTiming(isLongPressed.value ? 1.5 : 1)},
+      ],
+    };
+  }, [x, y]);
+
+  // Animation stop
+
+  // to ask audio recording permission
+  useEffect(() => {
+    async function checkAndroidPermission() {
+      const isAtLeastAndroid13 = atLeastAndroid13();
+      if (isAtLeastAndroid13) {
+        const isRecordAudioPermission = await PermissionsAndroid.check(
+          'android.permission.RECORD_AUDIO',
+        );
+        const isReadMediaAudioPermission = await PermissionsAndroid.check(
+          'android.permission.READ_MEDIA_AUDIO',
+        );
+        if (isRecordAudioPermission && isReadMediaAudioPermission) {
+          setIsRecordingPermission(true);
+        }
+      } else {
+        const isRecordAudioPermission = await PermissionsAndroid.check(
+          'android.permission.RECORD_AUDIO',
+        );
+        const isReadExternalStoragePermission = await PermissionsAndroid.check(
+          'android.permission.READ_EXTERNAL_STORAGE',
+        );
+        const isWriteExternalStoragePermission = await PermissionsAndroid.check(
+          'android.permission.WRITE_EXTERNAL_STORAGE',
+        );
+        if (
+          isRecordAudioPermission &&
+          isReadExternalStoragePermission &&
+          isWriteExternalStoragePermission
+        ) {
+          setIsRecordingPermission(true);
+        }
+      }
+    }
+
+    async function checkIosPermission() {
+      const val = await check(PERMISSIONS.IOS.MICROPHONE);
+      if (val === GRANTED) {
+        setIsRecordingPermission(true);
+      }
+    }
+
+    if (Platform.OS === 'android') {
+      checkAndroidPermission();
+    } else {
+      checkIosPermission();
+    }
+  }, []);
+
   // to clear message on ChatScreen InputBox when fileSent from UploadScreen
   useEffect(() => {
     if (!isUploadScreen) {
@@ -197,6 +474,14 @@ const InputBox = ({
       setInputHeight(25);
     }
   }, [fileSent]);
+
+  // this useEffect is to stop audio player when going out of chatroom, if any audio is running
+  useEffect(() => {
+    return () => {
+      stopRecord();
+      stopPlay();
+    };
+  }, []);
 
   // to clear message on ChatScreen InputBox when fileSent from UploadScreen
   useEffect(() => {
@@ -470,7 +755,7 @@ const InputBox = ({
 
   // function handles opening of camera functionality
   const handleCamera = async () => {
-    if (Platform.OS === 'ios') {
+    if (isIOS) {
       await openCamera();
     } else {
       let res = await requestCameraPermission();
@@ -482,7 +767,7 @@ const InputBox = ({
 
   // function handles the selection of images and videos
   const handleGallery = async () => {
-    if (Platform.OS === 'ios') {
+    if (isIOS) {
       selectGallery();
     } else {
       let res = await requestStoragePermission();
@@ -494,7 +779,7 @@ const InputBox = ({
 
   // function handles the slection of documents
   const handleDoc = async () => {
-    if (Platform.OS === 'ios') {
+    if (isIOS) {
       selectDoc();
     } else {
       let res = await requestStoragePermission();
@@ -504,11 +789,21 @@ const InputBox = ({
     }
   };
 
-  const onSend = async (conversation: string) => {
+  const onSend = async (
+    conversation: string,
+    voiceNote?: any,
+    isSendWhileVoiceNoteRecorderPlayerRunning?: boolean,
+  ) => {
     setClosedPreview(true);
     setShowLinkPreview(false);
     setMessage('');
     setInputHeight(25);
+    setIsVoiceResult(false);
+    setVoiceNotes({
+      recordSecs: 0,
+      recordTime: '',
+      name: '',
+    });
     // -- Code for local message handling for normal and reply for now
     let months = [
       'Jan',
@@ -528,11 +823,16 @@ const InputBox = ({
     let hr = time.getHours();
     let min = time.getMinutes();
     let ID = Date.now();
-    let attachmentsCount = selectedFilesToUpload?.length; //if any
+    let filesToUpload = selectedFilesToUpload?.length;
+    let voiceNotesToUpload =
+      voiceNote?.length > 0 ? voiceNote : selectedVoiceNoteFilesToUpload;
+    let attachmentsCount =
+      filesToUpload > 0 ? filesToUpload : voiceNotesToUpload?.length; //if any
 
     let dummySelectedFileArr: any = []; //if any
     let dummyAttachmentsArr: any = []; //if any
 
+    // for making data for `images`, `videos` and `pdf` key
     if (attachmentsCount > 0) {
       for (let i = 0; i < attachmentsCount; i++) {
         let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
@@ -560,11 +860,14 @@ const InputBox = ({
       }
     }
 
+    // for making data for `attachments` key
     if (attachmentsCount > 0) {
       for (let i = 0; i < attachmentsCount; i++) {
         let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
         let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
-        let URI = selectedFilesToUpload[i].uri;
+        let audioAttachmentType = voiceNotesToUpload[i]?.type;
+        let audioURI = voiceNotesToUpload[i]?.uri;
+        let URI = selectedFilesToUpload[i]?.uri;
         if (attachmentType === IMAGE_TEXT) {
           let obj = {
             ...selectedFilesToUpload[i],
@@ -592,6 +895,19 @@ const InputBox = ({
             name: selectedFilesToUpload[i].name,
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
+        } else if (audioAttachmentType === VOICE_NOTE_TEXT) {
+          let obj = {
+            ...voiceNotesToUpload[i],
+            type: audioAttachmentType,
+            url: audioURI,
+            index: i,
+            name: voiceNotesToUpload[i].name,
+            metaRO: {
+              size: null,
+              duration: voiceNotesToUpload[i].duration,
+            },
+          };
+          dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         }
       }
     }
@@ -610,7 +926,10 @@ const InputBox = ({
       }
     });
 
-    const isMessageTrimmed = !!conversation.trim();
+    const isMessageTrimmed =
+      !!conversation.trim() ||
+      isVoiceResult ||
+      isSendWhileVoiceNoteRecorderPlayerRunning;
 
     // check if message is empty string or not
     if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
@@ -735,7 +1054,6 @@ const InputBox = ({
       }
 
       // -- Code for local message handling ended
-
       // condition for request DM for the first time
       if (
         chatroomType === ChatroomType.DMCHATROOM && // if DM
@@ -829,6 +1147,59 @@ const InputBox = ({
               type: EMPTY_BLOCK_DELETION,
               body: {},
             });
+          } else if (response && attachmentsCount > 0) {
+            // start uploading
+
+            dispatch({
+              type: SET_FILE_UPLOADING_MESSAGES,
+              body: {
+                message: isReply
+                  ? {
+                      ...replyObj,
+                      id: response?.id,
+                      temporaryId: ID,
+                      isInProgress: SUCCESS,
+                    }
+                  : {
+                      ...obj,
+                      id: response?.id,
+                      temporaryId: ID,
+                      isInProgress: SUCCESS,
+                    },
+                ID: response?.id,
+              },
+            });
+
+            let id = response?.id;
+            let message = isReply
+              ? {
+                  ...replyObj,
+                  id: response?.id,
+                  temporaryId: ID,
+                  isInProgress: SUCCESS,
+                }
+              : {
+                  ...obj,
+                  id: response?.id,
+                  temporaryId: ID,
+                  isInProgress: SUCCESS,
+                };
+
+            await myClient?.saveAttachmentUploadConversation(
+              id.toString(),
+              JSON.stringify(message),
+            );
+
+            if (voiceNotesToUpload?.length > 0) {
+              await handleFileUpload(
+                response?.id,
+                false,
+                true,
+                voiceNotesToUpload,
+              );
+            } else {
+              await handleFileUpload(response?.id, false);
+            }
           }
         } else {
           dispatch({
@@ -942,6 +1313,9 @@ const InputBox = ({
         ]),
       );
     }
+
+    dispatch({type: CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD});
+    setIsRecordingLocked(false);
     setOgTagsState({});
     setUrl('');
     setClosedOnce(false);
@@ -1197,8 +1571,226 @@ const InputBox = ({
     );
   };
 
+  // Audio and play section
+
+  // to stop recorder after 15 min
+  useEffect(() => {
+    (async function stopRecorder() {
+      if (isVoiceNoteRecording) {
+        await handleStopRecord();
+      }
+    })();
+  }, [stopRecording]);
+
+  // to start audio recording
+  const startRecord = async () => {
+    if (!isVoiceNoteRecording) {
+      const audioSet = generateAudioSet();
+
+      let name = generateVoiceNoteName();
+      const path =
+        Platform.OS === 'android'
+          ? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${name}.mp3`
+          : `${name}.m4a`;
+
+      const result = await audioRecorderPlayerAttachment.startRecorder(
+        path,
+        audioSet,
+      );
+      setIsVoiceNoteRecording(true);
+      setVoiceNotesLink(result);
+      audioRecorderPlayerAttachment.addRecordBackListener(e => {
+        const seconds = Math.floor(e.currentPosition / 1000);
+        if (seconds >= 900) {
+          setStopRecording(!stopRecording);
+        }
+        setVoiceNotes({
+          recordSecs: e.currentPosition,
+          recordTime: audioRecorderPlayerAttachment
+            .mmssss(Math.floor(e.currentPosition))
+            .slice(0, 5),
+          name: name,
+        });
+        return;
+      });
+    }
+  };
+
+  // to stop audio recording
+  const stopRecord = async () => {
+    if (isVoiceNoteRecording) {
+      await audioRecorderPlayerAttachment.stopRecorder();
+      audioRecorderPlayerAttachment.removeRecordBackListener();
+
+      // if isVoiceResult is true we show audio player instead of audio recorder
+      const voiceNote = {
+        uri: voiceNotesLink,
+        type: VOICE_NOTE_TEXT,
+        name: `${voiceNotes.name}.${isIOS ? 'm4a' : 'mp3'}`,
+        duration: Math.floor(voiceNotes.recordSecs / 1000),
+      };
+      dispatch({
+        type: SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
+        body: {
+          audio: [voiceNote],
+        },
+      });
+
+      setIsVoiceNoteRecording(false);
+
+      LMChatAnalytics.track(
+        Events.VOICE_NOTE_RECORDED,
+        new Map<string, string>([
+          [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+        ]),
+      );
+    }
+  };
+
+  const handleStopRecord = async () => {
+    // to give some time for initiating the start recorder, then only stop it
+    setTimeout(async () => {
+      await stopRecord();
+      setIsVoiceResult(true);
+      setIsRecordingLocked(false);
+    }, 500);
+  };
+
+  // to reset all the recording data we had previously
+  const clearVoiceRecord = async () => {
+    if (isVoiceNoteRecording) {
+      await stopRecord();
+    } else if (isVoiceNotePlaying) {
+      await stopPlay();
+    }
+    setVoiceNotes({
+      recordSecs: 0,
+      recordTime: '',
+      name: '',
+    });
+    setVoiceNotesPlayer({
+      currentPositionSec: 0,
+      currentDurationSec: 0,
+      playTime: '',
+      duration: '',
+    });
+    setVoiceNotesLink('');
+    setIsRecordingLocked(false);
+
+    dispatch({
+      type: CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
+    });
+
+    // if isVoiceResult is false we show audio recorder instead of audio player
+    setIsVoiceResult(false);
+
+    LMChatAnalytics.track(
+      Events.VOICE_NOTE_CANCELED,
+      new Map<string, string>([
+        [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
+      ]),
+    );
+  };
+
+  // to start playing audio recording
+  const startPlay = async (path: string) => {
+    await audioRecorderPlayerAttachment.startPlayer(path);
+    audioRecorderPlayerAttachment.addPlayBackListener(e => {
+      let playTime = audioRecorderPlayerAttachment.mmssss(
+        Math.floor(e.currentPosition),
+      );
+      let duration = audioRecorderPlayerAttachment.mmssss(
+        Math.floor(e.duration),
+      );
+      setVoiceNotesPlayer({
+        currentPositionSec: e.currentPosition,
+        currentDurationSec: e.duration,
+        playTime: audioRecorderPlayerAttachment
+          .mmssss(Math.floor(e.currentPosition))
+          .slice(0, 5),
+        duration: audioRecorderPlayerAttachment
+          .mmssss(Math.floor(e.duration))
+          .slice(0, 5),
+      });
+
+      // to reset the player after audio player completed it duration
+      if (playTime === duration) {
+        setIsVoiceNotePlaying(false);
+        setVoiceNotesPlayer({
+          currentPositionSec: 0,
+          currentDurationSec: 0,
+          playTime: '',
+          duration: '',
+        });
+      }
+      return;
+    });
+
+    LMChatAnalytics.track(
+      Events.VOICE_NOTE_PREVIEWED,
+      new Map<string, string>([
+        [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+        [Keys.CHATROOM_ID, chatroomID?.toString()],
+      ]),
+    );
+    setIsVoiceNotePlaying(true);
+  };
+
+  // to stop playing audio recording
+  const stopPlay = async () => {
+    await audioRecorderPlayerAttachment.stopPlayer();
+    setIsVoiceNotePlaying(false);
+  };
+
+  // to pause playing audio recording
+  const onPausePlay = async () => {
+    await audioRecorderPlayerAttachment.pausePlayer();
+    setIsVoiceNotePlaying(false);
+  };
+
+  // to resume playing audio recording
+  const onResumePlay = async () => {
+    await audioRecorderPlayerAttachment.resumePlayer();
+    setIsVoiceNotePlaying(true);
+  };
+
+  const askPermission = async () => {
+    if (!isIOS) {
+      const permission = await requestAudioRecordPermission();
+      setIsRecordingPermission(!!permission);
+    } else {
+      const permission = await request(PERMISSIONS.IOS.MICROPHONE);
+      if (permission === GRANTED) {
+        setIsRecordingPermission(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isVoiceNoteIconPress) {
+      setTimeout(() => {
+        setIsVoiceNoteIconPress(false);
+      }, 2000);
+    }
+  }, [isVoiceNoteIconPress]);
+
   return (
     <View>
+      {/* shows message how we record voice note */}
+      {isVoiceNoteIconPress && (
+        <View
+          style={[
+            styles.tapAndHold,
+            {bottom: isKeyBoardFocused ? (isIOS ? 65 : 110) : isIOS ? 80 : 70},
+          ]}>
+          <Text style={[styles.subTitle, {color: STYLES.$COLORS.TERTIARY}]}>
+            {TAP_AND_HOLD}
+          </Text>
+        </View>
+      )}
+
       <View
         style={[
           styles.inputContainer,
@@ -1208,7 +1800,7 @@ const InputBox = ({
                   ? Platform.OS === 'android'
                     ? 45
                     : 5
-                  : Platform.OS === 'ios'
+                  : isIOS
                   ? 20
                   : 5,
               }
@@ -1279,7 +1871,7 @@ const InputBox = ({
                           styles.infoContainer,
                           {
                             borderBottomWidth: 0.2,
-                            gap: Platform.OS === 'ios' ? 5 : 0,
+                            gap: isIOS ? 5 : 0,
                           },
                         ]}>
                         <Text
@@ -1338,7 +1930,10 @@ const InputBox = ({
               <TouchableOpacity
                 onPress={() => {
                   dispatch({type: SET_IS_REPLY, body: {isReply: false}});
-                  dispatch({type: SET_REPLY_MESSAGE, body: {replyMessage: ''}});
+                  dispatch({
+                    type: SET_REPLY_MESSAGE,
+                    body: {replyMessage: ''},
+                  });
                 }}
                 style={styles.replyBoxClose}>
                 <Image
@@ -1418,19 +2013,10 @@ const InputBox = ({
               (isReply && !isUploadScreen) || isEditable || isUserTagging
                 ? {
                     borderWidth: 0,
-                    margin: Platform.OS === 'ios' ? 0 : 2,
+                    margin: isIOS ? 0 : 2,
                   }
                 : null,
             ]}>
-            {/* <TouchableOpacity
-              style={styles.emojiButton}
-              onPress={() => setShowEmoji(!showEmoji)}>
-              <Image
-                source={require('../../assets/images/smile_emoji3x.png')}
-                style={styles.emoji}
-              />
-            </TouchableOpacity> */}
-
             {!!isUploadScreen && !!!isDoc ? (
               <TouchableOpacity
                 style={styles.addMoreButton}
@@ -1455,59 +2041,178 @@ const InputBox = ({
               </TouchableOpacity>
             ) : null}
 
-            <View
-              style={[
-                styles.inputParent,
-                !!isUploadScreen
-                  ? {
-                      marginHorizontal: 5,
-                    }
-                  : {marginHorizontal: 20},
-              ]}>
-              <TaggingView
-                defaultValue={message}
-                onChange={handleInputChange}
-                placeholder="Type here..."
-                placeholderTextColor="#aaa"
-                inputRef={myRef}
-                maxLength={
-                  chatRequestState === 0 || chatRequestState === null
-                    ? MAX_LENGTH
-                    : undefined
-                }
-                onContentSizeChange={event => {
-                  setInputHeight(event.nativeEvent.contentSize.height);
-                }}
+            {isDeleteAnimation ? (
+              <View
                 style={[
-                  styles.input,
-                  {height: Math.max(25, inputHeight)},
+                  styles.voiceNotesInputParent,
+                  styles.voiceRecorderInput,
                   {
-                    color: !!isUploadScreen
-                      ? STYLES.$BACKGROUND_COLORS.LIGHT
-                      : STYLES.$BACKGROUND_COLORS.DARK,
+                    paddingVertical: 0,
+                    marginVertical: 0,
+                    marginHorizontal: 10,
                   },
-                ]}
-                numberOfLines={6}
-                onBlur={() => {
-                  setIsKeyBoardFocused(false);
-                }}
-                onFocus={() => {
-                  setIsKeyBoardFocused(true);
-                }}
-                partTypes={[
-                  {
-                    trigger: '@', // Should be a single character like '@' or '#'
-                    textStyle: {
-                      color: STYLES.$COLORS.LIGHT_BLUE,
-                      fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                    }, // The mention style in the input
-                  },
-                ]}
-              />
-            </View>
+                ]}>
+                <View style={styles.alignItems}>
+                  <LottieView
+                    source={require('../../assets/lottieJSON/delete.json')}
+                    style={{height: 40, width: 40}}
+                    autoPlay
+                    // loop
+                  />
+                </View>
+              </View>
+            ) : !!voiceNotes?.recordTime && !isVoiceResult ? (
+              <View
+                style={[
+                  styles.voiceNotesInputParent,
+                  styles.voiceRecorderInput,
+                ]}>
+                <View style={styles.alignItems}>
+                  <Animated.View style={[{opacity: micIconOpacity}]}>
+                    <Image
+                      source={require('../../assets/images/record_icon3x.png')}
+                      style={[styles.emoji]}
+                    />
+                  </Animated.View>
+
+                  <Text style={styles.recordTitle}>
+                    {voiceNotes.recordTime}
+                  </Text>
+                </View>
+                {isRecordingLocked ? (
+                  <View style={styles.alignItems}>
+                    <TouchableOpacity onPress={handleStopRecord}>
+                      <Image
+                        source={require('../../assets/images/stop_recording_icon3x.png')}
+                        style={styles.emoji}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={clearVoiceRecord}>
+                      <Image
+                        source={require('../../assets/images/cross_circle_icon3x.png')}
+                        style={styles.emoji}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={styles.alignItems}>
+                    <Image
+                      style={styles.chevron}
+                      source={require('../../assets/images/left_chevron_icon3x.png')}
+                    />
+                    <Text style={styles.recordTitle}>{SLIDE_TO_CANCEL}</Text>
+                  </View>
+                )}
+              </View>
+            ) : isVoiceResult ? (
+              <View
+                style={[
+                  styles.voiceNotesInputParent,
+                  styles.voiceRecorderInput,
+                ]}>
+                <View style={styles.alignItems}>
+                  {isVoiceNotePlaying ? (
+                    <TouchableOpacity
+                      onPress={() => {
+                        onPausePlay();
+                      }}>
+                      <Image
+                        source={require('../../assets/images/pause_icon3x.png')}
+                        style={styles.emoji}
+                      />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (voiceNotesPlayer?.playTime !== '') {
+                          onResumePlay();
+                        } else {
+                          startPlay(voiceNotesLink);
+                        }
+                      }}>
+                      <Image
+                        source={require('../../assets/images/play_icon3x.png')}
+                        style={styles.emoji}
+                      />
+                    </TouchableOpacity>
+                  )}
+                  {isVoiceNotePlaying || voiceNotesPlayer?.playTime ? (
+                    <Text style={styles.recordTitle}>
+                      {voiceNotesPlayer?.playTime}
+                    </Text>
+                  ) : (
+                    <Text style={styles.recordTitle}>
+                      {voiceNotes?.recordTime}
+                    </Text>
+                  )}
+                </View>
+                <TouchableOpacity
+                  onPress={clearVoiceRecord}
+                  style={styles.alignItems}>
+                  <Image
+                    source={require('../../assets/images/cross_circle_icon3x.png')}
+                    style={styles.emoji}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.inputParent,
+                  !!isUploadScreen
+                    ? {
+                        marginHorizontal: 5,
+                      }
+                    : {marginHorizontal: 20},
+                ]}>
+                <TaggingView
+                  defaultValue={message}
+                  onChange={handleInputChange}
+                  placeholder="Type here..."
+                  placeholderTextColor="#aaa"
+                  inputRef={myRef}
+                  maxLength={
+                    chatRequestState === 0 || chatRequestState === null
+                      ? MAX_LENGTH
+                      : undefined
+                  }
+                  onContentSizeChange={event => {
+                    setInputHeight(event.nativeEvent.contentSize.height);
+                  }}
+                  style={[
+                    styles.input,
+                    {height: Math.max(25, inputHeight)},
+                    {
+                      color: !!isUploadScreen
+                        ? STYLES.$BACKGROUND_COLORS.LIGHT
+                        : STYLES.$BACKGROUND_COLORS.DARK,
+                    },
+                  ]}
+                  numberOfLines={6}
+                  onBlur={() => {
+                    setIsKeyBoardFocused(false);
+                  }}
+                  onFocus={() => {
+                    setIsKeyBoardFocused(true);
+                  }}
+                  partTypes={[
+                    {
+                      trigger: '@', // Should be a single character like '@' or '#'
+                      textStyle: {
+                        color: STYLES.$COLORS.LIGHT_BLUE,
+                        fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                      }, // The mention style in the input
+                    },
+                  ]}
+                />
+              </View>
+            )}
+
             {!isUploadScreen &&
             !(chatRequestState === 0 || chatRequestState === null) &&
-            !isEditable ? (
+            !isEditable &&
+            !voiceNotes?.recordTime &&
+            !isDeleteAnimation ? (
               <TouchableOpacity
                 style={styles.emojiButton}
                 onPress={() => {
@@ -1523,28 +2228,111 @@ const InputBox = ({
           </View>
         </View>
 
-        <TouchableOpacity
-          onPressOut={() => {
-            if (
-              chatroomType === ChatroomType.DMCHATROOM && // if DM
-              chatRequestState === null &&
-              isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
-            ) {
-              sendDmRequest();
-            } else {
-              if (isEditable) {
-                onEdit();
+        {/* Send message and send voice notes UI */}
+
+        {/* {
+          is message ||
+          is voice recorded ||
+          is File upload screen ||
+          is recording locked ||
+          is first DM message
+        } */}
+        {!!message ||
+        isVoiceResult ||
+        isUploadScreen ||
+        isRecordingLocked ||
+        (chatroomType === 10 && chatRequestState === null) ? (
+          <TouchableOpacity
+            onPressOut={async () => {
+              if (
+                chatroomType === ChatroomType.DMCHATROOM && // if DM
+                chatRequestState === null &&
+                isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
+              ) {
+                sendDmRequest();
               } else {
-                onSend(message);
+                if (isEditable) {
+                  onEdit();
+                } else {
+                  const voiceNote = [
+                    {
+                      uri: voiceNotesLink,
+                      type: VOICE_NOTE_TEXT,
+                      name: `${voiceNotes.name}.${isIOS ? 'm4a' : 'mp3'}`,
+                      duration: Math.floor(voiceNotes.recordSecs / 1000),
+                    },
+                  ];
+                  if (isVoiceNoteRecording) {
+                    await stopRecord();
+                    onSend(message, voiceNote, true);
+                  } else if (isVoiceNotePlaying) {
+                    await stopPlay();
+                    onSend(message, voiceNote, true);
+                  } else {
+                    onSend(message);
+                  }
+                }
               }
-            }
-          }}
-          style={styles.sendButton}>
-          <Image
-            source={require('../../assets/images/send_button3x.png')}
-            style={styles.emoji}
-          />
-        </TouchableOpacity>
+            }}
+            style={styles.sendButton}>
+            <Image
+              source={require('../../assets/images/send_button3x.png')}
+              style={styles.send}
+            />
+          </TouchableOpacity>
+        ) : (
+          <View>
+            {!!isRecordingPermission ? (
+              <GestureDetector gesture={composedGesture}>
+                <Animated.View>
+                  {voiceNotes.recordTime && !isRecordingLocked && (
+                    <View
+                      style={[styles.lockRecording, styles.inputBoxWithShadow]}>
+                      <Animated.View style={lockAnimatedStyles}>
+                        <Image
+                          source={require('../../assets/images/lock_icon3x.png')}
+                          style={[styles.emoji, {marginTop: 20}]}
+                        />
+                      </Animated.View>
+                      <Animated.View style={upChevronAnimatedStyles}>
+                        <Image
+                          source={require('../../assets/images/up_chevron_icon3x.png')}
+                          style={[styles.chevron, {marginTop: 20}]}
+                        />
+                      </Animated.View>
+                    </View>
+                  )}
+
+                  <Animated.View style={[styles.sendButton, panStyle]}>
+                    <TouchableWithoutFeedback
+                      onPress={() => {
+                        setIsVoiceNoteIconPress(true);
+                        Vibration.vibrate(0.5 * 100);
+                      }}
+                      style={[styles.sendButton, {position: 'absolute'}]}>
+                      <Image
+                        source={require('../../assets/images/mic_icon3x.png')}
+                        style={styles.mic}
+                      />
+                    </TouchableWithoutFeedback>
+                  </Animated.View>
+                </Animated.View>
+              </GestureDetector>
+            ) : (
+              <Animated.View style={[styles.sendButton, panStyle]}>
+                <TouchableWithoutFeedback
+                  onPress={askPermission}
+                  onLongPress={askPermission}
+                  style={[styles.sendButton, {position: 'absolute'}]}>
+                  <Image
+                    source={require('../../assets/images/mic_icon3x.png')}
+                    style={styles.mic}
+                  />
+                </TouchableWithoutFeedback>
+              </Animated.View>
+            )}
+          </View>
+        )}
       </View>
 
       {/* More features modal like select Images, Docs etc. */}

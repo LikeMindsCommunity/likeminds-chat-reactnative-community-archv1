@@ -6,10 +6,11 @@ import {
   Linking,
   Pressable,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
-import {decode} from '../../commonFuctions';
+import {convertSecondsToTime, decode} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
 import {
   LONG_PRESSED,
@@ -18,11 +19,7 @@ import {
   STATUS_BAR_STYLE,
 } from '../../store/types/types';
 import {useAppDispatch, useAppSelector} from '../../../store';
-import {
-  CAROUSEL_SCREEN,
-  IMAGE_SCREEN,
-  VIDEO_PLAYER,
-} from '../../constants/Screens';
+import {CAROUSEL_SCREEN} from '../../constants/Screens';
 import {
   AUDIO_TEXT,
   FAILED,
@@ -30,7 +27,26 @@ import {
   PDF_TEXT,
   SUCCESS,
   VIDEO_TEXT,
+  VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
+import Slider from '@react-native-community/slider';
+import {VoiceNotesPlayerProps} from '../InputBox/models';
+import TrackPlayer, {
+  useActiveTrack,
+  useProgress,
+} from 'react-native-track-player';
+import {
+  onPausePlay,
+  onResumePlay,
+  setupPlayer,
+  startPlay,
+  stopPlay,
+} from '../../audio';
+import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {Events, Keys} from '../../enums';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import {Base64} from '../../aws-exports';
+import {onSeekTo} from '../../audio/Controls';
 
 interface AttachmentConversations {
   item: any;
@@ -57,9 +73,95 @@ const AttachmentConversations = ({
   isReply,
   chatroomName,
 }: AttachmentConversations) => {
+  const [voiceNotesPlayer, setVoiceNotesPlayer] =
+    useState<VoiceNotesPlayerProps>({
+      currentPositionSec: 0,
+      currentDurationSec: 0,
+      playTime: '',
+      duration: '',
+    });
+  const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
+  const progress = useProgress();
+  const activeTrack = useActiveTrack();
+
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
+
+  // to initialise track player
+  useEffect(() => {
+    async function setup() {
+      await setupPlayer();
+    }
+    setup();
+  }, []);
+
+  // to stop the audio if move out of the chatroom
+  useEffect(() => {
+    if (progress.duration <= progress.position) {
+      TrackPlayer.reset();
+      setIsVoiceNotePlaying(false);
+    }
+  }, [progress]);
+
+  // to handle start player
+  const handleStartPlay = async (path: string) => {
+    if (Platform.OS === 'ios') {
+      const fileExtension = 'm4a';
+
+      const dir = ReactNativeBlobUtil.fs.dirs.DocumentDir;
+      const localPath = `${dir}/${Base64.btoa(path)}.${fileExtension}`;
+      ReactNativeBlobUtil.config({
+        fileCache: true,
+        appendExt: fileExtension,
+        path: localPath,
+      })
+        .fetch('GET', path)
+        .then(async res => {
+          const internalUrl = `file://${res.path()}`;
+          await startPlay(internalUrl, path);
+          setIsVoiceNotePlaying(true);
+        });
+    } else {
+      await startPlay(path, path);
+      setIsVoiceNotePlaying(true);
+    }
+    LMChatAnalytics.track(
+      Events.VOICE_NOTE_PLAYED,
+      new Map<string, string>([
+        [Keys.CHATROOM_TYPE, item?.state?.toString()],
+        [Keys.CHATROOM_ID, item?.chatroomId?.toString()],
+        [Keys.MESSAGE_ID, item?.id?.toString()],
+      ]),
+    );
+  };
+
+  // to stop playing audio recording
+  const handleStopPlay = async () => {
+    const value = await stopPlay();
+    setIsVoiceNotePlaying(value);
+  };
+
+  // to pause playing audio recording
+  const handleOnPausePlay = async () => {
+    const value = await onPausePlay();
+    setIsVoiceNotePlaying(value);
+  };
+
+  // to resume playing audio recording
+  const handleOnResumePlay = async () => {
+    const value = await onResumePlay();
+    setIsVoiceNotePlaying(value);
+  };
+
+  // to seek player to the provided time
+  const handleOnSeekTo = async (value: number) => {
+    let secondsToSeek = value * (firstAttachment?.metaRO?.duration / 100);
+    await onSeekTo(secondsToSeek);
+  };
+
   let firstAttachment = item?.attachments[0];
+  const isAudioActive =
+    activeTrack?.externalUrl === firstAttachment?.url ? true : false;
   return (
     <View
       style={[
@@ -120,6 +222,112 @@ const AttachmentConversations = ({
             <Text style={styles.deletedMsg}>
               This message is not supported in this app yet.
             </Text>
+          </View>
+        ) : firstAttachment?.type === VOICE_NOTE_TEXT ? (
+          <View>
+            <View style={styles.voiceNotesParentBox}>
+              {isVoiceNotePlaying && isAudioActive ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    handleOnPausePlay();
+                  }}
+                  style={styles.playPauseBox}>
+                  <Image
+                    source={require('../../assets/images/pause_icon3x.png')}
+                    style={styles.playPauseImage}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (progress.position > 0 && isAudioActive) {
+                      handleOnResumePlay();
+                    } else {
+                      handleStartPlay(firstAttachment?.url);
+                    }
+                  }}
+                  style={styles.playPauseBox}>
+                  <Image
+                    style={styles.playPauseImage}
+                    source={require('../../assets/images/play_icon3x.png')}
+                  />
+                </TouchableOpacity>
+              )}
+              <View
+                style={{
+                  flex: 1,
+                  marginTop: Platform.OS === 'ios' ? 0 : 10,
+                  gap: 3,
+                }}>
+                <Slider
+                  minimumValue={0}
+                  maximumValue={100}
+                  step={1}
+                  value={
+                    isAudioActive
+                      ? (progress.position / progress.duration) * 100
+                      : 0
+                  }
+                  minimumTrackTintColor="#ffad31"
+                  maximumTrackTintColor="grey"
+                  tapToSeek={true}
+                  onSlidingComplete={handleOnSeekTo}
+                  thumbTintColor="#ffad31"
+                />
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    marginLeft: 10,
+                    alignItems: 'center',
+                  }}>
+                  <Image
+                    source={require('../../assets/images/mic_icon3x.png')}
+                    style={[styles.smallIcon, {tintColor: 'grey'}]}
+                  />
+                  {isVoiceNotePlaying ? (
+                    <Text style={styles.recordTitle}>
+                      {!isAudioActive && !!progress.position
+                        ? convertSecondsToTime(0)
+                        : convertSecondsToTime(Math.floor(progress.position))}
+                    </Text>
+                  ) : (
+                    <Text style={styles.recordTitle}>
+                      {convertSecondsToTime(
+                        Math.floor(firstAttachment?.metaRO?.duration),
+                      )}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </View>
+            {item?.isInProgress === SUCCESS ? (
+              <View style={styles.uploadingIndicator}>
+                <ActivityIndicator
+                  size="large"
+                  color={STYLES.$COLORS.SECONDARY}
+                />
+              </View>
+            ) : item?.isInProgress === FAILED ? (
+              <View style={styles.uploadingIndicator}>
+                <Pressable
+                  onPress={() => {
+                    handleFileUpload(item?.id, true);
+                  }}
+                  style={({pressed}) => [
+                    {
+                      opacity: pressed ? 0.5 : 1,
+                    },
+                    styles.retryButton,
+                  ]}>
+                  <Image
+                    style={styles.retryIcon}
+                    source={require('../../assets/images/retry_file_upload3x.png')}
+                  />
+                  <Text style={styles.retryText}>RETRY</Text>
+                </Pressable>
+              </View>
+            ) : null}
           </View>
         ) : null}
 
@@ -194,9 +402,6 @@ export const VideoConversations = ({
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
-  );
-  const {isFileUploading, fileUploadingID}: any = useAppSelector(
-    state => state.upload,
   );
   const [isFullList, setIsFullList] = useState(false);
 
