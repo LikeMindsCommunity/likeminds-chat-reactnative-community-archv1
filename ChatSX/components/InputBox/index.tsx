@@ -299,7 +299,6 @@ const InputBox = ({
   useEffect(() => {
     setTimeout(async () => {
       if (!isLongPressedState && isVoiceNoteRecording && !isRecordingLocked) {
-        console.log('11');
         await stopRecord();
         setIsVoiceResult(true);
       }
