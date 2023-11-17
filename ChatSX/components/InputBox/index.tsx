@@ -1758,7 +1758,11 @@ const InputBox = ({
     <View>
       {/* shows message how we record voice note */}
       {isVoiceNoteIconPress && (
-        <View style={styles.tapAndHold}>
+        <View
+          style={[
+            styles.tapAndHold,
+            {bottom: isKeyBoardFocused ? (isIOS ? 65 : 110) : isIOS ? 80 : 70},
+          ]}>
           <Text style={[styles.subTitle, {color: STYLES.$COLORS.TERTIARY}]}>
             {TAP_AND_HOLD}
           </Text>
