@@ -4,7 +4,6 @@ import {
   useIsFocused,
 } from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
 import {
   View,
   Text,
@@ -25,7 +24,7 @@ import {
   ScrollViewProps,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
-import {myClient} from '../../..';
+import {SyncConversationRequest, myClient} from '../../..';
 import {
   SHOW_LIST_REGEX,
   copySelectedMessages,
@@ -114,6 +113,7 @@ import {
   WARNING_MSG_PRIVATE_CHATROOM,
   WARNING_MSG_PUBLIC_CHATROOM,
   USER_SCHEMA_RO,
+  VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -124,7 +124,6 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import {SyncConversationRequest} from '@likeminds.community/chat-rn';
 import {useQuery} from '@realm/react';
 import {Share} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -135,6 +134,7 @@ import {ChatroomType} from '../../enums';
 import {onShare} from '../../shareUtils';
 import {ChatroomActions, Events} from '../../enums';
 import {UserSchemaResponse} from '../../db/models';
+import TrackPlayer from 'react-native-track-player';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
 
@@ -226,6 +226,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   );
 
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+  const {selectedVoiceNoteFilesToUpload = []}: any = useAppSelector(
+    state => state.chatroom,
+  );
 
   const INITIAL_SYNC_PAGE = 1;
   const PAGE_SIZE = 200;
@@ -286,7 +289,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   let routes = navigation.getState()?.routes;
 
-  let previousRoute = routes[routes.length - 2];
+  let previousRoute = routes[routes?.length - 2];
 
   let isSecret = chatroomDBDetails?.isSecret;
 
@@ -325,7 +328,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               style={styles.backBtn}
             />
           </TouchableOpacity>
-          {!(Object.keys(chatroomDBDetails).length === 0) ? (
+          {!(Object.keys(chatroomDBDetails)?.length === 0) ? (
             <View style={styles.alignRow}>
               {chatroomType === ChatroomType.DMCHATROOM ? (
                 <View style={styles.profile}>
@@ -413,13 +416,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 fontSize: STYLES.$FONT_SIZES.LARGE,
                 fontFamily: STYLES.$FONT_TYPES.BOLD,
               }}>
-              {selectedMessages.length}
+              {selectedMessages?.length}
             </Text>
           </View>
         </View>
       ),
       headerRight: () => {
-        let len = selectedMessages.length;
+        let len = selectedMessages?.length;
         let communityManagerState = 1;
         let userCanDeleteParticularMessageArr: any = [];
         let selectedMessagesIDArr: any = [];
@@ -428,7 +431,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let isDelete = false;
         let isFirstMessageDeleted = selectedMessages[0]?.deletedBy;
         let isSelectedMessageEditable = false;
-        let selectedMessagesLength = selectedMessages.length;
+        let selectedMessagesLength = selectedMessages?.length;
 
         //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
         if (selectedMessagesLength === 1) {
@@ -483,7 +486,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         if (userCanDeleteParticularMessageArr.includes(false)) {
           if (
             user?.state === communityManagerState &&
-            userCanDeleteParticularMessageArr.length === 1 &&
+            userCanDeleteParticularMessageArr?.length === 1 &&
             !!!isFirstMessageDeleted
           ) {
             isDelete = true;
@@ -622,6 +625,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                             user,
                             conversations,
                           );
+
+                        // to stop audio player if we delete the message
+                        const conversation: any =
+                          await myClient.getConversation(
+                            selectedMessagesIDArr[i],
+                          );
+                        if (
+                          conversation[0]?.attachments[0]?.type ==
+                          VOICE_NOTE_TEXT
+                        ) {
+                          await TrackPlayer.reset();
+                        }
                       }
                       dispatch({
                         type: GET_CONVERSATIONS_SUCCESS,
@@ -705,7 +720,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
     const DB_RESPONSE = val?.data;
 
-    if (DB_RESPONSE?.conversationsData.length !== 0) {
+    if (DB_RESPONSE?.conversationsData?.length !== 0) {
       await myClient?.saveConversationData(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomMeta,
@@ -905,6 +920,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     };
   }, []);
 
+  // this useEffect is to stop audio player when going out of chatroom, if any audio is running
+  useEffect(() => {
+    return () => {
+      TrackPlayer.reset();
+    };
+  }, []);
+
+  // this useEffect is to stop audio player when the app is in background
+  useEffect(() => {
+    if (!isFocused) {
+      TrackPlayer.reset();
+    }
+  }, [isFocused]);
+
   //Logic for navigation backAction
   function backAction() {
     dispatch({type: SELECTED_MESSAGES, body: []});
@@ -998,7 +1027,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this useEffect scroll to Index of latest message when we send the message.
   useEffect(() => {
-    if (conversations.length > 0) {
+    if (conversations?.length > 0) {
       flatlistRef?.current?.scrollToIndex({
         animated: false,
         index: 0,
@@ -1007,7 +1036,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }, [messageSent]);
   // this useEffect update headers when we longPress or update selectedMessages array.
   useEffect(() => {
-    if (selectedMessages.length === 0) {
+    if (selectedMessages?.length === 0) {
       setInitialHeader();
     } else if (!!isLongPress) {
       setSelectedHeader();
@@ -1028,7 +1057,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       conversationId,
     );
     const DB_RESPONSE = val?.data;
-    if (DB_RESPONSE?.conversationsData.length !== 0) {
+    if (DB_RESPONSE?.conversationsData?.length !== 0) {
       await myClient?.saveConversationData(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomMeta,
@@ -1079,13 +1108,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     if (isFocused) {
       routes = navigation.getState()?.routes;
-      previousRoute = routes[routes.length - 2];
+      previousRoute = routes[routes?.length - 2];
     }
   }, [isFocused]);
 
   //This useEffect has logic to or hide message privately when long press on a message
   useEffect(() => {
-    if (selectedMessages.length === 1) {
+    if (selectedMessages?.length === 1) {
       let selectedMessagesMember = selectedMessages[0]?.member;
       if (
         showDM &&
@@ -1109,7 +1138,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function paginatedData(newPage: number) {
     let payload = {
       chatroomID: chatroomID,
-      conversationID: conversations[conversations.length - 1]?.id,
+      conversationID: conversations[conversations?.length - 1]?.id,
       scrollDirection: 0,
       paginateBy: 50,
       topNavigate: false,
@@ -1124,7 +1153,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const newConversations = await myClient.getConversations(
       chatroomID,
       100,
-      conversations[conversations.length - 1].createdEpoch,
+      conversations[conversations?.length - 1].createdEpoch,
     );
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
@@ -1528,11 +1557,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const sendReaction = (val: any, isReactionButton: boolean) => {
     let previousMsg = selectedMessages[0];
     let changedMsg;
-    if (selectedMessages[0]?.reactions.length > 0) {
+    if (selectedMessages[0]?.reactions?.length > 0) {
       let isReactedArr = selectedMessages[0]?.reactions.filter(
         (val: any) => val?.member?.id == user?.id,
       );
-      if (isReactedArr.length > 0) {
+      if (isReactedArr?.length > 0) {
         // Reacted different emoji
         if (isReactedArr[0].reaction !== val) {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
@@ -1725,7 +1754,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         const filterdMessages = selectedMessages.filter(
           (val: any) => val?.id !== item?.id && !isStateIncluded,
         );
-        if (filterdMessages.length > 0) {
+        if (filterdMessages?.length > 0) {
           dispatch({
             type: SELECTED_MESSAGES,
             body: [...filterdMessages],
@@ -1751,7 +1780,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         const filterdMessages = selectedMessages.filter(
           (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
         );
-        if (filterdMessages.length > 0) {
+        if (filterdMessages?.length > 0) {
           dispatch({
             type: SELECTED_MESSAGES,
             body: [...filterdMessages],
@@ -1947,6 +1976,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let item = selectedImages[i];
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
+      let voiceNoteAttachmentType = item?.type;
       let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
@@ -2014,6 +2044,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             fileType = VIDEO_TEXT;
           } else if (attachmentType === IMAGE_TEXT) {
             fileType = IMAGE_TEXT;
+          } else if (voiceNoteAttachmentType === VOICE_NOTE_TEXT) {
+            fileType = VOICE_NOTE_TEXT;
           }
 
           let payload = {
@@ -2026,6 +2058,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     size: selectedFilesToUpload[i]?.fileSize,
                     duration: selectedFilesToUpload[i]?.duration,
                   }
+                : fileType === VOICE_NOTE_TEXT
+                ? {
+                    size: null,
+                    duration: item?.duration,
+                  }
                 : {
                     size:
                       docAttachmentType === PDF_TEXT
@@ -2035,6 +2072,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             name:
               docAttachmentType === PDF_TEXT
                 ? selectedFilesToUpload[i]?.name
+                : voiceNoteAttachmentType === VOICE_NOTE_TEXT
+                ? item?.name
                 : selectedFilesToUpload[i]?.fileName,
             type: fileType,
             url: awsResponse,
@@ -2086,45 +2125,71 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     );
   };
 
-  const handleFileUpload = async (conversationID: any, isRetry: any) => {
-    LMChatAnalytics.track(
-      Events.ATTACHMENT_UPLOAD_ERROR,
-      new Map<string, string>([
-        [Keys.CHATROOM_ID, chatroomID?.toString()],
-        [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
-        [Keys.CLICKED_RETRY, true],
-      ]),
-    );
-    let selectedFilesToUpload = uploadingFilesMessages[conversationID];
-    dispatch({
-      type: SET_FILE_UPLOADING_MESSAGES,
-      body: {
-        message: {
-          ...selectedFilesToUpload,
-          isInProgress: SUCCESS,
-        },
-        ID: conversationID,
-      },
-    });
-    let id = conversationID;
-    let message = {
-      ...selectedFilesToUpload,
-      isInProgress: SUCCESS,
-    };
+  const handleFileUpload = async (
+    conversationID: number,
+    isRetry: boolean,
+    isVoiceNote?: boolean,
+    voiceNotesToUpload?: any,
+  ) => {
+    if (isVoiceNote) {
+      const res = await uploadResource({
+        selectedImages: voiceNotesToUpload,
+        conversationID: conversationID,
+        chatroomID: chatroomID,
+        selectedFilesToUpload: voiceNotesToUpload,
+        uploadingFilesMessages,
+        isRetry: isRetry,
+      });
 
-    await myClient?.saveAttachmentUploadConversation(
-      id?.toString(),
-      JSON.stringify(message),
-    );
-    const res = await uploadResource({
-      selectedImages: selectedFilesToUpload?.attachments,
-      conversationID: conversationID,
-      chatroomID: chatroomID,
-      selectedFilesToUpload: selectedFilesToUpload,
-      uploadingFilesMessages,
-      isRetry: isRetry,
-    });
-    return res;
+      LMChatAnalytics.track(
+        Events.VOICE_NOTE_SENT,
+        new Map<string, string>([
+          [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+        ]),
+      );
+
+      return res;
+    } else {
+      LMChatAnalytics.track(
+        Events.ATTACHMENT_UPLOAD_ERROR,
+        new Map<string, string>([
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+          [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
+          [Keys.CLICKED_RETRY, true],
+        ]),
+      );
+      let selectedFilesToUpload = uploadingFilesMessages[conversationID];
+      dispatch({
+        type: SET_FILE_UPLOADING_MESSAGES,
+        body: {
+          message: {
+            ...selectedFilesToUpload,
+            isInProgress: SUCCESS,
+          },
+          ID: conversationID,
+        },
+      });
+      let id = conversationID;
+      let message = {
+        ...selectedFilesToUpload,
+        isInProgress: SUCCESS,
+      };
+
+      await myClient?.saveAttachmentUploadConversation(
+        id.toString(),
+        JSON.stringify(message),
+      );
+      const res = await uploadResource({
+        selectedImages: selectedFilesToUpload?.attachments,
+        conversationID: conversationID,
+        chatroomID: chatroomID,
+        selectedFilesToUpload: selectedFilesToUpload,
+        uploadingFilesMessages,
+        isRetry: isRetry,
+      });
+      return res;
+    }
   };
 
   const onReplyPrivatelyClick = async (uuid: any, conversationId: string) => {
@@ -2201,7 +2266,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function endOfPaginatedData() {
     let payload = {
       chatroomID: chatroomID,
-      conversationID: conversations[conversations.length - 1]?.id,
+      conversationID: conversations[conversations?.length - 1]?.id,
       scrollDirection: 0, //scroll up -> 0
       paginateBy: 50,
       topNavigate: false,
@@ -2229,9 +2294,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // Function checks the pagination logic, if it verifies the condition then call endLoadData
   const handleOnEndReached = () => {
-    if (!isLoading && conversations.length > 0) {
+    if (!isLoading && conversations?.length > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
+      if (conversations?.length > 15) {
         const newPage = endPage + 1;
         setEndPage(newPage);
         endLoadData();
@@ -2297,9 +2362,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // Function checks the pagination logic, if it verifies the condition then call startLoadData
   const handleOnStartReached = () => {
-    if (!isLoading && conversations.length > 0) {
+    if (!isLoading && conversations?.length > 0) {
       // Checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
+      if (conversations?.length > 15) {
         const newPage = startPage + 1;
         setStartPage(newPage);
         startLoadData();
@@ -2459,7 +2524,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
               return (
                 <View>
-                  {index < conversations.length &&
+                  {index < conversations?.length &&
                   conversations[index]?.date !==
                     conversations[index + 1]?.date ? (
                     <View style={[styles.statusMessage]}>
@@ -2550,7 +2615,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               );
             }}
             onEndReached={async () => {
-              if (shouldLoadMoreChat && conversations.length > 0) {
+              if (shouldLoadMoreChat && conversations?.length > 0) {
                 handleLoadMore();
               }
               return;
@@ -2568,9 +2633,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           marginTop: 'auto',
         }}>
         {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
-        {chatroomType !== ChatroomType.DMCHATROOM && memberRights.length > 0 ? (
+        {chatroomType !== ChatroomType.DMCHATROOM &&
+        memberRights?.length > 0 ? (
           <View>
-            {!(Object.keys(chatroomDBDetails).length === 0) &&
+            {!(Object.keys(chatroomDBDetails)?.length === 0) &&
             previousRoute?.name === EXPLORE_FEED
               ? !!!chatroomFollowStatus && (
                   <TouchableOpacity
@@ -2586,7 +2652,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </TouchableOpacity>
                 )
               : null}
-            {!(Object.keys(chatroomDBDetails).length === 0) ? (
+            {!(Object.keys(chatroomDBDetails)?.length === 0) ? (
               //case to block normal user from messaging in a chatroom where only CMs can message
               user.state !== 1 &&
               chatroomDBDetails?.memberCanMessage === false ? (
@@ -2629,7 +2695,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     here.
                   </Text>
                 </View>
-              ) : !(Object.keys(chatroomDBDetails).length === 0) &&
+              ) : !(Object.keys(chatroomDBDetails)?.length === 0) &&
                 previousRoute?.name === HOMEFEED &&
                 isRealmDataPresent ? (
                 <View
@@ -2694,7 +2760,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             )}
           </View>
         ) : chatroomType === ChatroomType.DMCHATROOM &&
-          memberRights.length > 0 ? (
+          memberRights?.length > 0 ? (
           <View>
             {chatRequestState === 0 &&
             (!!chatroomDBDetails?.chatRequestedBy
@@ -2838,7 +2904,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       {/* Report Action Modal */}
       <Modal
         transparent={true}
-        visible={reportModalVisible && selectedMessages.length == 1}
+        visible={reportModalVisible && selectedMessages?.length == 1}
         onRequestClose={() => {
           setReportModalVisible(!modalVisible);
         }}>

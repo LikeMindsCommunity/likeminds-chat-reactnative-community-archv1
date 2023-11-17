@@ -37,9 +37,16 @@ export const styles = StyleSheet.create({
   emojiButton: {
     padding: 10,
   },
+
   emoji: {
     width: 22,
     height: 22,
+    resizeMode: 'contain',
+  },
+
+  chevron: {
+    width: 12,
+    height: 12,
     resizeMode: 'contain',
   },
 
@@ -207,7 +214,7 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
   },
-  iconContainer: {alignItems: 'center', margin: 5 * pixelRatio},
+  iconContainer: {alignItems: 'center', margin: 5 * pixelRatio, gap: 5},
   avatar: {
     width: 30,
     height: 30,
@@ -228,6 +235,12 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.MSG,
+  },
+  recordTitle: {
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
+    marginTop: Platform.OS === 'ios' ? 3 : 0,
   },
   messageCustomTitle: {
     color: STYLES.$COLORS.SECONDARY,
@@ -272,6 +285,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    textAlign: 'center',
   },
   voiceRecorderInput: {
     marginHorizontal: 20,
@@ -280,9 +294,31 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  lockRecording: {
+    backgroundColor: 'white',
+    height: 150,
+    width: 50,
+    borderRadius: 50,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
   linkPreviewImageView: {
     marginLeft: 10,
     marginTop: 10,
     width: '30%',
+  },
+  tapAndHold: {
+    opacity: 0.8,
+    backgroundColor: 'black',
+    padding: 10,
+    position: 'absolute',
+    bottom: 80,
+    right: 35,
+    borderRadius: 10,
+    borderBottomRightRadius: 0,
   },
 });

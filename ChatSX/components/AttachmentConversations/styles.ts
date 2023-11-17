@@ -1,10 +1,16 @@
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import STYLES from '../../constants/Styles';
 
 export const styles = StyleSheet.create({
   icon: {
     height: 40,
     width: 40,
+    resizeMode: 'contain',
+    marginRight: 5,
+  },
+  smallIcon: {
+    height: 15,
+    width: 15,
     resizeMode: 'contain',
     marginRight: 5,
   },
@@ -152,5 +158,29 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     marginTop: 3,
+  },
+  voiceNotesParentBox: {
+    display: 'flex',
+    flexDirection: 'row',
+    flex: 1,
+    gap: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  playPauseBox: {
+    height: 40,
+    width: 40,
+    borderRadius: 30,
+    backgroundColor: '#ffad31',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playPauseImage: {height: 30, width: 30, tintColor: 'white'},
+  recordTitle: {
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
+    marginTop: Platform.OS === 'ios' ? 3 : 0,
   },
 });
