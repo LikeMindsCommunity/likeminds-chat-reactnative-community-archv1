@@ -216,6 +216,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [lastScrollOffset, setLastScrollOffset] = useState(true);
   const [response, setResponse] = useState([]);
   const [isRealmDataPresent, setIsRealmDataPresent] = useState(false);
+  const [flashListMounted, setFlashListMounted] = useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
@@ -3011,119 +3012,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         </View>
       ) : (
         <>
-          {!(Object.keys(currentChatroomTopic).length === 0) &&
-          chatroomType !== ChatroomType.DMCHATROOM ? (
-            <Pressable
-              onPress={async () => {
-                let index = conversations.findIndex(
-                  (element: any) => element?.id == currentChatroomTopic?.id,
-                );
-                if (index >= 0) {
-                  flatlistRef.current?.scrollToIndex({
-                    animated: true,
-                    index,
-                  });
-                  setIsFound(true);
-                } else {
-                  const newConversation = await getCurrentConversation(
-                    currentChatroomTopic,
-                    chatroomID?.toString(),
-                  );
-                  dispatch({
-                    type: GET_CONVERSATIONS_SUCCESS,
-                    body: {conversations: newConversation},
-                  });
-                  let index = newConversation.findIndex(
-                    element => element?.id == currentChatroomTopic?.id,
-                  );
-                  if (index >= 0) {
-                    flatlistRef.current?.scrollToIndex({
-                      animated: true,
-                      index,
-                    });
-                    setIsFound(true);
-                  }
-                }
-              }}>
-              <View style={styles.chatroomTopic}>
-                <View>
-                  <Image
-                    source={
-                      !!currentChatroomTopic?.member?.imageUrl
-                        ? {uri: currentChatroomTopic?.member?.imageUrl}
-                        : require('../../assets/images/default_pic.png')
-                    }
-                    style={styles.chatroomTopicAvatar}
-                  />
-                </View>
-                <View style={styles.chatRoomTopicInfo}>
-                  <Text
-                    ellipsizeMode="tail"
-                    numberOfLines={1}
-                    style={{
-                      color: STYLES.$COLORS.PRIMARY,
-                      fontSize: STYLES.$FONT_SIZES.LARGE,
-                      fontFamily: STYLES.$FONT_TYPES.BOLD,
-                    }}>
-                    Current Topic
-                  </Text>
-
-                  {currentChatroomTopic?.hasFiles == true ? (
-                    getIconAttachment(currentChatroomTopic)
-                  ) : currentChatroomTopic?.state === 10 ? (
-                    getIconAttachment(currentChatroomTopic)
-                  ) : currentChatroomTopic?.ogTags?.url !== null &&
-                    currentChatroomTopic?.ogTags ? (
-                    getIconAttachment(currentChatroomTopic)
-                  ) : (
-                    <Text
-                      ellipsizeMode="tail"
-                      numberOfLines={2}
-                      style={{
-                        color: STYLES.$COLORS.MSG,
-                        fontSize: STYLES.$FONT_SIZES.MEDIUM,
-                        fontFamily: STYLES.$FONT_TYPES.LIGHT,
-                        lineHeight: 18,
-                      }}>
-                      {decode(
-                        currentChatroomTopic?.answer,
-                        false,
-                        chatroomName,
-                        user?.sdkClientInfo?.community,
-                      )}
-                    </Text>
-                  )}
-                </View>
-                <View>
-                  {currentChatroomTopic?.attachmentCount > 0 &&
-                  currentChatroomTopic?.attachments.length > 0 &&
-                  currentChatroomTopic?.attachments[0]?.type !== 'pdf' ? (
-                    <Image
-                      source={{
-                        uri:
-                          currentChatroomTopic?.attachments[0]?.type == 'image'
-                            ? currentChatroomTopic?.attachments[0]?.url
-                            : currentChatroomTopic?.attachments[0]
-                                ?.thumbnailUrl,
-                      }}
-                      style={styles.chatroomTopicAttachment}
-                    />
-                  ) : currentChatroomTopic?.ogTags?.url !== null &&
-                    currentChatroomTopic?.ogTags?.image !== '' &&
-                    currentChatroomTopic?.ogTags !== undefined &&
-                    currentChatroomTopic?.ogTags !== null &&
-                    Object.keys(currentChatroomTopic).length !== 0 ? (
-                    <Image
-                      source={{
-                        uri: currentChatroomTopic?.ogTags?.image,
-                      }}
-                      style={styles.chatroomTopicAttachment}
-                    />
-                  ) : null}
-                </View>
-              </View>
-            </Pressable>
-          ) : null}
           <FlashList
             ref={flatlistRef}
             data={conversations}
@@ -3139,7 +3027,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 conversations,
               ],
             }}
-            estimatedItemSize={150}
+            estimatedItemSize={250}
             renderItem={({item: value, index}: any) => {
               let uploadingFilesMessagesIDArr = Object.keys(
                 uploadingFilesMessages,
@@ -3257,6 +3145,131 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             keyboardShouldPersistTaps={'handled'}
             inverted
           />
+          {!(Object.keys(currentChatroomTopic).length === 0) &&
+          chatroomType !== ChatroomType.DMCHATROOM ? (
+            <Pressable
+              style={styles.chatroomTop}
+              onPress={async () => {
+                let index = conversations.findIndex(
+                  (element: any) => element?.id == currentChatroomTopic?.id,
+                );
+                if (index >= 0) {
+                  if (!flashListMounted) {
+                    setTimeout(() => {
+                      flatlistRef.current?.scrollToIndex({
+                        animated: true,
+                        index,
+                      });
+                      setIsFound(true);
+                      setFlashListMounted(true);
+                    }, 1000);
+                  } else {
+                    flatlistRef.current?.scrollToIndex({
+                      animated: true,
+                      index,
+                    });
+                    setIsFound(true);
+                  }
+                } else {
+                  const newConversation = await getCurrentConversation(
+                    currentChatroomTopic,
+                    chatroomID?.toString(),
+                  );
+                  dispatch({
+                    type: GET_CONVERSATIONS_SUCCESS,
+                    body: {conversations: newConversation},
+                  });
+                  let index = newConversation.findIndex(
+                    element => element?.id == currentChatroomTopic?.id,
+                  );
+                  if (index >= 0) {
+                    flatlistRef.current?.scrollToIndex({
+                      animated: true,
+                      index,
+                    });
+                    setIsFound(true);
+                  }
+                }
+              }}>
+              <View style={styles.chatroomTopic}>
+                <View>
+                  <Image
+                    source={
+                      !!currentChatroomTopic?.member?.imageUrl
+                        ? {uri: currentChatroomTopic?.member?.imageUrl}
+                        : require('../../assets/images/default_pic.png')
+                    }
+                    style={styles.chatroomTopicAvatar}
+                  />
+                </View>
+                <View style={styles.chatRoomTopicInfo}>
+                  <Text
+                    ellipsizeMode="tail"
+                    numberOfLines={1}
+                    style={{
+                      color: STYLES.$COLORS.PRIMARY,
+                      fontSize: STYLES.$FONT_SIZES.LARGE,
+                      fontFamily: STYLES.$FONT_TYPES.BOLD,
+                    }}>
+                    Current Topic
+                  </Text>
+
+                  {currentChatroomTopic?.hasFiles == true ? (
+                    getIconAttachment(currentChatroomTopic)
+                  ) : currentChatroomTopic?.state === 10 ? (
+                    getIconAttachment(currentChatroomTopic)
+                  ) : currentChatroomTopic?.ogTags?.url !== null &&
+                    currentChatroomTopic?.ogTags ? (
+                    getIconAttachment(currentChatroomTopic)
+                  ) : (
+                    <Text
+                      ellipsizeMode="tail"
+                      numberOfLines={2}
+                      style={{
+                        color: STYLES.$COLORS.MSG,
+                        fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                        fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                        lineHeight: 18,
+                      }}>
+                      {decode(
+                        currentChatroomTopic?.answer,
+                        false,
+                        chatroomName,
+                        user?.sdkClientInfo?.community,
+                      )}
+                    </Text>
+                  )}
+                </View>
+                <View>
+                  {currentChatroomTopic?.attachmentCount > 0 &&
+                  currentChatroomTopic?.attachments.length > 0 &&
+                  currentChatroomTopic?.attachments[0]?.type !== 'pdf' ? (
+                    <Image
+                      source={{
+                        uri:
+                          currentChatroomTopic?.attachments[0]?.type == 'image'
+                            ? currentChatroomTopic?.attachments[0]?.url
+                            : currentChatroomTopic?.attachments[0]
+                                ?.thumbnailUrl,
+                      }}
+                      style={styles.chatroomTopicAttachment}
+                    />
+                  ) : currentChatroomTopic?.ogTags?.url !== null &&
+                    currentChatroomTopic?.ogTags?.image !== '' &&
+                    currentChatroomTopic?.ogTags !== undefined &&
+                    currentChatroomTopic?.ogTags !== null &&
+                    Object.keys(currentChatroomTopic).length !== 0 ? (
+                    <Image
+                      source={{
+                        uri: currentChatroomTopic?.ogTags?.image,
+                      }}
+                      style={styles.chatroomTopicAttachment}
+                    />
+                  ) : null}
+                </View>
+              </View>
+            </Pressable>
+          ) : null}
         </>
       )}
 
