@@ -6,7 +6,7 @@ import {
   Alert,
   Pressable,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
@@ -132,6 +132,7 @@ const ReplyConversations = ({
   const {conversations, selectedMessages, stateArr, isLongPress}: any =
     useAppSelector(state => state.chatroom);
   const {user} = useAppSelector(state => state.homefeed);
+  const [flashListMounted, setFlashListMounted] = useState(false);
 
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
@@ -174,7 +175,14 @@ const ReplyConversations = ({
         (element: any) => element?.id == item?.replyConversationObject?.id,
       );
       if (index >= 0) {
-        onScrollToIndex(index);
+        if (!flashListMounted) {
+          setTimeout(() => {
+            onScrollToIndex(index);
+            setFlashListMounted(true);
+          }, 1000);
+        } else {
+          onScrollToIndex(index);
+        }
       } else {
         const newConversation = await getCurrentConversation(
           item?.replyConversationObject,

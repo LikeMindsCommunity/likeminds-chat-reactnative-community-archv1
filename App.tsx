@@ -13,6 +13,7 @@ import {DeepLinkRequest} from './ChatSX/components/ParseDeepLink/models';
 import {UserSchemaResponse} from './ChatSX/db/models';
 import {USER_SCHEMA_RO} from './ChatSX/constants/Strings';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {setupPlayer} from './ChatSX/audio';
 
 function App(): JSX.Element {
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
@@ -38,6 +39,14 @@ function App(): JSX.Element {
       }
     }
     bootstrap();
+  }, []);
+
+  // to initialise track player
+  useEffect(() => {
+    async function setup() {
+      await setupPlayer();
+    }
+    setup();
   }, []);
 
   // To get the deep link URL which was used to open the app

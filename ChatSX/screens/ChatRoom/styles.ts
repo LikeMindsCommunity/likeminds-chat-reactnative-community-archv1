@@ -231,6 +231,13 @@ export const styles = StyleSheet.create({
     borderTopWidth: 0.5,
     borderTopColor: 'gray',
   },
+  chatroomTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 2,
+  },
   profile: {
     width: 45,
     height: 45,
