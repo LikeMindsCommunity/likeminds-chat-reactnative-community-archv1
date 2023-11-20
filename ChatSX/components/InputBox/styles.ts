@@ -118,7 +118,7 @@ export const styles = StyleSheet.create({
   },
   modalViewParent: {
     position: 'absolute',
-    bottom: 80,
+    bottom: 27 * pixelRatio,
     flexGrow: 1,
     width: Layout.window.width,
   },

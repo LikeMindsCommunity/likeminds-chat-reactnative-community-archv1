@@ -95,7 +95,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     padding: 5,
     bottom: 16,
-    right: 20,
+    right: 15,
   },
   unreadCount: {
     color: STYLES.$COLORS.TERTIARY,

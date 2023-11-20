@@ -26,7 +26,6 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.XL,
     fontFamily: STYLES.$FONT_TYPES.BOLD,
     color: STYLES.$COLORS.PRIMARY,
-    width: 200,
   },
   newCountContainer: {
     height: 25,
@@ -34,7 +33,6 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: STYLES.$MARGINS.SMALL,
     padding: 5,
   },
   newCount: {

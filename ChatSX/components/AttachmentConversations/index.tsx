@@ -87,14 +87,6 @@ const AttachmentConversations = ({
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
 
-  // to initialise track player
-  useEffect(() => {
-    async function setup() {
-      await setupPlayer();
-    }
-    setup();
-  }, []);
-
   // to stop the audio if move out of the chatroom
   useEffect(() => {
     if (progress.duration <= progress.position) {
@@ -262,10 +254,12 @@ const AttachmentConversations = ({
                 <Slider
                   minimumValue={0}
                   maximumValue={100}
-                  step={1}
+                  step={0}
                   value={
                     isAudioActive
-                      ? (progress.position / progress.duration) * 100
+                      ? !!(progress.position / progress.duration)
+                        ? (progress.position / progress.duration) * 100
+                        : 0
                       : 0
                   }
                   minimumTrackTintColor="#ffad31"
