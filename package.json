@@ -1,7 +1,7 @@
 {
   "name": "likeminds_chat_sx",
-  "versionCode": "18",
-  "versionName": "1.6.0",
+  "versionCode": "19",
+  "versionName": "1.7.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -14,7 +14,7 @@
     "prettier:fix": "prettier --write ."
   },
   "dependencies": {
-    "@likeminds.community/chat-rn": "1.1.0",
+    "@likeminds.community/chat-rn": "1.2.0",
     "@notifee/react-native": "7.6.1",
     "@react-native-async-storage/async-storage": "1.18.1",
     "@react-native-clipboard/clipboard": "1.11.2",
@@ -58,7 +58,7 @@
     "react-native-svg": "13.9.0",
     "react-native-swiper-flatlist": "3.2.2",
     "react-native-tab-view": "3.5.0",
-    "react-native-track-player": "^4.0.1",
+    "react-native-track-player": "4.0.1",
     "react-native-uuid": "2.0.1",
     "react-native-video": "5.2.1",
     "react-redux": "8.0.5",
