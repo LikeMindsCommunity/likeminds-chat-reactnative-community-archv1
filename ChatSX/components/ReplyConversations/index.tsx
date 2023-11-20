@@ -6,12 +6,13 @@ import {
   Alert,
   Pressable,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {
+  GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,
   SELECTED_MESSAGES,
   SET_POSITION,
@@ -21,10 +22,12 @@ import {
   IMAGE_TEXT,
   PDF_TEXT,
   VIDEO_TEXT,
+  VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import AttachmentConversations from '../AttachmentConversations';
 import {Events, Keys} from '../../enums';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {getCurrentConversation} from '../../utils/chatroomUtils';
 
 interface ReplyConversations {
   item: any;
@@ -73,6 +76,11 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
               source={require('../../assets/images/video_icon3x.png')}
               style={styles.icon}
             />
+          ) : item?.attachments[0]?.type === VOICE_NOTE_TEXT ? (
+            <Image
+              source={require('../../assets/images/mic_icon3x.png')}
+              style={[styles.icon, {tintColor: 'grey'}]}
+            />
           ) : null
         ) : null}
         <Text style={styles.messageText}>
@@ -85,6 +93,8 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
               ? `Photo`
               : item?.attachments[0]?.type === VIDEO_TEXT
               ? `Video`
+              : item?.attachments[0]?.type === VOICE_NOTE_TEXT
+              ? `Voice Note`
               : item?.attachments[0]?.type === AUDIO_TEXT
               ? `This message is not supported in this app yet.`
               : null,
@@ -122,6 +132,7 @@ const ReplyConversations = ({
   const {conversations, selectedMessages, stateArr, isLongPress}: any =
     useAppSelector(state => state.chatroom);
   const {user} = useAppSelector(state => state.homefeed);
+  const [flashListMounted, setFlashListMounted] = useState(false);
 
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
@@ -132,7 +143,7 @@ const ReplyConversations = ({
     longPressOpenKeyboard();
   };
 
-  const handleOnPress = () => {
+  const handleOnPress = async () => {
     let isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
@@ -161,10 +172,32 @@ const ReplyConversations = ({
       }
     } else {
       let index = conversations.findIndex(
-        (element: any) => element?.id === item?.replyConversationObject?.id,
+        (element: any) => element?.id == item?.replyConversationObject?.id,
       );
       if (index >= 0) {
-        onScrollToIndex(index);
+        if (!flashListMounted) {
+          setTimeout(() => {
+            onScrollToIndex(index);
+            setFlashListMounted(true);
+          }, 1000);
+        } else {
+          onScrollToIndex(index);
+        }
+      } else {
+        const newConversation = await getCurrentConversation(
+          item?.replyConversationObject,
+          chatroomID?.toString(),
+        );
+        dispatch({
+          type: GET_CONVERSATIONS_SUCCESS,
+          body: {conversations: newConversation},
+        });
+        let index = newConversation.findIndex(
+          element => element?.id == item?.replyConversationObject?.id,
+        );
+        if (index >= 0) {
+          onScrollToIndex(index);
+        }
       }
     }
   };

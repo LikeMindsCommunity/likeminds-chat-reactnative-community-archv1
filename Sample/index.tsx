@@ -10,10 +10,7 @@ import {
   Keyboard,
 } from 'react-native';
 import STYLES from '../ChatSX/constants/Styles';
-import Realm from 'realm';
 import {useQuery, useRealm} from '@realm/react';
-import {UserSchemaRO} from '../ChatSX/db/schemas/UserSchema';
-import SwitchComponent from '../ChatSX/navigation/SwitchComponent';
 import { UserSchemaResponse } from '../ChatSX/db/models';
 import { USER_SCHEMA_RO } from '../ChatSX/constants/Strings';
 

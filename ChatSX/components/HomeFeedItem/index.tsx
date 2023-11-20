@@ -141,6 +141,8 @@ const HomeFeedItem: React.FC<Props> = ({
     let imageCount = 0;
     let videosCount = 0;
     let pdfCount = 0;
+    let voiceNoteCount = 0;
+    let ogTags = val?.ogTags;
 
     for (let i = 0; i < attachments.length; i++) {
       if (attachments[i].type == DocumentType.IMAGE) {
@@ -149,6 +151,8 @@ const HomeFeedItem: React.FC<Props> = ({
         videosCount++;
       } else if (attachments[i].type == DocumentType.PDF) {
         pdfCount++;
+      } else if (attachments[i].type == DocumentType.VOICE_NOTE) {
+        voiceNoteCount++;
       }
     }
 
@@ -292,12 +296,44 @@ const HomeFeedItem: React.FC<Props> = ({
           </Text>
         </View>
       );
+    } else if (voiceNoteCount > 0) {
+      return (
+        <View
+          style={[
+            styles.alignCenter,
+            {
+              marginBottom: -2,
+            },
+          ]}>
+          <Image
+            source={require('../../assets/images/mic_icon3x.png')}
+            style={[styles.icon, {tintColor: 'grey'}]}
+          />
+          <Text style={styles.attachment_msg}>{'Voice Note'}</Text>
+        </View>
+      );
     } else if (val?.state === 10) {
       return (
         <View style={[styles.alignCenter]}>
           <Image
             source={require('../../assets/images/poll_icon3x.png')}
             style={[styles.icon, {tintColor: STYLES.$COLORS.PRIMARY}]}
+          />
+          <Text style={styles.attachment_msg}>{val?.answer}</Text>
+        </View>
+      );
+    } else if (ogTags) {
+      return (
+        <View
+          style={[
+            styles.alignCenter,
+            {
+              marginBottom: -2,
+            },
+          ]}>
+          <Image
+            source={require('../../assets/images/link_icon.png')}
+            style={styles.icon}
           />
           <Text style={styles.attachment_msg}>{val?.answer}</Text>
         </View>
@@ -394,6 +430,9 @@ const HomeFeedItem: React.FC<Props> = ({
                   {lastConversation.hasFiles > 0
                     ? getFeedIconAttachment(lastConversation)
                     : lastConversation?.state === 10
+                    ? getFeedIconAttachment(lastConversation)
+                    : lastConversation?.ogTags &&
+                      lastConversation?.ogTags?.url !== null
                     ? getFeedIconAttachment(lastConversation)
                     : decode(
                         lastMessage,

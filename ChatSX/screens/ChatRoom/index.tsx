@@ -4,7 +4,6 @@ import {
   useIsFocused,
 } from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
 import {
   View,
   Text,
@@ -25,10 +24,11 @@ import {
   ScrollViewProps,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
-import {myClient} from '../../..';
+import {SyncConversationRequest, myClient} from '../../..';
 import {
   SHOW_LIST_REGEX,
   copySelectedMessages,
+  decode,
   fetchResourceFromURI,
   formatTime,
 } from '../../commonFuctions';
@@ -54,9 +54,11 @@ import {
   ADD_STATE_MESSAGE,
   CLEAR_CHATROOM_CONVERSATION,
   CLEAR_CHATROOM_DETAILS,
+  CLEAR_CHATROOM_TOPIC,
   CLEAR_FILE_UPLOADING_MESSAGES,
   CLEAR_SELECTED_FILES_TO_UPLOAD,
   CLEAR_SELECTED_FILE_TO_VIEW,
+  CLEAR_SELECTED_MESSAGES,
   FIREBASE_CONVERSATIONS_SUCCESS,
   GET_CHATROOM_ACTIONS_SUCCESS,
   GET_CHATROOM_DB_SUCCESS,
@@ -66,6 +68,8 @@ import {
   REACTION_SENT,
   REJECT_INVITE_SUCCESS,
   SELECTED_MESSAGES,
+  SET_CHATROOM_CREATOR,
+  SET_CHATROOM_TOPIC,
   SET_DM_PAGE,
   SET_EDIT_MESSAGE,
   SET_EXPLORE_FEED_PAGE,
@@ -74,6 +78,7 @@ import {
   SET_PAGE,
   SET_POSITION,
   SET_REPLY_MESSAGE,
+  SET_TEMP_STATE_MESSAGE,
   SHOW_TOAST,
   TO_BE_DELETED,
   UPDATE_CHAT_REQUEST_STATE,
@@ -114,6 +119,7 @@ import {
   WARNING_MSG_PRIVATE_CHATROOM,
   WARNING_MSG_PUBLIC_CHATROOM,
   USER_SCHEMA_RO,
+  VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -124,19 +130,33 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import {SyncConversationRequest} from '@likeminds.community/chat-rn';
 import {useQuery} from '@realm/react';
 import {Share} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
 import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
-import {ChatroomChatRequestState, Keys, Sources} from '../../enums';
+import {
+  ChatroomChatRequestState,
+  DocumentType,
+  GetConversationsType,
+  Keys,
+  MemberState,
+  Sources,
+} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {onShare} from '../../shareUtils';
 import {ChatroomActions, Events} from '../../enums';
 import {UserSchemaResponse} from '../../db/models';
+import TrackPlayer from 'react-native-track-player';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
+import {GetConversationsRequest} from '@likeminds.community/chat-rn/dist/localDb/models/requestModels/GetConversationsRequest';
+import {Conversation} from '@likeminds.community/chat-rn/dist/shared/responseModels/Conversation';
+import {
+  createTemporaryStateMessage,
+  getCurrentConversation,
+} from '../../utils/chatroomUtils';
+import {GetConversationsRequestBuilder} from '@likeminds.community/chat-rn';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -196,6 +216,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [lastScrollOffset, setLastScrollOffset] = useState(true);
   const [response, setResponse] = useState([]);
   const [isRealmDataPresent, setIsRealmDataPresent] = useState(false);
+  const [flashListMounted, setFlashListMounted] = useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
@@ -220,12 +241,18 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     selectedMessages,
     stateArr,
     position,
+    chatroomCreator,
+    currentChatroomTopic,
+    temporaryStateMessage,
   }: any = useAppSelector(state => state.chatroom);
   const {user, community, memberRights} = useAppSelector(
     state => state.homefeed,
   );
 
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
+  const {selectedVoiceNoteFilesToUpload = []}: any = useAppSelector(
+    state => state.chatroom,
+  );
 
   const INITIAL_SYNC_PAGE = 1;
   const PAGE_SIZE = 200;
@@ -235,6 +262,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let memberCanMessage = chatroomDBDetails?.memberCanMessage;
   let chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
   let chatRequestState = chatroomDBDetails?.chatRequestState;
+  const [isChatroomTopic, setIsChatroomTopic] = useState(false);
+  const [isFound, setIsFound] = useState(false);
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -286,7 +315,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   let routes = navigation.getState()?.routes;
 
-  let previousRoute = routes[routes.length - 2];
+  let previousRoute = routes[routes?.length - 2];
 
   let isSecret = chatroomDBDetails?.isSecret;
 
@@ -294,6 +323,28 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   let filteredChatroomActions = chatroomDetails?.chatroomActions?.filter(
     (val: any) => !notIncludedActionsID?.includes(val?.id),
   );
+
+  // This method is to call setChatroomTopic API and update local db as well followed by updation of redux for local handling
+  const setChatroomTopic = async () => {
+    const currentSelectedMessage = selectedMessages[0];
+    const payload = {
+      chatroomId: chatroomID,
+      conversationId: currentSelectedMessage?.id,
+    };
+    const response = await myClient?.setChatroomTopic(
+      payload,
+      currentSelectedMessage,
+    );
+    if (response?.success === true) {
+      dispatch({
+        type: SET_CHATROOM_TOPIC,
+        body: {currentChatroomTopic: currentSelectedMessage},
+      });
+      dispatch({
+        type: CLEAR_SELECTED_MESSAGES,
+      });
+    }
+  };
 
   // Initial header of chatroom screen
   const setInitialHeader = () => {
@@ -325,7 +376,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               style={styles.backBtn}
             />
           </TouchableOpacity>
-          {!(Object.keys(chatroomDBDetails).length === 0) ? (
+          {!(Object.keys(chatroomDBDetails)?.length === 0) ? (
             <View style={styles.alignRow}>
               {chatroomType === ChatroomType.DMCHATROOM ? (
                 <View style={styles.profile}>
@@ -413,13 +464,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 fontSize: STYLES.$FONT_SIZES.LARGE,
                 fontFamily: STYLES.$FONT_TYPES.BOLD,
               }}>
-              {selectedMessages.length}
+              {selectedMessages?.length}
             </Text>
           </View>
         </View>
       ),
       headerRight: () => {
-        let len = selectedMessages.length;
+        let len = selectedMessages?.length;
         let communityManagerState = 1;
         let userCanDeleteParticularMessageArr: any = [];
         let selectedMessagesIDArr: any = [];
@@ -428,13 +479,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         let isDelete = false;
         let isFirstMessageDeleted = selectedMessages[0]?.deletedBy;
         let isSelectedMessageEditable = false;
-        let selectedMessagesLength = selectedMessages.length;
+        let selectedMessagesLength = selectedMessages?.length;
 
         //Logic to set isSelectedMessageEditable true/false, based on that we will show edit icon.
         if (selectedMessagesLength === 1) {
           if (
             selectedMessages[0]?.member?.id == user?.id &&
-            !!selectedMessages[0]?.answer
+            !!selectedMessages[0]?.answer &&
+            selectedMessages[0]?.deletedBy == null
           ) {
             isSelectedMessageEditable = true;
           } else {
@@ -483,7 +535,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         if (userCanDeleteParticularMessageArr.includes(false)) {
           if (
             user?.state === communityManagerState &&
-            userCanDeleteParticularMessageArr.length === 1 &&
+            userCanDeleteParticularMessageArr?.length === 1 &&
             !!!isFirstMessageDeleted
           ) {
             isDelete = true;
@@ -616,12 +668,41 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                             [Keys.CHATROOM_ID, chatroomID?.toString()],
                           ]),
                         );
-                        updatedConversations =
-                          await myClient?.deleteConversation(
+                        if (
+                          selectedMessagesIDArr[i] == currentChatroomTopic?.id
+                        ) {
+                          dispatch({
+                            type: CLEAR_CHATROOM_TOPIC,
+                          });
+                          updatedConversations =
+                            await myClient?.deleteConversation(
+                              selectedMessagesIDArr[i],
+                              user,
+                              conversations,
+                              true,
+                              chatroomID?.toString(),
+                            );
+                        } else {
+                          updatedConversations =
+                            await myClient?.deleteConversation(
+                              selectedMessagesIDArr[i],
+                              user,
+                              conversations,
+                              false,
+                              chatroomID?.toString(),
+                            );
+                        }
+                        // to stop audio player if we delete the message
+                        const conversation: any =
+                          await myClient.getConversation(
                             selectedMessagesIDArr[i],
-                            user,
-                            conversations,
                           );
+                        if (
+                          conversation[0]?.attachments[0]?.type ==
+                          VOICE_NOTE_TEXT
+                        ) {
+                          await TrackPlayer.reset();
+                        }
                       }
                       dispatch({
                         type: GET_CONVERSATIONS_SUCCESS,
@@ -706,6 +787,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const DB_RESPONSE = val?.data;
 
     if (DB_RESPONSE?.conversationsData.length !== 0) {
+      // This is to get chatroomCreator of current chatroom which will be later used to give permission that who can set chatroom topic
+      const chatroomCreatorUserId =
+        DB_RESPONSE?.chatroomMeta[chatroomID]?.userId;
+      const chatroomCreator = DB_RESPONSE?.userMeta[chatroomCreatorUserId];
+
+      dispatch({
+        type: SET_CHATROOM_CREATOR,
+        body: {chatroomCreator: chatroomCreator},
+      });
       await myClient?.saveConversationData(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomMeta,
@@ -715,10 +805,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
 
     if (page === 1) {
-      let conversationsFromRealm = await myClient?.getConversations(
-        chatroomID,
-        PAGE_SIZE,
-      );
+      const payload = GetConversationsRequestBuilder.builder()
+        .setChatroomId(chatroomID?.toString())
+        .setLimit(PAGE_SIZE)
+        .build();
+
+      let conversationsFromRealm = await myClient?.getConversations(payload);
 
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
@@ -753,10 +845,12 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
       // Warm start
       if (chatroomDetails?.isChatroomVisited) {
-        conversationsFromRealm = await myClient?.getConversations(
-          chatroomID?.toString(),
-          PAGE_SIZE,
-        );
+        const payload = GetConversationsRequestBuilder.builder()
+          .setChatroomId(chatroomID?.toString())
+          .setLimit(PAGE_SIZE)
+          .build();
+
+        conversationsFromRealm = await myClient?.getConversations(payload);
 
         dispatch({
           type: GET_CONVERSATIONS_SUCCESS,
@@ -791,6 +885,19 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         body: {chatroomDBDetails: DB_DATA},
       });
       setIsRealmDataPresent(true);
+      // This is to set chatroom topic if its already in API response
+      if (DB_DATA?.topic && DB_DATA?.topicId) {
+        dispatch({
+          type: SET_CHATROOM_TOPIC,
+          body: {
+            currentChatroomTopic: DB_DATA?.topic,
+          },
+        });
+      } else if (!DB_DATA?.topic && !DB_DATA?.topicId) {
+        dispatch({
+          type: CLEAR_CHATROOM_TOPIC,
+        });
+      }
     }
     let response = await myClient?.getChatroomActions(payload);
     dispatch({
@@ -833,6 +940,40 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       body: {replyMessage: ''},
     });
   }, []);
+
+  // This useEffect is used to highlight the chatroom topic conversation for 1 sec on scrolling to it
+  useEffect(() => {
+    if (isFound) {
+      setTimeout(() => {
+        setIsFound(false);
+      }, 1000);
+    }
+  }, [isFound]);
+
+  // local handling for chatroom topic updation's state message
+  useEffect(() => {
+    const addChatroomTopic = async () => {
+      const tempStateMessage = createTemporaryStateMessage(
+        currentChatroomTopic,
+        user,
+      );
+      dispatch({
+        type: ADD_STATE_MESSAGE,
+        body: {conversation: tempStateMessage},
+      });
+      dispatch({
+        type: SET_TEMP_STATE_MESSAGE,
+        body: {temporaryStateMessage: tempStateMessage},
+      });
+      await myClient?.saveNewConversation(
+        chatroomID?.toString(),
+        tempStateMessage,
+      );
+    };
+    if (selectedMessages.length !== 0) {
+      addChatroomTopic();
+    }
+  }, [currentChatroomTopic]);
 
   // To trigger analytics for Message Selected
   useEffect(() => {
@@ -897,13 +1038,28 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         chatroomId: chatroomID,
       });
       await myClient?.updateUnseenCount(chatroomID?.toString());
+      await myClient?.deleteConversationFromRealm(temporaryStateMessage?.id);
     };
     return () => {
       if (previousRoute?.name !== EXPLORE_FEED) {
         closingChatroom();
       }
     };
+  }, [temporaryStateMessage]);
+
+  // this useEffect is to stop audio player when going out of chatroom, if any audio is running
+  useEffect(() => {
+    return () => {
+      TrackPlayer.reset();
+    };
   }, []);
+
+  // this useEffect is to stop audio player when the app is in background
+  useEffect(() => {
+    if (!isFocused) {
+      TrackPlayer.reset();
+    }
+  }, [isFocused]);
 
   //Logic for navigation backAction
   function backAction() {
@@ -998,7 +1154,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // this useEffect scroll to Index of latest message when we send the message.
   useEffect(() => {
-    if (conversations.length > 0) {
+    if (conversations?.length > 0) {
       flatlistRef?.current?.scrollToIndex({
         animated: false,
         index: 0,
@@ -1007,7 +1163,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   }, [messageSent]);
   // this useEffect update headers when we longPress or update selectedMessages array.
   useEffect(() => {
-    if (selectedMessages.length === 0) {
+    if (selectedMessages?.length === 0) {
       setInitialHeader();
     } else if (!!isLongPress) {
       setSelectedHeader();
@@ -1028,7 +1184,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       conversationId,
     );
     const DB_RESPONSE = val?.data;
-    if (DB_RESPONSE?.conversationsData.length !== 0) {
+    if (DB_RESPONSE?.conversationsData?.length !== 0) {
       await myClient?.saveConversationData(
         DB_RESPONSE,
         DB_RESPONSE?.chatroomMeta,
@@ -1037,10 +1193,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       );
     }
     if (page === 1) {
-      let conversationsFromRealm = await myClient?.getConversations(
-        chatroomID,
-        PAGE_SIZE,
-      );
+      const payload = GetConversationsRequestBuilder.builder()
+        .setChatroomId(chatroomID?.toString())
+        .setLimit(PAGE_SIZE)
+        .build();
+      let conversationsFromRealm = await myClient?.getConversations(payload);
       dispatch({
         type: GET_CONVERSATIONS_SUCCESS,
         body: {conversations: conversationsFromRealm},
@@ -1079,13 +1236,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   useEffect(() => {
     if (isFocused) {
       routes = navigation.getState()?.routes;
-      previousRoute = routes[routes.length - 2];
+      previousRoute = routes[routes?.length - 2];
     }
   }, [isFocused]);
 
   //This useEffect has logic to or hide message privately when long press on a message
   useEffect(() => {
-    if (selectedMessages.length === 1) {
+    if (selectedMessages?.length === 1) {
       let selectedMessagesMember = selectedMessages[0]?.member;
       if (
         showDM &&
@@ -1105,11 +1262,26 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     }
   }, [selectedMessages, showDM, showList]);
 
+  // This is to check eligibity of user that whether he/she can set chatroom topic or not
+  useEffect(() => {
+    let selectedMessagesLength = selectedMessages.length;
+    let selectedMessage = selectedMessages[0];
+
+    if (
+      selectedMessagesLength == 1 &&
+      (user?.sdkClientInfo?.uuid == chatroomCreator?.sdkClientInfo?.uuid ||
+        user?.state == MemberState.ADMIN) &&
+      selectedMessage?.deletedBy == null
+    ) {
+      setIsChatroomTopic(true);
+    }
+  }, [selectedMessages]);
+
   //function calls paginatedConversations action which internally calls getConversation to update conversation array with the new data.
   async function paginatedData(newPage: number) {
     let payload = {
       chatroomID: chatroomID,
-      conversationID: conversations[conversations.length - 1]?.id,
+      conversationID: conversations[conversations?.length - 1]?.id,
       scrollDirection: 0,
       paginateBy: 50,
       topNavigate: false,
@@ -1121,15 +1293,59 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // function shows loader in between calling the API and getting the response
   const loadData = async (newPage?: number) => {
     setIsLoading(true);
-    const newConversations = await myClient.getConversations(
-      chatroomID,
-      100,
-      conversations[conversations.length - 1].createdEpoch,
-    );
+    const payload = GetConversationsRequestBuilder.builder()
+      .setChatroomId(chatroomID?.toString())
+      .setLimit(PAGE_SIZE)
+      .setMedianConversation(conversations[conversations.length - 1])
+      .build();
+    const newConversations = await myClient.getConversations(payload);
     dispatch({
       type: GET_CONVERSATIONS_SUCCESS,
       body: {conversations: [...conversations, ...newConversations]},
     });
+    if (newConversations.length == 0) {
+      setShouldLoadMoreChatEnd(false);
+    }
+    if (!!newConversations) {
+      setIsLoading(false);
+    }
+  };
+
+  // function shows loader in between calling the API and getting the response
+  const loadStartData = async (newPage?: number) => {
+    setIsLoading(true);
+    const payload = GetConversationsRequestBuilder.builder()
+      .setChatroomId(chatroomID?.toString())
+      .setLimit(PAGE_SIZE)
+      .setMedianConversation(conversations[0])
+      .setType(GetConversationsType.BELOW)
+      .build();
+
+    let newConversations = await myClient.getConversations(payload);
+    newConversations = newConversations.reverse();
+    dispatch({
+      type: GET_CONVERSATIONS_SUCCESS,
+      body: {conversations: [...newConversations, ...conversations]},
+    });
+
+    if (newConversations.length !== 0 && !isFound) {
+      const length = newConversations.length;
+      let index = length;
+      if (
+        conversations[index + 1].attachmentCount == 0 &&
+        conversations[index + 1].polls == undefined
+      ) {
+        index = length - 2;
+      } else if (length < PAGE_SIZE) {
+        index = length;
+      } else {
+        index = length + 8;
+      }
+      scrollToVisibleIndex(index);
+    }
+    if (newConversations.length == 0) {
+      setShouldLoadMoreChatStart(false);
+    }
     if (!!newConversations) {
       setIsLoading(false);
     }
@@ -1528,11 +1744,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const sendReaction = (val: any, isReactionButton: boolean) => {
     let previousMsg = selectedMessages[0];
     let changedMsg;
-    if (selectedMessages[0]?.reactions.length > 0) {
+    if (selectedMessages[0]?.reactions?.length > 0) {
       let isReactedArr = selectedMessages[0]?.reactions.filter(
         (val: any) => val?.member?.id == user?.id,
       );
-      if (isReactedArr.length > 0) {
+      if (isReactedArr?.length > 0) {
         // Reacted different emoji
         if (isReactedArr[0].reaction !== val) {
           const resultArr = selectedMessages[0]?.reactions.map((element: any) =>
@@ -1725,7 +1941,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         const filterdMessages = selectedMessages.filter(
           (val: any) => val?.id !== item?.id && !isStateIncluded,
         );
-        if (filterdMessages.length > 0) {
+        if (filterdMessages?.length > 0) {
           dispatch({
             type: SELECTED_MESSAGES,
             body: [...filterdMessages],
@@ -1751,7 +1967,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         const filterdMessages = selectedMessages.filter(
           (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
         );
-        if (filterdMessages.length > 0) {
+        if (filterdMessages?.length > 0) {
           dispatch({
             type: SELECTED_MESSAGES,
             body: [...filterdMessages],
@@ -1947,6 +2163,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       let item = selectedImages[i];
       let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
       let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
+      let voiceNoteAttachmentType = item?.type;
       let thumbnailURL = item?.thumbnailUrl;
       let name =
         attachmentType === IMAGE_TEXT
@@ -2014,6 +2231,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             fileType = VIDEO_TEXT;
           } else if (attachmentType === IMAGE_TEXT) {
             fileType = IMAGE_TEXT;
+          } else if (voiceNoteAttachmentType === VOICE_NOTE_TEXT) {
+            fileType = VOICE_NOTE_TEXT;
           }
 
           let payload = {
@@ -2026,6 +2245,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     size: selectedFilesToUpload[i]?.fileSize,
                     duration: selectedFilesToUpload[i]?.duration,
                   }
+                : fileType === VOICE_NOTE_TEXT
+                ? {
+                    size: null,
+                    duration: item?.duration,
+                  }
                 : {
                     size:
                       docAttachmentType === PDF_TEXT
@@ -2035,6 +2259,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             name:
               docAttachmentType === PDF_TEXT
                 ? selectedFilesToUpload[i]?.name
+                : voiceNoteAttachmentType === VOICE_NOTE_TEXT
+                ? item?.name
                 : selectedFilesToUpload[i]?.fileName,
             type: fileType,
             url: awsResponse,
@@ -2086,45 +2312,71 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     );
   };
 
-  const handleFileUpload = async (conversationID: any, isRetry: any) => {
-    LMChatAnalytics.track(
-      Events.ATTACHMENT_UPLOAD_ERROR,
-      new Map<string, string>([
-        [Keys.CHATROOM_ID, chatroomID?.toString()],
-        [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
-        [Keys.CLICKED_RETRY, true],
-      ]),
-    );
-    let selectedFilesToUpload = uploadingFilesMessages[conversationID];
-    dispatch({
-      type: SET_FILE_UPLOADING_MESSAGES,
-      body: {
-        message: {
-          ...selectedFilesToUpload,
-          isInProgress: SUCCESS,
-        },
-        ID: conversationID,
-      },
-    });
-    let id = conversationID;
-    let message = {
-      ...selectedFilesToUpload,
-      isInProgress: SUCCESS,
-    };
+  const handleFileUpload = async (
+    conversationID: number,
+    isRetry: boolean,
+    isVoiceNote?: boolean,
+    voiceNotesToUpload?: any,
+  ) => {
+    if (isVoiceNote) {
+      const res = await uploadResource({
+        selectedImages: voiceNotesToUpload,
+        conversationID: conversationID,
+        chatroomID: chatroomID,
+        selectedFilesToUpload: voiceNotesToUpload,
+        uploadingFilesMessages,
+        isRetry: isRetry,
+      });
 
-    await myClient?.saveAttachmentUploadConversation(
-      id?.toString(),
-      JSON.stringify(message),
-    );
-    const res = await uploadResource({
-      selectedImages: selectedFilesToUpload?.attachments,
-      conversationID: conversationID,
-      chatroomID: chatroomID,
-      selectedFilesToUpload: selectedFilesToUpload,
-      uploadingFilesMessages,
-      isRetry: isRetry,
-    });
-    return res;
+      LMChatAnalytics.track(
+        Events.VOICE_NOTE_SENT,
+        new Map<string, string>([
+          [Keys.CHATROOM_TYPE, chatroomType?.toString()],
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+        ]),
+      );
+
+      return res;
+    } else {
+      LMChatAnalytics.track(
+        Events.ATTACHMENT_UPLOAD_ERROR,
+        new Map<string, string>([
+          [Keys.CHATROOM_ID, chatroomID?.toString()],
+          [Keys.CHATROOM_TYPE, chatroomDBDetails?.type?.toString()],
+          [Keys.CLICKED_RETRY, true],
+        ]),
+      );
+      let selectedFilesToUpload = uploadingFilesMessages[conversationID];
+      dispatch({
+        type: SET_FILE_UPLOADING_MESSAGES,
+        body: {
+          message: {
+            ...selectedFilesToUpload,
+            isInProgress: SUCCESS,
+          },
+          ID: conversationID,
+        },
+      });
+      let id = conversationID;
+      let message = {
+        ...selectedFilesToUpload,
+        isInProgress: SUCCESS,
+      };
+
+      await myClient?.saveAttachmentUploadConversation(
+        id.toString(),
+        JSON.stringify(message),
+      );
+      const res = await uploadResource({
+        selectedImages: selectedFilesToUpload?.attachments,
+        conversationID: conversationID,
+        chatroomID: chatroomID,
+        selectedFilesToUpload: selectedFilesToUpload,
+        uploadingFilesMessages,
+        isRetry: isRetry,
+      });
+      return res;
+    }
   };
 
   const onReplyPrivatelyClick = async (uuid: any, conversationId: string) => {
@@ -2201,7 +2453,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   async function endOfPaginatedData() {
     let payload = {
       chatroomID: chatroomID,
-      conversationID: conversations[conversations.length - 1]?.id,
+      conversationID: conversations[conversations?.length - 1]?.id,
       scrollDirection: 0, //scroll up -> 0
       paginateBy: 50,
       topNavigate: false,
@@ -2229,9 +2481,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // Function checks the pagination logic, if it verifies the condition then call endLoadData
   const handleOnEndReached = () => {
-    if (!isLoading && conversations.length > 0) {
+    if (!isLoading && conversations?.length > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
+      if (conversations?.length > 15) {
         const newPage = endPage + 1;
         setEndPage(newPage);
         endLoadData();
@@ -2297,9 +2549,9 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
   // Function checks the pagination logic, if it verifies the condition then call startLoadData
   const handleOnStartReached = () => {
-    if (!isLoading && conversations.length > 0) {
+    if (!isLoading && conversations?.length > 0) {
       // Checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
-      if (conversations.length > 15) {
+      if (conversations?.length > 15) {
         const newPage = startPage + 1;
         setStartPage(newPage);
         startLoadData();
@@ -2308,7 +2560,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   };
 
   const onStartReached = () => {
-    handleOnStartReached();
+    loadStartData();
   };
 
   const onEndReached = () => {
@@ -2329,18 +2581,352 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const isScrollAtEnd =
       contentLength - visibleLength - offset < onEndReachedThreshold;
 
-    if (isScrollAtStart && shouldLoadMoreChatStart && lastScrollOffset) {
+    if (isScrollAtStart && shouldLoadMoreChatStart && !isFound) {
       renderFooter();
       onStartReached();
-      setLastScrollOffset(false);
-      setTimeout(() => {
-        setLastScrollOffset(true);
-      }, 1000);
     }
 
     if (isScrollAtEnd && shouldLoadMoreChatEnd) {
       renderFooter();
-      onEndReached();
+      handleLoadMore();
+    }
+  };
+
+  const renderAllMedia = (
+    imageCount: number,
+    videosCount: number,
+    pdfCount: number,
+    val: Conversation,
+  ) => {
+    return (
+      <View style={styles.alignCenter}>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Text style={styles.attachment_msg}>{imageCount}</Text>{' '}
+          <Image
+            source={require('../../assets/images/image_icon3x.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          <Text style={styles.attachment_msg}>{videosCount}</Text>{' '}
+          <Image
+            source={require('../../assets/images/video_icon3x.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          <Text style={styles.attachment_msg}>{pdfCount}</Text>{' '}
+          <Image
+            source={require('../../assets/images/document_icon3x.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderImageVideo = (
+    imageCount: number,
+    videosCount: number,
+    val: Conversation,
+  ) => {
+    return (
+      <View style={styles.alignCenter}>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Text style={styles.attachment_msg}>{imageCount}</Text>{' '}
+          <Image
+            source={require('../../assets/images/image_icon3x.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          <Text style={styles.attachment_msg}>{videosCount}</Text>{' '}
+          <Image
+            source={require('../../assets/images/video_icon3x.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderVideoPdf = (
+    videosCount: number,
+    pdfCount: number,
+    val: Conversation,
+  ) => {
+    return (
+      <View style={styles.alignCenter}>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Text style={styles.attachment_msg}>{videosCount}</Text>{' '}
+          <Image
+            source={require('../../assets/images/video_icon3x.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          <Text style={styles.attachment_msg}>{pdfCount}</Text>{' '}
+          <Image
+            source={require('../../assets/images/document_icon3x.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderImagePdf = (
+    imageCount: number,
+    pdfCount: number,
+    val: Conversation,
+  ) => {
+    return (
+      <View style={styles.alignCenter}>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Text style={styles.attachment_msg}>{imageCount}</Text>{' '}
+          <Image
+            source={require('../../assets/images/image_icon3x.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          <Text style={styles.attachment_msg}>{pdfCount}</Text>{' '}
+          <Image
+            source={require('../../assets/images/document_icon3x.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderPdf = (pdfCount: number, val: Conversation) => {
+    return (
+      <View style={[styles.alignCenter]}>
+        {!val?.answer ? (
+          <Text style={styles.attachment_msg}>
+            {pdfCount > 1 && (
+              <Text style={styles.attachment_msg}>{pdfCount}</Text>
+            )}{' '}
+            <Image
+              source={require('../../assets/images/document_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
+            {pdfCount > 1 ? 'Documents' : 'Document'}
+          </Text>
+        ) : (
+          <Text numberOfLines={2} style={styles.attachment_msg}>
+            {pdfCount > 1 && (
+              <>
+                <Text style={styles.attachment_msg}>{pdfCount}</Text>
+                &nbsp;
+              </>
+            )}
+            <Image
+              source={require('../../assets/images/document_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
+            {decode(
+              val?.answer,
+              false,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderVideo = (videosCount: number, val: Conversation) => {
+    return (
+      <View
+        style={[
+          styles.alignCenter,
+          {
+            marginBottom: -2,
+          },
+        ]}>
+        {!val?.answer ? (
+          <Text style={styles.attachment_msg}>
+            {videosCount > 1 && (
+              <Text style={styles.attachment_msg}>{videosCount}</Text>
+            )}{' '}
+            <Image
+              source={require('../../assets/images/video_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
+            {videosCount > 1 ? 'Videos' : 'Video'}
+          </Text>
+        ) : (
+          <Text numberOfLines={2} style={styles.attachment_msg}>
+            {videosCount > 1 && (
+              <>
+                <Text style={styles.attachment_msg}>{videosCount}</Text>
+                &nbsp;
+              </>
+            )}
+            <Image
+              source={require('../../assets/images/video_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
+            {decode(
+              val?.answer,
+              false,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderImage = (imageCount: number, val: Conversation) => {
+    return (
+      <View style={[styles.alignCenter]}>
+        {!val?.answer ? (
+          <Text style={styles.attachment_msg}>
+            {imageCount > 1 && (
+              <Text style={styles.attachment_msg}>{imageCount}</Text>
+            )}{' '}
+            <Image
+              source={require('../../assets/images/image_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
+            {imageCount > 1 ? 'Photos' : 'Photo'}
+          </Text>
+        ) : (
+          <Text numberOfLines={2} style={styles.attachment_msg}>
+            {imageCount > 1 && (
+              <>
+                <Text style={styles.attachment_msg}>{imageCount}</Text>
+                &nbsp;
+              </>
+            )}
+            <Image
+              source={require('../../assets/images/image_icon3x.png')}
+              style={styles.chatroomTopicIcon}
+            />{' '}
+            {decode(
+              val?.answer,
+              false,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderPoll = (val: Conversation) => {
+    return (
+      <View style={[styles.alignCenter]}>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Image
+            source={require('../../assets/images/poll_icon3x.png')}
+            style={[
+              styles.chatroomTopicIcon,
+              {tintColor: STYLES.$COLORS.PRIMARY},
+            ]}
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderLink = (val: Conversation) => {
+    return (
+      <View
+        style={[
+          styles.alignCenter,
+          {
+            marginBottom: -2,
+          },
+        ]}>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Image
+            source={require('../../assets/images/link_icon.png')}
+            style={styles.chatroomTopicIcon}
+          />{' '}
+          {decode(
+            val?.answer,
+            false,
+            chatroomName,
+            user?.sdkClientInfo?.community,
+          )}
+        </Text>
+      </View>
+    );
+  };
+
+  // To get icon along with count along with answer
+  const getIconAttachment = (conversation: Conversation) => {
+    const attachments = conversation?.attachments;
+    let imageCount = 0;
+    let videosCount = 0;
+    let pdfCount = 0;
+    let ogTags = conversation?.ogTags;
+
+    if (attachments?.length) {
+      for (let i = 0; i < attachments?.length; i++) {
+        if (attachments[i].type == DocumentType.IMAGE) {
+          imageCount++;
+        } else if (attachments[i].type == DocumentType.VIDEO) {
+          videosCount++;
+        } else if (attachments[i].type == DocumentType.PDF) {
+          pdfCount++;
+        } else {
+          continue;
+        }
+      }
+    }
+
+    if (imageCount > 0 && videosCount > 0 && pdfCount > 0) {
+      return renderAllMedia(imageCount, videosCount, pdfCount, conversation);
+    } else if (imageCount > 0 && videosCount > 0) {
+      return renderImageVideo(imageCount, videosCount, conversation);
+    } else if (videosCount > 0 && pdfCount > 0) {
+      return renderVideoPdf(videosCount, pdfCount, conversation);
+    } else if (imageCount > 0 && pdfCount > 0) {
+      return renderImagePdf(imageCount, pdfCount, conversation);
+    } else if (pdfCount > 0) {
+      return renderPdf(pdfCount, conversation);
+    } else if (videosCount > 0) {
+      return renderVideo(videosCount, conversation);
+    } else if (imageCount > 0) {
+      return renderImage(imageCount, conversation);
+    } else if (conversation?.state === 10) {
+      return renderPoll(conversation);
+    } else if (ogTags) {
+      return renderLink(conversation);
+    } else {
+      return (
+        <Text style={styles.deletedMessage}>
+          This message is not supported yet
+        </Text>
+      );
     }
   };
 
@@ -2441,7 +3027,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 conversations,
               ],
             }}
-            estimatedItemSize={150}
+            estimatedItemSize={250}
             renderItem={({item: value, index}: any) => {
               let uploadingFilesMessagesIDArr = Object.keys(
                 uploadingFilesMessages,
@@ -2457,9 +3043,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 (val: any) => val?.id === item?.id && !isStateIncluded,
               );
 
+              if (isFound && item?.id == currentChatroomTopic?.id) {
+                isIncluded = true;
+              }
+
               return (
                 <View>
-                  {index < conversations.length &&
+                  {index < conversations?.length &&
                   conversations[index]?.date !==
                     conversations[index + 1]?.date ? (
                     <View style={[styles.statusMessage]}>
@@ -2549,17 +3139,137 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 </View>
               );
             }}
-            onEndReached={async () => {
-              if (shouldLoadMoreChat && conversations.length > 0) {
-                handleLoadMore();
-              }
-              return;
-            }}
-            onEndReachedThreshold={10}
+            onScroll={handleOnScroll}
+            ListHeaderComponent={renderFooter}
             ListFooterComponent={renderFooter}
             keyboardShouldPersistTaps={'handled'}
             inverted
           />
+          {!(Object.keys(currentChatroomTopic).length === 0) &&
+          chatroomType !== ChatroomType.DMCHATROOM ? (
+            <Pressable
+              style={styles.chatroomTop}
+              onPress={async () => {
+                let index = conversations.findIndex(
+                  (element: any) => element?.id == currentChatroomTopic?.id,
+                );
+                if (index >= 0) {
+                  if (!flashListMounted) {
+                    setTimeout(() => {
+                      flatlistRef.current?.scrollToIndex({
+                        animated: true,
+                        index,
+                      });
+                      setIsFound(true);
+                      setFlashListMounted(true);
+                    }, 1000);
+                  } else {
+                    flatlistRef.current?.scrollToIndex({
+                      animated: true,
+                      index,
+                    });
+                    setIsFound(true);
+                  }
+                } else {
+                  const newConversation = await getCurrentConversation(
+                    currentChatroomTopic,
+                    chatroomID?.toString(),
+                  );
+                  dispatch({
+                    type: GET_CONVERSATIONS_SUCCESS,
+                    body: {conversations: newConversation},
+                  });
+                  let index = newConversation.findIndex(
+                    element => element?.id == currentChatroomTopic?.id,
+                  );
+                  if (index >= 0) {
+                    flatlistRef.current?.scrollToIndex({
+                      animated: true,
+                      index,
+                    });
+                    setIsFound(true);
+                  }
+                }
+              }}>
+              <View style={styles.chatroomTopic}>
+                <View>
+                  <Image
+                    source={
+                      !!currentChatroomTopic?.member?.imageUrl
+                        ? {uri: currentChatroomTopic?.member?.imageUrl}
+                        : require('../../assets/images/default_pic.png')
+                    }
+                    style={styles.chatroomTopicAvatar}
+                  />
+                </View>
+                <View style={styles.chatRoomTopicInfo}>
+                  <Text
+                    ellipsizeMode="tail"
+                    numberOfLines={1}
+                    style={{
+                      color: STYLES.$COLORS.PRIMARY,
+                      fontSize: STYLES.$FONT_SIZES.LARGE,
+                      fontFamily: STYLES.$FONT_TYPES.BOLD,
+                    }}>
+                    Current Topic
+                  </Text>
+
+                  {currentChatroomTopic?.hasFiles == true ? (
+                    getIconAttachment(currentChatroomTopic)
+                  ) : currentChatroomTopic?.state === 10 ? (
+                    getIconAttachment(currentChatroomTopic)
+                  ) : currentChatroomTopic?.ogTags?.url !== null &&
+                    currentChatroomTopic?.ogTags ? (
+                    getIconAttachment(currentChatroomTopic)
+                  ) : (
+                    <Text
+                      ellipsizeMode="tail"
+                      numberOfLines={2}
+                      style={{
+                        color: STYLES.$COLORS.MSG,
+                        fontSize: STYLES.$FONT_SIZES.MEDIUM,
+                        fontFamily: STYLES.$FONT_TYPES.LIGHT,
+                        lineHeight: 18,
+                      }}>
+                      {decode(
+                        currentChatroomTopic?.answer,
+                        false,
+                        chatroomName,
+                        user?.sdkClientInfo?.community,
+                      )}
+                    </Text>
+                  )}
+                </View>
+                <View>
+                  {currentChatroomTopic?.attachmentCount > 0 &&
+                  currentChatroomTopic?.attachments.length > 0 &&
+                  currentChatroomTopic?.attachments[0]?.type !== 'pdf' ? (
+                    <Image
+                      source={{
+                        uri:
+                          currentChatroomTopic?.attachments[0]?.type == 'image'
+                            ? currentChatroomTopic?.attachments[0]?.url
+                            : currentChatroomTopic?.attachments[0]
+                                ?.thumbnailUrl,
+                      }}
+                      style={styles.chatroomTopicAttachment}
+                    />
+                  ) : currentChatroomTopic?.ogTags?.url !== null &&
+                    currentChatroomTopic?.ogTags?.image !== '' &&
+                    currentChatroomTopic?.ogTags !== undefined &&
+                    currentChatroomTopic?.ogTags !== null &&
+                    Object.keys(currentChatroomTopic).length !== 0 ? (
+                    <Image
+                      source={{
+                        uri: currentChatroomTopic?.ogTags?.image,
+                      }}
+                      style={styles.chatroomTopicAttachment}
+                    />
+                  ) : null}
+                </View>
+              </View>
+            </Pressable>
+          ) : null}
         </>
       )}
 
@@ -2568,9 +3278,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           marginTop: 'auto',
         }}>
         {/* if chatroomType !== 10 (Not DM) then show group bottom changes, else if chatroomType === 10 (DM) then show DM bottom changes */}
-        {chatroomType !== ChatroomType.DMCHATROOM && memberRights.length > 0 ? (
+        {chatroomType !== ChatroomType.DMCHATROOM &&
+        memberRights?.length > 0 ? (
           <View>
-            {!(Object.keys(chatroomDBDetails).length === 0) &&
+            {!(Object.keys(chatroomDBDetails)?.length === 0) &&
             previousRoute?.name === EXPLORE_FEED
               ? !!!chatroomFollowStatus && (
                   <TouchableOpacity
@@ -2586,7 +3297,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </TouchableOpacity>
                 )
               : null}
-            {!(Object.keys(chatroomDBDetails).length === 0) ? (
+            {!(Object.keys(chatroomDBDetails)?.length === 0) ? (
               //case to block normal user from messaging in a chatroom where only CMs can message
               user.state !== 1 &&
               chatroomDBDetails?.memberCanMessage === false ? (
@@ -2614,6 +3325,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   }}
                   isSecret={isSecret}
                   chatroomType={chatroomType}
+                  currentChatroomTopic={currentChatroomTopic}
                 />
               ) : //case to block normal users from messaging in an Announcement Room
               user.state !== 1 && chatroomDBDetails?.type === 7 ? (
@@ -2629,7 +3341,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     here.
                   </Text>
                 </View>
-              ) : !(Object.keys(chatroomDBDetails).length === 0) &&
+              ) : !(Object.keys(chatroomDBDetails)?.length === 0) &&
                 previousRoute?.name === HOMEFEED &&
                 isRealmDataPresent ? (
                 <View
@@ -2694,7 +3406,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
             )}
           </View>
         ) : chatroomType === ChatroomType.DMCHATROOM &&
-          memberRights.length > 0 ? (
+          memberRights?.length > 0 ? (
           <View>
             {chatRequestState === 0 &&
             (!!chatroomDBDetails?.chatRequestedBy
@@ -2838,7 +3550,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       {/* Report Action Modal */}
       <Modal
         transparent={true}
-        visible={reportModalVisible && selectedMessages.length == 1}
+        visible={reportModalVisible && selectedMessages?.length == 1}
         onRequestClose={() => {
           setReportModalVisible(!modalVisible);
         }}>
@@ -2857,6 +3569,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   }}
                   style={styles.filtersView}>
                   <Text style={styles.filterText}>Message Privately</Text>
+                </TouchableOpacity>
+              ) : null}
+
+              {isChatroomTopic && chatroomType !== ChatroomType.DMCHATROOM ? (
+                <TouchableOpacity
+                  onPress={async () => {
+                    setChatroomTopic();
+                    setReportModalVisible(false);
+                  }}
+                  style={styles.filtersView}>
+                  <Text style={styles.filterText}>Set chatroom topic</Text>
                 </TouchableOpacity>
               ) : null}
 

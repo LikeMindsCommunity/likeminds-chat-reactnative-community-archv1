@@ -1,4 +1,4 @@
-import React, {Alert, Linking, Text} from 'react-native';
+import React, {Alert, Linking, Platform, Text} from 'react-native';
 import STYLES from '../constants/Styles';
 import {PDF_TEXT, VIDEO_TEXT} from '../constants/Strings';
 import {createThumbnail} from 'react-native-create-thumbnail';
@@ -522,4 +522,26 @@ export function extractPathfromRouteQuery(inputString: string): string | null {
 export const formatDate = (date: any, time: any) => {
   let formattedTime = moment(date).format('DD/MM/YYYY hh:mm');
   return formattedTime;
+};
+
+// this function converts seconds count to mm:ss time format
+export function convertSecondsToTime(seconds: number) {
+  // Ensure that seconds is a non-negative number
+  if (isNaN(seconds) || seconds < 0) {
+    return 'Invalid input';
+  }
+
+  let minutes = String(Math.floor(seconds / 60));
+  let remainingSeconds = String(seconds % 60);
+
+  // Add leading zeros if necessary
+  minutes = minutes.padStart(2, '0');
+  remainingSeconds = remainingSeconds.padStart(2, '0');
+
+  return `${minutes}:${remainingSeconds}`;
+}
+
+// to check if device version greater than or equal to 13 or not
+export const atLeastAndroid13 = (): boolean => {
+  return Platform.OS === 'android' && Platform.Version >= 33;
 };

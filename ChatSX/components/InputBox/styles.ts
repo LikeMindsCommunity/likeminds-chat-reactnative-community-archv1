@@ -1,4 +1,4 @@
-import {StyleSheet, PixelRatio} from 'react-native';
+import {StyleSheet, PixelRatio, Platform} from 'react-native';
 import Layout from '../../constants/Layout';
 import STYLES from '../../constants/Styles';
 
@@ -37,7 +37,27 @@ export const styles = StyleSheet.create({
   emojiButton: {
     padding: 10,
   },
+
   emoji: {
+    width: 22,
+    height: 22,
+    resizeMode: 'contain',
+  },
+
+  chevron: {
+    width: 12,
+    height: 12,
+    resizeMode: 'contain',
+  },
+
+  send: {
+    width: 22,
+    height: 22,
+    resizeMode: 'contain',
+    marginLeft: 5,
+  },
+
+  mic: {
     width: 22,
     height: 22,
     resizeMode: 'contain',
@@ -52,6 +72,15 @@ export const styles = StyleSheet.create({
     // width:'65%', // when both emoji and updload icon is there
     // width: '90%', // when none of emoji and updload icon is there
     width: '70%',
+  },
+  voiceNotesInputParent: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+    paddingLeft: 0,
+    width: '88%',
+    // backgroundColor: 'pink',
   },
   input: {
     flexGrow: 1,
@@ -70,7 +99,6 @@ export const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingLeft: 5,
     marginLeft: 5,
   },
   sendButtonText: {
@@ -90,7 +118,7 @@ export const styles = StyleSheet.create({
   },
   modalViewParent: {
     position: 'absolute',
-    bottom: 80,
+    bottom: 27 * pixelRatio,
     flexGrow: 1,
     width: Layout.window.width,
   },
@@ -186,7 +214,7 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
   },
-  iconContainer: {alignItems: 'center', margin: 5 * pixelRatio},
+  iconContainer: {alignItems: 'center', margin: 5 * pixelRatio, gap: 5},
   avatar: {
     width: 30,
     height: 30,
@@ -207,6 +235,12 @@ export const styles = StyleSheet.create({
     fontSize: STYLES.$FONT_SIZES.MEDIUM,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.MSG,
+  },
+  recordTitle: {
+    fontSize: STYLES.$FONT_SIZES.LARGE,
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    color: STYLES.$COLORS.MSG,
+    marginTop: Platform.OS === 'ios' ? 3 : 0,
   },
   messageCustomTitle: {
     color: STYLES.$COLORS.SECONDARY,
@@ -229,9 +263,62 @@ export const styles = StyleSheet.create({
     marginLeft: 10,
     marginTop: 10,
   },
+  disabledInput: {
+    marginVertical: Platform.OS === 'android' ? 10 : 20,
+    marginHorizontal: 10,
+    paddingVertical: 10,
+    minHeight: 50,
+    paddingHorizontal: 20,
+    backgroundColor: '#f2f2f2',
+    borderRadius: 25,
+    justifyContent: 'center',
+    borderColor: STYLES.$COLORS.MSG,
+    borderWidth: 1,
+  },
+  disabledInputText: {
+    fontSize: STYLES.$FONT_SIZES.MEDIUM,
+    fontFamily: STYLES.$FONT_TYPES.MEDIUM,
+    color: STYLES.$COLORS.MSG,
+  },
+  alignItems: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    textAlign: 'center',
+  },
+  voiceRecorderInput: {
+    marginHorizontal: 20,
+    paddingVertical: 4,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  lockRecording: {
+    backgroundColor: 'white',
+    height: 150,
+    width: 50,
+    borderRadius: 50,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
   linkPreviewImageView: {
     marginLeft: 10,
     marginTop: 10,
     width: '30%',
+  },
+  tapAndHold: {
+    opacity: 0.8,
+    backgroundColor: 'black',
+    padding: 10,
+    position: 'absolute',
+    bottom: 80,
+    right: 35,
+    borderRadius: 10,
+    borderBottomRightRadius: 0,
   },
 });

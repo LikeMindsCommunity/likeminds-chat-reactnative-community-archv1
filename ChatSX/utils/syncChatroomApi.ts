@@ -1,5 +1,5 @@
-import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
-import {myClient} from '../../';
+
+import {SyncChatroomRequest, myClient} from '../../';
 
 // Sync Chatrrom API
 async function syncChatroomAPI(
@@ -53,7 +53,7 @@ export const paginatedSyncAPI = async (
   }
 
   if (DB_RESPONSE?.chatroomsData.length !== 0) {
-    myClient?.saveChatroomResponse(
+    await myClient?.saveChatroomResponse(
       DB_RESPONSE,
       DB_RESPONSE?.chatroomsData,
       user?.sdkClientInfo?.community,

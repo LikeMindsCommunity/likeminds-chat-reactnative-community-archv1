@@ -1,16 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Linking,
-  Platform,
-  View,
-} from 'react-native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {KeyboardAvoidingView, Linking, Platform} from 'react-native';
 import {Provider as ReduxProvider} from 'react-redux';
 import store from './store';
 import SwitchComponent from './ChatSX/navigation/SwitchComponent';
-import notifee, {EventType} from '@notifee/react-native';
+import notifee from '@notifee/react-native';
 import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './RootNavigation';
 import FetchKeyInputScreen from './Sample';
@@ -19,6 +12,8 @@ import {parseDeepLink} from './ChatSX/components/ParseDeepLink';
 import {DeepLinkRequest} from './ChatSX/components/ParseDeepLink/models';
 import {UserSchemaResponse} from './ChatSX/db/models';
 import {USER_SCHEMA_RO} from './ChatSX/constants/Strings';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {setupPlayer} from './ChatSX/audio';
 
 function App(): JSX.Element {
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
@@ -42,9 +37,16 @@ function App(): JSX.Element {
           RootNavigation.navigate(routes.route, routes.params);
         }, 1000);
       }
-      
     }
     bootstrap();
+  }, []);
+
+  // to initialise track player
+  useEffect(() => {
+    async function setup() {
+      await setupPlayer();
+    }
+    setup();
   }, []);
 
   // To get the deep link URL which was used to open the app
@@ -73,13 +75,15 @@ function App(): JSX.Element {
   }, []);
 
   return userUniqueID && userName ? (
-    <ReduxProvider store={store}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1}}>
-        <SwitchComponent />
-      </KeyboardAvoidingView>
-    </ReduxProvider>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <ReduxProvider store={store}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{flex: 1}}>
+          <SwitchComponent />
+        </KeyboardAvoidingView>
+      </ReduxProvider>
+    </GestureHandlerRootView>
   ) : (
     <FetchKeyInputScreen isTrue={isTrue} setIsTrue={setIsTrue} />
   );
