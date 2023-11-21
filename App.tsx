@@ -14,6 +14,7 @@ import {UserSchemaResponse} from './ChatSX/db/models';
 import {USER_SCHEMA_RO} from './ChatSX/constants/Strings';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {setupPlayer} from './ChatSX/audio';
+import {GiphySDK} from '@giphy/react-native-sdk';
 
 function App(): JSX.Element {
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
@@ -47,6 +48,10 @@ function App(): JSX.Element {
       await setupPlayer();
     }
     setup();
+  }, []);
+
+  useEffect(() => {
+    GiphySDK.configure({apiKey: 'uFWgh5Fl9H3tBmogUqcbDj1EfnQPcMUX'});
   }, []);
 
   // To get the deep link URL which was used to open the app

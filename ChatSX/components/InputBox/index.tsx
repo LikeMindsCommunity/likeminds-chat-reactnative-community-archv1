@@ -40,8 +40,6 @@ import {
   EMPTY_BLOCK_DELETION,
   SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
   CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
-  UPDATE_MULTIMEDIA_CONVERSATIONS,
-  GET_CONVERSATIONS_SUCCESS,
   SET_CHATROOM_TOPIC,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
@@ -127,6 +125,11 @@ import LinkPreviewInputBox from '../linkPreviewInputBox';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
 import {PERMISSIONS, check, request} from 'react-native-permissions';
+import {
+  GiphyDialog,
+  GiphyDialogEvent,
+  GiphyDialogMediaSelectEventHandler,
+} from '@giphy/react-native-sdk';
 
 // to intialise audio recorder player
 const audioRecorderPlayerAttachment = new AudioRecorderPlayer();
@@ -499,6 +502,23 @@ const InputBox = ({
       setMessage(convertedText);
     }
   }, [isEditable, selectedMessages]);
+
+  // Handling GIFs selection in GiphyDialog
+  useEffect(() => {
+    const handler: GiphyDialogMediaSelectEventHandler = e => {
+      console.log('Giphy selected ==', e.media);
+
+      // setMedia(e.media)
+      GiphyDialog.hide();
+    };
+    const listener = GiphyDialog.addListener(
+      GiphyDialogEvent.MediaSelected,
+      handler,
+    );
+    return () => {
+      listener.remove();
+    };
+  }, []);
 
   const handleVideoThumbnail = async (images: any) => {
     const res = await getVideoThumbnail({
@@ -2165,6 +2185,17 @@ const InputBox = ({
                       }
                     : {marginHorizontal: 20},
                 ]}>
+                {!isUploadScreen &&
+                !(chatRequestState === 0 || chatRequestState === null) &&
+                !isEditable &&
+                !voiceNotes?.recordTime &&
+                !isDeleteAnimation ? (
+                  <TouchableOpacity
+                    style={styles.emojiButton}
+                    onPress={() => GiphyDialog.show()}>
+                    <Text>GIF</Text>
+                  </TouchableOpacity>
+                ) : null}
                 <TaggingView
                   defaultValue={message}
                   onChange={handleInputChange}
