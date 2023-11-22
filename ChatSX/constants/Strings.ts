@@ -46,6 +46,7 @@ export const DONE_BUTTON = 'Done';
 export const PDF_TEXT = 'pdf';
 export const AUDIO_TEXT = 'audio';
 export const VIDEO_TEXT = 'video';
+export const GIF_TEXT = 'gif';
 export const VOICE_NOTE_TEXT = 'voice_note';
 export const VIDEOS_TEXT = 'videos';
 export const IMAGE_TEXT = 'image';

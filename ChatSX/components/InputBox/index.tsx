@@ -60,6 +60,7 @@ import {
   CAMERA_TEXT,
   CHARACTER_LIMIT_MESSAGE,
   DOCUMENTS_TEXT,
+  GIF_TEXT,
   GRANTED,
   IMAGE_TEXT,
   PDF_TEXT,
@@ -129,7 +130,9 @@ import {
   GiphyDialog,
   GiphyDialogEvent,
   GiphyDialogMediaSelectEventHandler,
+  GiphyMedia,
 } from '@giphy/react-native-sdk';
+import {createThumbnail} from 'react-native-create-thumbnail';
 
 // to intialise audio recorder player
 const audioRecorderPlayerAttachment = new AudioRecorderPlayer();
@@ -152,6 +155,7 @@ const InputBox = ({
   chatroomWithUser,
   chatroomName,
   currentChatroomTopic,
+  isGif,
 }: InputBoxProps) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -506,9 +510,7 @@ const InputBox = ({
   // Handling GIFs selection in GiphyDialog
   useEffect(() => {
     const handler: GiphyDialogMediaSelectEventHandler = e => {
-      console.log('Giphy selected ==', e.media);
-
-      // setMedia(e.media)
+      selectGIF(e.media);
       GiphyDialog.hide();
     };
     const listener = GiphyDialog.addListener(
@@ -742,6 +744,41 @@ const InputBox = ({
     }
   };
 
+  const selectGIF = async (gif: GiphyMedia) => {
+    const item = {...gif, thumbnailUrl: ''};
+
+    navigation.navigate(FILE_UPLOAD, {
+      chatroomID: chatroomID,
+      previousMessage: message, // to keep message on uploadScreen InputBox
+    });
+
+    console.log('thumbi = ');
+    await createThumbnail({
+      url: gif?.data?.images?.fixed_width?.mp4,
+      timeStamp: 10000,
+    })
+      .then(response => {
+        console.log('ressss===', response);
+        item.thumbnailUrl = response?.path;
+
+        dispatch({
+          type: SELECTED_FILE_TO_VIEW,
+          body: {image: item},
+        });
+        dispatch({
+          type: SELECTED_FILES_TO_UPLOAD,
+          body: {
+            images: [item],
+          },
+        });
+        dispatch({
+          type: STATUS_BAR_STYLE,
+          body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+        });
+      })
+      .catch(err => {});
+  };
+
   const handleModalClose = () => {
     setModalVisible(false);
   };
@@ -883,7 +920,9 @@ const InputBox = ({
     // for making data for `attachments` key
     if (attachmentsCount > 0) {
       for (let i = 0; i < attachmentsCount; i++) {
-        let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
+        let attachmentType = selectedFilesToUpload[i]?.data?.type
+          ? selectedFilesToUpload[i]?.data?.type
+          : selectedFilesToUpload[i]?.type?.split('/')[0];
         let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
         let audioAttachmentType = voiceNotesToUpload[i]?.type;
         let audioURI = voiceNotesToUpload[i]?.uri;
@@ -926,6 +965,16 @@ const InputBox = ({
               size: null,
               duration: voiceNotesToUpload[i].duration,
             },
+          };
+          dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
+        } else if (attachmentType === GIF_TEXT) {
+          let obj = {
+            ...selectedFilesToUpload[i],
+            type: attachmentType,
+            url: selectedFilesToUpload[i]?.url,
+            thumbnailUrl: selectedFilesToUpload[i].thumbnailUrl,
+            index: i,
+            name: selectedFilesToUpload[i].name,
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         }
@@ -2037,7 +2086,7 @@ const InputBox = ({
                   }
                 : null,
             ]}>
-            {!!isUploadScreen && !!!isDoc ? (
+            {!!isUploadScreen && !isDoc && !isGif ? (
               <TouchableOpacity
                 style={styles.addMoreButton}
                 onPress={() => {
@@ -2048,7 +2097,7 @@ const InputBox = ({
                   style={styles.emoji}
                 />
               </TouchableOpacity>
-            ) : !!isUploadScreen && !!isDoc ? (
+            ) : !!isUploadScreen && !!isDoc && !isGif ? (
               <TouchableOpacity
                 style={styles.addMoreButton}
                 onPress={() => {

@@ -2170,6 +2170,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           ? item.fileName
           : attachmentType === VIDEO_TEXT
           ? item.fileName
+          : attachmentType === VOICE_NOTE_TEXT
+          ? item.name
           : docAttachmentType === PDF_TEXT
           ? item.name
           : null;

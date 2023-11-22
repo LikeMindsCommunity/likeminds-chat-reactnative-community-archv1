@@ -23,6 +23,7 @@ import {CAROUSEL_SCREEN} from '../../constants/Screens';
 import {
   AUDIO_TEXT,
   FAILED,
+  GIF_TEXT,
   IMAGE_TEXT,
   PDF_TEXT,
   SUCCESS,
@@ -30,7 +31,6 @@ import {
   VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import Slider from '@react-native-community/slider';
-import {VoiceNotesPlayerProps} from '../InputBox/models';
 import TrackPlayer, {
   useActiveTrack,
   useProgress,
@@ -73,16 +73,14 @@ const AttachmentConversations = ({
   isReply,
   chatroomName,
 }: AttachmentConversations) => {
-  const [voiceNotesPlayer, setVoiceNotesPlayer] =
-    useState<VoiceNotesPlayerProps>({
-      currentPositionSec: 0,
-      currentDurationSec: 0,
-      playTime: '',
-      duration: '',
-    });
   const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
+  const [isGifPlaying, setIsGifPlaying] = useState(false);
   const progress = useProgress();
   const activeTrack = useActiveTrack();
+
+  let firstAttachment = item?.attachments[0];
+  const isAudioActive =
+    activeTrack?.externalUrl === firstAttachment?.url ? true : false;
 
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
@@ -151,9 +149,12 @@ const AttachmentConversations = ({
     await onSeekTo(secondsToSeek);
   };
 
-  let firstAttachment = item?.attachments[0];
-  const isAudioActive =
-    activeTrack?.externalUrl === firstAttachment?.url ? true : false;
+  const playGif = () => {
+    setIsGifPlaying(true);
+    setTimeout(() => {
+      setIsGifPlaying(false);
+    }, 2000);
+  };
   return (
     <View
       style={[
@@ -295,6 +296,76 @@ const AttachmentConversations = ({
                 </View>
               </View>
             </View>
+            {item?.isInProgress === SUCCESS ? (
+              <View style={styles.uploadingIndicator}>
+                <ActivityIndicator
+                  size="large"
+                  color={STYLES.$COLORS.SECONDARY}
+                />
+              </View>
+            ) : item?.isInProgress === FAILED ? (
+              <View style={styles.uploadingIndicator}>
+                <Pressable
+                  onPress={() => {
+                    handleFileUpload(item?.id, true);
+                  }}
+                  style={({pressed}) => [
+                    {
+                      opacity: pressed ? 0.5 : 1,
+                    },
+                    styles.retryButton,
+                  ]}>
+                  <Image
+                    style={styles.retryIcon}
+                    source={require('../../assets/images/retry_file_upload3x.png')}
+                  />
+                  <Text style={styles.retryText}>RETRY</Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
+        ) : firstAttachment?.type === GIF_TEXT ? (
+          <View>
+            {!isGifPlaying && !item?.isInProgress ? (
+              <TouchableOpacity
+                onPress={playGif}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: 150,
+                  position: 'absolute',
+                  width: '100%',
+                  zIndex: 1,
+                }}>
+                <View
+                  style={{
+                    backgroundColor: 'black',
+                    opacity: 0.9,
+                    padding: 10,
+                    borderRadius: 50,
+                  }}>
+                  <Text style={{color: 'white'}}>GIF</Text>
+                </View>
+              </TouchableOpacity>
+            ) : null}
+
+            {isGifPlaying ? (
+              <Image
+                source={{
+                  uri: firstAttachment?.url,
+                }}
+                style={styles.singleImg}
+              />
+            ) : (
+              <Image
+                source={{
+                  uri: firstAttachment?.thumbnailUrl,
+                }}
+                style={styles.singleImg}
+              />
+            )}
+
             {item?.isInProgress === SUCCESS ? (
               <View style={styles.uploadingIndicator}>
                 <ActivityIndicator

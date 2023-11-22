@@ -545,3 +545,14 @@ export function convertSecondsToTime(seconds: number) {
 export const atLeastAndroid13 = (): boolean => {
   return Platform.OS === 'android' && Platform.Version >= 33;
 };
+
+// to generate gif name
+export function generateGifName() {
+  const currentDate = new Date();
+  const timestamp = currentDate
+    .toISOString()
+    .replace(/[-T:]/g, '')
+    .slice(0, -5); // Remove dashes, colons, and seconds
+
+  return `GIF_${timestamp}`; // You can change the file extension or format as needed
+}
