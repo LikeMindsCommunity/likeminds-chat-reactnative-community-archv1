@@ -10,7 +10,11 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
-import {convertSecondsToTime, decode} from '../../commonFuctions';
+import {
+  convertSecondsToTime,
+  decode,
+  generateGifString,
+} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
 import {
   LONG_PRESSED,
@@ -81,7 +85,8 @@ const AttachmentConversations = ({
   let firstAttachment = item?.attachments[0];
   const isAudioActive =
     activeTrack?.externalUrl === firstAttachment?.url ? true : false;
-
+  const isGif = firstAttachment?.type === GIF_TEXT;
+  const isAnswer = isGif ? !!generateGifString(item?.answer) : !!item?.answer;
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
 
@@ -324,7 +329,7 @@ const AttachmentConversations = ({
               </View>
             ) : null}
           </View>
-        ) : firstAttachment?.type === GIF_TEXT ? (
+        ) : isGif ? (
           <View>
             {!isGifPlaying && !item?.isInProgress ? (
               <TouchableOpacity
@@ -396,14 +401,16 @@ const AttachmentConversations = ({
           </View>
         ) : null}
 
-        <View style={styles.messageText as any}>
-          {decode(
-            item?.answer,
-            true,
-            chatroomName,
-            user?.sdkClientInfo?.community,
-          )}
-        </View>
+        {isAnswer ? (
+          <View style={styles.messageText as any}>
+            {decode(
+              isGif ? generateGifString(item?.answer) : item?.answer,
+              true,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </View>
+        ) : null}
         <View style={styles.alignTime}>
           {item?.isEdited ? (
             <Text style={styles.messageDate}>{`Edited • `}</Text>

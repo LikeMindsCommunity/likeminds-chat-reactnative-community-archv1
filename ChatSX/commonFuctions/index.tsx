@@ -556,3 +556,18 @@ export function generateGifName() {
 
   return `GIF_${timestamp}`; // You can change the file extension or format as needed
 }
+
+// replace gif string message
+export const generateGifString = (message: string) => {
+  let originalString: string = message;
+  let searchString: string =
+    '* This is a gif message. Please update your app *';
+  let replacementString: string = '';
+
+  let resultString: string = originalString.replace(
+    searchString,
+    replacementString,
+  );
+
+  return resultString?.trim();
+};

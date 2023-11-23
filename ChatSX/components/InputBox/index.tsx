@@ -752,13 +752,11 @@ const InputBox = ({
       previousMessage: message, // to keep message on uploadScreen InputBox
     });
 
-    console.log('thumbi = ');
     await createThumbnail({
       url: gif?.data?.images?.fixed_width?.mp4,
       timeStamp: 10000,
     })
       .then(response => {
-        console.log('ressss===', response);
         item.thumbnailUrl = response?.path;
 
         dispatch({
@@ -2232,7 +2230,7 @@ const InputBox = ({
                     ? {
                         marginHorizontal: 5,
                       }
-                    : {marginHorizontal: 20},
+                    : {marginHorizontal: 15},
                 ]}>
                 {!isUploadScreen &&
                 !(chatRequestState === 0 || chatRequestState === null) &&
@@ -2240,9 +2238,9 @@ const InputBox = ({
                 !voiceNotes?.recordTime &&
                 !isDeleteAnimation ? (
                   <TouchableOpacity
-                    style={styles.emojiButton}
+                    style={styles.gifView}
                     onPress={() => GiphyDialog.show()}>
-                    <Text>GIF</Text>
+                    <Text style={styles.gifText}>GIF</Text>
                   </TouchableOpacity>
                 ) : null}
                 <TaggingView
@@ -2294,7 +2292,7 @@ const InputBox = ({
             !voiceNotes?.recordTime &&
             !isDeleteAnimation ? (
               <TouchableOpacity
-                style={styles.emojiButton}
+                style={[styles.emojiButton, {marginLeft: 15}]}
                 onPress={() => {
                   Keyboard.dismiss();
                   setModalVisible(true);
