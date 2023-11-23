@@ -1,4 +1,4 @@
-import TrackPlayer, {Capability, Event} from 'react-native-track-player';
+import TrackPlayer, {Event} from 'react-native-track-player';
 
 export async function setupPlayer() {
   let isSetup = false;
@@ -16,7 +16,6 @@ export async function setupPlayer() {
 }
 
 export async function playbackService() {
-
   // to pause audio from notification
   TrackPlayer.addEventListener(Event.RemotePause, () => {
     TrackPlayer.pause();

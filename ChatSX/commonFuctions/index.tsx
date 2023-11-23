@@ -26,14 +26,14 @@ export const removeKey = (key: any, {[key]: _, ...rest}) => rest;
 // This function helps us to decode time(created_epoch: 1675421848540) into DATE if more than a day else TIME if less than a day.
 export function getFullDate(time: any) {
   if (!!time) {
-    let t = new Date(time);
-    let today = new Date(Date.now());
-    let date = t.getDate();
-    let month = t.getMonth() + 1;
-    let year = t.getFullYear();
+    const t = new Date(time);
+    const today = new Date(Date.now());
+    const date = t.getDate();
+    const month = t.getMonth() + 1;
+    const year = t.getFullYear();
 
-    let todayStr = `${today.getDate()}/${today.getMonth()}/${today.getFullYear()}`;
-    let tStr = `${date}/${month}/${year}`;
+    const todayStr = `${today.getDate()}/${today.getMonth()}/${today.getFullYear()}`;
+    const tStr = `${date}/${month}/${year}`;
     if (todayStr === tStr) {
       return `${t.getHours()}:${t.getMinutes()}`;
     } else {
@@ -48,8 +48,7 @@ function detectLinks(message: string, isLongPress?: boolean) {
   const regex =
     /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b)/i;
 
-  let parts = message.split(regex);
-  let i = 0;
+  const parts = message.split(regex);
   if (parts?.length > 0) {
     return (
       <Text>
@@ -63,8 +62,8 @@ function detectLinks(message: string, isLongPress?: boolean) {
                     const urlRegex = /(https?:\/\/[^\s]+)/gi;
                     const emailRegex =
                       /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
-                    let isURL = urlRegex.test(val);
-                    let isEmail = emailRegex.test(val);
+                    const isURL = urlRegex.test(val);
+                    const isEmail = emailRegex.test(val);
 
                     if (isEmail) {
                       await Linking.openURL(`mailto:${val}`);
@@ -128,7 +127,7 @@ export const decode = (
   if (!text) {
     return;
   }
-  let arr: any[] = [];
+  const arr: any[] = [];
   let parts = text?.split(REGEX_USER_SPLITTING);
 
   if (!!parts) {
