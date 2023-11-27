@@ -10,6 +10,7 @@ import {DeepLinkRequest} from './components/ParseDeepLink/models';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {setupPlayer} from './audio';
 import SwitchComponent from './navigation/SwitchComponent';
+import {Credentials} from './credentials';
 
 function LMApp(): JSX.Element {
   //To navigate onPress notification while android app is in background state / quit state.
@@ -41,8 +42,8 @@ function LMApp(): JSX.Element {
     const getInitialURL = async () => {
       const url = await Linking.getInitialURL(); // This returns the link that was used to open the app
       if (url != null) {
-        const uuid = 'arnav123';
-        const userName = 'arnav123';
+        const uuid = Credentials.userUniqueId;
+        const userName = Credentials.username;
 
         const exampleRequest: DeepLinkRequest = {
           uri: url,
