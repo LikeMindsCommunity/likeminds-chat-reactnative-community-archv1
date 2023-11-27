@@ -165,8 +165,14 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const listener = Linking.addEventListener('url', ({url}) => {
-      const uuid = Credentials.userUniqueId;
-      const userName = Credentials.username;
+      const uuid =
+        Credentials.userUniqueId.length > 0
+          ? Credentials.userUniqueId
+          : users[0]?.userUniqueID;
+      const userName =
+        Credentials.username.length > 0
+          ? Credentials.username
+          : users[0]?.userName;
 
       const exampleRequest: DeepLinkRequest = {
         uri: url,
