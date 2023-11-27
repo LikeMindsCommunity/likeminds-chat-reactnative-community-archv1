@@ -13,7 +13,7 @@ import {myClient} from '../../..';
 import STYLES from '../../constants/Styles';
 import styles from './styles';
 import {SHOW_TOAST} from '../../store/types/types';
-import {useAppDispatch} from '../../../store';
+import {useAppDispatch} from '../../store';
 import {Events, Keys} from '../../enums';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getConversationType} from '../../utils/analyticsUtils';

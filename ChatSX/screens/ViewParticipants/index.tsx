@@ -12,7 +12,7 @@ import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {myClient} from '../../..';
-import {useAppSelector} from '../../../store';
+import {useAppSelector} from '../../store';
 import Layout from '../../constants/Layout';
 import {ADD_PARTICIPANTS} from '../../constants/Screens';
 import {FlashList} from '@shopify/flash-list';

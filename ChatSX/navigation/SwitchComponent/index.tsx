@@ -17,7 +17,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeFeed from '../../screens/HomeFeed';
 import ExploreFeed from '../../screens/ExploreFeed';
 import ChatRoom from '../../screens/ChatRoom';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import ReportScreen from '../../screens/ReportMessage';
 import ImageScreen from '../../components/ImageScreen';
 import {
@@ -33,7 +33,7 @@ import {
 import messaging from '@react-native-firebase/messaging';
 import notifee, {EventType} from '@notifee/react-native';
 import {getRoute} from '../../notifications/routes';
-import {navigationRef} from '../../../RootNavigation';
+import {navigationRef} from '../../RootNavigation';
 import getNotification from '../../notifications';
 import ViewParticipants from '../../screens/ViewParticipants';
 import AddParticipants from '../../screens/AddParticipants';

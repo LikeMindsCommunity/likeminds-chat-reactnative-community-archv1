@@ -14,7 +14,7 @@ import {
 import {myClient} from '../../..';
 import {getNameInitials} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {getMemberState, initAPI} from '../../store/actions/homefeed';
 import styles from './styles';
 import {UPDATE_FILE_UPLOADING_OBJECT} from '../../store/types/types';

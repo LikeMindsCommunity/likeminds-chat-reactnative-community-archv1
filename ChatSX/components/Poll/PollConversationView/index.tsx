@@ -1,6 +1,6 @@
 import {View, Text} from 'react-native';
 import React, {useEffect, useState} from 'react';
-import {useAppDispatch, useAppSelector} from '../../../../store';
+import {useAppDispatch, useAppSelector} from '../../../store';
 import {POLL_RESULT} from '../../../constants/Screens';
 import {SHOW_TOAST} from '../../../store/types/types';
 import {firebaseConversation} from '../../../store/actions/chatroom';

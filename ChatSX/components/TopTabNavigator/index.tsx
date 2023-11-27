@@ -4,7 +4,7 @@ import {styles} from './styles';
 import STYLES from '../../constants/Styles';
 import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
 import Layout from '../../constants/Layout';
-import {useAppSelector} from '../../../store';
+import {useAppSelector} from '../../store';
 import {Events, Keys} from '../../enums';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 

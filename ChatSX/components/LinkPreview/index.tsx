@@ -2,7 +2,7 @@ import {View, Text, Image, Linking, Pressable} from 'react-native';
 import React from 'react';
 import {styles} from './styles';
 import STYLES from '../../constants/Styles';
-import {useAppSelector} from '../../../store';
+import {useAppSelector} from '../../store';
 import {decode} from '../../commonFuctions';
 import {LinkPreviewProps} from './models';
 import LinkPreviewBox from '../linkPreviewBox';

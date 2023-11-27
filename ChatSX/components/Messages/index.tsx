@@ -6,7 +6,7 @@ import {decode} from '../../commonFuctions';
 import ReplyConversations from '../ReplyConversations';
 import AttachmentConversations from '../AttachmentConversations';
 import ReactionGridModal from '../ReactionGridModal';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {
   LONG_PRESSED,
   SELECTED_MESSAGES,

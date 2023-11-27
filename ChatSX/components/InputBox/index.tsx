@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {onConversationsCreate} from '../../store/actions/chatroom';
 import {
   CLEAR_SELECTED_FILES_TO_UPLOAD,

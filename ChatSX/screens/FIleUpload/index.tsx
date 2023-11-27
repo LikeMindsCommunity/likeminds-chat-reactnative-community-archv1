@@ -22,7 +22,7 @@ import {
   SET_FILE_UPLOADING_MESSAGES,
   STATUS_BAR_STYLE,
 } from '../../store/types/types';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import STYLES from '../../constants/Styles';
 import VideoPlayer from 'react-native-media-console';
 import {

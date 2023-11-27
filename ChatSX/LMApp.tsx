@@ -1,31 +1,17 @@
 import React, {useEffect, useState} from 'react';
 import {KeyboardAvoidingView, Linking, Platform} from 'react-native';
 import {Provider as ReduxProvider} from 'react-redux';
-import store from './ChatSX/store';
-import SwitchComponent from './ChatSX/navigation/SwitchComponent';
+import store from './store';
 import notifee from '@notifee/react-native';
-import {getRoute} from './ChatSX/notifications/routes';
-import * as RootNavigation from './ChatSX/RootNavigation';
-import FetchKeyInputScreen from './Sample';
-import {useQuery} from '@realm/react';
-import {parseDeepLink} from './ChatSX/components/ParseDeepLink';
-import {DeepLinkRequest} from './ChatSX/components/ParseDeepLink/models';
-import {UserSchemaResponse} from './ChatSX/db/models';
-import {USER_SCHEMA_RO} from './ChatSX/constants/Strings';
+import {getRoute} from './notifications/routes';
+import * as RootNavigation from './RootNavigation';
+import {parseDeepLink} from './components/ParseDeepLink';
+import {DeepLinkRequest} from './components/ParseDeepLink/models';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {setupPlayer} from './ChatSX/audio';
+import {setupPlayer} from './audio';
+import SwitchComponent from './navigation/SwitchComponent';
 
-function App(): JSX.Element {
-  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
-  const [userUniqueID, setUserUniqueID] = useState(users[0]?.userUniqueID);
-  const [userName, setUserName] = useState(users[0]?.userName);
-  const [isTrue, setIsTrue] = useState(true);
-
-  useEffect(() => {
-    setUserName(users[0]?.userName);
-    setUserUniqueID(users[0]?.userUniqueID);
-  }, [users]);
-
+function LMApp(): JSX.Element {
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
     async function bootstrap() {
@@ -55,8 +41,8 @@ function App(): JSX.Element {
     const getInitialURL = async () => {
       const url = await Linking.getInitialURL(); // This returns the link that was used to open the app
       if (url != null) {
-        const uuid = users[0]?.userUniqueID;
-        const userName = users[0]?.userName;
+        const uuid = 'arnav123';
+        const userName = 'arnav123';
 
         const exampleRequest: DeepLinkRequest = {
           uri: url,
@@ -74,7 +60,7 @@ function App(): JSX.Element {
     getInitialURL();
   }, []);
 
-  return userUniqueID && userName ? (
+  return (
     <GestureHandlerRootView style={{flex: 1}}>
       <ReduxProvider store={store}>
         <KeyboardAvoidingView
@@ -84,9 +70,7 @@ function App(): JSX.Element {
         </KeyboardAvoidingView>
       </ReduxProvider>
     </GestureHandlerRootView>
-  ) : (
-    <FetchKeyInputScreen isTrue={isTrue} setIsTrue={setIsTrue} />
   );
 }
 
-export default App;
+export default LMApp;
