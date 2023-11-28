@@ -12,7 +12,7 @@ import {setupPlayer} from './audio';
 import SwitchComponent from './navigation/SwitchComponent';
 import {Credentials} from './credentials';
 
-function LMApp(): JSX.Element {
+function LMChatApp(): JSX.Element {
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
     async function bootstrap() {
@@ -36,31 +36,6 @@ function LMApp(): JSX.Element {
     setup();
   }, []);
 
-  // To get the deep link URL which was used to open the app
-  useEffect(() => {
-    // custom function to get the URL which was used to open the app
-    const getInitialURL = async () => {
-      const url = await Linking.getInitialURL(); // This returns the link that was used to open the app
-      if (url != null) {
-        const uuid = Credentials.userUniqueId;
-        const userName = Credentials.username;
-
-        const exampleRequest: DeepLinkRequest = {
-          uri: url,
-          uuid: uuid, // uuid
-          userName: userName, // user name
-          isGuest: false,
-        };
-
-        // Example usage to call parseDeepLink() method
-        parseDeepLink(exampleRequest, response => {
-          // Parsed response
-        });
-      }
-    };
-    getInitialURL();
-  }, []);
-
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <ReduxProvider store={store}>
@@ -74,4 +49,4 @@ function LMApp(): JSX.Element {
   );
 }
 
-export default LMApp;
+export default LMChatApp;
