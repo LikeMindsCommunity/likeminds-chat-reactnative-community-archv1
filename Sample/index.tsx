@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import STYLES from '../ChatSX/constants/Styles';
 import {useQuery, useRealm} from '@realm/react';
-import { UserSchemaResponse } from '../ChatSX/db/models';
-import { USER_SCHEMA_RO } from '../ChatSX/constants/Strings';
+import {UserSchemaResponse} from '../ChatSX/db/models';
+import {USER_SCHEMA_RO} from '../ChatSX/constants/Strings';
+import {Credentials} from '../ChatSX/credentials';
 
 interface ChildProps {
   isTrue: boolean;
@@ -33,6 +34,7 @@ const FetchKeyInputScreen: React.FC<ChildProps> = ({isTrue, setIsTrue}) => {
         userName: userName,
       });
     });
+    Credentials.setCredentials(userName, userUniqueID);
   };
 
   const handleButtonPress = () => {

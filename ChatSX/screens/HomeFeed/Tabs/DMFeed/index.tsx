@@ -16,7 +16,7 @@ import HomeFeedExplore from '../../../../components/HomeFeedExplore';
 import HomeFeedItem from '../../../../components/HomeFeedItem';
 import STYLES from '../../../../constants/Styles';
 import {onValue, ref} from '@firebase/database';
-import {useAppDispatch, useAppSelector} from '../../../../../store';
+import {useAppDispatch, useAppSelector} from '../../../../store';
 import {
   getInvites,
   initAPI,

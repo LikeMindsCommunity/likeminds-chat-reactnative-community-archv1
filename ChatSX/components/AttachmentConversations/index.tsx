@@ -18,7 +18,7 @@ import {
   SET_POSITION,
   STATUS_BAR_STYLE,
 } from '../../store/types/types';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {CAROUSEL_SCREEN} from '../../constants/Screens';
 import {
   AUDIO_TEXT,

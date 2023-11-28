@@ -10,7 +10,7 @@ import React, {useEffect, useState} from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {
   GET_CONVERSATIONS_SUCCESS,
   LONG_PRESSED,

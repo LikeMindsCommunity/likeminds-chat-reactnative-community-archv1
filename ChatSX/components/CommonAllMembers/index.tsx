@@ -15,7 +15,7 @@ import STYLES from '../../constants/Styles';
 import {myClient} from '../../..';
 import {StackActions} from '@react-navigation/native';
 import {SHOW_TOAST} from '../../store/types/types';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {CHATROOM} from '../../constants/Screens';
 import {CANCEL_BUTTON, REQUEST_DM_LIMIT} from '../../constants/Strings';
 import {formatTime} from '../../commonFuctions';

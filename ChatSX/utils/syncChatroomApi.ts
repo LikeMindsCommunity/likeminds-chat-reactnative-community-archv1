@@ -1,5 +1,5 @@
-
-import {SyncChatroomRequest, myClient} from '../../';
+import {myClient} from '../../';
+import {SyncChatroomRequest} from '@likeminds.community/chat-rn';
 
 // Sync Chatrrom API
 async function syncChatroomAPI(

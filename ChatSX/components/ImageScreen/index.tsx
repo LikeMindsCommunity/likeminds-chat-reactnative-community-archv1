@@ -16,7 +16,7 @@ import {CAROUSEL_SCREEN, VIDEO_PLAYER} from '../../constants/Screens';
 import {IMAGE_TEXT, VIDEO_TEXT} from '../../constants/Strings';
 import ViewImage from '../../screens/ViewImage';
 import {STATUS_BAR_STYLE} from '../../store/types/types';
-import {useAppDispatch} from '../../../store';
+import {useAppDispatch} from '../../store';
 
 interface ImageScreen {
   navigation: any;
