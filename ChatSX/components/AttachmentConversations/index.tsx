@@ -90,6 +90,9 @@ const AttachmentConversations = ({
   const isAnswer = isGif ? !!generateGifString(item?.answer) : !!item?.answer;
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
+  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
+    state => state.chatroom,
+  );
 
   // to stop the audio if move out of the chatroom
   useEffect(() => {
@@ -160,6 +163,54 @@ const AttachmentConversations = ({
     setTimeout(() => {
       setIsGifPlaying(false);
     }, 2000);
+  };
+
+  // handle gif on long press
+  const handleLongPress = (event: any) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    longPressOpenKeyboard();
+  };
+
+  // handle gif on press
+  const handleOnPress = (event: any, url: string, index: number) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    let isStateIncluded = stateArr.includes(item?.state);
+    if (isLongPress) {
+      if (isIncluded) {
+        const filterdMessages = selectedMessages.filter(
+          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+        );
+        if (filterdMessages.length > 0) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+        } else {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+          dispatch({type: LONG_PRESSED, body: false});
+        }
+      } else {
+        if (!isStateIncluded) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...selectedMessages, item],
+          });
+        }
+      }
+    } else {
+      playGif();
+    }
   };
   return (
     <View
@@ -331,19 +382,30 @@ const AttachmentConversations = ({
             ) : null}
           </View>
         ) : isGif ? (
-          <View>
+          <View
+            style={
+              isIncluded
+                ? {
+                    backgroundColor: STYLES.$COLORS.SELECTED_BLUE,
+                    opacity: 0.7,
+                  }
+                : null
+            }>
             {!isGifPlaying && !item?.isInProgress ? (
               <TouchableOpacity
-                onPress={playGif}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: 150,
-                  position: 'absolute',
-                  width: '100%',
-                  zIndex: 1,
-                }}>
+                onPress={handleOnPress}
+                onLongPress={handleLongPress}
+                style={[
+                  {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: 150,
+                    position: 'absolute',
+                    width: '100%',
+                    zIndex: 1,
+                  },
+                ]}>
                 <View
                   style={{
                     backgroundColor: 'black',
@@ -359,7 +421,6 @@ const AttachmentConversations = ({
             {isGifPlaying ? (
               <TouchableWithoutFeedback
                 onPress={() => {
-                  console.log('kdjf');
                   navigation.navigate(CAROUSEL_SCREEN, {
                     dataObject: item,
                     index: 0,
@@ -921,9 +982,7 @@ export const ImageConversations = ({
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
   );
-  const {isFileUploading, fileUploadingID}: any = useAppSelector(
-    state => state.upload,
-  );
+
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
