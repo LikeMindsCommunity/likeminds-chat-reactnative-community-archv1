@@ -9,7 +9,7 @@ import {
 import React, {useEffect, useState} from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
-import {decode} from '../../commonFuctions';
+import {decode, generateGifString} from '../../commonFuctions';
 import {useAppDispatch, useAppSelector} from '../../../store';
 import {
   GET_CONVERSATIONS_SUCCESS,
@@ -19,6 +19,7 @@ import {
 } from '../../store/types/types';
 import {
   AUDIO_TEXT,
+  GIF_TEXT,
   IMAGE_TEXT,
   PDF_TEXT,
   VIDEO_TEXT,
@@ -51,6 +52,8 @@ interface ReplyBox {
 
 export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
   const {user} = useAppSelector(state => state.homefeed);
+  const isGif = item?.attachments[0]?.type === GIF_TEXT;
+  const answer = isGif ? generateGifString(item?.answer) : item?.answer;
 
   return (
     <View style={styles.replyBox}>
@@ -81,12 +84,16 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
               source={require('../../assets/images/mic_icon3x.png')}
               style={[styles.icon, {tintColor: 'grey'}]}
             />
+          ) : item?.attachments[0]?.type === GIF_TEXT ? (
+            <View style={styles.gifView}>
+              <Text style={styles.gifText}>{'GIF'}</Text>
+            </View>
           ) : null
         ) : null}
         <Text style={styles.messageText}>
           {decode(
-            !!item?.answer
-              ? item?.answer
+            !!answer
+              ? answer
               : item?.attachments[0]?.type === PDF_TEXT
               ? `Document`
               : item?.attachments[0]?.type === IMAGE_TEXT
@@ -95,6 +102,8 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
               ? `Video`
               : item?.attachments[0]?.type === VOICE_NOTE_TEXT
               ? `Voice Note`
+              : item?.attachments[0]?.type === GIF_TEXT
+              ? `GIF`
               : item?.attachments[0]?.type === AUDIO_TEXT
               ? `This message is not supported in this app yet.`
               : null,

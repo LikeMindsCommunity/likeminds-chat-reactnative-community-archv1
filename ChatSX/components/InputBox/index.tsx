@@ -127,6 +127,7 @@ import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
 import {PERMISSIONS, check, request} from 'react-native-permissions';
 import {
+  GiphyContentType,
   GiphyDialog,
   GiphyDialogEvent,
   GiphyDialogMediaSelectEventHandler,
@@ -509,6 +510,9 @@ const InputBox = ({
 
   // Handling GIFs selection in GiphyDialog
   useEffect(() => {
+    GiphyDialog.configure({
+      mediaTypeConfig: [GiphyContentType.Recents, GiphyContentType.Gif],
+    });
     const handler: GiphyDialogMediaSelectEventHandler = e => {
       selectGIF(e.media);
       GiphyDialog.hide();

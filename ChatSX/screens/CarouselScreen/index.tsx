@@ -3,6 +3,7 @@ import React, {useEffect, useRef} from 'react';
 import {SwiperFlatList} from 'react-native-swiper-flatlist';
 import Layout from '../../constants/Layout';
 import {
+  GIF_TEXT,
   IMAGE_TEXT,
   PHOTOS_TEXT,
   PHOTO_TEXT,
@@ -14,6 +15,7 @@ import styles from './styles';
 import STYLES from '../../constants/Styles';
 import {STATUS_BAR_STYLE} from '../../store/types/types';
 import {useAppDispatch} from '../../../store';
+import {DocumentType} from '../../enums';
 
 const CarouselScreen = ({navigation, route}: any) => {
   const video = useRef<any>(null);
@@ -23,11 +25,14 @@ const CarouselScreen = ({navigation, route}: any) => {
   let imageCount = 0;
   let videoCount = 0;
   let pdfCount = 0;
+  let gifCount = 0;
   for (let i = 0; i < data.length; i++) {
-    if (data[i].type == 'image') {
+    if (data[i].type == DocumentType.VIDEO) {
       imageCount++;
-    } else if (data[i].type == 'video') {
+    } else if (data[i].type == DocumentType.IMAGE) {
       videoCount++;
+    } else if (data[i].type == DocumentType.GIF_TEXT) {
+      gifCount++;
     } else {
       pdfCount++;
     }
@@ -46,6 +51,8 @@ const CarouselScreen = ({navigation, route}: any) => {
     countText = `${imageCount > 1 ? `${imageCount} ${PHOTOS_TEXT}` : ''}`;
   } else if (videoCount > 0) {
     countText = `${videoCount > 1 ? `${videoCount} ${VIDEOS_TEXT}` : ''}`;
+  } else if (gifCount > 0) {
+    countText = `${gifCount > 1 ? `${gifCount} ${GIF_TEXT}` : ''}`;
   }
 
   const setInitialHeader = () => {
@@ -142,6 +149,8 @@ const CarouselScreen = ({navigation, route}: any) => {
                     showOnStart={true}
                   />
                 </View>
+              ) : item?.type === GIF_TEXT ? (
+                <Image style={styles.image} source={{uri: item?.url}} />
               ) : null}
             </View>
           );

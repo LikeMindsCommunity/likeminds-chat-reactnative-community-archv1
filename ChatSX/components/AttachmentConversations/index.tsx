@@ -7,6 +7,7 @@ import {
   Pressable,
   ActivityIndicator,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
@@ -356,12 +357,25 @@ const AttachmentConversations = ({
             ) : null}
 
             {isGifPlaying ? (
-              <Image
-                source={{
-                  uri: firstAttachment?.url,
-                }}
-                style={styles.singleImg}
-              />
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  console.log('kdjf');
+                  navigation.navigate(CAROUSEL_SCREEN, {
+                    dataObject: item,
+                    index: 0,
+                  });
+                  dispatch({
+                    type: STATUS_BAR_STYLE,
+                    body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+                  });
+                }}>
+                <Image
+                  source={{
+                    uri: firstAttachment?.url,
+                  }}
+                  style={styles.singleImg}
+                />
+              </TouchableWithoutFeedback>
             ) : (
               <Image
                 source={{

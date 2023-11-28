@@ -331,6 +331,6 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     fontSize: STYLES.$FONT_SIZES.SMALL,
     color: 'white',
-    marginTop: 2,
+    marginTop: Platform.OS === 'ios' ? 2 : 0,
   },
 });
