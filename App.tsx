@@ -50,6 +50,7 @@ function App(): JSX.Element {
     setup();
   }, []);
 
+  // to configure gifphy sdk
   useEffect(() => {
     GiphySDK.configure({apiKey: 'uFWgh5Fl9H3tBmogUqcbDj1EfnQPcMUX'});
   }, []);

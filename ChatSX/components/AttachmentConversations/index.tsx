@@ -158,6 +158,7 @@ const AttachmentConversations = ({
     await onSeekTo(secondsToSeek);
   };
 
+  // to play and stop gif after 2s
   const playGif = () => {
     setIsGifPlaying(true);
     setTimeout(() => {
@@ -983,6 +984,7 @@ export const ImageConversations = ({
     state => state.chatroom,
   );
 
+  // handle on long press on attachment
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -992,6 +994,7 @@ export const ImageConversations = ({
     longPressOpenKeyboard();
   };
 
+  // handle on press on attachment
   const handleOnPress = (event: any, url: string, index: number) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
