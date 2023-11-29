@@ -17,7 +17,6 @@ import {
   Alert,
   Modal,
   BackHandler,
-  ScrollView,
   Platform,
   LogBox,
   AppState,
@@ -159,6 +158,7 @@ import {
 } from '../../utils/chatroomUtils';
 import {GetConversationsRequestBuilder} from '@likeminds.community/chat-rn';
 import {Credentials} from '../../credentials';
+import Swipeable from '../../components/Swipeable';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -3056,7 +3056,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               }
 
               return (
-                <View>
+                <Swipeable item={item}>
                   {index < conversations?.length &&
                   conversations[index]?.date !==
                     conversations[index + 1]?.date ? (
@@ -3144,7 +3144,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       handleFileUpload={handleFileUpload}
                     />
                   </Pressable>
-                </View>
+                </Swipeable>
               );
             }}
             onScroll={handleOnScroll}
