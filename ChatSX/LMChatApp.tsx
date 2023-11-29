@@ -1,16 +1,13 @@
-import React, {useEffect, useState} from 'react';
-import {KeyboardAvoidingView, Linking, Platform} from 'react-native';
+import React, {useEffect} from 'react';
+import {KeyboardAvoidingView, Platform} from 'react-native';
 import {Provider as ReduxProvider} from 'react-redux';
 import store from './store';
 import notifee from '@notifee/react-native';
 import {getRoute} from './notifications/routes';
 import * as RootNavigation from './RootNavigation';
-import {parseDeepLink} from './components/ParseDeepLink';
-import {DeepLinkRequest} from './components/ParseDeepLink/models';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {setupPlayer} from './audio';
 import SwitchComponent from './navigation/SwitchComponent';
-import {Credentials} from './credentials';
 
 function LMChatApp(): JSX.Element {
   //To navigate onPress notification while android app is in background state / quit state.

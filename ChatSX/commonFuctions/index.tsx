@@ -59,7 +59,7 @@ function detectLinks(message: string, isLongPress?: boolean) {
             {regex.test(val) ? (
               <Text
                 onPress={async () => {
-                  if (!!!isLongPress) {
+                  if (!isLongPress) {
                     const urlRegex = /(https?:\/\/[^\s]+)/gi;
                     const emailRegex =
                       /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
@@ -98,15 +98,12 @@ function detectLinks(message: string, isLongPress?: boolean) {
 
 export function getNameInitials(name: string) {
   let initials = '';
-
   const words = name.split(' ');
-
   for (let i = 0; i < words?.length && initials?.length < 2; i++) {
     if (words[i]?.length > 0) {
       initials += words[i][0].toUpperCase();
     }
   }
-
   return initials;
 }
 
@@ -129,14 +126,15 @@ export const decode = (
     return;
   }
   let arr: any[] = [];
-  let parts = text?.split(REGEX_USER_SPLITTING);
+  const parts = text?.split(REGEX_USER_SPLITTING);
 
   if (!!parts) {
     for (const matchResult of parts) {
       if (!!matchResult.match(REGEX_USER_TAGGING)) {
-        let match = REGEX_USER_TAGGING.exec(matchResult);
+        const match = REGEX_USER_TAGGING.exec(matchResult);
         if (match !== null) {
-          let {name, route} = match?.groups!;
+          const {name} = match?.groups!;
+          let {route} = match?.groups!;
 
           const startingIndex = route.indexOf('/');
           const taggedUserId = route.substring(startingIndex + 1);
@@ -184,7 +182,7 @@ export const decode = (
             {!!val.route ? (
               <Text
                 onPress={() => {
-                  if (!!!isLongPress) {
+                  if (!isLongPress) {
                     Alert.alert(`navigate to the route ${val?.route}`);
                   }
                 }}
@@ -234,15 +232,15 @@ export const decodeForNotifications = (text: string | undefined) => {
   if (!text) {
     return;
   }
-  let arr: any[] = [];
-  let parts = text?.split(/(?:<<)?([\w\s🤖@]+\|route:\/\/\S+>>)/g);
+  const arr: any[] = [];
+  const parts = text?.split(/(?:<<)?([\w\s🤖@]+\|route:\/\/\S+>>)/g);
   const TEMP_REGEX_USER_TAGGING =
     /(?:<<)?((?<name>[^<>|]+)\|route:\/\/(?<route>[^?]+(\?.+)?)>>)/g;
 
   if (!!parts) {
     for (const matchResult of parts) {
       if (!!matchResult.match(TEMP_REGEX_USER_TAGGING)) {
-        let match = TEMP_REGEX_USER_TAGGING.exec(matchResult);
+        const match = TEMP_REGEX_USER_TAGGING.exec(matchResult);
         if (match !== null) {
           const {name, route} = match?.groups!;
           arr.push({key: name, route: route});
@@ -266,17 +264,15 @@ export function decodeStr(text: string | undefined) {
   if (!text) {
     return;
   }
-  let arr: any[] = [];
-  let parts = text.split(REGEX_USER_SPLITTING);
+  const arr: any[] = [];
+  const parts = text.split(REGEX_USER_SPLITTING);
 
   if (!!parts) {
     for (const matchResult of parts) {
-      let keyValue = matchResult.match(REGEX_USER_TAGGING);
+      const keyValue = matchResult.match(REGEX_USER_TAGGING);
       let memberName;
-      let tag;
       if (!!keyValue) {
         memberName = keyValue[1];
-        tag = keyValue[2];
         arr.push({key: memberName, route: true});
       } else if (!!matchResult) {
         arr.push({key: matchResult, route: null});
@@ -304,7 +300,7 @@ export function copySelectedMessages(
       [Keys.CHATROOM_ID, chatroomID],
     ]),
   );
-  if (selectedMessages?.length === 1 && !!!selectedMessages[0]?.deletedBy) {
+  if (selectedMessages?.length === 1 && !selectedMessages[0]?.deletedBy) {
     if (!!selectedMessages[0]?.answer) {
       return decodeStr(selectedMessages[0]?.answer);
     } else {
@@ -313,7 +309,7 @@ export function copySelectedMessages(
   } else {
     const copiedMessages = selectedMessages
       .map((message: any) => {
-        if (!!message?.answer && !!!message?.deletedBy) {
+        if (!!message?.answer && !message?.deletedBy) {
           const timestamp = `[${message?.date}, ${message?.createdAt}]`;
           const sender = message?.member?.name;
           const text = decodeStr(message?.answer);
@@ -368,9 +364,9 @@ export const getVideoThumbnail = async ({
   initial,
 }: VideoThumbnail) => {
   let arr: any = [];
-  let dummyArrSelectedFiles: any = selectedImages;
+  const dummyArrSelectedFiles: any = selectedImages;
   for (let i = 0; i < selectedImages?.length; i++) {
-    let item = selectedImages[i];
+    const item = selectedImages[i];
     if (item?.type?.split('/')[0] === VIDEO_TEXT) {
       await createThumbnail({
         url: item.uri,
@@ -383,7 +379,7 @@ export const getVideoThumbnail = async ({
             thumbnailUrl: response.path,
           };
         })
-        .catch(err => {});
+        .catch(() => {});
     } else {
       arr = [...arr, {uri: item.uri}];
     }
@@ -402,7 +398,7 @@ export const getVideoThumbnail = async ({
 export const getAllPdfThumbnail = async (selectedImages: any) => {
   let arr: any = [];
   for (let i = 0; i < selectedImages?.length; i++) {
-    let item = selectedImages[i];
+    const item = selectedImages[i];
     const filePath = item.uri;
     const page = 0;
     if (item?.type?.split('/')[1] === PDF_TEXT) {
@@ -440,7 +436,6 @@ export function detectMentions(input: string) {
   let match;
 
   while ((match = mentionRegex.exec(input)) !== null) {
-    const startIndex = match.index;
     const endIndex = mentionRegex.lastIndex;
     const nextChar = input.charAt(endIndex);
 
@@ -519,8 +514,8 @@ export function extractPathfromRouteQuery(inputString: string): string | null {
 }
 
 // this function formats the date in "DD/MM/YYYY hh:mm" format
-export const formatDate = (date: any, time: any) => {
-  let formattedTime = moment(date).format('DD/MM/YYYY hh:mm');
+export const formatDate = (date: any) => {
+  const formattedTime = moment(date).format('DD/MM/YYYY hh:mm');
   return formattedTime;
 };
 
