@@ -132,7 +132,10 @@ const SwitchComponent = () => {
   return (
     <View style={{flex: 1}}>
       <StatusBar barStyle={statusBarStyle} />
-      <NavigationContainer linking={linking} ref={navigationRef}>
+      <NavigationContainer
+        linking={linking}
+        ref={navigationRef}
+        independent={true}>
         <Stack.Navigator initialRouteName={HOMEFEED}>
           <Stack.Screen name={HOMEFEED} component={HomeFeed} />
           <Stack.Screen name={EXPLORE_FEED} component={ExploreFeed} />
