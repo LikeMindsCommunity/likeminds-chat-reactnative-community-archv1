@@ -27,6 +27,7 @@ import {useAppDispatch, useAppSelector} from '../../store';
 import {CAROUSEL_SCREEN} from '../../constants/Screens';
 import {
   AUDIO_TEXT,
+  CAPITAL_GIF_TEXT,
   FAILED,
   GIF_TEXT,
   IMAGE_TEXT,
@@ -414,7 +415,7 @@ const AttachmentConversations = ({
                     padding: 10,
                     borderRadius: 50,
                   }}>
-                  <Text style={{color: 'white'}}>GIF</Text>
+                  <Text style={{color: 'white'}}>{CAPITAL_GIF_TEXT}</Text>
                 </View>
               </TouchableOpacity>
             ) : null}

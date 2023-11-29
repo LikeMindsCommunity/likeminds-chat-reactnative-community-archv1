@@ -24,6 +24,7 @@ import STYLES from '../../constants/Styles';
 import {CHATROOM} from '../../constants/Screens';
 import {
   CANCEL_BUTTON,
+  CAPITAL_GIF_TEXT,
   CONFIRM_BUTTON,
   IMAGE_TEXT,
   PDF_TEXT,
@@ -326,9 +327,9 @@ const HomeFeedItem: React.FC<Props> = ({
             },
           ]}>
           <View style={styles.gifView}>
-            <Text style={styles.gifText}>{'GIF'}</Text>
+            <Text style={styles.gifText}>{CAPITAL_GIF_TEXT}</Text>
           </View>
-          <Text style={styles.attachment_msg}>{'GIF'}</Text>
+          <Text style={styles.attachment_msg}>{CAPITAL_GIF_TEXT}</Text>
         </View>
       );
     } else if (val?.state === 10) {

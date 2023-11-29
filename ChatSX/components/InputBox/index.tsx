@@ -58,6 +58,7 @@ import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {
   BLOCKED_DM,
   CAMERA_TEXT,
+  CAPITAL_GIF_TEXT,
   CHARACTER_LIMIT_MESSAGE,
   DOCUMENTS_TEXT,
   GIF_TEXT,
@@ -235,6 +236,7 @@ const InputBox = ({
     editConversation,
     fileSent,
   }: any = useAppSelector(state => state.chatroom);
+
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
   let isGroupTag = false;
 
@@ -2244,7 +2246,7 @@ const InputBox = ({
                   <TouchableOpacity
                     style={styles.gifView}
                     onPress={() => GiphyDialog.show()}>
-                    <Text style={styles.gifText}>GIF</Text>
+                    <Text style={styles.gifText}>{CAPITAL_GIF_TEXT}</Text>
                   </TouchableOpacity>
                 ) : null}
                 <TaggingView

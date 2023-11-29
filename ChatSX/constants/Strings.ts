@@ -47,11 +47,16 @@ export const PDF_TEXT = 'pdf';
 export const AUDIO_TEXT = 'audio';
 export const VIDEO_TEXT = 'video';
 export const GIF_TEXT = 'gif';
+export const CAPITAL_GIF_TEXT = 'GIF';
 export const VOICE_NOTE_TEXT = 'voice_note';
 export const VIDEOS_TEXT = 'videos';
 export const IMAGE_TEXT = 'image';
 export const PHOTO_TEXT = 'photo';
 export const PHOTOS_TEXT = 'photos';
+export const PHOTO_STRING = 'Photo';
+export const VIDEO_STRING = 'Video';
+export const DOCUMENT_STRING = 'Document';
+export const VOICE_NOTE_STRING = 'Voice Note';
 
 export const SUCCESS = 'SUCCESS';
 export const FAILED = 'FAILED';
@@ -104,3 +109,5 @@ export const USER_SCHEMA_RO = 'UserSchemaRO';
 export const AUDIO_NOTIFICATION_TITLE = 'Audio is being played in chatroom';
 export const GRANTED = 'granted';
 export const TAP_AND_HOLD = 'Tap and Hold to record a voice message';
+export const NOT_SUPPORTED_TEXT =
+  'This message is not supported in this app yet.';
