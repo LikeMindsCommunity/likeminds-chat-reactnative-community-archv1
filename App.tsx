@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {KeyboardAvoidingView, Linking, Platform} from 'react-native';
 import {Provider as ReduxProvider} from 'react-redux';
-import store from './store';
+import store from './ChatSX/store';
 import SwitchComponent from './ChatSX/navigation/SwitchComponent';
 import notifee from '@notifee/react-native';
 import {getRoute} from './ChatSX/notifications/routes';
-import * as RootNavigation from './RootNavigation';
+import * as RootNavigation from './ChatSX/RootNavigation';
 import FetchKeyInputScreen from './Sample';
 import {useQuery} from '@realm/react';
 import {parseDeepLink} from './ChatSX/components/ParseDeepLink';
@@ -15,16 +15,31 @@ import {USER_SCHEMA_RO} from './ChatSX/constants/Strings';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {setupPlayer} from './ChatSX/audio';
 import {GiphySDK} from '@giphy/react-native-sdk';
+import {Credentials} from './ChatSX/credentials';
 
 function App(): JSX.Element {
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
-  const [userUniqueID, setUserUniqueID] = useState(users[0]?.userUniqueID);
-  const [userName, setUserName] = useState(users[0]?.userName);
+  const [userUniqueID, setUserUniqueID] = useState(
+    Credentials.userUniqueId.length > 0
+      ? Credentials.userUniqueId
+      : users[0]?.userUniqueID,
+  );
+  const [userName, setUserName] = useState(
+    Credentials.username.length > 0 ? Credentials.username : users[0]?.userName,
+  );
   const [isTrue, setIsTrue] = useState(true);
 
   useEffect(() => {
-    setUserName(users[0]?.userName);
-    setUserUniqueID(users[0]?.userUniqueID);
+    setUserName(
+      Credentials.username.length > 0
+        ? Credentials.username
+        : users[0]?.userName,
+    );
+    setUserUniqueID(
+      Credentials.userUniqueId.length > 0
+        ? Credentials.userUniqueId
+        : users[0]?.userUniqueID,
+    );
   }, [users]);
 
   //To navigate onPress notification while android app is in background state / quit state.
@@ -61,8 +76,14 @@ function App(): JSX.Element {
     const getInitialURL = async () => {
       const url = await Linking.getInitialURL(); // This returns the link that was used to open the app
       if (url != null) {
-        const uuid = users[0]?.userUniqueID;
-        const userName = users[0]?.userName;
+        const uuid =
+          Credentials.userUniqueId.length > 0
+            ? Credentials.userUniqueId
+            : users[0]?.userUniqueID;
+        const userName =
+          Credentials.username.length > 0
+            ? Credentials.username
+            : users[0]?.userName;
 
         const exampleRequest: DeepLinkRequest = {
           uri: url,

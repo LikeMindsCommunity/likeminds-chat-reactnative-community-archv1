@@ -3,7 +3,7 @@ import {CropView} from 'react-native-image-crop-tools';
 import {ImageCropScreenProps} from './models';
 import {Image, Platform, Text, TouchableOpacity, View} from 'react-native';
 import {styles} from './styles';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {
   SELECTED_FILES_TO_UPLOAD,
   SELECTED_FILES_TO_UPLOAD_THUMBNAILS,

@@ -1,6 +1,6 @@
 import {View, Text, TouchableOpacity, Platform} from 'react-native';
 import React, {useEffect, useState} from 'react';
-import {useAppDispatch} from '../../../../store';
+import {useAppDispatch} from '../../../store';
 import {styles} from '../styles';
 import uuid from 'react-native-uuid';
 import moment from 'moment';
@@ -20,6 +20,7 @@ import {myClient} from '../../../..';
 import CreatePollUI from '../CreatePollUI';
 import {formatDate} from '../../../commonFuctions';
 import {CreatePoll, CreatePollStateProps} from '../models';
+import {GetConversationsRequestBuilder} from '@likeminds.community/chat-rn';
 
 const CreatePollScreen = ({navigation, route}: CreatePoll) => {
   const [question, setQuestion] = useState<string>('');
@@ -302,9 +303,13 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
         res?.data?.conversation,
       );
 
+      const getConversationsPayload = GetConversationsRequestBuilder.builder()
+        .setChatroomId(chatroomID?.toString())
+        .setLimit(PAGE_SIZE)
+        .build();
+
       const conversations = await myClient?.getConversations(
-        chatroomID?.toString(),
-        PAGE_SIZE,
+        getConversationsPayload,
       );
 
       dispatch({

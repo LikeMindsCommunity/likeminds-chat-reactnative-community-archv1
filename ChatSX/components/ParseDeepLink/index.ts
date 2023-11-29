@@ -1,13 +1,10 @@
 import {myClient} from '../../..';
-import {
-  PATH_REGEX,
-  QUERY_REGEX,
-} from '../../constants/Regex';
+import {PATH_REGEX, QUERY_REGEX} from '../../constants/Regex';
 import {getLinkingRoute} from '../../notifications/routes';
-import * as RootNavigation from '../../../RootNavigation';
+import * as RootNavigation from '../../RootNavigation';
 import {isValidURI} from '../../shareUtils';
 import {DeepLinkRequest, DeepLinkResponse} from './models';
-import { CHATROOM } from '../../constants/Screens';
+import {CHATROOM} from '../../constants/Screens';
 
 // this function is to parse deep link url
 export async function parseDeepLink(

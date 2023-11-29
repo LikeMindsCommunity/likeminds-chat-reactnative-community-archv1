@@ -14,8 +14,8 @@ import VideoPlayer from 'react-native-media-console';
 import styles from './styles';
 import STYLES from '../../constants/Styles';
 import {STATUS_BAR_STYLE} from '../../store/types/types';
-import {useAppDispatch} from '../../../store';
 import {DocumentType} from '../../enums';
+import {useAppDispatch} from '../../store';
 
 const CarouselScreen = ({navigation, route}: any) => {
   const video = useRef<any>(null);

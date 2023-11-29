@@ -14,7 +14,7 @@ import {
 import {myClient} from '../../..';
 import {getNameInitials} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {getMemberState, initAPI} from '../../store/actions/homefeed';
 import styles from './styles';
 import {UPDATE_FILE_UPLOADING_OBJECT} from '../../store/types/types';
@@ -32,6 +32,7 @@ import {DeepLinkRequest} from '../../components/ParseDeepLink/models';
 import {UserSchemaResponse} from '../../db/models';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
+import {Credentials} from '../../credentials';
 
 interface Props {
   navigation: any;
@@ -128,8 +129,14 @@ const HomeFeed = ({navigation}: Props) => {
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
 
-    const UUID = users[0]?.userUniqueID;
-    const userName = users[0]?.userName;
+    const UUID =
+      Credentials.userUniqueId.length > 0
+        ? Credentials.userUniqueId
+        : users[0]?.userUniqueID;
+    const userName =
+      Credentials.username.length > 0
+        ? Credentials.username
+        : users[0]?.userName;
 
     let payload = {
       uuid: UUID, // uuid
@@ -158,8 +165,14 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const listener = Linking.addEventListener('url', ({url}) => {
-      const uuid = users[0]?.userUniqueID;
-      const userName = users[0]?.userName;
+      const uuid =
+        Credentials.userUniqueId.length > 0
+          ? Credentials.userUniqueId
+          : users[0]?.userUniqueID;
+      const userName =
+        Credentials.username.length > 0
+          ? Credentials.username
+          : users[0]?.userName;
 
       const exampleRequest: DeepLinkRequest = {
         uri: url,

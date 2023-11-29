@@ -6,7 +6,7 @@ import {decode} from '../../commonFuctions';
 import ReplyConversations from '../ReplyConversations';
 import AttachmentConversations from '../AttachmentConversations';
 import ReactionGridModal from '../ReactionGridModal';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {
   LONG_PRESSED,
   SELECTED_MESSAGES,
@@ -21,6 +21,7 @@ import {UserSchemaResponse} from '../../db/models';
 import {USER_SCHEMA_RO} from '../../constants/Strings';
 import LinkPreview from '../LinkPreview';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {Credentials} from '../../credentials';
 
 interface Messages {
   item: any;
@@ -174,7 +175,10 @@ const Messages = ({
   const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = user?.id;
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
-  const currentUserUuid = users[0]?.userUniqueID;
+  const currentUserUuid =
+    Credentials.userUniqueId.length > 0
+      ? Credentials.userUniqueId
+      : users[0]?.userUniqueID;
 
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {

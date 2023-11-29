@@ -24,7 +24,8 @@ import {
   ScrollViewProps,
 } from 'react-native';
 import {Image as CompressedImage} from 'react-native-compressor';
-import {SyncConversationRequest, myClient} from '../../..';
+import {myClient} from '../../..';
+import {SyncConversationRequest} from '@likeminds.community/chat-rn';
 import {
   SHOW_LIST_REGEX,
   copySelectedMessages,
@@ -36,7 +37,7 @@ import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
 import ToastMessage from '../../components/ToastMessage';
 import STYLES from '../../constants/Styles';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {
   firebaseConversation,
   getChatroom,
@@ -157,6 +158,7 @@ import {
   getCurrentConversation,
 } from '../../utils/chatroomUtils';
 import {GetConversationsRequestBuilder} from '@likeminds.community/chat-rn';
+import {Credentials} from '../../credentials';
 
 const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 
@@ -910,8 +912,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function fetch initiate API
   async function fetchInitAPI() {
     //this line of code is for the sample app only, pass your uuid instead of this.
-    const UUID = users[0]?.userUniqueID;
-    const userName = users[0]?.userName;
+    const UUID =
+      Credentials.userUniqueId.length > 0
+        ? Credentials.userUniqueId
+        : users[0]?.userUniqueID;
+    const userName =
+      Credentials.username.length > 0
+        ? Credentials.username
+        : users[0]?.userName;
 
     let payload = {
       uuid: UUID,

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import {myClient} from '../../..';
 import {decode, getFullDate} from '../../commonFuctions';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {
   ACCEPT_INVITE,
   ACCEPT_INVITE_SUCCESS,

@@ -12,7 +12,7 @@ import ExploreFeedFilters from '../../components/ExploreFeedFilters';
 import ExploreFeedItem from '../../components/ExploreFeedItem';
 import ToastMessage from '../../components/ToastMessage';
 import STYLES from '../../constants/Styles';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {
   getExploreFeedData,
   updateExploreFeedData,

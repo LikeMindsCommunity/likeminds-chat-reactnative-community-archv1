@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {View, Text, Image, TouchableOpacity, Alert} from 'react-native';
 import {myClient} from '../../..';
 import STYLES from '../../constants/Styles';
-import {useAppDispatch, useAppSelector} from '../../../store';
+import {useAppDispatch, useAppSelector} from '../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
 import {
   SET_EXPLORE_FEED_PAGE,

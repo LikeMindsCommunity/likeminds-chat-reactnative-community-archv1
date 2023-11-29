@@ -1,12 +1,12 @@
 import {combineReducers, configureStore} from '@reduxjs/toolkit';
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 import thunk, {ThunkMiddleware} from 'redux-thunk';
-import apiMiddleware from './ChatSX/store/apiMiddleware';
-import {chatroomReducer} from './ChatSX/store/reducers/chatroomReducer';
-import {explorefeedReducer} from './ChatSX/store/reducers/explorefeedReducer';
-import {homefeedReducer} from './ChatSX/store/reducers/homefeedReducer';
-import {loader} from './ChatSX/store/reducers/loader';
-import {fileUploadReducer} from './ChatSX/store/reducers/fileUploadReducer';
+import apiMiddleware from './store/apiMiddleware';
+import {chatroomReducer} from './store/reducers/chatroomReducer';
+import {explorefeedReducer} from './store/reducers/explorefeedReducer';
+import {homefeedReducer} from './store/reducers/homefeedReducer';
+import {loader} from './store/reducers/loader';
+import {fileUploadReducer} from './store/reducers/fileUploadReducer';
 
 const rootReducer = combineReducers({
   homefeed: homefeedReducer,

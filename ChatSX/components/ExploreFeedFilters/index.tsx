@@ -9,7 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import STYLES from '../../constants/Styles';
-import {useAppDispatch} from '../../../store';
+import {useAppDispatch} from '../../store';
 import {getExploreFeedData} from '../../store/actions/explorefeed';
 import {styles} from './styles';
 import {Events, Keys} from '../../enums';
