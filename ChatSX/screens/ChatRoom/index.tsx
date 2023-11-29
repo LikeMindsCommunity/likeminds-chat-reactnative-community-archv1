@@ -3056,7 +3056,11 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               }
 
               return (
-                <Swipeable item={item}>
+                <Swipeable
+                  onFocusKeyboard={() => {
+                    refInput.current.focus();
+                  }}
+                  item={item}>
                   {index < conversations?.length &&
                   conversations[index]?.date !==
                     conversations[index + 1]?.date ? (

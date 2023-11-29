@@ -16,7 +16,7 @@ import {SET_IS_REPLY, SET_REPLY_MESSAGE} from '../../store/types/types';
 import {useAppDispatch} from '../../store';
 import STYLES from '../../constants/Styles';
 
-const Swipeable = ({item, children}: any) => {
+const Swipeable = ({onFocusKeyboard, item, children}: any) => {
   const [isReplyBoxOpen, setIsReplyBoxOpen] = useState(false);
   const pressed = useSharedValue(false);
   const x = useSharedValue(0);
@@ -33,7 +33,9 @@ const Swipeable = ({item, children}: any) => {
         body: {replyMessage: replyMessage},
       });
       dispatch({type: SET_IS_REPLY, body: {isReply: true}});
+      onFocusKeyboard();
       x.value = withSpring(0);
+      setIsReplyBoxOpen(false);
     }
   }, [isReplyBoxOpen]);
 
