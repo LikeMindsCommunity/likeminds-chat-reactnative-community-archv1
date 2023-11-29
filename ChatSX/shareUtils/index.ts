@@ -10,7 +10,7 @@ export const shareChatroomURL = ({
   chatroomId,
   domain,
 }: ShareChatroomRequest) => {
-  let url = `${domain}/chatroom?chatroom_id=${chatroomId}`;
+  const url = `${domain}/chatroom?chatroom_id=${chatroomId}`;
   return url;
 };
 
@@ -27,11 +27,11 @@ export const onShare = async (
   isSecret?: boolean,
 ) => {
   try {
-    let shareChatroomRequest = {
+    const shareChatroomRequest = {
       chatroomId: chatroomID,
       domain: '', // Add your custom link to open app,
     };
-    let shareUrl = shareChatroomURL(shareChatroomRequest);
+    const shareUrl = shareChatroomURL(shareChatroomRequest);
     LMChatAnalytics.track(
       Events.CHAT_ROOM_SHARED,
       new Map<string, string>([

@@ -16,7 +16,7 @@ function LMChatApp(): JSX.Element {
       const initialNotification = await notifee.getInitialNotification();
 
       if (initialNotification) {
-        let routes = getRoute(initialNotification?.notification?.data?.route);
+        const routes = getRoute(initialNotification?.notification?.data?.route);
         setTimeout(() => {
           RootNavigation.navigate(routes.route, routes.params);
         }, 1000);

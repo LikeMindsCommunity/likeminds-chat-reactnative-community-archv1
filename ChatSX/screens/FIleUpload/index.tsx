@@ -64,7 +64,7 @@ const FileUpload = ({navigation, route}: any) => {
 
   const itemType = selectedFileToView?.type?.split('/')[0];
   const docItemType = selectedFileToView?.type?.split('/')[1];
-  let len = selectedFilesToUpload.length;
+  const len = selectedFilesToUpload.length;
   const dispatch = useAppDispatch();
   const {chatroomDBDetails}: any = useAppSelector(state => state.chatroom);
 
@@ -122,11 +122,13 @@ const FileUpload = ({navigation, route}: any) => {
     LogBox.ignoreLogs(['new NativeEventEmitter']);
     const s3 = new S3();
     for (let i = 0; i < selectedImages?.length; i++) {
-      let item = selectedImages[i];
-      let attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
-      let docAttachmentType = isRetry ? item?.type : item?.type?.split('/')[1];
-      let thumbnailURL = item?.thumbnailUrl;
-      let name =
+      const item = selectedImages[i];
+      const attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
+      const docAttachmentType = isRetry
+        ? item?.type
+        : item?.type?.split('/')[1];
+      const thumbnailURL = item?.thumbnailUrl;
+      const name =
         attachmentType === IMAGE_TEXT
           ? item.fileName
           : attachmentType === VIDEO_TEXT
@@ -135,8 +137,8 @@ const FileUpload = ({navigation, route}: any) => {
           ? item.name
           : null;
 
-      let path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
-      let thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
+      const path = `files/collabcard/${chatroomID}/conversation/${conversationID}/${name}`;
+      const thumbnailUrlPath = `files/collabcard/${chatroomID}/conversation/${conversationID}/${thumbnailURL}`;
       let uriFinal: any;
 
       if (attachmentType === IMAGE_TEXT) {
@@ -181,7 +183,7 @@ const FileUpload = ({navigation, route}: any) => {
 
         const data = await s3.upload(params).promise();
 
-        let awsResponse = data.Location;
+        const awsResponse = data.Location;
 
         if (awsResponse) {
           let fileType = '';
@@ -195,7 +197,7 @@ const FileUpload = ({navigation, route}: any) => {
             fileType = IMAGE_TEXT;
           }
 
-          let payload = {
+          const payload = {
             conversationId: conversationID,
             filesCount: selectedImages?.length,
             index: i + 1,
@@ -244,8 +246,8 @@ const FileUpload = ({navigation, route}: any) => {
             ID: conversationID,
           },
         });
-        let id = conversationID;
-        let message = {
+        const id = conversationID;
+        const message = {
           ...uploadingFilesMessages[conversationID?.toString()],
           isInProgress: FAILED,
         };
@@ -375,7 +377,7 @@ const FileUpload = ({navigation, route}: any) => {
           bounces={false}>
           {len > 0 &&
             selectedFilesToUpload.map((item: any, index: any) => {
-              let fileType = item?.type?.split('/')[0];
+              const fileType = item?.type?.split('/')[0];
               return (
                 <Pressable
                   key={item?.uri + index}

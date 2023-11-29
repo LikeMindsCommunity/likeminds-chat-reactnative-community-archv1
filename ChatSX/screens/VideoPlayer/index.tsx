@@ -37,7 +37,7 @@ const VideoPlayer = ({navigation, route}: any) => {
   }, []);
 
   const params = route?.params;
-  let url = params?.url;
+  const url = params?.url;
 
   return (
     <View>

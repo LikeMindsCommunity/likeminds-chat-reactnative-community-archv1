@@ -208,7 +208,7 @@ const InputBox = ({
 
   const isIOS = Platform.OS === 'ios' ? true : false;
 
-  let taggedUserNames: any = [];
+  const taggedUserNames: any = [];
 
   const {
     selectedFilesToUpload = [],
@@ -231,7 +231,7 @@ const InputBox = ({
   let isGroupTag = false;
 
   const dispatch = useAppDispatch();
-  let conversationArrayLength = conversations.length;
+  const conversationArrayLength = conversations.length;
 
   AWS.config.update({
     region: REGION, // Replace with your AWS region, e.g., 'us-east-1'
@@ -486,10 +486,10 @@ const InputBox = ({
   // to clear message on ChatScreen InputBox when fileSent from UploadScreen
   useEffect(() => {
     if (isEditable) {
-      let convertedText = convertToMentionValues(
+      const convertedText = convertToMentionValues(
         `${editConversation?.answer} `, // to put extra space after a message whwn we want to edit a message
         ({URLwithID, name}) => {
-          if (!!!URLwithID) {
+          if (!URLwithID) {
             return `@[${name}](${name})`;
           } else {
             return `@[${name}](${URLwithID})`;
@@ -521,7 +521,7 @@ const InputBox = ({
 
   // this method sets image and video to upload on FileUpload screen via redux.
   const handleImageAndVideoUpload = async (selectedImages: Asset[]) => {
-    if (!!selectedImages) {
+    if (selectedImages) {
       if (isUploadScreen === false) {
         // to select images and videos from chatroom.
         await handleVideoThumbnail(selectedImages);
@@ -576,11 +576,13 @@ const InputBox = ({
       } else if (response.errorCode) {
         return;
       } else {
-        let selectedImages: Asset[] | undefined = response.assets; // selectedImages can be anything images or videos or both
+        const selectedImages: Asset[] | undefined = response.assets; // selectedImages can be anything images or videos or both
 
-        if (!selectedImages) return;
+        if (!selectedImages) {
+          return;
+        }
         for (let i = 0; i < selectedImages?.length; i++) {
-          let fileSize = selectedImages[i]?.fileSize;
+          const fileSize = selectedImages[i]?.fileSize;
           if (Number(fileSize) >= MAX_FILE_SIZE) {
             dispatch({
               type: SHOW_TOAST,
@@ -606,8 +608,8 @@ const InputBox = ({
         type: [DocumentPicker.types.pdf],
         allowMultiSelection: true,
       });
-      let selectedDocs: any = response; // selectedImages can be anything images or videos or both
-      let docsArrlength = selectedDocs?.length;
+      const selectedDocs: any = response; // selectedImages can be anything images or videos or both
+      const docsArrlength = selectedDocs?.length;
       if (docsArrlength > 0) {
         for (let i = 0; i < docsArrlength; i++) {
           if (selectedDocs[i].size >= MAX_FILE_SIZE) {
@@ -620,7 +622,7 @@ const InputBox = ({
           }
         }
         if (isUploadScreen === false) {
-          let allThumbnailsArr = await getAllPdfThumbnail(selectedDocs);
+          const allThumbnailsArr = await getAllPdfThumbnail(selectedDocs);
 
           //loop is for appending thumbanil in the object we get from document picker
           for (let i = 0; i < selectedDocs?.length; i++) {
@@ -641,7 +643,7 @@ const InputBox = ({
             type: SELECTED_FILES_TO_UPLOAD,
             body: {images: selectedDocs},
           });
-          let res: any = await getPdfThumbnail(selectedDocs[0]);
+          const res: any = await getPdfThumbnail(selectedDocs[0]);
 
           //redux action to save thumbnail of selected file
           dispatch({
@@ -655,7 +657,7 @@ const InputBox = ({
             body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
           });
         } else if (isUploadScreen === true) {
-          let arr: any = await getAllPdfThumbnail(selectedDocs);
+          const arr: any = await getAllPdfThumbnail(selectedDocs);
           for (let i = 0; i < selectedDocs?.length; i++) {
             selectedDocs[i] = {...selectedDocs[i], thumbnailUrl: arr[i]?.uri};
           }
@@ -698,11 +700,13 @@ const InputBox = ({
         } else if (response.errorCode) {
           return;
         } else {
-          let selectedImages: Asset[] | undefined = response.assets; // selectedImages would be images only
+          const selectedImages: Asset[] | undefined = response.assets; // selectedImages would be images only
 
-          if (!selectedImages) return;
+          if (!selectedImages) {
+            return;
+          }
           if (selectedImages?.length > 0) {
-            let fileSize = selectedImages[0]?.fileSize;
+            const fileSize = selectedImages[0]?.fileSize;
             if (Number(fileSize) >= MAX_FILE_SIZE) {
               dispatch({
                 type: SHOW_TOAST,
@@ -758,7 +762,7 @@ const InputBox = ({
     if (isIOS) {
       await openCamera();
     } else {
-      let res = await requestCameraPermission();
+      const res = await requestCameraPermission();
       if (res === true) {
         await openCamera();
       }
@@ -770,7 +774,7 @@ const InputBox = ({
     if (isIOS) {
       selectGallery();
     } else {
-      let res = await requestStoragePermission();
+      const res = await requestStoragePermission();
       if (res === true) {
         selectGallery();
       }
@@ -782,7 +786,7 @@ const InputBox = ({
     if (isIOS) {
       selectDoc();
     } else {
-      let res = await requestStoragePermission();
+      const res = await requestStoragePermission();
       if (res === true) {
         selectDoc();
       }
@@ -805,7 +809,7 @@ const InputBox = ({
       name: '',
     });
     // -- Code for local message handling for normal and reply for now
-    let months = [
+    const months = [
       'Jan',
       'Feb',
       'Mar',
@@ -819,14 +823,14 @@ const InputBox = ({
       'Nov',
       'Dec',
     ];
-    let time = new Date(Date.now());
-    let hr = time.getHours();
-    let min = time.getMinutes();
-    let ID = Date.now();
-    let filesToUpload = selectedFilesToUpload?.length;
-    let voiceNotesToUpload =
+    const time = new Date(Date.now());
+    const hr = time.getHours();
+    const min = time.getMinutes();
+    const ID = Date.now();
+    const filesToUpload = selectedFilesToUpload?.length;
+    const voiceNotesToUpload =
       voiceNote?.length > 0 ? voiceNote : selectedVoiceNoteFilesToUpload;
-    let attachmentsCount =
+    const attachmentsCount =
       filesToUpload > 0 ? filesToUpload : voiceNotesToUpload?.length; //if any
 
     let dummySelectedFileArr: any = []; //if any
@@ -835,23 +839,23 @@ const InputBox = ({
     // for making data for `images`, `videos` and `pdf` key
     if (attachmentsCount > 0) {
       for (let i = 0; i < attachmentsCount; i++) {
-        let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
-        let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
+        const attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
+        const docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
         if (attachmentType === IMAGE_TEXT) {
-          let obj = {
+          const obj = {
             imageUrl: selectedFilesToUpload[i].uri,
             index: i,
           };
           dummySelectedFileArr = [...dummySelectedFileArr, obj];
         } else if (attachmentType === VIDEO_TEXT) {
-          let obj = {
+          const obj = {
             videoUrl: selectedFilesToUpload[i].uri,
             index: i,
             thumbnailUrl: selectedFilesToUpload[i].thumbanil,
           };
           dummySelectedFileArr = [...dummySelectedFileArr, obj];
         } else if (docAttachmentType === PDF_TEXT) {
-          let obj = {
+          const obj = {
             pdfFile: selectedFilesToUpload[i].uri,
             index: i,
           };
@@ -863,13 +867,13 @@ const InputBox = ({
     // for making data for `attachments` key
     if (attachmentsCount > 0) {
       for (let i = 0; i < attachmentsCount; i++) {
-        let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
-        let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
-        let audioAttachmentType = voiceNotesToUpload[i]?.type;
-        let audioURI = voiceNotesToUpload[i]?.uri;
-        let URI = selectedFilesToUpload[i]?.uri;
+        const attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
+        const docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
+        const audioAttachmentType = voiceNotesToUpload[i]?.type;
+        const audioURI = voiceNotesToUpload[i]?.uri;
+        const URI = selectedFilesToUpload[i]?.uri;
         if (attachmentType === IMAGE_TEXT) {
-          let obj = {
+          const obj = {
             ...selectedFilesToUpload[i],
             type: attachmentType,
             url: URI,
@@ -877,7 +881,7 @@ const InputBox = ({
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         } else if (attachmentType === VIDEO_TEXT) {
-          let obj = {
+          const obj = {
             ...selectedFilesToUpload[i],
             type: attachmentType,
             url: URI,
@@ -887,7 +891,7 @@ const InputBox = ({
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         } else if (docAttachmentType === PDF_TEXT) {
-          let obj = {
+          const obj = {
             ...selectedFilesToUpload[i],
             type: docAttachmentType,
             url: URI,
@@ -896,7 +900,7 @@ const InputBox = ({
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         } else if (audioAttachmentType === VOICE_NOTE_TEXT) {
-          let obj = {
+          const obj = {
             ...voiceNotesToUpload[i],
             type: audioAttachmentType,
             url: audioURI,
@@ -912,19 +916,22 @@ const InputBox = ({
       }
     }
 
-    let conversationText = replaceMentionValues(conversation, ({id, name}) => {
-      // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
-      let PATH = extractPathfromRouteQuery(id);
-      if (!!!PATH) {
-        let newName = name.substring(1);
-        isGroupTag = true;
-        taggedUserNames.push(name);
-        return `<<${name}|route://${newName}>>`;
-      } else {
-        taggedUserNames.push(name);
-        return `<<${name}|route://${id}>>`;
-      }
-    });
+    const conversationText = replaceMentionValues(
+      conversation,
+      ({id, name}) => {
+        // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
+        const PATH = extractPathfromRouteQuery(id);
+        if (!PATH) {
+          const newName = name.substring(1);
+          isGroupTag = true;
+          taggedUserNames.push(name);
+          return `<<${name}|route://${newName}>>`;
+        } else {
+          taggedUserNames.push(name);
+          return `<<${name}|route://${id}>>`;
+        }
+      },
+    );
 
     const isMessageTrimmed =
       !!conversation.trim() ||
@@ -933,7 +940,7 @@ const InputBox = ({
 
     // check if message is empty string or not
     if ((isMessageTrimmed && !isUploadScreen) || isUploadScreen) {
-      let replyObj = chatSchema.reply;
+      const replyObj = chatSchema.reply;
       if (isReply) {
         replyObj.replyConversation = replyMessage?.id?.toString();
         replyObj.replyConversationObject = replyMessage;
@@ -967,9 +974,11 @@ const InputBox = ({
         replyObj.images = dummySelectedFileArr;
         replyObj.videos = dummySelectedFileArr;
         replyObj.pdf = dummySelectedFileArr;
-        if (!closedOnce || !closedPreview) replyObj.ogTags = ogTagsState;
+        if (!closedOnce || !closedPreview) {
+          replyObj.ogTags = ogTagsState;
+        }
       }
-      let obj = chatSchema.normal;
+      const obj = chatSchema.normal;
       obj.member.name = user?.name;
       obj.member.id = user?.id?.toString();
       obj.member.sdkClientInfo = user?.sdkClientInfo;
@@ -995,7 +1004,9 @@ const InputBox = ({
       obj.images = dummySelectedFileArr;
       obj.videos = dummySelectedFileArr;
       obj.pdf = dummySelectedFileArr;
-      if (!closedOnce || !closedPreview) obj.ogTags = ogTagsState;
+      if (!closedOnce || !closedPreview) {
+        obj.ogTags = ogTagsState;
+      }
 
       dispatch({
         type: UPDATE_CONVERSATIONS,
@@ -1060,7 +1071,7 @@ const InputBox = ({
         chatRequestState === null &&
         isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
-        let response = await myClient?.sendDMRequest({
+        const response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: ChatroomChatRequestState.INITIATED,
           text: conversation?.trim(),
@@ -1089,7 +1100,7 @@ const InputBox = ({
         chatRequestState === null &&
         !isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
       ) {
-        let response = await myClient?.sendDMRequest({
+        const response = await myClient?.sendDMRequest({
           chatroomId: chatroomID,
           chatRequestState: ChatroomChatRequestState.ACCEPTED,
           text: conversation?.trim(),
@@ -1109,7 +1120,7 @@ const InputBox = ({
         );
       } else {
         if (!isUploadScreen) {
-          let payload: any = {
+          const payload: any = {
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText?.trim(),
@@ -1128,9 +1139,11 @@ const InputBox = ({
             payload.shareLink = url;
           }
 
-          let response = await dispatch(onConversationsCreate(payload) as any);
+          const response = await dispatch(
+            onConversationsCreate(payload) as any,
+          );
 
-          if (!!response) {
+          if (response) {
             await myClient?.replaceSavedConversation(response?.conversation);
           }
 
@@ -1170,8 +1183,8 @@ const InputBox = ({
               },
             });
 
-            let id = response?.id;
-            let message = isReply
+            const id = response?.id;
+            const message = isReply
               ? {
                   ...replyObj,
                   id: response?.id,
@@ -1207,7 +1220,7 @@ const InputBox = ({
             body: {status: !fileSent},
           });
           navigation.goBack();
-          let payload: any = {
+          const payload: any = {
             chatroomId: chatroomID,
             hasFiles: false,
             text: conversationText?.trim(),
@@ -1226,7 +1239,9 @@ const InputBox = ({
             payload.shareLink = url;
           }
 
-          let response = await dispatch(onConversationsCreate(payload) as any);
+          const response = await dispatch(
+            onConversationsCreate(payload) as any,
+          );
 
           await myClient?.replaceSavedConversation(response?.conversation);
 
@@ -1260,8 +1275,8 @@ const InputBox = ({
               },
             });
 
-            let id = response?.id;
-            let message = isReply
+            const id = response?.id;
+            const message = isReply
               ? {
                   ...replyObj,
                   id: response?.id,
@@ -1342,7 +1357,7 @@ const InputBox = ({
       chatroomId: chatroomID,
       isSecret: isSecret,
     });
-    if (!!res) {
+    if (res) {
       isSecret
         ? setUserTaggingList([...userTaggingList, ...res?.chatroomParticipants])
         : setUserTaggingList([...userTaggingList, ...res?.communityMembers]);
@@ -1352,7 +1367,7 @@ const InputBox = ({
 
   //function checks the pagination logic, if it verifies the condition then call loadData
   const handleLoadMore = () => {
-    let userTaggingListLength = userTaggingList.length;
+    const userTaggingListLength = userTaggingList.length;
     if (!isLoading && userTaggingListLength > 0) {
       // checking if conversations length is greater the 15 as it convered all the screen sizes of mobiles, and pagination API will never call if screen is not full messages.
       if (userTaggingListLength >= 10 * page) {
@@ -1378,11 +1393,13 @@ const InputBox = ({
     };
     const decodeUrlResponse = await myClient?.decodeUrl(payload);
     const ogTags = decodeUrlResponse?.data?.ogTags;
-    if (ogTags !== undefined) setOgTagsState(ogTags);
+    if (ogTags !== undefined) {
+      setOgTagsState(ogTags);
+    }
   }
 
   const handleInputChange = async (event: string) => {
-    let parts = event.split(LINK_PREVIEW_REGEX);
+    const parts = event.split(LINK_PREVIEW_REGEX);
     if (parts?.length > 1) {
       {
         parts?.map((value: string) => {
@@ -1436,7 +1453,7 @@ const InputBox = ({
       // debouncing logic
       clearTimeout(debounceTimeout);
 
-      let len = newMentions.length;
+      const len = newMentions.length;
       if (len > 0) {
         const timeoutID = setTimeout(async () => {
           setPage(1);
@@ -1447,15 +1464,15 @@ const InputBox = ({
             isSecret: isSecret,
           });
           if (len > 0) {
-            let groupTagsLength = res?.groupTags?.length;
-            let communityMembersLength = isSecret
+            const groupTagsLength = res?.groupTags?.length;
+            const communityMembersLength = isSecret
               ? res?.chatroomParticipants.length
               : res?.communityMembers.length;
-            let arrLength = communityMembersLength + groupTagsLength;
+            const arrLength = communityMembersLength + groupTagsLength;
             if (arrLength >= 5) {
               setUserTaggingListHeight(5 * 58);
             } else if (arrLength < 5) {
-              let height = communityMembersLength * 58 + groupTagsLength * 80;
+              const height = communityMembersLength * 58 + groupTagsLength * 80;
               setUserTaggingListHeight(height);
             }
             isSecret
@@ -1478,23 +1495,23 @@ const InputBox = ({
   };
   // this function is for editing a conversation
   const onEdit = async () => {
-    let selectedConversation = editConversation;
+    const selectedConversation = editConversation;
 
-    let conversationId = selectedConversation?.id;
-    let previousConversation = selectedConversation;
+    const conversationId = selectedConversation?.id;
+    const previousConversation = selectedConversation;
 
     let changedConversation;
-    let conversationText = replaceMentionValues(message, ({id, name}) => {
+    const conversationText = replaceMentionValues(message, ({id, name}) => {
       // example ID = `user_profile/8619d45e-9c4c-4730-af8e-4099fe3dcc4b`
-      let PATH = extractPathfromRouteQuery(id);
-      if (!!!PATH) {
+      const PATH = extractPathfromRouteQuery(id);
+      if (!PATH) {
         return `<<${name}|route://${name}>>`;
       } else {
         return `<<${name}|route://${id}>>`;
       }
     });
 
-    let editedConversation = conversationText;
+    const editedConversation = conversationText;
     changedConversation = {
       ...selectedConversation,
       answer: editedConversation,
@@ -1516,7 +1533,7 @@ const InputBox = ({
       },
     });
 
-    let index = conversations.findIndex((element: any) => {
+    const index = conversations.findIndex((element: any) => {
       return element?.id == selectedConversation?.id;
     });
 
@@ -1587,7 +1604,7 @@ const InputBox = ({
     if (!isVoiceNoteRecording) {
       const audioSet = generateAudioSet();
 
-      let name = generateVoiceNoteName();
+      const name = generateVoiceNoteName();
       const path =
         Platform.OS === 'android'
           ? `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${name}.mp3`
@@ -1698,10 +1715,10 @@ const InputBox = ({
   const startPlay = async (path: string) => {
     await audioRecorderPlayerAttachment.startPlayer(path);
     audioRecorderPlayerAttachment.addPlayBackListener(e => {
-      let playTime = audioRecorderPlayerAttachment.mmssss(
+      const playTime = audioRecorderPlayerAttachment.mmssss(
         Math.floor(e.currentPosition),
       );
-      let duration = audioRecorderPlayerAttachment.mmssss(
+      const duration = audioRecorderPlayerAttachment.mmssss(
         Math.floor(e.duration),
       );
       setVoiceNotesPlayer({
@@ -1821,7 +1838,7 @@ const InputBox = ({
                       isReply && !isUploadScreen && !isUserTagging ? 10 : 20,
                     borderTopRightRadius:
                       isReply && !isUploadScreen && !isUserTagging ? 10 : 20,
-                    backgroundColor: !!isUploadScreen ? 'black' : 'white',
+                    backgroundColor: isUploadScreen ? 'black' : 'white',
                   },
                 ]
               : null
@@ -1831,19 +1848,19 @@ const InputBox = ({
               style={[
                 styles.taggableUsersBox,
                 {
-                  backgroundColor: !!isUploadScreen ? 'black' : 'white',
+                  backgroundColor: isUploadScreen ? 'black' : 'white',
                   height: userTaggingListHeight,
                 },
               ]}>
               <FlashList
                 data={[...groupTags, ...userTaggingList]}
                 renderItem={({item, index}: any) => {
-                  let description = item?.description;
-                  let imageUrl = item?.imageUrl;
+                  const description = item?.description;
+                  const imageUrl = item?.imageUrl;
                   return (
                     <Pressable
                       onPress={() => {
-                        let uuid = item?.sdkClientInfo?.uuid;
+                        const uuid = item?.sdkClientInfo?.uuid;
                         const res = replaceLastMention(
                           message,
                           taggedUserName,
@@ -1859,7 +1876,7 @@ const InputBox = ({
                       style={styles.taggableUserView}>
                       <Image
                         source={
-                          !!imageUrl
+                          imageUrl
                             ? {uri: imageUrl}
                             : require('../../assets/images/default_pic.png')
                         }
@@ -1878,7 +1895,7 @@ const InputBox = ({
                           style={[
                             styles.title,
                             {
-                              color: !!isUploadScreen
+                              color: isUploadScreen
                                 ? STYLES.$COLORS.TERTIARY
                                 : STYLES.$COLORS.PRIMARY,
                             },
@@ -1886,12 +1903,12 @@ const InputBox = ({
                           numberOfLines={1}>
                           {item?.name}
                         </Text>
-                        {!!description ? (
+                        {description ? (
                           <Text
                             style={[
                               styles.subTitle,
                               {
-                                color: !!isUploadScreen
+                                color: isUploadScreen
                                   ? STYLES.$COLORS.TERTIARY
                                   : STYLES.$COLORS.PRIMARY,
                               },
@@ -1951,7 +1968,7 @@ const InputBox = ({
               style={[
                 styles.taggableUsersBox,
                 {
-                  backgroundColor: !!isUploadScreen ? 'black' : 'white',
+                  backgroundColor: isUploadScreen ? 'black' : 'white',
                 },
               ]}>
               <LinkPreviewInputBox ogTags={ogTagsState} />
@@ -2006,7 +2023,7 @@ const InputBox = ({
               styles.textInput,
               !(isEditable || isReply) ? styles.inputBoxWithShadow : null,
               {
-                backgroundColor: !!isUploadScreen
+                backgroundColor: isUploadScreen
                   ? STYLES.$BACKGROUND_COLORS.DARK
                   : STYLES.$BACKGROUND_COLORS.LIGHT,
               },
@@ -2017,7 +2034,7 @@ const InputBox = ({
                   }
                 : null,
             ]}>
-            {!!isUploadScreen && !!!isDoc ? (
+            {!!isUploadScreen && !isDoc ? (
               <TouchableOpacity
                 style={styles.addMoreButton}
                 onPress={() => {
@@ -2159,7 +2176,7 @@ const InputBox = ({
               <View
                 style={[
                   styles.inputParent,
-                  !!isUploadScreen
+                  isUploadScreen
                     ? {
                         marginHorizontal: 5,
                       }
@@ -2183,7 +2200,7 @@ const InputBox = ({
                     styles.input,
                     {height: Math.max(25, inputHeight)},
                     {
-                      color: !!isUploadScreen
+                      color: isUploadScreen
                         ? STYLES.$BACKGROUND_COLORS.LIGHT
                         : STYLES.$BACKGROUND_COLORS.DARK,
                     },
@@ -2282,7 +2299,7 @@ const InputBox = ({
           </TouchableOpacity>
         ) : (
           <View>
-            {!!isRecordingPermission ? (
+            {isRecordingPermission ? (
               <GestureDetector gesture={composedGesture}>
                 <Animated.View>
                   {voiceNotes.recordTime && !isRecordingLocked && (

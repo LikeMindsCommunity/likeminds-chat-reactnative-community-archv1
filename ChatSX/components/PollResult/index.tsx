@@ -147,7 +147,7 @@ const TabScreenUI = ({pollID, conversationID}: any) => {
               <View key={item?.id} style={styles.participants}>
                 <Image
                   source={
-                    !!item?.imageUrl
+                    item?.imageUrl
                       ? {uri: item?.imageUrl}
                       : require('../../assets/images/default_pic.png')
                   }
@@ -157,7 +157,7 @@ const TabScreenUI = ({pollID, conversationID}: any) => {
                   <View>
                     <Text style={styles.title} numberOfLines={1}>
                       {item?.name}
-                      {!!item?.customTitle ? (
+                      {item?.customTitle ? (
                         <Text
                           style={
                             styles.messageCustomTitle

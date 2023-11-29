@@ -60,7 +60,7 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
         </Text>
       </View>
       <View style={styles.alignRow}>
-        {!!item?.hasFiles ? (
+        {item?.hasFiles ? (
           item?.attachments[0]?.type === IMAGE_TEXT ? (
             <Image
               source={require('../../assets/images/image_icon3x.png')}
@@ -85,18 +85,18 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
         ) : null}
         <Text style={styles.messageText}>
           {decode(
-            !!item?.answer
+            item?.answer
               ? item?.answer
               : item?.attachments[0]?.type === PDF_TEXT
-              ? `Document`
+              ? 'Document'
               : item?.attachments[0]?.type === IMAGE_TEXT
-              ? `Photo`
+              ? 'Photo'
               : item?.attachments[0]?.type === VIDEO_TEXT
-              ? `Video`
+              ? 'Video'
               : item?.attachments[0]?.type === VOICE_NOTE_TEXT
-              ? `Voice Note`
+              ? 'Voice Note'
               : item?.attachments[0]?.type === AUDIO_TEXT
-              ? `This message is not supported in this app yet.`
+              ? 'This message is not supported in this app yet.'
               : null,
             false,
             chatroomName,
@@ -144,7 +144,7 @@ const ReplyConversations = ({
   };
 
   const handleOnPress = async () => {
-    let isStateIncluded = stateArr.includes(item?.state);
+    const isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
@@ -171,7 +171,7 @@ const ReplyConversations = ({
         }
       }
     } else {
-      let index = conversations.findIndex(
+      const index = conversations.findIndex(
         (element: any) => element?.id == item?.replyConversationObject?.id,
       );
       if (index >= 0) {
@@ -192,7 +192,7 @@ const ReplyConversations = ({
           type: GET_CONVERSATIONS_SUCCESS,
           body: {conversations: newConversation},
         });
-        let index = newConversation.findIndex(
+        const index = newConversation.findIndex(
           element => element?.id == item?.replyConversationObject?.id,
         );
         if (index >= 0) {
@@ -216,10 +216,10 @@ const ReplyConversations = ({
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
         {/* Reply conversation message sender name */}
-        {!!(item?.member?.id == user?.id) ? null : (
+        {item?.member?.id == user?.id ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
-            {!!item?.member?.customTitle ? (
+            {item?.member?.customTitle ? (
               <Text
                 style={
                   styles.messageCustomTitle
@@ -266,7 +266,7 @@ const ReplyConversations = ({
             </View>
             <View style={styles.alignTime}>
               {item?.isEdited ? (
-                <Text style={styles.messageDate}>{`Edited • `}</Text>
+                <Text style={styles.messageDate}>{'Edited • '}</Text>
               ) : null}
               <Text style={styles.messageDate}>{item?.createdAt}</Text>
             </View>

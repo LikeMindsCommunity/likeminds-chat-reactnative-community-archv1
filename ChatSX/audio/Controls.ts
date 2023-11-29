@@ -9,7 +9,7 @@ export async function addTracks(track: AddTrack) {
 
 // to start audio player
 export const startPlay = async (path: string, url: string) => {
-  let isSetup = await setupPlayer();
+  const isSetup = await setupPlayer();
 
   const track = {
     id: '1',
