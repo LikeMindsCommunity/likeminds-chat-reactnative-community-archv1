@@ -79,7 +79,6 @@ const Swipeable = ({onFocusKeyboard, item, children}: any) => {
     .runOnJS(true)
     .activeOffsetX([-10, 10])
     .onStart(event => {
-      console.log('skjndc');
       const deltaX = event.translationX;
 
       if (deltaX > 0) {
