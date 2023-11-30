@@ -558,7 +558,7 @@ export function generateGifName() {
 
 // replace gif string message
 export const generateGifString = (message: string) => {
-  if (!!message) {
+  if (!message) {
     return '';
   }
   let originalString: string = message;
