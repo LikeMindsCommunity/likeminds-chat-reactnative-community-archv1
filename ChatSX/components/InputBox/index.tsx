@@ -2239,7 +2239,7 @@ const InputBox = ({
                     : {marginHorizontal: 15},
                 ]}>
                 {!isUploadScreen &&
-                !(chatRequestState === 0 || chatRequestState === null) &&
+                !(chatRequestState === ChatroomChatRequestState.INITIATED || chatRequestState === null) &&
                 !isEditable &&
                 !voiceNotes?.recordTime &&
                 !isDeleteAnimation ? (
