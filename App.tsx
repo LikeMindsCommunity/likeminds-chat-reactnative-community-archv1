@@ -16,6 +16,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {setupPlayer} from './ChatSX/audio';
 import {GiphySDK} from '@giphy/react-native-sdk';
 import {Credentials} from './ChatSX/credentials';
+import {GIPHY_SDK_API_KEY} from './ChatSX/aws-exports';
 
 function App(): JSX.Element {
   const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
@@ -67,7 +68,7 @@ function App(): JSX.Element {
 
   // to configure gifphy sdk
   useEffect(() => {
-    GiphySDK.configure({apiKey: 'uFWgh5Fl9H3tBmogUqcbDj1EfnQPcMUX'});
+    GiphySDK.configure({apiKey: GIPHY_SDK_API_KEY});
   }, []);
 
   // To get the deep link URL which was used to open the app
