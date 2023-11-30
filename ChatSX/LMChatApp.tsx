@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {KeyboardAvoidingView, StyleSheet, Platform} from 'react-native';
+import {StyleSheet} from 'react-native';
 import {Provider as ReduxProvider} from 'react-redux';
 import store from './store';
 import notifee from '@notifee/react-native';
@@ -39,11 +39,7 @@ function LMChatApp(): JSX.Element {
     <RealmProvider schema={[UserSchemaRO]}>
       <GestureHandlerRootView style={styles.flexStyling}>
         <ReduxProvider store={store}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.flexStyling}>
             <SwitchComponent />
-          </KeyboardAvoidingView>
         </ReduxProvider>
       </GestureHandlerRootView>
     </RealmProvider>
