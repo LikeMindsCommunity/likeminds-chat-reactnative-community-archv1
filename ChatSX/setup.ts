@@ -29,7 +29,7 @@ export const initMyClient = (apiKey: string) => {
 
   const myClient = LMChatClient.setApiKey(apiKey)
     .setPlatformCode('rn')
-    .setVersionCode(parseInt('21'))
+    .setVersionCode(parseInt('22'))
     .build();
 
   return myClient;
