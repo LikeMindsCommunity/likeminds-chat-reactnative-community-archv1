@@ -87,7 +87,7 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
             source={require('../../assets/images/poll_icon3x.png')}
             style={[styles.icon, {tintColor: 'grey'}]}
           />
-        ) : item?.ogTags != null ? (
+        ) : item?.ogTags?.url != null ? (
           <Image
             source={require('../../assets/images/link_icon.png')}
             style={[styles.icon, {tintColor: 'grey'}]}

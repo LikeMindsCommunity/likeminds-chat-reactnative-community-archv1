@@ -978,7 +978,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         tempStateMessage,
       );
     };
-    if (selectedMessages.length !== 0) {
+    if (selectedMessages.length !== 0 && isChatroomTopic) {
       addChatroomTopic();
     }
   }, [currentChatroomTopic]);
