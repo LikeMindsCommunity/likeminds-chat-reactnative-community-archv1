@@ -7,10 +7,15 @@ import {
   Pressable,
   ActivityIndicator,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
-import {convertSecondsToTime, decode} from '../../commonFuctions';
+import {
+  convertSecondsToTime,
+  decode,
+  generateGifString,
+} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
 import {
   LONG_PRESSED,
@@ -22,7 +27,9 @@ import {useAppDispatch, useAppSelector} from '../../store';
 import {CAROUSEL_SCREEN} from '../../constants/Screens';
 import {
   AUDIO_TEXT,
+  CAPITAL_GIF_TEXT,
   FAILED,
+  GIF_TEXT,
   IMAGE_TEXT,
   PDF_TEXT,
   SUCCESS,
@@ -30,7 +37,6 @@ import {
   VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import Slider from '@react-native-community/slider';
-import {VoiceNotesPlayerProps} from '../InputBox/models';
 import TrackPlayer, {
   useActiveTrack,
   useProgress,
@@ -73,19 +79,21 @@ const AttachmentConversations = ({
   isReply,
   chatroomName,
 }: AttachmentConversations) => {
-  const [voiceNotesPlayer, setVoiceNotesPlayer] =
-    useState<VoiceNotesPlayerProps>({
-      currentPositionSec: 0,
-      currentDurationSec: 0,
-      playTime: '',
-      duration: '',
-    });
   const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
+  const [isGifPlaying, setIsGifPlaying] = useState(false);
   const progress = useProgress();
   const activeTrack = useActiveTrack();
 
+  let firstAttachment = item?.attachments[0];
+  const isAudioActive =
+    activeTrack?.externalUrl === firstAttachment?.url ? true : false;
+  const isGif = firstAttachment?.type === GIF_TEXT;
+  const isAnswer = isGif ? !!generateGifString(item?.answer) : !!item?.answer;
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
+  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
+    state => state.chatroom,
+  );
 
   // to stop the audio if move out of the chatroom
   useEffect(() => {
@@ -151,9 +159,61 @@ const AttachmentConversations = ({
     await onSeekTo(secondsToSeek);
   };
 
-  let firstAttachment = item?.attachments[0];
-  const isAudioActive =
-    activeTrack?.externalUrl === firstAttachment?.url ? true : false;
+  // to play and stop gif after 2s
+  const playGif = () => {
+    setIsGifPlaying(true);
+    setTimeout(() => {
+      setIsGifPlaying(false);
+    }, 2000);
+  };
+
+  // handle gif on long press
+  const handleLongPress = (event: any) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    longPressOpenKeyboard();
+  };
+
+  // handle gif on press
+  const handleOnPress = (event: any, url: string, index: number) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    let isStateIncluded = stateArr.includes(item?.state);
+    if (isLongPress) {
+      if (isIncluded) {
+        const filterdMessages = selectedMessages.filter(
+          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+        );
+        if (filterdMessages.length > 0) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+        } else {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+          dispatch({type: LONG_PRESSED, body: false});
+        }
+      } else {
+        if (!isStateIncluded) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...selectedMessages, item],
+          });
+        }
+      }
+    } else {
+      playGif();
+    }
+  };
   return (
     <View
       style={[
@@ -323,16 +383,111 @@ const AttachmentConversations = ({
               </View>
             ) : null}
           </View>
+        ) : isGif ? (
+          <View
+            style={
+              isIncluded
+                ? {
+                    backgroundColor: STYLES.$COLORS.SELECTED_BLUE,
+                    opacity: 0.7,
+                  }
+                : null
+            }>
+            {!isGifPlaying && !item?.isInProgress ? (
+              <TouchableOpacity
+                onPress={handleOnPress}
+                onLongPress={handleLongPress}
+                style={[
+                  {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: 150,
+                    position: 'absolute',
+                    width: '100%',
+                    zIndex: 1,
+                  },
+                ]}>
+                <View
+                  style={{
+                    backgroundColor: 'black',
+                    opacity: 0.9,
+                    padding: 10,
+                    borderRadius: 50,
+                  }}>
+                  <Text style={{color: 'white'}}>{CAPITAL_GIF_TEXT}</Text>
+                </View>
+              </TouchableOpacity>
+            ) : null}
+
+            {isGifPlaying ? (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  navigation.navigate(CAROUSEL_SCREEN, {
+                    dataObject: item,
+                    index: 0,
+                  });
+                  dispatch({
+                    type: STATUS_BAR_STYLE,
+                    body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+                  });
+                }}>
+                <Image
+                  source={{
+                    uri: firstAttachment?.url,
+                  }}
+                  style={styles.singleImg}
+                />
+              </TouchableWithoutFeedback>
+            ) : (
+              <Image
+                source={{
+                  uri: firstAttachment?.thumbnailUrl,
+                }}
+                style={styles.singleImg}
+              />
+            )}
+
+            {item?.isInProgress === SUCCESS ? (
+              <View style={styles.uploadingIndicator}>
+                <ActivityIndicator
+                  size="large"
+                  color={STYLES.$COLORS.SECONDARY}
+                />
+              </View>
+            ) : item?.isInProgress === FAILED ? (
+              <View style={styles.uploadingIndicator}>
+                <Pressable
+                  onPress={() => {
+                    handleFileUpload(item?.id, true);
+                  }}
+                  style={({pressed}) => [
+                    {
+                      opacity: pressed ? 0.5 : 1,
+                    },
+                    styles.retryButton,
+                  ]}>
+                  <Image
+                    style={styles.retryIcon}
+                    source={require('../../assets/images/retry_file_upload3x.png')}
+                  />
+                  <Text style={styles.retryText}>RETRY</Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
         ) : null}
 
-        <View style={styles.messageText as any}>
-          {decode(
-            item?.answer,
-            true,
-            chatroomName,
-            user?.sdkClientInfo?.community,
-          )}
-        </View>
+        {isAnswer ? (
+          <View style={styles.messageText as any}>
+            {decode(
+              isGif ? generateGifString(item?.answer) : item?.answer,
+              true,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </View>
+        ) : null}
         <View style={styles.alignTime}>
           {item?.isEdited ? (
             <Text style={styles.messageDate}>{`Edited • `}</Text>
@@ -829,9 +984,8 @@ export const ImageConversations = ({
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
   );
-  const {isFileUploading, fileUploadingID}: any = useAppSelector(
-    state => state.upload,
-  );
+
+  // handle on long press on attachment
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -841,6 +995,7 @@ export const ImageConversations = ({
     longPressOpenKeyboard();
   };
 
+  // handle on press on attachment
   const handleOnPress = (event: any, url: string, index: number) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({

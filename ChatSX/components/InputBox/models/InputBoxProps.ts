@@ -18,4 +18,5 @@ export interface InputBoxProps {
   chatroomWithUser?: any;
   chatroomName?: any;
   currentChatroomTopic?: Conversation;
+  isGif?: boolean;
 }

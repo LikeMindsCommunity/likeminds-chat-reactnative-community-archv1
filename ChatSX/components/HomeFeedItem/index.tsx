@@ -24,6 +24,7 @@ import STYLES from '../../constants/Styles';
 import {CHATROOM} from '../../constants/Screens';
 import {
   CANCEL_BUTTON,
+  CAPITAL_GIF_TEXT,
   CONFIRM_BUTTON,
   IMAGE_TEXT,
   PDF_TEXT,
@@ -142,6 +143,7 @@ const HomeFeedItem: React.FC<Props> = ({
     let videosCount = 0;
     let pdfCount = 0;
     let voiceNoteCount = 0;
+    let gifCount = 0;
     let ogTags = val?.ogTags;
 
     for (let i = 0; i < attachments.length; i++) {
@@ -153,6 +155,8 @@ const HomeFeedItem: React.FC<Props> = ({
         pdfCount++;
       } else if (attachments[i].type == DocumentType.VOICE_NOTE) {
         voiceNoteCount++;
+      } else if (attachments[i].type == DocumentType.GIF_TEXT) {
+        gifCount++;
       }
     }
 
@@ -310,6 +314,22 @@ const HomeFeedItem: React.FC<Props> = ({
             style={[styles.icon, {tintColor: 'grey'}]}
           />
           <Text style={styles.attachment_msg}>{'Voice Note'}</Text>
+        </View>
+      );
+    } else if (gifCount > 0) {
+      return (
+        <View
+          style={[
+            styles.alignCenter,
+            {
+              marginBottom: -2,
+              gap: 5,
+            },
+          ]}>
+          <View style={styles.gifView}>
+            <Text style={styles.gifText}>{CAPITAL_GIF_TEXT}</Text>
+          </View>
+          <Text style={styles.attachment_msg}>{CAPITAL_GIF_TEXT}</Text>
         </View>
       );
     } else if (val?.state === 10) {

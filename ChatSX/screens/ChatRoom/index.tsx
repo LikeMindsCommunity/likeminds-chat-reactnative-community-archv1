@@ -32,6 +32,7 @@ import {
   decode,
   fetchResourceFromURI,
   formatTime,
+  generateGifString,
 } from '../../commonFuctions';
 import InputBox from '../../components/InputBox';
 import Messages from '../../components/Messages';
@@ -121,6 +122,8 @@ import {
   WARNING_MSG_PUBLIC_CHATROOM,
   USER_SCHEMA_RO,
   VOICE_NOTE_TEXT,
+  CAPITAL_GIF_TEXT,
+  VOICE_NOTE_STRING,
 } from '../../constants/Strings';
 import {DM_ALL_MEMBERS} from '../../constants/Screens';
 import ApproveDMRequestModal from '../../customModals/ApproveDMRequest';
@@ -2178,6 +2181,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           ? item.fileName
           : attachmentType === VIDEO_TEXT
           ? item.fileName
+          : attachmentType === VOICE_NOTE_TEXT
+          ? item.name
           : docAttachmentType === PDF_TEXT
           ? item.name
           : null;
@@ -2864,6 +2869,55 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     );
   };
 
+  const renderGif = (val: Conversation) => {
+    let answer = generateGifString(val?.answer);
+    return (
+      <View style={[styles.alignCenter]}>
+        {!answer ? (
+          <View style={styles.gif_attachment_msg}>
+            <View style={styles.gifView}>
+              <Text style={styles.gifText}>{CAPITAL_GIF_TEXT}</Text>
+            </View>
+            <Text style={styles.attachment_msg}>
+              <View style={styles.sub_attachment_msg} />
+              {CAPITAL_GIF_TEXT}
+            </Text>
+          </View>
+        ) : (
+          <Text numberOfLines={2} style={styles.attachment_msg}>
+            <View style={styles.gifView}>
+              <Text style={styles.gifText}>{CAPITAL_GIF_TEXT}</Text>
+            </View>
+            <View style={styles.sub_attachment_msg} />
+            {decode(
+              answer,
+              false,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderVoiceNote = (val: Conversation) => {
+    return (
+      <View style={[styles.alignCenter]}>
+        <Text numberOfLines={2} style={styles.attachment_msg}>
+          <Image
+            source={require('../../assets/images/mic_icon3x.png')}
+            style={[
+              styles.chatroomTopicIcon,
+              {tintColor: STYLES.$COLORS.PRIMARY},
+            ]}
+          />
+          {VOICE_NOTE_STRING}
+        </Text>
+      </View>
+    );
+  };
+
   const renderLink = (val: Conversation) => {
     return (
       <View
@@ -2895,6 +2949,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     let imageCount = 0;
     let videosCount = 0;
     let pdfCount = 0;
+    let gifCount = 0;
+    let voiceNoteCount = 0;
     let ogTags = conversation?.ogTags;
 
     if (attachments?.length) {
@@ -2905,6 +2961,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
           videosCount++;
         } else if (attachments[i].type == DocumentType.PDF) {
           pdfCount++;
+        } else if (attachments[i].type == DocumentType.GIF_TEXT) {
+          gifCount++;
+        } else if (attachments[i].type == DocumentType.VOICE_NOTE) {
+          voiceNoteCount++;
         } else {
           continue;
         }
@@ -2927,6 +2987,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       return renderImage(imageCount, conversation);
     } else if (conversation?.state === 10) {
       return renderPoll(conversation);
+    } else if (gifCount) {
+      return renderGif(conversation);
+    } else if (voiceNoteCount) {
+      return renderVoiceNote(conversation);
     } else if (ogTags) {
       return renderLink(conversation);
     } else {
@@ -3251,11 +3315,15 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                 <View>
                   {currentChatroomTopic?.attachmentCount > 0 &&
                   currentChatroomTopic?.attachments.length > 0 &&
-                  currentChatroomTopic?.attachments[0]?.type !== 'pdf' ? (
+                  currentChatroomTopic?.attachments[0]?.type !==
+                    DocumentType.PDF &&
+                  currentChatroomTopic?.attachments[0]?.type !==
+                    DocumentType.VOICE_NOTE ? (
                     <Image
                       source={{
                         uri:
-                          currentChatroomTopic?.attachments[0]?.type == 'image'
+                          currentChatroomTopic?.attachments[0]?.type ==
+                          DocumentType.IMAGE
                             ? currentChatroomTopic?.attachments[0]?.url
                             : currentChatroomTopic?.attachments[0]
                                 ?.thumbnailUrl,

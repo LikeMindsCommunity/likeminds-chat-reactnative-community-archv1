@@ -40,8 +40,6 @@ import {
   EMPTY_BLOCK_DELETION,
   SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
   CLEAR_SELECTED_VOICE_NOTE_FILES_TO_UPLOAD,
-  UPDATE_MULTIMEDIA_CONVERSATIONS,
-  GET_CONVERSATIONS_SUCCESS,
   SET_CHATROOM_TOPIC,
 } from '../../store/types/types';
 import {ReplyBox} from '../ReplyConversations';
@@ -60,8 +58,10 @@ import SendDMRequestModal from '../../customModals/SendDMRequest';
 import {
   BLOCKED_DM,
   CAMERA_TEXT,
+  CAPITAL_GIF_TEXT,
   CHARACTER_LIMIT_MESSAGE,
   DOCUMENTS_TEXT,
+  GIF_TEXT,
   GRANTED,
   IMAGE_TEXT,
   PDF_TEXT,
@@ -127,6 +127,14 @@ import LinkPreviewInputBox from '../linkPreviewInputBox';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';
 import {PERMISSIONS, check, request} from 'react-native-permissions';
+import {
+  GiphyContentType,
+  GiphyDialog,
+  GiphyDialogEvent,
+  GiphyDialogMediaSelectEventHandler,
+  GiphyMedia,
+} from '@giphy/react-native-sdk';
+import {createThumbnail} from 'react-native-create-thumbnail';
 
 // to intialise audio recorder player
 const audioRecorderPlayerAttachment = new AudioRecorderPlayer();
@@ -149,6 +157,7 @@ const InputBox = ({
   chatroomWithUser,
   chatroomName,
   currentChatroomTopic,
+  isGif,
 }: InputBoxProps) => {
   const [isKeyBoardFocused, setIsKeyBoardFocused] = useState(false);
   const [message, setMessage] = useState(previousMessage);
@@ -227,6 +236,7 @@ const InputBox = ({
     editConversation,
     fileSent,
   }: any = useAppSelector(state => state.chatroom);
+
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
   let isGroupTag = false;
 
@@ -500,6 +510,24 @@ const InputBox = ({
     }
   }, [isEditable, selectedMessages]);
 
+  // Handling GIFs selection in GiphyDialog
+  useEffect(() => {
+    GiphyDialog.configure({
+      mediaTypeConfig: [GiphyContentType.Recents, GiphyContentType.Gif],
+    });
+    const handler: GiphyDialogMediaSelectEventHandler = e => {
+      selectGIF(e.media, message);
+      GiphyDialog.hide();
+    };
+    const listener = GiphyDialog.addListener(
+      GiphyDialogEvent.MediaSelected,
+      handler,
+    );
+    return () => {
+      listener.remove();
+    };
+  }, [message]);
+
   const handleVideoThumbnail = async (images: any) => {
     const res = await getVideoThumbnail({
       selectedImages: images,
@@ -722,6 +750,39 @@ const InputBox = ({
     }
   };
 
+  const selectGIF = async (gif: GiphyMedia, message: string) => {
+    const item = {...gif, thumbnailUrl: ''};
+
+    navigation.navigate(FILE_UPLOAD, {
+      chatroomID: chatroomID,
+      previousMessage: message, // to keep message on uploadScreen InputBox
+    });
+
+    await createThumbnail({
+      url: gif?.data?.images?.fixed_width?.mp4,
+      timeStamp: 10000,
+    })
+      .then(response => {
+        item.thumbnailUrl = response?.path;
+
+        dispatch({
+          type: SELECTED_FILE_TO_VIEW,
+          body: {image: item},
+        });
+        dispatch({
+          type: SELECTED_FILES_TO_UPLOAD,
+          body: {
+            images: [item],
+          },
+        });
+        dispatch({
+          type: STATUS_BAR_STYLE,
+          body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+        });
+      })
+      .catch(err => {});
+  };
+
   const handleModalClose = () => {
     setModalVisible(false);
   };
@@ -863,7 +924,9 @@ const InputBox = ({
     // for making data for `attachments` key
     if (attachmentsCount > 0) {
       for (let i = 0; i < attachmentsCount; i++) {
-        let attachmentType = selectedFilesToUpload[i]?.type?.split('/')[0];
+        let attachmentType = selectedFilesToUpload[i]?.data?.type
+          ? selectedFilesToUpload[i]?.data?.type
+          : selectedFilesToUpload[i]?.type?.split('/')[0];
         let docAttachmentType = selectedFilesToUpload[i]?.type?.split('/')[1];
         let audioAttachmentType = voiceNotesToUpload[i]?.type;
         let audioURI = voiceNotesToUpload[i]?.uri;
@@ -906,6 +969,16 @@ const InputBox = ({
               size: null,
               duration: voiceNotesToUpload[i].duration,
             },
+          };
+          dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
+        } else if (attachmentType === GIF_TEXT) {
+          let obj = {
+            ...selectedFilesToUpload[i],
+            type: attachmentType,
+            url: selectedFilesToUpload[i]?.url,
+            thumbnailUrl: selectedFilesToUpload[i].thumbnailUrl,
+            index: i,
+            name: selectedFilesToUpload[i].name,
           };
           dummyAttachmentsArr = [...dummyAttachmentsArr, obj];
         }
@@ -2017,7 +2090,7 @@ const InputBox = ({
                   }
                 : null,
             ]}>
-            {!!isUploadScreen && !!!isDoc ? (
+            {!!isUploadScreen && !isDoc && !isGif ? (
               <TouchableOpacity
                 style={styles.addMoreButton}
                 onPress={() => {
@@ -2028,7 +2101,7 @@ const InputBox = ({
                   style={styles.emoji}
                 />
               </TouchableOpacity>
-            ) : !!isUploadScreen && !!isDoc ? (
+            ) : !!isUploadScreen && !!isDoc && !isGif ? (
               <TouchableOpacity
                 style={styles.addMoreButton}
                 onPress={() => {
@@ -2039,6 +2112,8 @@ const InputBox = ({
                   style={styles.emoji}
                 />
               </TouchableOpacity>
+            ) : isUploadScreen ? (
+              <View style={styles.paddingHorizontal} />
             ) : null}
 
             {isDeleteAnimation ? (
@@ -2163,8 +2238,22 @@ const InputBox = ({
                     ? {
                         marginHorizontal: 5,
                       }
-                    : {marginHorizontal: 20},
+                    : {marginHorizontal: 15},
                 ]}>
+                {!isUploadScreen &&
+                !(
+                  chatRequestState === ChatroomChatRequestState.INITIATED ||
+                  chatRequestState === null
+                ) &&
+                !isEditable &&
+                !voiceNotes?.recordTime &&
+                !isDeleteAnimation ? (
+                  <TouchableOpacity
+                    style={styles.gifView}
+                    onPress={() => GiphyDialog.show()}>
+                    <Text style={styles.gifText}>{CAPITAL_GIF_TEXT}</Text>
+                  </TouchableOpacity>
+                ) : null}
                 <TaggingView
                   defaultValue={message}
                   onChange={handleInputChange}
@@ -2214,7 +2303,7 @@ const InputBox = ({
             !voiceNotes?.recordTime &&
             !isDeleteAnimation ? (
               <TouchableOpacity
-                style={styles.emojiButton}
+                style={[styles.emojiButton, {marginLeft: 15}]}
                 onPress={() => {
                   Keyboard.dismiss();
                   setModalVisible(true);

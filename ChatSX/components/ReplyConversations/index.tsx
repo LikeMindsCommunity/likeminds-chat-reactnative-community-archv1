@@ -9,7 +9,7 @@ import {
 import React, {useEffect, useState} from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
-import {decode} from '../../commonFuctions';
+import {decode, generateGifString} from '../../commonFuctions';
 import {useAppDispatch, useAppSelector} from '../../store';
 import {
   GET_CONVERSATIONS_SUCCESS,
@@ -19,14 +19,19 @@ import {
 } from '../../store/types/types';
 import {
   AUDIO_TEXT,
+  CAPITAL_GIF_TEXT,
+  DOCUMENT_STRING,
+  GIF_TEXT,
   IMAGE_TEXT,
+  NOT_SUPPORTED_TEXT,
   PDF_TEXT,
+  PHOTO_STRING,
+  VIDEO_STRING,
   VIDEO_TEXT,
+  VOICE_NOTE_STRING,
   VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import AttachmentConversations from '../AttachmentConversations';
-import {Events, Keys} from '../../enums';
-import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getCurrentConversation} from '../../utils/chatroomUtils';
 
 interface ReplyConversations {
@@ -51,7 +56,8 @@ interface ReplyBox {
 
 export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
   const {user} = useAppSelector(state => state.homefeed);
-
+  const isGif = item?.attachments[0]?.type === GIF_TEXT ? true : false;
+  const answer = isGif ? generateGifString(item?.answer) : item?.answer;
   return (
     <View style={styles.replyBox}>
       <View>
@@ -81,22 +87,28 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
               source={require('../../assets/images/mic_icon3x.png')}
               style={[styles.icon, {tintColor: 'grey'}]}
             />
+          ) : item?.attachments[0]?.type === GIF_TEXT ? (
+            <View style={styles.gifView}>
+              <Text style={styles.gifText}>{CAPITAL_GIF_TEXT}</Text>
+            </View>
           ) : null
         ) : null}
         <Text style={styles.messageText}>
           {decode(
-            !!item?.answer
-              ? item?.answer
+            !!answer
+              ? answer
               : item?.attachments[0]?.type === PDF_TEXT
-              ? `Document`
+              ? DOCUMENT_STRING
               : item?.attachments[0]?.type === IMAGE_TEXT
-              ? `Photo`
+              ? PHOTO_STRING
               : item?.attachments[0]?.type === VIDEO_TEXT
-              ? `Video`
+              ? VIDEO_STRING
               : item?.attachments[0]?.type === VOICE_NOTE_TEXT
-              ? `Voice Note`
+              ? VOICE_NOTE_STRING
+              : item?.attachments[0]?.type === GIF_TEXT
+              ? CAPITAL_GIF_TEXT
               : item?.attachments[0]?.type === AUDIO_TEXT
-              ? `This message is not supported in this app yet.`
+              ? NOT_SUPPORTED_TEXT
               : null,
             false,
             chatroomName,
