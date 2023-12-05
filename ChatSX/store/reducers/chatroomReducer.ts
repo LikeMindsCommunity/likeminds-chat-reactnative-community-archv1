@@ -92,7 +92,7 @@ export function chatroomReducer(state = initialState, action: any) {
       };
     }
     case EMPTY_BLOCK_DELETION: {
-      let newArr = [...state.conversations].splice(1);
+      const newArr = [...state.conversations].splice(1);
       return {
         ...state,
         conversations: newArr,
@@ -135,12 +135,12 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case PAGINATED_CONVERSATIONS_END_SUCCESS: {
       const {conversations = []} = action.body;
-      let arr = conversations.reverse();
+      const arr = conversations.reverse();
       return {...state, conversations: [...state.conversations, ...arr]};
     }
     case PAGINATED_CONVERSATIONS_START_SUCCESS: {
       const {conversations = []} = action.body;
-      let arr = conversations.reverse();
+      const arr = conversations.reverse();
       return {
         ...state,
         conversations: [...arr, ...state.conversations],
@@ -149,14 +149,14 @@ export function chatroomReducer(state = initialState, action: any) {
     case FIREBASE_CONVERSATIONS_SUCCESS: {
       const data = action.body;
       const {conversations = []} = data;
-      let ID = conversations[0]?.id;
-      let temporaryID = conversations[0]?.temporaryId;
+      const ID = conversations[0]?.id;
+      const temporaryID = conversations[0]?.temporaryId;
 
-      let conversationsList = [...state.conversations];
-      let conversationArr: any = [...conversationsList];
+      const conversationsList = [...state.conversations];
+      const conversationArr: any = [...conversationsList];
 
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
-      let index = conversationsList.findIndex((element: any) => {
+      const index = conversationsList.findIndex((element: any) => {
         return (
           element?.id?.toString() === ID?.toString() || // to check locally handled item id with ID
           element?.id?.toString() === temporaryID?.toString() // to replace the messsage if message is already there by verifying message's ID with conversationMeta ID;
@@ -184,12 +184,12 @@ export function chatroomReducer(state = initialState, action: any) {
         return {...state};
       }
 
-      let temporaryID = conversation?.temporaryId;
-      let conversationsList = [...state.conversations];
-      let conversationArr: any = [...conversationsList];
+      const temporaryID = conversation?.temporaryId;
+      const conversationsList = [...state.conversations];
+      const conversationArr: any = [...conversationsList];
 
       // index would be -1 if conversationsList is empty else it would have index of the element that needs to replaced
-      let index = conversationsList.findIndex((element: any) => {
+      const index = conversationsList.findIndex((element: any) => {
         return (
           element?.id?.toString() === temporaryID || // to check locally handled item id with temporaryID
           element?.temporaryId?.toString() === temporaryID // to replace the messsage if message is already there by verifying message's temporaryID with conversationMeta temporaryID;
@@ -248,11 +248,11 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case REACTION_SENT: {
       const {previousMsg, changedMsg} = action.body;
-      let index = state?.conversations.findIndex(
+      const index = state?.conversations.findIndex(
         (element: any) => element?.id === changedMsg?.id,
       );
 
-      let arr = [...(state?.conversations as any)];
+      const arr = [...(state?.conversations as any)];
       if (index !== undefined || index !== -1) {
         arr[index] = changedMsg;
       }
@@ -260,11 +260,11 @@ export function chatroomReducer(state = initialState, action: any) {
     }
     case EDIT_CONVERSATION: {
       const {previousConversation, changedConversation} = action.body;
-      let index = state?.conversations.findIndex(
+      const index = state?.conversations.findIndex(
         (element: any) => element?.id === changedConversation?.id,
       );
 
-      let arr = [...(state?.conversations as any)];
+      const arr = [...(state?.conversations as any)];
       if (index !== undefined || index !== -1) {
         arr[index] = changedConversation;
       }

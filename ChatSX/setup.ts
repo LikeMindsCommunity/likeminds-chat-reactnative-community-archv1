@@ -9,10 +9,10 @@ import {LMChatClient} from '@likeminds.community/chat-rn';
 
 export const initMyClient = (apiKey: string) => {
   notifee.onBackgroundEvent(async ({type, detail}) => {
-    let routes = getRoute(detail?.notification?.data?.route);
+    const routes = getRoute(detail?.notification?.data?.route);
 
     if (type === EventType.PRESS) {
-      if (!!RootNavigation) {
+      if (RootNavigation) {
         setTimeout(() => {
           RootNavigation.navigate(routes.route, routes.params); // e.g. navigate(CHATROOM, {chatroomID: 69285});
         }, 1000);
@@ -21,7 +21,7 @@ export const initMyClient = (apiKey: string) => {
   });
 
   messaging().setBackgroundMessageHandler(async remoteMessage => {
-    let val = await getNotification(remoteMessage);
+    const val = await getNotification(remoteMessage);
     return val;
   });
 

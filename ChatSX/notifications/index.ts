@@ -24,7 +24,7 @@ export default async function getNotification(remoteMessage: any) {
     importance: AndroidImportance.HIGH,
   });
 
-  let isIOS = Platform.OS === 'ios' ? true : false;
+  const isIOS = Platform.OS === 'ios' ? true : false;
   let decodedAndroidMsg;
   let decodedIOSMsg;
   if (isIOS) {

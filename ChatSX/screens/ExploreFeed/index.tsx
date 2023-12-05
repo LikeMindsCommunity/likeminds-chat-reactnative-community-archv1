@@ -69,20 +69,20 @@ const ExploreFeed = ({navigation}: Props) => {
   async function fetchData() {
     // let payload = {chatroomID: 69285, page: 1000};
     dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
-    let payload = {
+    const payload = {
       orderType: filterState,
       page: 1,
     };
-    let response = await dispatch(getExploreFeedData(payload, true) as any);
+    const response = await dispatch(getExploreFeedData(payload, true) as any);
     return response;
   }
 
   async function updateData(newPage: number) {
-    let payload = {
+    const payload = {
       orderType: filterState,
       page: newPage,
     };
-    let response = await dispatch(updateExploreFeedData(payload) as any);
+    const response = await dispatch(updateExploreFeedData(payload) as any);
     return response;
   }
 
@@ -92,8 +92,8 @@ const ExploreFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     if (isPinned) {
-      let pinnedChats = exploreChatrooms.filter((item: any) =>
-        !!item?.isPinned ? item : null,
+      const pinnedChats = exploreChatrooms.filter((item: any) =>
+        item?.isPinned ? item : null,
       );
       setChats(pinnedChats);
     } else {
@@ -104,7 +104,7 @@ const ExploreFeed = ({navigation}: Props) => {
   const loadData = async (newPage: number) => {
     setIsLoading(true);
     const res = await updateData(newPage);
-    if (!!res) {
+    if (res) {
       setIsLoading(false);
     }
   };
@@ -139,9 +139,9 @@ const ExploreFeed = ({navigation}: Props) => {
               setFilterState(val);
             }}
             setIsPinned={val => {
-              if (!!val) {
-                let pinnedChats = chats.filter((item: any) =>
-                  !!item?.isPinned ? item : null,
+              if (val) {
+                const pinnedChats = chats.filter((item: any) =>
+                  item?.isPinned ? item : null,
                 );
                 setChats(pinnedChats);
                 setIsPinned(val);

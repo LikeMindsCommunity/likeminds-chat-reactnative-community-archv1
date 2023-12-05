@@ -11,7 +11,7 @@ interface Props {
 
 const ToastMessage = ({isToast, onDismiss, message}: Props) => {
   useEffect(() => {
-    if (!!isToast) {
+    if (isToast) {
       setTimeout(() => {
         onDismiss();
       }, 2000);

@@ -23,20 +23,20 @@ const ActionAlertModal = ({
       <Pressable style={styles.centeredView} onPress={hideActionModal}>
         <View>
           <Pressable onPress={() => {}} style={[styles.modalView]}>
-              <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
-                {optionsList?.map((val: any, index: any) => {
-                  return (
-                    <TouchableOpacity
-                      onPress={async () => {
-                        onSelect(index);
-                      }}
-                      key={index}
-                      style={styles.filtersView}>
-                      <Text style={styles.filterText}>{val}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+            <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+              {optionsList?.map((val: any, index: any) => {
+                return (
+                  <TouchableOpacity
+                    onPress={async () => {
+                      onSelect(index);
+                    }}
+                    key={index}
+                    style={styles.filtersView}>
+                    <Text style={styles.filterText}>{val}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </Pressable>
         </View>
       </Pressable>

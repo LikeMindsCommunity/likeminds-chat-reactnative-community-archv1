@@ -41,13 +41,7 @@ import TrackPlayer, {
   useActiveTrack,
   useProgress,
 } from 'react-native-track-player';
-import {
-  onPausePlay,
-  onResumePlay,
-  setupPlayer,
-  startPlay,
-  stopPlay,
-} from '../../audio';
+import {onPausePlay, onResumePlay, startPlay, stopPlay} from '../../audio';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -135,12 +129,6 @@ const AttachmentConversations = ({
     );
   };
 
-  // to stop playing audio recording
-  const handleStopPlay = async () => {
-    const value = await stopPlay();
-    setIsVoiceNotePlaying(value);
-  };
-
   // to pause playing audio recording
   const handleOnPausePlay = async () => {
     const value = await onPausePlay();
@@ -155,7 +143,7 @@ const AttachmentConversations = ({
 
   // to seek player to the provided time
   const handleOnSeekTo = async (value: number) => {
-    let secondsToSeek = value * (firstAttachment?.metaRO?.duration / 100);
+    const secondsToSeek = value * (firstAttachment?.metaRO?.duration / 100);
     await onSeekTo(secondsToSeek);
   };
 
@@ -235,7 +223,7 @@ const AttachmentConversations = ({
         {!!(item?.member?.id == user?.id) || isReply ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
-            {!!item?.member?.customTitle ? (
+            {item?.member?.customTitle ? (
               <Text
                 style={
                   styles.messageCustomTitle
@@ -317,7 +305,7 @@ const AttachmentConversations = ({
                   step={0}
                   value={
                     isAudioActive
-                      ? !!(progress.position / progress.duration)
+                      ? progress.position / progress.duration
                         ? (progress.position / progress.duration) * 100
                         : 0
                       : 0
@@ -490,7 +478,7 @@ const AttachmentConversations = ({
         ) : null}
         <View style={styles.alignTime}>
           {item?.isEdited ? (
-            <Text style={styles.messageDate}>{`Edited • `}</Text>
+            <Text style={styles.messageDate}>{'Edited • '}</Text>
           ) : null}
           <Text style={styles.messageDate}>{item?.createdAt}</Text>
         </View>
@@ -546,8 +534,8 @@ export const VideoConversations = ({
   longPressOpenKeyboard,
   handleFileUpload,
 }: PDFConversations) => {
-  let firstAttachment = item?.attachments[0];
-  let secondAttachment = item?.attachments[1];
+  const firstAttachment = item?.attachments[0];
+  const secondAttachment = item?.attachments[1];
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
@@ -569,7 +557,7 @@ export const VideoConversations = ({
       type: SET_POSITION,
       body: {pageX: pageX, pageY: pageY},
     });
-    let isStateIncluded = stateArr.includes(item?.state);
+    const isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
@@ -684,7 +672,7 @@ export const VideoConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            let isStateIncluded = stateArr.includes(item?.state);
+            const isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
                 const filterdMessages = selectedMessages.filter(
@@ -755,8 +743,8 @@ export const PDFConversations = ({
   longPressOpenKeyboard,
   handleFileUpload,
 }: PDFConversations) => {
-  let firstAttachment = item?.attachments[0];
-  let secondAttachment = item?.attachments[1];
+  const firstAttachment = item?.attachments[0];
+  const secondAttachment = item?.attachments[1];
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
@@ -780,7 +768,7 @@ export const PDFConversations = ({
       type: SET_POSITION,
       body: {pageX: pageX, pageY: pageY},
     });
-    let isStateIncluded = stateArr.includes(item?.state);
+    const isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
@@ -895,7 +883,7 @@ export const PDFConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            let isStateIncluded = stateArr.includes(item?.state);
+            const isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
                 const filterdMessages = selectedMessages.filter(
@@ -976,10 +964,10 @@ export const ImageConversations = ({
   longPressOpenKeyboard,
   handleFileUpload,
 }: ImageConversations) => {
-  let firstAttachment = item?.attachments[0];
-  let secondAttachment = item?.attachments[1];
-  let thirdAttachment = item?.attachments[2];
-  let fourthAttachment = item?.attachments[3];
+  const firstAttachment = item?.attachments[0];
+  const secondAttachment = item?.attachments[1];
+  const thirdAttachment = item?.attachments[2];
+  const fourthAttachment = item?.attachments[3];
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
@@ -1002,7 +990,7 @@ export const ImageConversations = ({
       type: SET_POSITION,
       body: {pageX: pageX, pageY: pageY},
     });
-    let isStateIncluded = stateArr.includes(item?.state);
+    const isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
@@ -1190,7 +1178,7 @@ export const ImageConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            let isStateIncluded = stateArr.includes(item?.state);
+            const isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
                 const filterdMessages = selectedMessages.filter(
@@ -1341,7 +1329,7 @@ export const ImageConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            let isStateIncluded = stateArr.includes(item?.state);
+            const isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
                 const filterdMessages = selectedMessages.filter(

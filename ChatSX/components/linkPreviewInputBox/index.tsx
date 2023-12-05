@@ -7,7 +7,7 @@ export const LinkPreviewInputBox = ({ogTags}: LinkPreviewInputBoxProps) => {
   return (
     <View style={styles.linkPreviewBox}>
       <View style={styles.linkPreviewImageView}>
-        {!!ogTags?.image ? (
+        {ogTags?.image ? (
           <Image source={{uri: ogTags?.image}} style={styles.linkPreviewIcon} />
         ) : (
           <Image

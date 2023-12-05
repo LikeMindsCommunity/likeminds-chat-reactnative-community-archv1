@@ -61,7 +61,7 @@ const ExploreFeedItem: React.FC<Props> = ({
     const res = await myClient
       .followChatroom(payload)
       .then(async () => {
-        let payload = {
+        const payload = {
           orderType: filterState,
           page: 1,
         };
@@ -111,7 +111,7 @@ const ExploreFeedItem: React.FC<Props> = ({
       <View>
         <Image
           source={
-            !!avatar
+            avatar
               ? {uri: avatar}
               : require('../../assets/images/default_pic.png')
           }

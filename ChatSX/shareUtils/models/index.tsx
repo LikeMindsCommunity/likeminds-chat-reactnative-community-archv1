@@ -1,3 +1,3 @@
-import {ShareChatroomRequest} from  './ShareChatroomRequest';
+import {ShareChatroomRequest} from './ShareChatroomRequest';
 
 export {ShareChatroomRequest};

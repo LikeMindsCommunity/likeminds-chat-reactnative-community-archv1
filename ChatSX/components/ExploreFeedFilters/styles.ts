@@ -29,12 +29,12 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginRight: STYLES.$MARGINS.LARGE,
   },
-  cancelPinIconParent:{
+  cancelPinIconParent: {
     width: 30,
     height: 30,
     marginRight: STYLES.$MARGINS.SMALL,
   },
-  cancelPinIcon :{
+  cancelPinIcon: {
     width: 30,
     height: 30,
     resizeMode: 'contain',
