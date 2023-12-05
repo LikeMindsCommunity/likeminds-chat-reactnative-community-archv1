@@ -3066,7 +3066,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   onFocusKeyboard={() => {
                     refInput.current.focus();
                   }}
-                  item={item}>
+                  item={item}
+                  isStateIncluded={isStateIncluded}>
                   {index < conversations?.length &&
                   conversations[index]?.date !==
                     conversations[index + 1]?.date ? (

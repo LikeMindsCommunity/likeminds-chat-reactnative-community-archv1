@@ -15,8 +15,14 @@ import {
 import {SET_IS_REPLY, SET_REPLY_MESSAGE} from '../../store/types/types';
 import {useAppDispatch} from '../../store';
 import STYLES from '../../constants/Styles';
+import {SwipeableParams} from './model';
 
-const Swipeable = ({onFocusKeyboard, item, children}: any) => {
+const Swipeable = ({
+  onFocusKeyboard,
+  item,
+  isStateIncluded,
+  children,
+}: SwipeableParams) => {
   const [isReplyBoxOpen, setIsReplyBoxOpen] = useState(false);
   const pressed = useSharedValue(false);
   const x = useSharedValue(0);
@@ -25,6 +31,7 @@ const Swipeable = ({onFocusKeyboard, item, children}: any) => {
   // to open reply box after swipe
   useEffect(() => {
     if (isReplyBoxOpen) {
+      console.log('Vibration ==');
       const replyMessage = {...item};
       pressed.value = false;
       Vibration.vibrate(0.5 * 100);
@@ -35,7 +42,6 @@ const Swipeable = ({onFocusKeyboard, item, children}: any) => {
       dispatch({type: SET_IS_REPLY, body: {isReply: true}});
       onFocusKeyboard();
       x.value = withSpring(0);
-      setIsReplyBoxOpen(false);
     }
   }, [isReplyBoxOpen]);
 
@@ -72,11 +78,13 @@ const Swipeable = ({onFocusKeyboard, item, children}: any) => {
     'worklet';
     x.value = withSpring(0);
     pressed.value = false;
+    setIsReplyBoxOpen(false);
   };
 
   // draggable message pan gesture on x-axis
   const panGesture = Gesture.Pan()
     .runOnJS(true)
+    .enabled(!isStateIncluded)
     .activeOffsetX([-10, 10])
     .onStart(event => {
       const deltaX = event.translationX;
@@ -90,6 +98,7 @@ const Swipeable = ({onFocusKeyboard, item, children}: any) => {
     .onFinalize(() => {
       'worklet';
       pressed.value = false;
+      setIsReplyBoxOpen(false);
     });
 
   const replyIconViewStyle = useAnimatedStyle(() => {
