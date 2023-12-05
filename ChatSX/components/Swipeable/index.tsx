@@ -31,7 +31,6 @@ const Swipeable = ({
   // to open reply box after swipe
   useEffect(() => {
     if (isReplyBoxOpen) {
-      console.log('Vibration ==');
       const replyMessage = {...item};
       pressed.value = false;
       Vibration.vibrate(0.5 * 100);
