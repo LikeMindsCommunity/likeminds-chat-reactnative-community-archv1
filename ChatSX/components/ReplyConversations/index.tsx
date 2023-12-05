@@ -1,12 +1,5 @@
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  Alert,
-  Pressable,
-} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import {View, Text, Image, TouchableOpacity, Pressable} from 'react-native';
+import React, {useState} from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode} from '../../commonFuctions';
@@ -25,8 +18,6 @@ import {
   VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import AttachmentConversations from '../AttachmentConversations';
-import {Events, Keys} from '../../enums';
-import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getCurrentConversation} from '../../utils/chatroomUtils';
 
 interface ReplyConversations {
@@ -45,11 +36,11 @@ interface ReplyConversations {
 
 interface ReplyBox {
   item: any;
-  isIncluded: boolean;
+  isIncluded?: boolean;
   chatroomName: string;
 }
 
-export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
+export const ReplyBox = ({item, chatroomName}: ReplyBox) => {
   const {user} = useAppSelector(state => state.homefeed);
 
   return (
@@ -79,6 +70,16 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
           ) : item?.attachments[0]?.type === VOICE_NOTE_TEXT ? (
             <Image
               source={require('../../assets/images/mic_icon3x.png')}
+              style={[styles.icon, {tintColor: 'grey'}]}
+            />
+          ) : Number(item?.state) === 10 ? (
+            <Image
+              source={require('../../assets/images/poll_icon3x.png')}
+              style={[styles.icon, {tintColor: 'grey'}]}
+            />
+          ) : item?.ogTags?.url != null ? (
+            <Image
+              source={require('../../assets/images/link_icon.png')}
               style={[styles.icon, {tintColor: 'grey'}]}
             />
           ) : null
