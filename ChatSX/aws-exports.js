@@ -49,3 +49,7 @@ export const POOL_ID = Base64.atob(
   'YXAtc291dGgtMTpkNzNiYzJlZC1iZWRlLTQyYzgtYmFiNy0wYWJlMGEwMDEzMjU=',
 );
 export const BUCKET = Base64.atob('cHJvZC1saWtlbWluZHMtbWVkaWE=');
+
+export const GIPHY_SDK_API_KEY = Base64.atob(
+  'dUZXZ2g1Rmw5SDN0Qm1vZ1VxY2JEajFFZm5RUGNNVVg=',
+);

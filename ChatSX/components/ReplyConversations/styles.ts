@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import Layout from '../../constants/Layout';
 import STYLES from '../../constants/Styles';
 
@@ -9,16 +9,10 @@ export const styles = StyleSheet.create({
   },
   replyMessage: {
     padding: 10,
-    // margin: 10,
-    // maxWidth: '80%',
     width: '80%',
     alignSelf: 'flex-end',
     borderRadius: 15,
     backgroundColor: '#fff',
-    // elevation: 2,
-    // display: 'flex',
-    // flexWrap: 'wrap',
-    // flexDirection: 'column',
   },
   sentMessage: {
     alignSelf: 'flex-end',
@@ -87,5 +81,22 @@ export const styles = StyleSheet.create({
     color: STYLES.$COLORS.MSG,
     fontSize: STYLES.$FONT_SIZES.SMALL,
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
+  },
+  gifView: {
+    backgroundColor: STYLES.$COLORS.MSG,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderRadius: 5,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 5,
+  },
+  gifText: {
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    fontSize: STYLES.$FONT_SIZES.XS,
+    color: 'white',
+    marginTop: Platform.OS === 'ios' ? 1 : 0,
   },
 });

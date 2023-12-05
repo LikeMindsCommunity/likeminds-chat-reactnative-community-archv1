@@ -28,19 +28,25 @@ import VideoPlayer from 'react-native-media-console';
 import {
   AUDIO_TEXT,
   FAILED,
+  GIF_TEXT,
   IMAGE_TEXT,
   PDF_TEXT,
   SUCCESS,
   VIDEO_TEXT,
+  VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {BUCKET, POOL_ID, REGION} from '../../aws-exports';
-import {fetchResourceFromURI} from '../../commonFuctions';
+import {fetchResourceFromURI, generateGifName} from '../../commonFuctions';
 import {myClient} from '../../..';
 import {IMAGE_CROP_SCREEN} from '../../constants/Screens';
 import {Events, Keys} from '../../enums';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {GiphyMediaView} from '@giphy/react-native-sdk';
+import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
+import {generateVoiceNoteName} from '../../audio';
+import {createThumbnail} from 'react-native-create-thumbnail';
 
 interface UploadResource {
   selectedImages: any;
@@ -62,8 +68,13 @@ const FileUpload = ({navigation, route}: any) => {
   }: any = useAppSelector(state => state.chatroom);
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
 
-  const itemType = selectedFileToView?.type?.split('/')[0];
+  const itemType = !!selectedFileToView?.data?.type
+    ? selectedFileToView?.data?.type
+    : selectedFileToView?.type?.split('/')[0];
+
   const docItemType = selectedFileToView?.type?.split('/')[1];
+
+  const isGif = itemType === GIF_TEXT ? true : false;
   const len = selectedFilesToUpload.length;
   const dispatch = useAppDispatch();
   const {chatroomDBDetails}: any = useAppSelector(state => state.chatroom);
@@ -124,15 +135,20 @@ const FileUpload = ({navigation, route}: any) => {
     for (let i = 0; i < selectedImages?.length; i++) {
       const item = selectedImages[i];
       const attachmentType = isRetry ? item?.type : item?.type?.split('/')[0];
+      const gifAttachmentType = item?.data?.type;
       const docAttachmentType = isRetry
         ? item?.type
         : item?.type?.split('/')[1];
       const thumbnailURL = item?.thumbnailUrl;
+      const gifHeight = item?.data?.images?.fixed_width?.height;
+      const gifWidth = item?.data?.images?.fixed_width?.width;
       const name =
         attachmentType === IMAGE_TEXT
           ? item.fileName
           : attachmentType === VIDEO_TEXT
           ? item.fileName
+          : gifAttachmentType === GIF_TEXT
+          ? generateGifName()
           : docAttachmentType === PDF_TEXT
           ? item.name
           : null;
@@ -148,13 +164,16 @@ const FileUpload = ({navigation, route}: any) => {
         const compressedImg = await fetchResourceFromURI(compressedImgURI);
         uriFinal = compressedImg;
       } else {
-        const img = await fetchResourceFromURI(item.uri);
+        const img = await fetchResourceFromURI(item.uri ? item.uri : item.url);
         uriFinal = img;
       }
 
       //for video thumbnail
       let thumbnailUrlImg: any;
-      if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+      if (
+        thumbnailURL &&
+        (attachmentType === VIDEO_TEXT || gifAttachmentType === GIF_TEXT)
+      ) {
         thumbnailUrlImg = await fetchResourceFromURI(thumbnailURL);
       }
 
@@ -177,7 +196,10 @@ const FileUpload = ({navigation, route}: any) => {
 
       try {
         let getVideoThumbnailData = null;
-        if (thumbnailURL && attachmentType === VIDEO_TEXT) {
+        if (
+          thumbnailURL &&
+          (attachmentType === VIDEO_TEXT || gifAttachmentType === GIF_TEXT)
+        ) {
           getVideoThumbnailData = await s3.upload(thumnnailUrlParams).promise();
         }
 
@@ -195,6 +217,8 @@ const FileUpload = ({navigation, route}: any) => {
             fileType = VIDEO_TEXT;
           } else if (attachmentType === IMAGE_TEXT) {
             fileType = IMAGE_TEXT;
+          } else if (gifAttachmentType === GIF_TEXT) {
+            fileType = GIF_TEXT;
           }
 
           const payload = {
@@ -216,11 +240,17 @@ const FileUpload = ({navigation, route}: any) => {
             name:
               docAttachmentType === PDF_TEXT
                 ? selectedFilesToUpload[i]?.name
+                : gifAttachmentType === GIF_TEXT
+                ? name
                 : selectedFilesToUpload[i]?.fileName,
             type: fileType,
             url: awsResponse,
             thumbnailUrl:
-              fileType === VIDEO_TEXT ? getVideoThumbnailData?.Location : null,
+              fileType === VIDEO_TEXT || fileType === GIF_TEXT
+                ? getVideoThumbnailData?.Location
+                : null,
+            height: gifHeight ? gifHeight : null,
+            width: gifWidth ? gifWidth : null,
           };
 
           const uploadRes = await myClient?.putMultimedia(payload as any);
@@ -356,6 +386,13 @@ const FileUpload = ({navigation, route}: any) => {
             source={{uri: selectedFileToView?.thumbnailUrl}}
             style={styles.mainImage}
           />
+        ) : isGif ? (
+          <View>
+            <Image
+              source={{uri: selectedFileToView?.url}}
+              style={styles.mainImage}
+            />
+          </View>
         ) : null}
       </View>
 
@@ -368,64 +405,67 @@ const FileUpload = ({navigation, route}: any) => {
             navigation={navigation}
             previousMessage={previousMessage}
             handleFileUpload={handleFileUpload}
+            isGif={isGif}
           />
         ) : null}
 
-        <ScrollView
-          contentContainerStyle={styles.bottomListOfImages}
-          horizontal={true}
-          bounces={false}>
-          {len > 0 &&
-            selectedFilesToUpload.map((item: any, index: any) => {
-              const fileType = item?.type?.split('/')[0];
-              return (
-                <Pressable
-                  key={item?.uri + index}
-                  onPress={() => {
-                    dispatch({
-                      type: SELECTED_FILE_TO_VIEW,
-                      body: {image: item},
-                    });
-                  }}
-                  style={({pressed}) => [
-                    {opacity: pressed ? 0.5 : 1.0},
-                    styles.imageItem,
-                    {
-                      borderColor:
-                        docItemType === PDF_TEXT
-                          ? selectedFileToView?.name === item?.name
+        {!isGif && (
+          <ScrollView
+            contentContainerStyle={styles.bottomListOfImages}
+            horizontal={true}
+            bounces={false}>
+            {len > 0 &&
+              selectedFilesToUpload.map((item: any, index: any) => {
+                let fileType = item?.type?.split('/')[0];
+                return (
+                  <Pressable
+                    key={item?.uri + index}
+                    onPress={() => {
+                      dispatch({
+                        type: SELECTED_FILE_TO_VIEW,
+                        body: {image: item},
+                      });
+                    }}
+                    style={({pressed}) => [
+                      {opacity: pressed ? 0.5 : 1.0},
+                      styles.imageItem,
+                      {
+                        borderColor:
+                          docItemType === PDF_TEXT
+                            ? selectedFileToView?.name === item?.name
+                              ? 'red'
+                              : 'black'
+                            : selectedFileToView?.fileName === item?.fileName
                             ? 'red'
-                            : 'black'
-                          : selectedFileToView?.fileName === item?.fileName
-                          ? 'red'
-                          : 'black',
-                      borderWidth: 1,
-                    },
-                  ]}>
-                  <Image
-                    source={
-                      itemType === VIDEO_TEXT
-                        ? {
-                            uri:
-                              'file://' +
-                              selectedFilesToUploadThumbnails[index]?.uri,
-                          }
-                        : {uri: selectedFilesToUploadThumbnails[index]?.uri}
-                    }
-                    style={styles.smallImage}
-                  />
-                  {fileType === VIDEO_TEXT ? (
-                    <View style={{position: 'absolute', bottom: 0, left: 5}}>
-                      <Image
-                        source={require('../../assets/images/video_icon3x.png')}
-                        style={styles.videoIcon}
-                      />
-                    </View>
-                  ) : null}
-                </Pressable>
-              );
-            })}
-        </ScrollView>
+                            : 'black',
+                        borderWidth: 1,
+                      },
+                    ]}>
+                    <Image
+                      source={
+                        itemType === VIDEO_TEXT
+                          ? {
+                              uri:
+                                'file://' +
+                                selectedFilesToUploadThumbnails[index]?.uri,
+                            }
+                          : {uri: selectedFilesToUploadThumbnails[index]?.uri}
+                      }
+                      style={styles.smallImage}
+                    />
+                    {fileType === VIDEO_TEXT ? (
+                      <View style={{position: 'absolute', bottom: 0, left: 5}}>
+                        <Image
+                          source={require('../../assets/images/video_icon3x.png')}
+                          style={styles.videoIcon}
+                        />
+                      </View>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+          </ScrollView>
+        )}
       </View>
     </View>
   );

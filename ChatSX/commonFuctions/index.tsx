@@ -49,7 +49,6 @@ function detectLinks(message: string, isLongPress?: boolean) {
     /((?:https?:\/\/)?(?:www\.)?(?:\w+\.)+\w+(?:\/\S*)?|\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b)/i;
 
   const parts = message.split(regex);
-  const i = 0;
   if (parts?.length > 0) {
     return (
       <Text>
@@ -539,4 +538,33 @@ export function convertSecondsToTime(seconds: number) {
 // to check if device version greater than or equal to 13 or not
 export const atLeastAndroid13 = (): boolean => {
   return Platform.OS === 'android' && Platform.Version >= 33;
+};
+
+// to generate gif name
+export function generateGifName() {
+  const currentDate = new Date();
+  const timestamp = currentDate
+    .toISOString()
+    .replace(/[-T:]/g, '')
+    .slice(0, -5); // Remove dashes, colons, and seconds
+
+  return `GIF_${timestamp}`; // You can change the file extension or format as needed
+}
+
+// replace gif string message
+export const generateGifString = (message: string) => {
+  if (!message) {
+    return '';
+  }
+  let originalString: string = message;
+  let searchString: string =
+    '* This is a gif message. Please update your app *';
+  let replacementString: string = '';
+
+  let resultString: string = originalString.replace(
+    searchString,
+    replacementString,
+  );
+
+  return resultString?.trim();
 };
