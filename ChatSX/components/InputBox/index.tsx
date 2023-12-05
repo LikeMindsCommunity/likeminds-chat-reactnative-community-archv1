@@ -516,7 +516,7 @@ const InputBox = ({
       mediaTypeConfig: [GiphyContentType.Recents, GiphyContentType.Gif],
     });
     const handler: GiphyDialogMediaSelectEventHandler = e => {
-      selectGIF(e.media);
+      selectGIF(e.media, message);
       GiphyDialog.hide();
     };
     const listener = GiphyDialog.addListener(
@@ -526,7 +526,7 @@ const InputBox = ({
     return () => {
       listener.remove();
     };
-  }, []);
+  }, [message]);
 
   const handleVideoThumbnail = async (images: any) => {
     const res = await getVideoThumbnail({
@@ -750,7 +750,7 @@ const InputBox = ({
     }
   };
 
-  const selectGIF = async (gif: GiphyMedia) => {
+  const selectGIF = async (gif: GiphyMedia, message: string) => {
     const item = {...gif, thumbnailUrl: ''};
 
     navigation.navigate(FILE_UPLOAD, {
@@ -2112,6 +2112,8 @@ const InputBox = ({
                   style={styles.emoji}
                 />
               </TouchableOpacity>
+            ) : isUploadScreen ? (
+              <View style={styles.paddingHorizontal} />
             ) : null}
 
             {isDeleteAnimation ? (
@@ -2239,7 +2241,10 @@ const InputBox = ({
                     : {marginHorizontal: 15},
                 ]}>
                 {!isUploadScreen &&
-                !(chatRequestState === ChatroomChatRequestState.INITIATED || chatRequestState === null) &&
+                !(
+                  chatRequestState === ChatroomChatRequestState.INITIATED ||
+                  chatRequestState === null
+                ) &&
                 !isEditable &&
                 !voiceNotes?.recordTime &&
                 !isDeleteAnimation ? (
