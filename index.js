@@ -6,7 +6,7 @@ import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
 import messaging from '@react-native-firebase/messaging';
-import {LMChatClient} from '@likeminds.community/chat-rn';
+import {ConversationState, LMChatConfig} from '@likeminds.community/chat-rn';
 import notifee, {EventType} from '@notifee/react-native';
 import getNotification from './ChatSX/notifications';
 import {getRoute} from './ChatSX/notifications/routes';
@@ -33,9 +33,12 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
   return val;
 });
 
-const myClient = LMChatClient.setApiKey('')
-  .setPlatformCode('rn')
-  .setVersionCode(parseInt('20'))
+const myClient = LMChatConfig.setApiKey('')
+  .setfilterStateConversation([
+    ConversationState.MEMBER_JOINED_OPEN_CHATROOM,
+    ConversationState.MEMBER_LEFT_OPEN_CHATROOM,
+    ConversationState.NORMAL_MESSAGE
+  ])
   .build();
 
 function HeadlessCheck({isHeadless}) {
