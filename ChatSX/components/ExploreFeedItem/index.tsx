@@ -14,6 +14,7 @@ import {styles} from './styles';
 import {CHATROOM} from '../../constants/Screens';
 import {Events, Keys, Sources} from '../../enums';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
+import {CHATROOM_JOINED, CHATROOM_LEFT} from '../../constants/Strings';
 
 interface Props {
   avatar: string;
@@ -66,8 +67,12 @@ const ExploreFeedItem: React.FC<Props> = ({
           page: 1,
         };
         if (val) {
-          setMsg('Joined successfully');
+          setMsg(CHATROOM_JOINED);
           setIsToast(true);
+          await myClient?.updateChatroomFollowStatus(
+            chatroomID?.toString(),
+            true,
+          );
           LMChatAnalytics.track(
             Events.CHAT_ROOM_FOLLOWED,
             new Map<string, string>([
@@ -77,7 +82,7 @@ const ExploreFeedItem: React.FC<Props> = ({
             ]),
           );
         } else {
-          setMsg('Leaved chatroom successfully');
+          setMsg(CHATROOM_LEFT);
           setIsToast(true);
           // Updating the followStatus of chatroom to false in case of leaving the chatroo
           await myClient?.updateChatroomFollowStatus(

@@ -255,9 +255,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   );
 
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
-  const {selectedVoiceNoteFilesToUpload = []}: any = useAppSelector(
-    state => state.chatroom,
-  );
 
   const INITIAL_SYNC_PAGE = 1;
   const PAGE_SIZE = 200;
@@ -267,6 +264,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const memberCanMessage = chatroomDBDetails?.memberCanMessage;
   const chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
   const chatRequestState = chatroomDBDetails?.chatRequestState;
+  const chatroomDBDetailsLength = Object.keys(chatroomDBDetails)?.length;
   const [isChatroomTopic, setIsChatroomTopic] = useState(false);
   const [isFound, setIsFound] = useState(false);
 
@@ -1938,7 +1936,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       }
     }
 
-    if (!isLongPress) {
+    if (!isStateIncluded && !item?.deletedBy) {
       setIsReact(true);
     }
   };
@@ -3368,7 +3366,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         {chatroomType !== ChatroomType.DMCHATROOM &&
         memberRights?.length > 0 ? (
           <View>
-            {!(Object.keys(chatroomDBDetails)?.length === 0) &&
+            {!(chatroomDBDetailsLength === 0) &&
             previousRoute?.name === EXPLORE_FEED
               ? !chatroomFollowStatus && (
                   <TouchableOpacity
@@ -3384,7 +3382,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </TouchableOpacity>
                 )
               : null}
-            {!(Object.keys(chatroomDBDetails)?.length === 0) ? (
+            {!(chatroomDBDetailsLength === 0) ? (
               //case to block normal user from messaging in a chatroom where only CMs can message
               user.state !== 1 &&
               chatroomDBDetails?.memberCanMessage === false ? (
