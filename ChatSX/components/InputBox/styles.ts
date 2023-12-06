@@ -68,9 +68,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 10,
     paddingLeft: 0,
-    // width: Layout.window.width - 180,
-    // width:'65%', // when both emoji and updload icon is there
-    // width: '90%', // when none of emoji and updload icon is there
     width: '70%',
   },
   voiceNotesInputParent: {
@@ -80,7 +77,6 @@ export const styles = StyleSheet.create({
     marginVertical: 10,
     paddingLeft: 0,
     width: '88%',
-    // backgroundColor: 'pink',
   },
   input: {
     flexGrow: 1,
@@ -198,7 +194,6 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     color: STYLES.$COLORS.PRIMARY,
     maxWidth: Layout.window.width - 150,
-    // textAlign: 'left',
   },
   replyBoxClose: {
     position: 'absolute',
@@ -321,4 +316,22 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     borderBottomRightRadius: 0,
   },
+  gifView: {
+    backgroundColor: STYLES.$COLORS.MSG,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderRadius: 5,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  gifText: {
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    fontSize: STYLES.$FONT_SIZES.SMALL,
+    color: 'white',
+    marginTop: Platform.OS === 'ios' ? 2 : 0,
+  },
+  paddingHorizontal: {paddingHorizontal: 5},
 });

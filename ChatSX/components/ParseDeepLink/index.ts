@@ -19,8 +19,8 @@ export async function parseDeepLink(
     const path = matches ? matches[1] : null;
 
     if (path === '/chatroom' || path === 'chatroom') {
-      let regexToExtractParams: RegExp = QUERY_REGEX;
-      let params: Record<string, string> = {};
+      const regexToExtractParams: RegExp = QUERY_REGEX;
+      const params: Record<string, string> = {};
       let match: RegExpExecArray | null;
 
       // this while loop is to find all the query params in the given link, all the matched queries will be stores in params
@@ -28,13 +28,13 @@ export async function parseDeepLink(
         params[match[1]] = match[2];
       }
 
-      let chatroomId = params?.chatroom_id;
+      const chatroomId = params?.chatroom_id;
 
       if (chatroomId) {
         const internalRoute = `route://collabcard?collabcard_id=${chatroomId}`;
 
         // initiate API call
-        let initiateUserRequest = {
+        const initiateUserRequest = {
           userName: request?.userName,
           uuid: request?.uuid,
           isGuest: false,
@@ -46,9 +46,9 @@ export async function parseDeepLink(
         if (initiateUserResponse?.success) {
           // navigation flow
 
-          let routes = getLinkingRoute(internalRoute);
+          const routes = getLinkingRoute(internalRoute);
           const recentRoutes = RootNavigation.getRecentRoutes();
-          let currentRoute = recentRoutes?.routes[recentRoutes?.index]?.name;
+          const currentRoute = recentRoutes?.routes[recentRoutes?.index]?.name;
 
           if (currentRoute === CHATROOM) {
             // navigation when inside chatroom screen

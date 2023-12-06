@@ -14,8 +14,8 @@ export const LoaderComponent = () => {
         bottom: 0,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor:'white',
-        opacity:0.5
+        backgroundColor: 'white',
+        opacity: 0.5,
       }}>
       <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
     </View>
@@ -26,7 +26,6 @@ export const LoaderChatroomComponent = () => {
   return (
     <View
       style={{
-        // backgroundColor: 'transparent',
         position: 'absolute',
         left: 0,
         right: 0,
@@ -34,8 +33,8 @@ export const LoaderChatroomComponent = () => {
         bottom: 0,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor:'white',
-        opacity:1
+        backgroundColor: 'white',
+        opacity: 1,
       }}>
       <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
     </View>

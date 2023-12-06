@@ -7,10 +7,15 @@ import {
   Pressable,
   ActivityIndicator,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {styles} from './styles';
-import {convertSecondsToTime, decode} from '../../commonFuctions';
+import {
+  convertSecondsToTime,
+  decode,
+  generateGifString,
+} from '../../commonFuctions';
 import STYLES from '../../constants/Styles';
 import {
   LONG_PRESSED,
@@ -22,7 +27,9 @@ import {useAppDispatch, useAppSelector} from '../../store';
 import {CAROUSEL_SCREEN} from '../../constants/Screens';
 import {
   AUDIO_TEXT,
+  CAPITAL_GIF_TEXT,
   FAILED,
+  GIF_TEXT,
   IMAGE_TEXT,
   PDF_TEXT,
   SUCCESS,
@@ -30,18 +37,11 @@ import {
   VOICE_NOTE_TEXT,
 } from '../../constants/Strings';
 import Slider from '@react-native-community/slider';
-import {VoiceNotesPlayerProps} from '../InputBox/models';
 import TrackPlayer, {
   useActiveTrack,
   useProgress,
 } from 'react-native-track-player';
-import {
-  onPausePlay,
-  onResumePlay,
-  setupPlayer,
-  startPlay,
-  stopPlay,
-} from '../../audio';
+import {onPausePlay, onResumePlay, startPlay, stopPlay} from '../../audio';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -73,19 +73,21 @@ const AttachmentConversations = ({
   isReply,
   chatroomName,
 }: AttachmentConversations) => {
-  const [voiceNotesPlayer, setVoiceNotesPlayer] =
-    useState<VoiceNotesPlayerProps>({
-      currentPositionSec: 0,
-      currentDurationSec: 0,
-      playTime: '',
-      duration: '',
-    });
   const [isVoiceNotePlaying, setIsVoiceNotePlaying] = useState(false);
+  const [isGifPlaying, setIsGifPlaying] = useState(false);
   const progress = useProgress();
   const activeTrack = useActiveTrack();
 
+  let firstAttachment = item?.attachments[0];
+  const isAudioActive =
+    activeTrack?.externalUrl === firstAttachment?.url ? true : false;
+  const isGif = firstAttachment?.type === GIF_TEXT;
+  const isAnswer = isGif ? !!generateGifString(item?.answer) : !!item?.answer;
   const dispatch = useAppDispatch();
   const {user} = useAppSelector(state => state.homefeed);
+  const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
+    state => state.chatroom,
+  );
 
   // to stop the audio if move out of the chatroom
   useEffect(() => {
@@ -127,12 +129,6 @@ const AttachmentConversations = ({
     );
   };
 
-  // to stop playing audio recording
-  const handleStopPlay = async () => {
-    const value = await stopPlay();
-    setIsVoiceNotePlaying(value);
-  };
-
   // to pause playing audio recording
   const handleOnPausePlay = async () => {
     const value = await onPausePlay();
@@ -147,13 +143,65 @@ const AttachmentConversations = ({
 
   // to seek player to the provided time
   const handleOnSeekTo = async (value: number) => {
-    let secondsToSeek = value * (firstAttachment?.metaRO?.duration / 100);
+    const secondsToSeek = value * (firstAttachment?.metaRO?.duration / 100);
     await onSeekTo(secondsToSeek);
   };
 
-  let firstAttachment = item?.attachments[0];
-  const isAudioActive =
-    activeTrack?.externalUrl === firstAttachment?.url ? true : false;
+  // to play and stop gif after 2s
+  const playGif = () => {
+    setIsGifPlaying(true);
+    setTimeout(() => {
+      setIsGifPlaying(false);
+    }, 2000);
+  };
+
+  // handle gif on long press
+  const handleLongPress = (event: any) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    longPressOpenKeyboard();
+  };
+
+  // handle gif on press
+  const handleOnPress = (event: any, url: string, index: number) => {
+    const {pageX, pageY} = event.nativeEvent;
+    dispatch({
+      type: SET_POSITION,
+      body: {pageX: pageX, pageY: pageY},
+    });
+    let isStateIncluded = stateArr.includes(item?.state);
+    if (isLongPress) {
+      if (isIncluded) {
+        const filterdMessages = selectedMessages.filter(
+          (val: any) => val?.id !== item?.id && !stateArr.includes(val?.state),
+        );
+        if (filterdMessages.length > 0) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+        } else {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...filterdMessages],
+          });
+          dispatch({type: LONG_PRESSED, body: false});
+        }
+      } else {
+        if (!isStateIncluded) {
+          dispatch({
+            type: SELECTED_MESSAGES,
+            body: [...selectedMessages, item],
+          });
+        }
+      }
+    } else {
+      playGif();
+    }
+  };
   return (
     <View
       style={[
@@ -175,7 +223,7 @@ const AttachmentConversations = ({
         {!!(item?.member?.id == user?.id) || isReply ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
-            {!!item?.member?.customTitle ? (
+            {item?.member?.customTitle ? (
               <Text
                 style={
                   styles.messageCustomTitle
@@ -257,7 +305,7 @@ const AttachmentConversations = ({
                   step={0}
                   value={
                     isAudioActive
-                      ? !!(progress.position / progress.duration)
+                      ? progress.position / progress.duration
                         ? (progress.position / progress.duration) * 100
                         : 0
                       : 0
@@ -323,19 +371,114 @@ const AttachmentConversations = ({
               </View>
             ) : null}
           </View>
+        ) : isGif ? (
+          <View
+            style={
+              isIncluded
+                ? {
+                    backgroundColor: STYLES.$COLORS.SELECTED_BLUE,
+                    opacity: 0.7,
+                  }
+                : null
+            }>
+            {!isGifPlaying && !item?.isInProgress ? (
+              <TouchableOpacity
+                onPress={handleOnPress}
+                onLongPress={handleLongPress}
+                style={[
+                  {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: 150,
+                    position: 'absolute',
+                    width: '100%',
+                    zIndex: 1,
+                  },
+                ]}>
+                <View
+                  style={{
+                    backgroundColor: 'black',
+                    opacity: 0.9,
+                    padding: 10,
+                    borderRadius: 50,
+                  }}>
+                  <Text style={{color: 'white'}}>{CAPITAL_GIF_TEXT}</Text>
+                </View>
+              </TouchableOpacity>
+            ) : null}
+
+            {isGifPlaying ? (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  navigation.navigate(CAROUSEL_SCREEN, {
+                    dataObject: item,
+                    index: 0,
+                  });
+                  dispatch({
+                    type: STATUS_BAR_STYLE,
+                    body: {color: STYLES.$STATUS_BAR_STYLE['light-content']},
+                  });
+                }}>
+                <Image
+                  source={{
+                    uri: firstAttachment?.url,
+                  }}
+                  style={styles.singleImg}
+                />
+              </TouchableWithoutFeedback>
+            ) : (
+              <Image
+                source={{
+                  uri: firstAttachment?.thumbnailUrl,
+                }}
+                style={styles.singleImg}
+              />
+            )}
+
+            {item?.isInProgress === SUCCESS ? (
+              <View style={styles.uploadingIndicator}>
+                <ActivityIndicator
+                  size="large"
+                  color={STYLES.$COLORS.SECONDARY}
+                />
+              </View>
+            ) : item?.isInProgress === FAILED ? (
+              <View style={styles.uploadingIndicator}>
+                <Pressable
+                  onPress={() => {
+                    handleFileUpload(item?.id, true);
+                  }}
+                  style={({pressed}) => [
+                    {
+                      opacity: pressed ? 0.5 : 1,
+                    },
+                    styles.retryButton,
+                  ]}>
+                  <Image
+                    style={styles.retryIcon}
+                    source={require('../../assets/images/retry_file_upload3x.png')}
+                  />
+                  <Text style={styles.retryText}>RETRY</Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
         ) : null}
 
-        <View style={styles.messageText as any}>
-          {decode(
-            item?.answer,
-            true,
-            chatroomName,
-            user?.sdkClientInfo?.community,
-          )}
-        </View>
+        {isAnswer ? (
+          <View style={styles.messageText as any}>
+            {decode(
+              isGif ? generateGifString(item?.answer) : item?.answer,
+              true,
+              chatroomName,
+              user?.sdkClientInfo?.community,
+            )}
+          </View>
+        ) : null}
         <View style={styles.alignTime}>
           {item?.isEdited ? (
-            <Text style={styles.messageDate}>{`Edited • `}</Text>
+            <Text style={styles.messageDate}>{'Edited • '}</Text>
           ) : null}
           <Text style={styles.messageDate}>{item?.createdAt}</Text>
         </View>
@@ -391,8 +534,8 @@ export const VideoConversations = ({
   longPressOpenKeyboard,
   handleFileUpload,
 }: PDFConversations) => {
-  let firstAttachment = item?.attachments[0];
-  let secondAttachment = item?.attachments[1];
+  const firstAttachment = item?.attachments[0];
+  const secondAttachment = item?.attachments[1];
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
@@ -414,7 +557,7 @@ export const VideoConversations = ({
       type: SET_POSITION,
       body: {pageX: pageX, pageY: pageY},
     });
-    let isStateIncluded = stateArr.includes(item?.state);
+    const isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
@@ -529,7 +672,7 @@ export const VideoConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            let isStateIncluded = stateArr.includes(item?.state);
+            const isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
                 const filterdMessages = selectedMessages.filter(
@@ -600,8 +743,8 @@ export const PDFConversations = ({
   longPressOpenKeyboard,
   handleFileUpload,
 }: PDFConversations) => {
-  let firstAttachment = item?.attachments[0];
-  let secondAttachment = item?.attachments[1];
+  const firstAttachment = item?.attachments[0];
+  const secondAttachment = item?.attachments[1];
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
@@ -625,7 +768,7 @@ export const PDFConversations = ({
       type: SET_POSITION,
       body: {pageX: pageX, pageY: pageY},
     });
-    let isStateIncluded = stateArr.includes(item?.state);
+    const isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
@@ -740,7 +883,7 @@ export const PDFConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            let isStateIncluded = stateArr.includes(item?.state);
+            const isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
                 const filterdMessages = selectedMessages.filter(
@@ -821,17 +964,16 @@ export const ImageConversations = ({
   longPressOpenKeyboard,
   handleFileUpload,
 }: ImageConversations) => {
-  let firstAttachment = item?.attachments[0];
-  let secondAttachment = item?.attachments[1];
-  let thirdAttachment = item?.attachments[2];
-  let fourthAttachment = item?.attachments[3];
+  const firstAttachment = item?.attachments[0];
+  const secondAttachment = item?.attachments[1];
+  const thirdAttachment = item?.attachments[2];
+  const fourthAttachment = item?.attachments[3];
   const dispatch = useAppDispatch();
   const {selectedMessages, stateArr, isLongPress}: any = useAppSelector(
     state => state.chatroom,
   );
-  const {isFileUploading, fileUploadingID}: any = useAppSelector(
-    state => state.upload,
-  );
+
+  // handle on long press on attachment
   const handleLongPress = (event: any) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
@@ -841,13 +983,14 @@ export const ImageConversations = ({
     longPressOpenKeyboard();
   };
 
+  // handle on press on attachment
   const handleOnPress = (event: any, url: string, index: number) => {
     const {pageX, pageY} = event.nativeEvent;
     dispatch({
       type: SET_POSITION,
       body: {pageX: pageX, pageY: pageY},
     });
-    let isStateIncluded = stateArr.includes(item?.state);
+    const isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
@@ -1035,7 +1178,7 @@ export const ImageConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            let isStateIncluded = stateArr.includes(item?.state);
+            const isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
                 const filterdMessages = selectedMessages.filter(
@@ -1186,7 +1329,7 @@ export const ImageConversations = ({
               type: SET_POSITION,
               body: {pageX: pageX, pageY: pageY},
             });
-            let isStateIncluded = stateArr.includes(item?.state);
+            const isStateIncluded = stateArr.includes(item?.state);
             if (isLongPress) {
               if (isIncluded) {
                 const filterdMessages = selectedMessages.filter(

@@ -181,7 +181,7 @@ const PollConversationView = ({
       setHasPollEnded(true);
     }
     if (difference > 0) {
-      let timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         setHasPollEnded(true);
       }, difference);
 
@@ -197,7 +197,7 @@ const PollConversationView = ({
   };
   // this function resets showResult state
   const resetShowResult = () => {
-    let arr = pollsArr.map((item: any) => {
+    const arr = pollsArr.map((item: any) => {
       return {
         ...item,
         isSelected: false,
@@ -217,7 +217,7 @@ const PollConversationView = ({
 
   // API to reload the existing poll conversation
   async function reloadConversation() {
-    let payload = {
+    const payload = {
       chatroomId: item?.chatroomId,
       conversationId: item?.id,
     };
@@ -359,7 +359,7 @@ const PollConversationView = ({
         // process error
       }
     } else {
-      let string = stringManipulation(true);
+      const string = stringManipulation(true);
       dispatch({
         type: SHOW_TOAST,
         body: {
@@ -374,18 +374,18 @@ const PollConversationView = ({
     const multipleSelectNo = item?.multipleSelectNo;
     switch (item?.multipleSelectState) {
       case POLL_MULTIPLE_STATE_EXACTLY: {
-        let string = `Select exactly ${multipleSelectNo} options.`;
-        return val ? string : `*` + string;
+        const string = `Select exactly ${multipleSelectNo} options.`;
+        return val ? string : '*' + string;
       }
 
       case POLL_MULTIPLE_STATE_MAX: {
-        let string = `Select at most ${multipleSelectNo} options.`;
-        return val ? string : `*` + string;
+        const string = `Select at most ${multipleSelectNo} options.`;
+        return val ? string : '*' + string;
       }
 
       case POLL_MULTIPLE_STATE_LEAST: {
-        let string = `Select at least ${multipleSelectNo} options.`;
-        return val ? string : `*` + string;
+        const string = `Select at least ${multipleSelectNo} options.`;
+        return val ? string : '*' + string;
       }
 
       default: {
@@ -395,7 +395,7 @@ const PollConversationView = ({
   };
 
   // readonly props consumed by UI component
-  let props: PollConversationViewState = {
+  const props: PollConversationViewState = {
     text: item?.answer,
     votes: pollVoteCount,
     optionArr: pollsArr,

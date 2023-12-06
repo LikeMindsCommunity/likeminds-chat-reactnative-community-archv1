@@ -13,7 +13,7 @@ export const LinkPreviewBox = ({
   return (
     <Pressable
       onPress={async () => {
-        let isURL = URL_REGEX.test(url);
+        const isURL = URL_REGEX.test(url);
         if (isURL) {
           await Linking.openURL(url);
         } else {
@@ -22,19 +22,19 @@ export const LinkPreviewBox = ({
       }}>
       <View style={styles.linkPreviewBox}>
         <View>
-          {!!image ? (
+          {image ? (
             <Image source={{uri: image}} style={styles.linkPreviewIcon} />
           ) : null}
         </View>
         <View>
-          {!!title ? (
+          {title ? (
             <Text style={styles.linkPreviewTitle} numberOfLines={2}>
               {title}
             </Text>
           ) : null}
         </View>
         <View>
-          {!!description ? (
+          {description ? (
             <Text style={styles.linkPreviewMessageText} numberOfLines={2}>
               {description}
             </Text>

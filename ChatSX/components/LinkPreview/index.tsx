@@ -34,10 +34,10 @@ const LinkPreview = ({
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
         {/* Reply conversation message sender name */}
-        {!!(item?.member?.id == user?.id) ? null : (
+        {item?.member?.id == user?.id ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
-            {!!item?.member?.customTitle ? (
+            {item?.member?.customTitle ? (
               <Text
                 style={
                   styles.messageCustomTitle
@@ -62,7 +62,7 @@ const LinkPreview = ({
           </View>
           <View style={styles.alignTime}>
             {item?.isEdited ? (
-              <Text style={styles.messageDate}>{`Edited • `}</Text>
+              <Text style={styles.messageDate}>{'Edited • '}</Text>
             ) : null}
             <Text style={styles.messageDate}>{item?.createdAt}</Text>
           </View>

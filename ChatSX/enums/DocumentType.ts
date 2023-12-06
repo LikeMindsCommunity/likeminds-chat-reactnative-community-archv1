@@ -3,4 +3,5 @@ export enum DocumentType {
   VIDEO = 'video',
   PDF = 'pdf',
   VOICE_NOTE = 'voice_note',
+  GIF_TEXT = 'gif',
 }

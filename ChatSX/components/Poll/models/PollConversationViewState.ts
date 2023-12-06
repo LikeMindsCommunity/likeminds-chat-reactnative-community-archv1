@@ -1,4 +1,4 @@
-import { Poll } from "./Poll";
+import {Poll} from './Poll';
 
 export interface PollConversationViewState {
   hue?: number;

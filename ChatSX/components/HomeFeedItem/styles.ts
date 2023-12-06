@@ -139,4 +139,20 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginRight: 5,
   },
+  gifView: {
+    backgroundColor: STYLES.$COLORS.MSG,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderRadius: 5,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gifText: {
+    fontFamily: STYLES.$FONT_TYPES.LIGHT,
+    fontSize: STYLES.$FONT_SIZES.XS,
+    color: 'white',
+    marginTop: Platform.OS === 'ios' ? 1 : 0,
+  },
 });

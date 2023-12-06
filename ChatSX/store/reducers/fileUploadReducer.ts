@@ -25,8 +25,8 @@ export function fileUploadReducer(state = initialState, action: any) {
     }
     case SET_FILE_UPLOADING_MESSAGES: {
       const {message = {}, ID} = action.body;
-      let obj = {[ID]: {...message}};
-      let dummyState = {
+      const obj = {[ID]: {...message}};
+      const dummyState = {
         ...state.uploadingFilesMessages,
         ...obj,
       };
@@ -39,8 +39,8 @@ export function fileUploadReducer(state = initialState, action: any) {
       const {ID} = action.body;
 
       // removeKey removes the sent media from retry media list, ie, obj
-      let obj = removeKey(ID, state.uploadingFilesMessages);
-      let dummyState = {
+      const obj = removeKey(ID, state.uploadingFilesMessages);
+      const dummyState = {
         ...state,
         uploadingFilesMessages: {...obj},
       };
@@ -50,8 +50,8 @@ export function fileUploadReducer(state = initialState, action: any) {
 
     case UPDATE_FILE_UPLOADING_OBJECT: {
       const {message = {}, ID} = action.body;
-      let obj = {[ID]: {...message}};
-      let dummyState = {
+      const obj = {[ID]: {...message}};
+      const dummyState = {
         ...state.uploadingFilesMessages,
         ...obj,
       };
