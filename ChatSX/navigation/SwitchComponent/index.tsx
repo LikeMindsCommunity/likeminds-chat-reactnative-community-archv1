@@ -84,39 +84,41 @@ const SwitchComponent = () => {
     });
 
     notifee.onForegroundEvent(async ({type, detail}) => {
-      const navigation = navigationRef?.current;
-      let currentRoute = navigation?.getCurrentRoute();
-      let routes = getRoute(detail?.notification?.data?.route);
+      if (detail?.notification?.data?.route != undefined) {
+        const navigation = navigationRef?.current;
+        let currentRoute = navigation?.getCurrentRoute();
+        let routes = await getRoute(detail?.notification?.data?.route);
 
-      if (type === EventType.PRESS) {
-        if (!!navigation) {
-          if ((currentRoute?.name as any) === routes?.route) {
-            if (
-              JSON.stringify(routes?.params) !==
-              JSON.stringify(currentRoute?.params)
-            ) {
-              dispatch({
-                type: CLEAR_CHATROOM_CONVERSATION,
-                body: {conversations: []},
-              });
-              dispatch({
-                type: CLEAR_CHATROOM_DETAILS,
-                body: {chatroomDetails: {}},
-              });
-              const popAction = StackActions.pop(1);
-              navigation.dispatch(popAction);
-              setTimeout(() => {
-                navigation.navigate(
-                  routes?.route as never,
-                  routes?.params as never,
-                );
-              }, 1000);
+        if (type === EventType.PRESS) {
+          if (!!navigation) {
+            if ((currentRoute?.name as any) === routes?.route) {
+              if (
+                JSON.stringify(routes?.params) !==
+                JSON.stringify(currentRoute?.params)
+              ) {
+                dispatch({
+                  type: CLEAR_CHATROOM_CONVERSATION,
+                  body: {conversations: []},
+                });
+                dispatch({
+                  type: CLEAR_CHATROOM_DETAILS,
+                  body: {chatroomDetails: {}},
+                });
+                const popAction = StackActions.pop(1);
+                navigation.dispatch(popAction);
+                setTimeout(() => {
+                  navigation.navigate(
+                    routes?.route as never,
+                    routes?.params as never,
+                  );
+                }, 1000);
+              }
+            } else {
+              navigation.navigate(
+                routes?.route as never,
+                routes?.params as never,
+              ); //navigate(CHATROOM, {chatroomID: 69285});
             }
-          } else {
-            navigation.navigate(
-              routes?.route as never,
-              routes?.params as never,
-            ); //navigate(CHATROOM, {chatroomID: 69285});
           }
         }
       }
