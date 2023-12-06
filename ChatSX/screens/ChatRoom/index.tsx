@@ -255,9 +255,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   );
 
   const {uploadingFilesMessages}: any = useAppSelector(state => state.upload);
-  const {selectedVoiceNoteFilesToUpload = []}: any = useAppSelector(
-    state => state.chatroom,
-  );
 
   const INITIAL_SYNC_PAGE = 1;
   const PAGE_SIZE = 200;
@@ -267,6 +264,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const memberCanMessage = chatroomDBDetails?.memberCanMessage;
   const chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
   const chatRequestState = chatroomDBDetails?.chatRequestState;
+  const chatroomDBDetailsLength = Object.keys(chatroomDBDetails)?.length;
   const [isChatroomTopic, setIsChatroomTopic] = useState(false);
   const [isFound, setIsFound] = useState(false);
 
@@ -1938,7 +1936,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
       }
     }
 
-    if (!isLongPress) {
+    if (!isStateIncluded && !item?.deletedBy) {
       setIsReact(true);
     }
   };
@@ -3126,12 +3124,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               }
 
               return (
-                <Swipeable
-                  onFocusKeyboard={() => {
-                    refInput.current.focus();
-                  }}
-                  item={item}
-                  isStateIncluded={isStateIncluded}>
+                <View>
                   {index < conversations?.length &&
                   conversations[index]?.date !==
                     conversations[index + 1]?.date ? (
@@ -3146,59 +3139,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       </Text>
                     </View>
                   ) : null}
-                  <Pressable
-                    onLongPress={event => {
-                      const {pageX, pageY} = event.nativeEvent;
-                      dispatch({
-                        type: SET_POSITION,
-                        body: {pageX: pageX, pageY: pageY},
-                      });
-                      handleLongPress(
-                        isStateIncluded,
-                        isIncluded,
-                        item,
-                        selectedMessages,
-                      );
+
+                  <Swipeable
+                    onFocusKeyboard={() => {
+                      refInput.current.focus();
                     }}
-                    delayLongPress={200}
-                    onPress={function (event) {
-                      const {pageX, pageY} = event.nativeEvent;
-                      dispatch({
-                        type: SET_POSITION,
-                        body: {pageX: pageX, pageY: pageY},
-                      });
-                      handleClick(
-                        isStateIncluded,
-                        isIncluded,
-                        item,
-                        false,
-                        selectedMessages,
-                      );
-                    }}
-                    style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
-                    <Messages
-                      chatroomName={chatroomName}
-                      chatroomID={chatroomID}
-                      chatroomType={chatroomType}
-                      onScrollToIndex={(index: any) => {
-                        flatlistRef.current?.scrollToIndex({
-                          animated: true,
-                          index,
+                    item={item}
+                    isStateIncluded={isStateIncluded}>
+                    <Pressable
+                      onLongPress={event => {
+                        const {pageX, pageY} = event.nativeEvent;
+                        dispatch({
+                          type: SET_POSITION,
+                          body: {pageX: pageX, pageY: pageY},
                         });
-                      }}
-                      isIncluded={isIncluded}
-                      item={item}
-                      navigation={navigation}
-                      openKeyboard={() => {
-                        handleClick(
-                          isStateIncluded,
-                          isIncluded,
-                          item,
-                          true,
-                          selectedMessages,
-                        );
-                      }}
-                      longPressOpenKeyboard={() => {
                         handleLongPress(
                           isStateIncluded,
                           isIncluded,
@@ -3206,20 +3160,67 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                           selectedMessages,
                         );
                       }}
-                      removeReaction={(
-                        item: any,
-                        reactionArr: any,
-                        removeFromList?: any,
-                      ) => {
-                        removeReaction(item, reactionArr, removeFromList);
+                      delayLongPress={200}
+                      onPress={function (event) {
+                        const {pageX, pageY} = event.nativeEvent;
+                        dispatch({
+                          type: SET_POSITION,
+                          body: {pageX: pageX, pageY: pageY},
+                        });
+                        handleClick(
+                          isStateIncluded,
+                          isIncluded,
+                          item,
+                          false,
+                          selectedMessages,
+                        );
                       }}
-                      handleTapToUndo={() => {
-                        onTapToUndo();
-                      }}
-                      handleFileUpload={handleFileUpload}
-                    />
-                  </Pressable>
-                </Swipeable>
+                      style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
+                      <Messages
+                        chatroomName={chatroomName}
+                        chatroomID={chatroomID}
+                        chatroomType={chatroomType}
+                        onScrollToIndex={(index: any) => {
+                          flatlistRef.current?.scrollToIndex({
+                            animated: true,
+                            index,
+                          });
+                        }}
+                        isIncluded={isIncluded}
+                        item={item}
+                        navigation={navigation}
+                        openKeyboard={() => {
+                          handleClick(
+                            isStateIncluded,
+                            isIncluded,
+                            item,
+                            true,
+                            selectedMessages,
+                          );
+                        }}
+                        longPressOpenKeyboard={() => {
+                          handleLongPress(
+                            isStateIncluded,
+                            isIncluded,
+                            item,
+                            selectedMessages,
+                          );
+                        }}
+                        removeReaction={(
+                          item: any,
+                          reactionArr: any,
+                          removeFromList?: any,
+                        ) => {
+                          removeReaction(item, reactionArr, removeFromList);
+                        }}
+                        handleTapToUndo={() => {
+                          onTapToUndo();
+                        }}
+                        handleFileUpload={handleFileUpload}
+                      />
+                    </Pressable>
+                  </Swipeable>
+                </View>
               );
             }}
             onScroll={handleOnScroll}
@@ -3368,7 +3369,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         {chatroomType !== ChatroomType.DMCHATROOM &&
         memberRights?.length > 0 ? (
           <View>
-            {!(Object.keys(chatroomDBDetails)?.length === 0) &&
+            {!(chatroomDBDetailsLength === 0) &&
             previousRoute?.name === EXPLORE_FEED
               ? !chatroomFollowStatus && (
                   <TouchableOpacity
@@ -3384,7 +3385,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   </TouchableOpacity>
                 )
               : null}
-            {!(Object.keys(chatroomDBDetails)?.length === 0) ? (
+            {!(chatroomDBDetailsLength === 0) ? (
               //case to block normal user from messaging in a chatroom where only CMs can message
               user.state !== 1 &&
               chatroomDBDetails?.memberCanMessage === false ? (
