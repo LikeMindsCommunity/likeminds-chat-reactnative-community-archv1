@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {KeyboardAvoidingView, Platform} from 'react-native';
+import {StyleSheet} from 'react-native';
 import {Provider as ReduxProvider} from 'react-redux';
 import store from './store';
 import notifee from '@notifee/react-native';
@@ -8,6 +8,8 @@ import * as RootNavigation from './RootNavigation';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {setupPlayer} from './audio';
 import SwitchComponent from './navigation/SwitchComponent';
+import {RealmProvider} from '@realm/react';
+import {UserSchemaRO} from './db/schemas/UserSchema';
 
 function LMChatApp(): JSX.Element {
   //To navigate onPress notification while android app is in background state / quit state.
@@ -34,16 +36,20 @@ function LMChatApp(): JSX.Element {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
-      <ReduxProvider store={store}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{flex: 1}}>
-          <SwitchComponent />
-        </KeyboardAvoidingView>
-      </ReduxProvider>
-    </GestureHandlerRootView>
+    <RealmProvider schema={[UserSchemaRO]}>
+      <GestureHandlerRootView style={styles.flexStyling}>
+        <ReduxProvider store={store}>
+            <SwitchComponent />
+        </ReduxProvider>
+      </GestureHandlerRootView>
+    </RealmProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  flexStyling: {
+    flex: 1,
+  },
+});
 
 export default LMChatApp;
