@@ -1,7 +1,7 @@
 {
   "name": "likeminds_chat_sx",
-  "versionCode": "20",
-  "versionName": "1.7.1",
+  "versionCode": "24",
+  "versionName": "1.8.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
