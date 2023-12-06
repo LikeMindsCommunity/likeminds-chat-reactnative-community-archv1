@@ -61,7 +61,7 @@ const Swipeable = ({
     event: GestureUpdateEvent<PanGestureHandlerEventPayload>,
   ) => {
     'worklet';
-    if (event.translationX >= 100) {
+    if (event.translationX >= 75) {
       setIsReplyBoxOpen(true);
     } else if (event.translationX > 0) {
       x.value = event.translationX;

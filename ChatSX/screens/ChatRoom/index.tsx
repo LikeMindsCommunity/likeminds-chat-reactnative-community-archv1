@@ -3124,12 +3124,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               }
 
               return (
-                <Swipeable
-                  onFocusKeyboard={() => {
-                    refInput.current.focus();
-                  }}
-                  item={item}
-                  isStateIncluded={isStateIncluded}>
+                <View>
                   {index < conversations?.length &&
                   conversations[index]?.date !==
                     conversations[index + 1]?.date ? (
@@ -3144,59 +3139,20 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                       </Text>
                     </View>
                   ) : null}
-                  <Pressable
-                    onLongPress={event => {
-                      const {pageX, pageY} = event.nativeEvent;
-                      dispatch({
-                        type: SET_POSITION,
-                        body: {pageX: pageX, pageY: pageY},
-                      });
-                      handleLongPress(
-                        isStateIncluded,
-                        isIncluded,
-                        item,
-                        selectedMessages,
-                      );
+
+                  <Swipeable
+                    onFocusKeyboard={() => {
+                      refInput.current.focus();
                     }}
-                    delayLongPress={200}
-                    onPress={function (event) {
-                      const {pageX, pageY} = event.nativeEvent;
-                      dispatch({
-                        type: SET_POSITION,
-                        body: {pageX: pageX, pageY: pageY},
-                      });
-                      handleClick(
-                        isStateIncluded,
-                        isIncluded,
-                        item,
-                        false,
-                        selectedMessages,
-                      );
-                    }}
-                    style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
-                    <Messages
-                      chatroomName={chatroomName}
-                      chatroomID={chatroomID}
-                      chatroomType={chatroomType}
-                      onScrollToIndex={(index: any) => {
-                        flatlistRef.current?.scrollToIndex({
-                          animated: true,
-                          index,
+                    item={item}
+                    isStateIncluded={isStateIncluded}>
+                    <Pressable
+                      onLongPress={event => {
+                        const {pageX, pageY} = event.nativeEvent;
+                        dispatch({
+                          type: SET_POSITION,
+                          body: {pageX: pageX, pageY: pageY},
                         });
-                      }}
-                      isIncluded={isIncluded}
-                      item={item}
-                      navigation={navigation}
-                      openKeyboard={() => {
-                        handleClick(
-                          isStateIncluded,
-                          isIncluded,
-                          item,
-                          true,
-                          selectedMessages,
-                        );
-                      }}
-                      longPressOpenKeyboard={() => {
                         handleLongPress(
                           isStateIncluded,
                           isIncluded,
@@ -3204,20 +3160,67 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                           selectedMessages,
                         );
                       }}
-                      removeReaction={(
-                        item: any,
-                        reactionArr: any,
-                        removeFromList?: any,
-                      ) => {
-                        removeReaction(item, reactionArr, removeFromList);
+                      delayLongPress={200}
+                      onPress={function (event) {
+                        const {pageX, pageY} = event.nativeEvent;
+                        dispatch({
+                          type: SET_POSITION,
+                          body: {pageX: pageX, pageY: pageY},
+                        });
+                        handleClick(
+                          isStateIncluded,
+                          isIncluded,
+                          item,
+                          false,
+                          selectedMessages,
+                        );
                       }}
-                      handleTapToUndo={() => {
-                        onTapToUndo();
-                      }}
-                      handleFileUpload={handleFileUpload}
-                    />
-                  </Pressable>
-                </Swipeable>
+                      style={isIncluded ? {backgroundColor: '#d7e6f7'} : null}>
+                      <Messages
+                        chatroomName={chatroomName}
+                        chatroomID={chatroomID}
+                        chatroomType={chatroomType}
+                        onScrollToIndex={(index: any) => {
+                          flatlistRef.current?.scrollToIndex({
+                            animated: true,
+                            index,
+                          });
+                        }}
+                        isIncluded={isIncluded}
+                        item={item}
+                        navigation={navigation}
+                        openKeyboard={() => {
+                          handleClick(
+                            isStateIncluded,
+                            isIncluded,
+                            item,
+                            true,
+                            selectedMessages,
+                          );
+                        }}
+                        longPressOpenKeyboard={() => {
+                          handleLongPress(
+                            isStateIncluded,
+                            isIncluded,
+                            item,
+                            selectedMessages,
+                          );
+                        }}
+                        removeReaction={(
+                          item: any,
+                          reactionArr: any,
+                          removeFromList?: any,
+                        ) => {
+                          removeReaction(item, reactionArr, removeFromList);
+                        }}
+                        handleTapToUndo={() => {
+                          onTapToUndo();
+                        }}
+                        handleFileUpload={handleFileUpload}
+                      />
+                    </Pressable>
+                  </Swipeable>
+                </View>
               );
             }}
             onScroll={handleOnScroll}
