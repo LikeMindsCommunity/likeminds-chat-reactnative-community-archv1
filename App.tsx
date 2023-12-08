@@ -94,13 +94,13 @@ function App(): JSX.Element {
         };
 
         // Example usage to call parseDeepLink() method
-        parseDeepLink(exampleRequest, response => {
+        parseDeepLink(exampleRequest, () => {
           // Parsed response
         });
       }
     };
     getInitialURL();
-  }, []);
+  }, [users]);
 
   return userUniqueID && userName ? (
     <GestureHandlerRootView style={{flex: 1}}>

@@ -61,7 +61,7 @@ const CommonAllMembers = ({
               style={styles.backBtn}
             />
           </TouchableOpacity>
-          {!(Object.keys(!!participants ? participants : 0).length === 0) ? (
+          {!(Object.keys(participants ? participants : 0).length === 0) ? (
             <View style={styles.chatRoomInfo}>
               {isDM ? (
                 <View>
@@ -174,7 +174,7 @@ const CommonAllMembers = ({
 
   //to update header when we have API data, initially header will be printed but it's details that comes from API will not be shown as API is async call.
   useEffect(() => {
-    if (!!isSearch) {
+    if (isSearch) {
       setSearchHeader();
     } else {
       setInitialHeader();
@@ -183,15 +183,15 @@ const CommonAllMembers = ({
 
   // when we type something to search, this useEffect will update search Header with that searched letter.
   useEffect(() => {
-    if (!!isSearch) {
+    if (isSearch) {
       setSearchHeader();
     }
   }, [search]);
 
   // debouncing logic for search API call.
   useEffect(() => {
-    if (!!isSearch) {
-      if (!!!search) {
+    if (isSearch) {
+      if (!search) {
         setSearchedParticipants([]);
         setSearchPage(1);
       } else {
@@ -202,8 +202,8 @@ const CommonAllMembers = ({
 
     //debouncing logic
     const delay = setTimeout(() => {
-      if (!!isSearch) {
-        if (!!search) {
+      if (isSearch) {
+        if (search) {
           searchParticipants();
         }
       }
@@ -214,14 +214,14 @@ const CommonAllMembers = ({
 
   // to update count of selected participants on header
   useEffect(() => {
-    if (!isSearch && !!!isDM) {
+    if (!isSearch && !isDM) {
       setInitialHeader();
     }
   }, [selectedParticipants]);
 
   // for changing header when we search and when we don't search.
   useEffect(() => {
-    if (!!isSearch) {
+    if (isSearch) {
       setSearchHeader();
     } else {
       setInitialHeader();
@@ -237,7 +237,7 @@ const CommonAllMembers = ({
 
   //function fetch all members of the community for DM.
   const fetchDMParticipants = async () => {
-    let initialPayload =
+    const initialPayload =
       showList == 1
         ? {
             page: 1,
@@ -253,7 +253,7 @@ const CommonAllMembers = ({
 
   //function search members in the community.
   const searchParticipants = async () => {
-    let initialPayload =
+    const initialPayload =
       showList == 1
         ? {
             search: search,
@@ -281,7 +281,7 @@ const CommonAllMembers = ({
     setSearchPage(1);
     setSearchedParticipants(res?.members);
     if (!!res && res?.members.length === 10) {
-      let changedPayload = {...initialPayload, page: 2};
+      const changedPayload = {...initialPayload, page: 2};
       const response = await myClient?.searchMembers(changedPayload);
       setSearchedParticipants((searchedParticipants: any) => [
         ...searchedParticipants,
@@ -319,7 +319,7 @@ const CommonAllMembers = ({
   //function calls action to update members array with the new data.
   async function updateData(newPage: number) {
     if (isSearch) {
-      let initialPayload =
+      const initialPayload =
         showList == 1
           ? {
               search: search,
@@ -380,7 +380,7 @@ const CommonAllMembers = ({
     if (res?.members.length === 0) {
       setIsStopPagination(true);
     }
-    if (!!res) {
+    if (res) {
       if (isSearch) {
         setSearchedParticipants((searchedParticipants: any) => [
           ...searchedParticipants,
@@ -401,7 +401,7 @@ const CommonAllMembers = ({
     if (!isLoading) {
       //participants check to hide loader when there is no Data
       if (!isStopPagination && participants.length > 0) {
-        let newPage = isSearch ? searchPage + 1 : page + 1;
+        const newPage = isSearch ? searchPage + 1 : page + 1;
         loadData(newPage);
         if (isSearch) {
           setSearchPage(newPage);
@@ -433,12 +433,12 @@ const CommonAllMembers = ({
         body: {isToast: true, msg: `${apiRes?.errorMessage}`},
       });
     } else {
-      let clickedChatroomID = res?.chatroomId;
-      if (!!clickedChatroomID) {
+      const clickedChatroomID = res?.chatroomId;
+      if (clickedChatroomID) {
         navigation.navigate(CHATROOM, {chatroomID: clickedChatroomID});
       } else {
         if (res?.isRequestDmLimitExceeded === false) {
-          let payload = {
+          const payload = {
             uuid: uuid,
           };
           const apiResponse = await myClient?.createDMChatroom(payload);
@@ -460,15 +460,15 @@ const CommonAllMembers = ({
               body: {isToast: true, msg: `${apiResponse?.errorMessage}`},
             });
           } else {
-            let createdChatroomID = response?.chatroom?.id;
-            if (!!createdChatroomID) {
+            const createdChatroomID = response?.chatroom?.id;
+            if (createdChatroomID) {
               navigation.navigate(CHATROOM, {
                 chatroomID: createdChatroomID,
               });
             }
           }
         } else {
-          let userDMLimit = res?.userDmLimit;
+          const userDMLimit = res?.userDmLimit;
           Alert.alert(
             REQUEST_DM_LIMIT,
             `You can only send ${
@@ -505,7 +505,7 @@ const CommonAllMembers = ({
                       item?.id,
                     ]);
                   } else {
-                    let filteredArr = selectedParticipants.filter(
+                    const filteredArr = selectedParticipants.filter(
                       (val: any) => {
                         return val !== item?.id;
                       },
@@ -519,7 +519,7 @@ const CommonAllMembers = ({
               <View>
                 <Image
                   source={
-                    !!item?.imageUrl
+                    item?.imageUrl
                       ? {uri: item?.imageUrl}
                       : require('../../assets/images/default_pic.png')
                   }
@@ -538,7 +538,7 @@ const CommonAllMembers = ({
               <View style={styles.infoContainer}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
-                  {!!item?.customTitle ? (
+                  {item?.customTitle ? (
                     <Text
                       style={
                         styles.messageCustomTitle

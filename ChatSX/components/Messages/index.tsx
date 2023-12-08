@@ -74,7 +74,7 @@ const Messages = ({
 
   const dispatch = useAppDispatch();
 
-  let defaultReactionArrLen = item?.reactions?.length;
+  const defaultReactionArrLen = item?.reactions?.length;
 
   //this useEffect update setReactionArr in format of { reaction: 👌, memberArr: []}
   useEffect(() => {
@@ -84,12 +84,12 @@ const Messages = ({
     }
     for (let i = 0; i < defaultReactionArrLen; i++) {
       if (defaultReactionArrLen > 0) {
-        let isIncuded = tempArr.some(
-          (val: any) => val['reaction'] === item?.reactions[i]?.reaction,
+        const isIncuded = tempArr.some(
+          (val: any) => val.reaction === item?.reactions[i]?.reaction,
         );
         if (isIncuded) {
-          let index = tempArr.findIndex(
-            (val: any) => val['reaction'] === item?.reactions[i]?.reaction,
+          const index = tempArr.findIndex(
+            (val: any) => val.reaction === item?.reactions[i]?.reaction,
           );
           tempArr[index].memberArr = [
             ...tempArr[index]?.memberArr,
@@ -97,7 +97,7 @@ const Messages = ({
           ];
           setReactionArr([...tempArr] as any);
         } else {
-          let obj = {
+          const obj = {
             reaction: item?.reactions[i]?.reaction,
             memberArr: [item?.reactions[i]?.member],
           };
@@ -137,7 +137,7 @@ const Messages = ({
       type: SET_POSITION,
       body: {pageX: pageX, pageY: pageY},
     });
-    let isStateIncluded = stateArr.includes(item?.state);
+    const isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
@@ -203,7 +203,7 @@ const Messages = ({
   return (
     <View style={styles.messageParent}>
       <View>
-        {!!item?.deletedBy ? (
+        {item?.deletedBy ? (
           chatroomType !== ChatroomType.DMCHATROOM ? (
             currentUserUuid === conversationDeletor ? (
               <View
@@ -268,7 +268,7 @@ const Messages = ({
               </Text>
             </View>
           )
-        ) : !!item?.replyConversationObject ? (
+        ) : item?.replyConversationObject ? (
           <ReplyConversations
             isIncluded={isIncluded}
             item={item}
@@ -286,7 +286,7 @@ const Messages = ({
             chatroomID={chatroomID}
             chatroomName={chatroomName}
           />
-        ) : !!!item?.replyConversationObject && item?.attachmentCount > 0 ? (
+        ) : !item?.replyConversationObject && item?.attachmentCount > 0 ? (
           <AttachmentConversations
             chatroomName={chatroomName}
             navigation={navigation}
@@ -338,16 +338,16 @@ const Messages = ({
             {isItemIncludedInStateArr ? (
               <View>
                 {/* state 19 is for the reject DM state message */}
-                {/* Logic is when to show TAP TO UNDO => 
-                      Item's state == 19 && 
-                      conversation array's first element's ID == 19 && 
-                      conversations[0]?.id == item?.id && 
+                {/* Logic is when to show TAP TO UNDO =>
+                      Item's state == 19 &&
+                      conversation array's first element's ID == 19 &&
+                      conversations[0]?.id == item?.id &&
                       chatRequestBy user should be same as user (when we reject DM chat request by changes to the person who rejected the request)
                 */}
                 {item?.state === 19 &&
                 conversations[0]?.state === 19 &&
                 conversations[0]?.id === item?.id &&
-                (!!chatroomWithUser
+                (chatroomWithUser
                   ? chatroomWithUser?.id == userIdStringified
                   : null) ? (
                   <Pressable
@@ -423,10 +423,10 @@ const Messages = ({
                       ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE}
                       : null,
                   ]}>
-                  {!!(item?.member?.id == userIdStringified) ? null : (
+                  {item?.member?.id == userIdStringified ? null : (
                     <Text style={styles.messageInfo} numberOfLines={1}>
                       {item?.member?.name}
-                      {!!item?.member?.customTitle ? (
+                      {item?.member?.customTitle ? (
                         <Text
                           style={
                             styles.messageCustomTitle
@@ -444,7 +444,7 @@ const Messages = ({
                   </Text>
                   <View style={styles.alignTime}>
                     {item?.isEdited ? (
-                      <Text style={styles.messageDate}>{`Edited • `}</Text>
+                      <Text style={styles.messageDate}>{'Edited • '}</Text>
                     ) : null}
                     <Text style={styles.messageDate}>{item?.createdAt}</Text>
                   </View>
@@ -629,7 +629,7 @@ const Messages = ({
           );
 
           //logic to check clicked index and findIndex are same so that we can remove reaction
-          let index = item?.reactions.findIndex(
+          const index = item?.reactions.findIndex(
             (val: any) => val?.member?.id == userIdStringified,
           );
 

@@ -5,11 +5,13 @@ export async function setupPlayer() {
   try {
     await TrackPlayer.getActiveTrack();
     isSetup = true;
+    return isSetup;
   } catch {
     await TrackPlayer.setupPlayer();
     await TrackPlayer.updateOptions();
 
     isSetup = true;
+    return isSetup;
   } finally {
     return isSetup;
   }

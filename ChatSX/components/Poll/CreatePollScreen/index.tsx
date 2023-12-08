@@ -78,9 +78,9 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
 
   // to set initial poll options
   useEffect(() => {
-    let id_1 = uuid.v4();
-    let id_2 = uuid.v4();
-    let initialOptionArray = [
+    const id_1 = uuid.v4();
+    const id_2 = uuid.v4();
+    const initialOptionArray = [
       {
         id: id_1,
         text: '',
@@ -102,8 +102,8 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
 
   // this fucntion add the new option in poll
   function addNewOption() {
-    let newOptionsArr = [...optionsArray];
-    let newOption = {
+    const newOptionsArr = [...optionsArray];
+    const newOption = {
       id: uuid.v4(),
       text: '',
     };
@@ -211,7 +211,7 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
 
   // this function sets "User can vote for" modal interated value to the state
   const handleOpenActionModal = () => {
-    let valueArr: any = userCanVoteForArr;
+    const valueArr: any = userCanVoteForArr;
 
     setUserVoteForOptionsArrValue(valueArr);
     setIsActionAlertModalVisible(true);
@@ -240,7 +240,7 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
 
   // this function fetches postPollConversation API
   async function postPoll() {
-    let expiryTime = !!date ? formatDate(date, time) : null;
+    const expiryTime = date ? formatDate(date, time) : null;
     try {
       if (question?.trim() === '') {
         dispatch({
@@ -329,7 +329,7 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
     mode: mode,
     userCanVoteForArr: userCanVoteForArr,
     showAdvancedOption: showAdvancedOption,
-    formatedDateTime: !!date ? formatDate(date, time) : '',
+    formatedDateTime: date ? formatDate(date, time) : '',
     addOptionsEnabled: addOptionsEnabled,
     anonymousPollEnabled: anonymousPollEnabled,
     liveResultsEnabled: liveResultsEnabled,

@@ -153,6 +153,6 @@ export const styles = StyleSheet.create({
     fontFamily: STYLES.$FONT_TYPES.LIGHT,
     fontSize: STYLES.$FONT_SIZES.XS,
     color: 'white',
-    marginTop: 1,
+    marginTop: Platform.OS === 'ios' ? 1 : 0,
   },
 });

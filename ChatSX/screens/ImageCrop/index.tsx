@@ -21,7 +21,7 @@ const ImageCropScreen: FC<ImageCropScreenProps> = ({navigation, route}) => {
 
   // this function is used to replace the old image with cropped image
   const replaceImage = (item: any) => {
-    let selectedFiles = [...selectedFilesToUpload];
+    const selectedFiles = [...selectedFilesToUpload];
     for (let i = 0; i < selectedFiles?.length; i++) {
       if (selectedFiles[i]?.fileName === fileName) {
         selectedFiles[i] = {...selectedFiles[i], ...item};
@@ -54,9 +54,11 @@ const ImageCropScreen: FC<ImageCropScreenProps> = ({navigation, route}) => {
             style={styles.cropView}
             ref={cropViewRef}
             onImageCrop={res => {
-              let croppedImage = {...res};
+              const croppedImage = {...res};
               if (Platform.OS === 'android') {
-                if (!croppedImage?.uri) return;
+                if (!croppedImage?.uri) {
+                  return;
+                }
                 croppedImage.uri = `file://${croppedImage?.uri}`;
               }
               replaceImage(croppedImage);

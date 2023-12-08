@@ -86,13 +86,13 @@ const HomeFeed = ({navigation}: Props) => {
             width: 35,
             height: 35,
             borderRadius: STYLES.$AVATAR.BORDER_RADIUS,
-            backgroundColor: !!user?.imageUrl ? 'white' : 'purple',
+            backgroundColor: user?.imageUrl ? 'white' : 'purple',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 5,
             paddingTop: Platform.OS === 'ios' ? 5 : 3,
           }}>
-          {!!user?.imageUrl ? (
+          {user?.imageUrl ? (
             <Image source={{uri: user?.imageUrl}} style={styles.avatar} />
           ) : (
             <Text
@@ -103,7 +103,7 @@ const HomeFeed = ({navigation}: Props) => {
                 paddingTop:
                   Platform.OS === 'ios' ? 3 : Platform.OS === 'android' ? 0 : 0,
               }}>
-              {!!user?.name ? getNameInitials(user?.name) : ''}
+              {user?.name ? getNameInitials(user?.name) : ''}
             </Text>
           )}
         </TouchableOpacity>
@@ -138,15 +138,15 @@ const HomeFeed = ({navigation}: Props) => {
         ? Credentials.username
         : users[0]?.userName;
 
-    let payload = {
+    const payload = {
       uuid: UUID, // uuid
       userName: userName, // user name
       isGuest: false,
     };
 
-    let res = await dispatch(initAPI(payload) as any);
+    const res = await dispatch(initAPI(payload) as any);
 
-    if (!!res) {
+    if (res) {
       setCommunityId(res?.community?.id);
       setAccessToken(res?.accessToken);
       await dispatch(getMemberState() as any);
@@ -197,8 +197,8 @@ const HomeFeed = ({navigation}: Props) => {
     const token = async () => {
       const isPermissionEnabled = await requestUserPermission();
       if (isPermissionEnabled) {
-        let fcmToken = await fetchFCMToken();
-        if (!!fcmToken) {
+        const fcmToken = await fetchFCMToken();
+        if (fcmToken) {
           setFCMToken(fcmToken);
         }
       }
@@ -210,11 +210,11 @@ const HomeFeed = ({navigation}: Props) => {
     const func = async () => {
       const res: any = await myClient?.getAllAttachmentUploadConversations();
       if (res) {
-        let len = res.length;
+        const len = res.length;
         if (len > 0) {
           for (let i = 0; i < len; i++) {
-            let data = res[i];
-            let uploadingFilesMessagesSavedObject = JSON.parse(data?.value);
+            const data = res[i];
+            const uploadingFilesMessagesSavedObject = JSON.parse(data?.value);
             dispatch({
               type: UPDATE_FILE_UPLOADING_OBJECT,
               body: {
@@ -250,7 +250,7 @@ const HomeFeed = ({navigation}: Props) => {
   }, [FCMToken, accessToken]);
 
   useEffect(() => {
-    if (!!user) {
+    if (user) {
       setOptions();
     }
   }, [user]);

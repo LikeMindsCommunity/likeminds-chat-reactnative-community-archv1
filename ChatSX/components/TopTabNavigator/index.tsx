@@ -38,7 +38,7 @@ export const PeopleWhoReactedDefault = ({
                 <View>
                   <Image
                     source={
-                      !!val?.member?.image_url
+                      val?.member?.image_url
                         ? {uri: val?.member?.image_url}
                         : require('../../assets/images/default_pic.png')
                     }
@@ -83,7 +83,7 @@ export const PeopleWhoReacted = ({
                 <View>
                   <Image
                     source={
-                      !!val?.image_url
+                      val?.image_url
                         ? {uri: val?.image_url}
                         : require('../../assets/images/default_pic.png')
                     }
@@ -144,18 +144,18 @@ export default function MyTabs({
   chatroomID,
 }: MyTabs) {
   const {user} = useAppSelector(state => state.homefeed);
-  let index = reactionArr.findIndex(
+  const index = reactionArr.findIndex(
     (val: any) => val?.reaction === selectedReaction,
   );
   const [state, setState] = useState({
     index: index >= 0 && selectedReaction ? index + 1 : 0,
-    routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
+    routes: [{key: 'all', title: 'All ', val: defaultReactionArr}],
   });
 
   useLayoutEffect(() => {
-    let initialState = {
+    const initialState = {
       index: 0,
-      routes: [{key: 'all', title: `All `, val: defaultReactionArr}],
+      routes: [{key: 'all', title: 'All ', val: defaultReactionArr}],
     };
     LMChatAnalytics.track(
       Events.REACTION_LIST_OPENED,

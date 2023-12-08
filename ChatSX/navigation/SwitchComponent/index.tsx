@@ -79,17 +79,17 @@ const SwitchComponent = () => {
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      let val = await getNotification(remoteMessage);
+      const val = await getNotification(remoteMessage);
       return val;
     });
 
     notifee.onForegroundEvent(async ({type, detail}) => {
       const navigation = navigationRef?.current;
-      let currentRoute = navigation?.getCurrentRoute();
-      let routes = getRoute(detail?.notification?.data?.route);
+      const currentRoute = navigation?.getCurrentRoute();
+      const routes = getRoute(detail?.notification?.data?.route);
 
       if (type === EventType.PRESS) {
-        if (!!navigation) {
+        if (navigation) {
           if ((currentRoute?.name as any) === routes?.route) {
             if (
               JSON.stringify(routes?.params) !==
@@ -132,7 +132,10 @@ const SwitchComponent = () => {
   return (
     <View style={{flex: 1}}>
       <StatusBar barStyle={statusBarStyle} />
-      <NavigationContainer linking={linking} ref={navigationRef}>
+      <NavigationContainer
+        linking={linking}
+        ref={navigationRef}
+        independent={true}>
         <Stack.Navigator initialRouteName={HOMEFEED}>
           <Stack.Screen name={HOMEFEED} component={HomeFeed} />
           <Stack.Screen name={EXPLORE_FEED} component={ExploreFeed} />

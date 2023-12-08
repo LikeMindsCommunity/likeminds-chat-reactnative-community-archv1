@@ -333,4 +333,5 @@ export const styles = StyleSheet.create({
     color: 'white',
     marginTop: Platform.OS === 'ios' ? 2 : 0,
   },
+  paddingHorizontal: {paddingHorizontal: 5},
 });

@@ -111,3 +111,5 @@ export const GRANTED = 'granted';
 export const TAP_AND_HOLD = 'Tap and Hold to record a voice message';
 export const NOT_SUPPORTED_TEXT =
   'This message is not supported in this app yet.';
+export const CHATROOM_LEFT = 'Chatroom left';
+export const CHATROOM_JOINED = 'Joined successfully';

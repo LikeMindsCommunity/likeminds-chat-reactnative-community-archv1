@@ -112,7 +112,9 @@ const GroupFeed = ({navigation}: Props) => {
   useEffect(() => {
     const initiate = async () => {
       await getAppConfig();
-      if (!user?.sdkClientInfo?.community) return;
+      if (!user?.sdkClientInfo?.community) {
+        return;
+      }
       await paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
       if (shimmerIsLoading == true) {
         endTime = Date.now() / 1000;
@@ -136,7 +138,9 @@ const GroupFeed = ({navigation}: Props) => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
-        if (!user?.sdkClientInfo?.community) return;
+        if (!user?.sdkClientInfo?.community) {
+          return;
+        }
         if (isFocused) {
           paginatedSyncAPI(INITIAL_SYNC_PAGE, user, false);
           setShimmerIsLoading(false);
@@ -153,9 +157,9 @@ const GroupFeed = ({navigation}: Props) => {
       getInvites({channelType: 1, page: 1, pageSize: 10}, false) as any,
     );
 
-    if (!!invitesRes?.userInvites) {
+    if (invitesRes?.userInvites) {
       if (invitesRes?.userInvites?.length < 10) {
-        let payload = {
+        const payload = {
           page: 1,
         };
       } else {
@@ -177,8 +181,8 @@ const GroupFeed = ({navigation}: Props) => {
     const token = async () => {
       const isPermissionEnabled = await requestUserPermission();
       if (isPermissionEnabled) {
-        let fcmToken = await fetchFCMToken();
-        if (!!fcmToken) {
+        const fcmToken = await fetchFCMToken();
+        if (fcmToken) {
           setFCMToken(fcmToken);
         }
       }
@@ -187,10 +191,10 @@ const GroupFeed = ({navigation}: Props) => {
   }, []);
 
   async function updateData(newPage: number) {
-    let payload = {
+    const payload = {
       page: newPage,
     };
-    let response = await dispatch(updateHomeFeedData(payload, false) as any);
+    const response = await dispatch(updateHomeFeedData(payload, false) as any);
     return response;
   }
 
@@ -198,7 +202,7 @@ const GroupFeed = ({navigation}: Props) => {
     setIsLoading(true);
     setTimeout(async () => {
       const res = await updateData(newPage);
-      if (!!res) {
+      if (res) {
         setIsLoading(false);
       }
     }, 1500);
@@ -341,7 +345,7 @@ const GroupFeed = ({navigation}: Props) => {
             />
           )}
           renderItem={({item}: any) => {
-            let lastConversation = item?.lastConversation;
+            const lastConversation = item?.lastConversation;
             const deletedBy =
               lastConversation?.deletedByUserId !== null
                 ? lastConversation?.deletedByUserId

@@ -8,7 +8,7 @@ export const createTemporaryStateMessage = (
   currentChatroomTopic: Conversation,
   user: UserInfo,
 ) => {
-  let temporaryStateMessage = {...currentChatroomTopic};
+  const temporaryStateMessage = {...currentChatroomTopic};
   if (
     temporaryStateMessage?.hasFiles == false ||
     (temporaryStateMessage?.hasFiles == true &&
@@ -67,7 +67,7 @@ export const getCurrentConversation = async (
       currentChatroomTopic?.id,
     );
   }
-  let payload = {
+  const payload = {
     chatroomId: chatroomId,
     limit: 100,
     medianConversation: currentChatroomTopic,

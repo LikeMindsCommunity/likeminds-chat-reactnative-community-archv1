@@ -10,28 +10,27 @@ export const styles = StyleSheet.create({
   modalParent: {
     position: 'absolute',
     bottom: 60,
-    display:'flex',
-    flexDirection:'row',
-    justifyContent:'center',
-    alignItems:'center',
-    zIndex:1,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
 
-    width: Layout.window.width
+    width: Layout.window.width,
   },
   modalView: {
-    padding:10,
+    padding: 10,
     borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    backgroundColor:STYLES.$COLORS.PRIMARY,
+    backgroundColor: STYLES.$COLORS.PRIMARY,
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
     // backgroundColor:'blue',
-
   },
   filtersView: {paddingHorizontal: 10, paddingVertical: 20},
   filterText: {

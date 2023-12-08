@@ -1,12 +1,5 @@
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  Alert,
-  Pressable,
-} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import {View, Text, Image, TouchableOpacity, Pressable} from 'react-native';
+import React, {useState} from 'react';
 import STYLES from '../../constants/Styles';
 import {styles} from './styles';
 import {decode, generateGifString} from '../../commonFuctions';
@@ -50,11 +43,11 @@ interface ReplyConversations {
 
 interface ReplyBox {
   item: any;
-  isIncluded: boolean;
+  isIncluded?: boolean;
   chatroomName: string;
 }
 
-export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
+export const ReplyBox = ({item, chatroomName}: ReplyBox) => {
   const {user} = useAppSelector(state => state.homefeed);
   const isGif = item?.attachments[0]?.type === GIF_TEXT ? true : false;
   const answer = isGif ? generateGifString(item?.answer) : item?.answer;
@@ -66,7 +59,7 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
         </Text>
       </View>
       <View style={styles.alignRow}>
-        {!!item?.hasFiles ? (
+        {item?.hasFiles ? (
           item?.attachments[0]?.type === IMAGE_TEXT ? (
             <Image
               source={require('../../assets/images/image_icon3x.png')}
@@ -91,6 +84,16 @@ export const ReplyBox = ({item, isIncluded, chatroomName}: ReplyBox) => {
             <View style={styles.gifView}>
               <Text style={styles.gifText}>{CAPITAL_GIF_TEXT}</Text>
             </View>
+          ) : Number(item?.state) === 10 ? (
+            <Image
+              source={require('../../assets/images/poll_icon3x.png')}
+              style={[styles.icon, {tintColor: 'grey'}]}
+            />
+          ) : item?.ogTags?.url != null ? (
+            <Image
+              source={require('../../assets/images/link_icon.png')}
+              style={[styles.icon, {tintColor: 'grey'}]}
+            />
           ) : null
         ) : null}
         <Text style={styles.messageText}>
@@ -156,7 +159,7 @@ const ReplyConversations = ({
   };
 
   const handleOnPress = async () => {
-    let isStateIncluded = stateArr.includes(item?.state);
+    const isStateIncluded = stateArr.includes(item?.state);
     if (isLongPress) {
       if (isIncluded) {
         const filterdMessages = selectedMessages.filter(
@@ -183,7 +186,7 @@ const ReplyConversations = ({
         }
       }
     } else {
-      let index = conversations.findIndex(
+      const index = conversations.findIndex(
         (element: any) => element?.id == item?.replyConversationObject?.id,
       );
       if (index >= 0) {
@@ -204,7 +207,7 @@ const ReplyConversations = ({
           type: GET_CONVERSATIONS_SUCCESS,
           body: {conversations: newConversation},
         });
-        let index = newConversation.findIndex(
+        const index = newConversation.findIndex(
           element => element?.id == item?.replyConversationObject?.id,
         );
         if (index >= 0) {
@@ -228,10 +231,10 @@ const ReplyConversations = ({
           isIncluded ? {backgroundColor: STYLES.$COLORS.SELECTED_BLUE} : null,
         ]}>
         {/* Reply conversation message sender name */}
-        {!!(item?.member?.id == user?.id) ? null : (
+        {item?.member?.id == user?.id ? null : (
           <Text style={styles.messageInfo} numberOfLines={1}>
             {item?.member?.name}
-            {!!item?.member?.customTitle ? (
+            {item?.member?.customTitle ? (
               <Text
                 style={
                   styles.messageCustomTitle
@@ -278,7 +281,7 @@ const ReplyConversations = ({
             </View>
             <View style={styles.alignTime}>
               {item?.isEdited ? (
-                <Text style={styles.messageDate}>{`Edited • `}</Text>
+                <Text style={styles.messageDate}>{'Edited • '}</Text>
               ) : null}
               <Text style={styles.messageDate}>{item?.createdAt}</Text>
             </View>

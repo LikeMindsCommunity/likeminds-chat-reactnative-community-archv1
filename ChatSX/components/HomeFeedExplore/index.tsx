@@ -34,7 +34,7 @@ const HomeFeedExplore: React.FC<Props> = ({
           </View>
         ) : (
           <View>
-            {!!totalCount ? (
+            {totalCount ? (
               <View style={styles.newCountContainer}>
                 <Text style={styles.newCount}>
                   {totalCount > 1
