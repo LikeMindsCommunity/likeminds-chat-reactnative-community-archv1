@@ -12,7 +12,11 @@ import {
   GestureUpdateEvent,
   PanGestureHandlerEventPayload,
 } from 'react-native-gesture-handler';
-import {SET_IS_REPLY, SET_REPLY_MESSAGE} from '../../store/types/types';
+import {
+  SET_EDIT_MESSAGE,
+  SET_IS_REPLY,
+  SET_REPLY_MESSAGE,
+} from '../../store/types/types';
 import {useAppDispatch} from '../../store';
 import STYLES from '../../constants/Styles';
 import {SwipeableParams} from './model';
@@ -22,6 +26,7 @@ const Swipeable = ({
   item,
   children,
   isEnable,
+  setIsEditable,
 }: SwipeableParams) => {
   const [isReplyBoxOpen, setIsReplyBoxOpen] = useState(false);
   const pressed = useSharedValue(false);
@@ -34,6 +39,13 @@ const Swipeable = ({
       const replyMessage = {...item};
       pressed.value = false;
       Vibration.vibrate(0.5 * 100);
+      dispatch({
+        type: SET_EDIT_MESSAGE,
+        body: {
+          editConversation: '',
+        },
+      });
+      setIsEditable(false);
       dispatch({
         type: SET_REPLY_MESSAGE,
         body: {replyMessage: replyMessage},

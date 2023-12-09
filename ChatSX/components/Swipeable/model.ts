@@ -5,4 +5,5 @@ export interface SwipeableParams {
   item: Conversation;
   isEnable: boolean;
   children: React.ReactNode;
+  setIsEditable: (value: boolean) => void;
 }

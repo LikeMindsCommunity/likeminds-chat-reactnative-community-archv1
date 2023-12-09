@@ -566,6 +566,13 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                   onPress={() => {
                     if (len > 0) {
                       setReplyChatID(selectedMessages[0]?.id);
+                      dispatch({
+                        type: SET_EDIT_MESSAGE,
+                        body: {
+                          editConversation: '',
+                        },
+                      });
+                      setIsEditable(false);
                       dispatch({type: SET_IS_REPLY, body: {isReply: true}});
                       dispatch({
                         type: SET_REPLY_MESSAGE,
@@ -643,6 +650,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
               <TouchableOpacity
                 onPress={() => {
                   setIsEditable(true);
+                  dispatch({type: SET_IS_REPLY, body: {isReply: false}});
+                  dispatch({type: SET_REPLY_MESSAGE, body: {replyMessage: ''}});
                   dispatch({
                     type: SET_EDIT_MESSAGE,
                     body: {editConversation: {...selectedMessages[0]}},
@@ -3160,7 +3169,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                         ? true
                         : false
                     }
-                    item={item}>
+                    item={item}
+                    setIsEditable={value => {
+                      setIsEditable(value);
+                    }}>
                     <Pressable
                       onLongPress={event => {
                         const {pageX, pageY} = event.nativeEvent;
