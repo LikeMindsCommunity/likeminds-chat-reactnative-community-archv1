@@ -7,6 +7,7 @@ import {
   SUBMIT_VOTE_TITLE,
 } from '../../../constants/Strings';
 import {PollConversationUIProps} from '../models';
+import {decode} from '../../../commonFuctions';
 
 const PollConversationUI = ({
   text,
@@ -101,7 +102,7 @@ const PollConversationUI = ({
         </View>
 
         <Text style={[styles.text, styles.blackColor, styles.marginSpace]}>
-          {text}
+          {decode(text, true, '', user?.sdkClientInfo?.community)}
         </Text>
 
         {multipleSelectNo > 1 ? (
