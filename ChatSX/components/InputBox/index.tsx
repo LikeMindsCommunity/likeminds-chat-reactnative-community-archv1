@@ -2353,7 +2353,8 @@ const InputBox = ({
               if (
                 chatroomType === ChatroomType.DMCHATROOM && // if DM
                 chatRequestState === null &&
-                isPrivateMember // isPrivateMember = false when none of the member on both sides is CM.
+                isPrivateMember && // isPrivateMember = false when none of the member on both sides is CM.
+                message?.trim()
               ) {
                 sendDmRequest();
               } else {
