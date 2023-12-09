@@ -116,6 +116,7 @@ const CreatePollScreen = ({navigation, route}: CreatePoll) => {
     const newOptionsArr = [...optionsArray];
     newOptionsArr.splice(index, 1);
     setOptionsArray(newOptionsArr);
+    setVoteAllowedPerUser(1);
   }
 
   // this function changes mode and set date and time
