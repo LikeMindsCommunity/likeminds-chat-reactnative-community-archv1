@@ -131,7 +131,7 @@ const CreatePollUI = ({
                       handleInputOptionsChangeFunction(index, e);
                     }}
                   />
-                  {index > 1 ? (
+                  {optionsArray.length > 2 ? (
                     <TouchableOpacity
                       onPress={() => {
                         removeAnOption(index);
