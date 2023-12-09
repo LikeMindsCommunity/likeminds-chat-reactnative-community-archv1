@@ -37,7 +37,6 @@ const myClient = LMChatConfig.setApiKey('')
   .setfilterStateConversation([
     ConversationState.MEMBER_JOINED_OPEN_CHATROOM,
     ConversationState.MEMBER_LEFT_OPEN_CHATROOM,
-    ConversationState.NORMAL_MESSAGE
   ])
   .build();
 
