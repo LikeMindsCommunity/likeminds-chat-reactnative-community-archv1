@@ -339,7 +339,12 @@ const HomeFeedItem: React.FC<Props> = ({
             source={require('../../assets/images/poll_icon3x.png')}
             style={[styles.icon, {tintColor: STYLES.$COLORS.PRIMARY}]}
           />
-          <Text style={styles.attachment_msg}>{val?.answer}</Text>
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={styles.attachment_msg}>
+            {val?.answer}
+          </Text>
         </View>
       );
     } else if (ogTags) {
@@ -447,7 +452,10 @@ const HomeFeedItem: React.FC<Props> = ({
                     }>{`${lastConversationMember}: `}</Text>
                 ) : null}
 
-                <Text numberOfLines={1} style={[styles.parentLastMessage]}>
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={[styles.parentLastMessage]}>
                   {lastConversation.hasFiles > 0
                     ? getFeedIconAttachment(lastConversation)
                     : lastConversation?.state === 10

@@ -96,7 +96,7 @@ export const ReplyBox = ({item, chatroomName}: ReplyBox) => {
             style={[styles.icon, {tintColor: 'grey'}]}
           />
         ) : null}
-        <Text style={styles.messageText}>
+        <Text style={styles.messageText} numberOfLines={1} ellipsizeMode="tail">
           {decode(
             !!answer
               ? answer
