@@ -84,17 +84,17 @@ export const ReplyBox = ({item, chatroomName}: ReplyBox) => {
             <View style={styles.gifView}>
               <Text style={styles.gifText}>{CAPITAL_GIF_TEXT}</Text>
             </View>
-          ) : Number(item?.state) === 10 ? (
-            <Image
-              source={require('../../assets/images/poll_icon3x.png')}
-              style={[styles.icon, {tintColor: 'grey'}]}
-            />
-          ) : item?.ogTags?.url != null ? (
-            <Image
-              source={require('../../assets/images/link_icon.png')}
-              style={[styles.icon, {tintColor: 'grey'}]}
-            />
           ) : null
+        ) : Number(item?.state) === 10 ? (
+          <Image
+            source={require('../../assets/images/poll_icon3x.png')}
+            style={[styles.icon, {tintColor: 'grey'}]}
+          />
+        ) : item?.ogTags?.url != null ? (
+          <Image
+            source={require('../../assets/images/link_icon.png')}
+            style={[styles.icon, {tintColor: 'grey'}]}
+          />
         ) : null}
         <Text style={styles.messageText}>
           {decode(

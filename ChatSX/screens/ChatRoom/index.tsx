@@ -3142,10 +3142,17 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
 
                   <Swipeable
                     onFocusKeyboard={() => {
-                      refInput.current.focus();
+                      refInput?.current?.focus();
                     }}
-                    item={item}
-                    isStateIncluded={isStateIncluded}>
+                    isEnable={
+                      chatroomType === ChatroomType.DMCHATROOM &&
+                      chatRequestState === 0
+                        ? false
+                        : !isStateIncluded
+                        ? true
+                        : false
+                    }
+                    item={item}>
                     <Pressable
                       onLongPress={event => {
                         const {pageX, pageY} = event.nativeEvent;

@@ -20,8 +20,8 @@ import {SwipeableParams} from './model';
 const Swipeable = ({
   onFocusKeyboard,
   item,
-  isStateIncluded,
   children,
+  isEnable,
 }: SwipeableParams) => {
   const [isReplyBoxOpen, setIsReplyBoxOpen] = useState(false);
   const pressed = useSharedValue(false);
@@ -83,7 +83,7 @@ const Swipeable = ({
   // draggable message pan gesture on x-axis
   const panGesture = Gesture.Pan()
     .runOnJS(true)
-    .enabled(!isStateIncluded)
+    .enabled(isEnable)
     .activeOffsetX([-10, 10])
     .onStart(event => {
       const deltaX = event.translationX;
