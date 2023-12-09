@@ -548,6 +548,14 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
         } else {
           isDelete = true;
         }
+
+        if (
+          isDelete &&
+          chatroomType === ChatroomType.DMCHATROOM &&
+          chatRequestState === ChatroomChatRequestState.INITIATED
+        ) {
+          isDelete = false;
+        }
         return (
           <View style={styles.selectedHeadingContainer}>
             {len === 1 &&
@@ -3146,7 +3154,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
                     }}
                     isEnable={
                       chatroomType === ChatroomType.DMCHATROOM &&
-                      chatRequestState === 0
+                      chatRequestState === ChatroomChatRequestState.INITIATED
                         ? false
                         : !isStateIncluded
                         ? true
