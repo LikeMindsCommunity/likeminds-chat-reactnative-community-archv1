@@ -1899,7 +1899,7 @@ const InputBox = ({
         <View
           style={
             (isReply && !isUploadScreen) ||
-            isUserTagging ||
+            (isUserTagging && userTaggingList?.length > 0) ||
             isEditable ||
             Object.keys(ogTagsState).length !== 0
               ? [
@@ -1916,7 +1916,7 @@ const InputBox = ({
                 ]
               : null
           }>
-          {userTaggingList && isUserTagging ? (
+          {userTaggingList?.length > 0 && isUserTagging ? (
             <View
               style={[
                 styles.taggableUsersBox,
