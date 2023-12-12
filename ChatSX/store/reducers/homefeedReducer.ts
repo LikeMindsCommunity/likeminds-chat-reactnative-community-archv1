@@ -26,10 +26,12 @@ import {
   SET_INITIAL_DMFEED_CHATROOM,
   DELETE_GROUPFEED_CHATROOM,
   DELETE_DMFEED_CHATROOM,
+  STORE_MY_CLIENT,
 } from '../types/types';
 import {removeDuplicateObjects} from '../../utils/homeFeedUtils';
 import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
+import {LMChatClient} from '@likeminds.community/chat-rn';
 
 const initialState = {
   myChatrooms: [] as any,
@@ -47,6 +49,7 @@ const initialState = {
   statusBarStyle: Styles.$STATUS_BAR_STYLE.default,
   groupFeedChatrooms: [] as any,
   dmFeedChatrooms: [] as any,
+  myClient: {} as LMChatClient,
 };
 
 export function homefeedReducer(state = initialState, action: any) {
@@ -275,6 +278,10 @@ export function homefeedReducer(state = initialState, action: any) {
     case INIT_API_SUCCESS: {
       const {community = {}} = action.body;
       return {...state, community: community};
+    }
+    case STORE_MY_CLIENT: {
+      const {myClient = {}} = action.body;
+      return {...state, myClient: myClient};
     }
     case PROFILE_DATA_SUCCESS: {
       const {member = {}, memberRights = []} = action.body;
