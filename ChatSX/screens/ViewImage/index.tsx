@@ -9,7 +9,7 @@ const ViewImage = ({val}: any) => {
   });
   useEffect(() => {
     Image.getSize(val?.url, (width: number, height: number) => {
-      let updatedDimensions = {
+      const updatedDimensions = {
         ...dimensions,
         height,
         width,
@@ -18,8 +18,8 @@ const ViewImage = ({val}: any) => {
     });
   }, []);
 
-  let {height, width} = dimensions;
-  let aspectRatio = height / width;
+  const {height, width} = dimensions;
+  const aspectRatio = height / width;
 
   return (
     <View>

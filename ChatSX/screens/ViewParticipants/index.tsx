@@ -47,7 +47,7 @@ const ViewParticipants = ({navigation, route}: any) => {
               style={styles.backBtn}
             />
           </TouchableOpacity>
-          {!(Object.keys(!!participants ? participants : 0).length === 0) ? (
+          {!(Object.keys(participants ? participants : 0).length === 0) ? (
             <View style={styles.chatRoomInfo}>
               <Text
                 style={{
@@ -178,7 +178,7 @@ const ViewParticipants = ({navigation, route}: any) => {
 
   useEffect(() => {
     // setInitialHeader();
-    if (!!isSearch) {
+    if (isSearch) {
       setSearchHeader();
     } else {
       setInitialHeader();
@@ -186,14 +186,14 @@ const ViewParticipants = ({navigation, route}: any) => {
   }, [participants]);
 
   useEffect(() => {
-    if (!!isSearch) {
+    if (isSearch) {
       setSearchHeader();
     }
   }, [search]);
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      if (!!isSearch) {
+      if (isSearch) {
         fetchParticipants();
       }
     }, 500);
@@ -202,7 +202,7 @@ const ViewParticipants = ({navigation, route}: any) => {
 
   useEffect(() => {
     // setInitialHeader();
-    if (!!isSearch) {
+    if (isSearch) {
       setSearchHeader();
     } else {
       setInitialHeader();
@@ -210,21 +210,21 @@ const ViewParticipants = ({navigation, route}: any) => {
   }, [isSearch]);
 
   async function updateData(newPage: number) {
-    let payload: any = {
+    const payload: any = {
       chatroomId: chatroomID,
       isSecret: isSecret,
       page: newPage,
       pageSize: 10,
       participantName: search,
     };
-    let response = await myClient?.getParticipants(payload);
+    const response = await myClient?.getParticipants(payload);
     return response?.data;
   }
 
   const loadData = async (newPage: number) => {
     setIsLoading(true);
     const res = await updateData(newPage);
-    if (!!res) {
+    if (res) {
       setParticipants([...participants, ...res?.participants]);
       setIsLoading(false);
     }
@@ -232,13 +232,13 @@ const ViewParticipants = ({navigation, route}: any) => {
 
   const handleLoadMore = async () => {
     if (!isLoading) {
-      let arr = participants;
+      const arr = participants;
       if (
         arr?.length % 10 === 0 &&
         arr?.length > 0 &&
         arr?.length === 10 * page
       ) {
-        let newPage = page + 1;
+        const newPage = page + 1;
         loadData(newPage);
         setPage(newPage);
       }
@@ -303,7 +303,7 @@ const ViewParticipants = ({navigation, route}: any) => {
             <View key={item?.id} style={styles.participants}>
               <Image
                 source={
-                  !!item?.imageUrl
+                  item?.imageUrl
                     ? {uri: item?.imageUrl}
                     : require('../../assets/images/default_pic.png')
                 }
@@ -312,7 +312,7 @@ const ViewParticipants = ({navigation, route}: any) => {
               <View style={styles.infoContainer}>
                 <Text style={styles.title} numberOfLines={1}>
                   {item?.name}
-                  {!!item?.customTitle ? (
+                  {item?.customTitle ? (
                     <Text
                       style={
                         styles.messageCustomTitle

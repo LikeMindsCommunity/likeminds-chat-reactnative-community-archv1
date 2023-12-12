@@ -1,5 +1,4 @@
-import { OgTags } from "../../InputBox/models";
-
+import {OgTags} from '../../InputBox/models';
 
 export interface LinkPreviewInputBoxProps {
   ogTags: OgTags;

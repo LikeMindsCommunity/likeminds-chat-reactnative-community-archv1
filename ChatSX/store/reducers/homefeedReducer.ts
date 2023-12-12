@@ -108,7 +108,7 @@ export function homefeedReducer(state = initialState, action: any) {
       const modifiedChatroom = action.body.modifiedChatroom;
       const index = action.body.index;
       if (modifiedChatroom?.type !== 10) {
-        let groupFeedChatrooms = state.groupFeedChatrooms;
+        const groupFeedChatrooms = state.groupFeedChatrooms;
         groupFeedChatrooms[index] = modifiedChatroom;
         const updatedGroupFeedChatrooms =
           removeDuplicateObjects(groupFeedChatrooms);
@@ -123,7 +123,7 @@ export function homefeedReducer(state = initialState, action: any) {
       const modifiedDMChatroom = action.body.modifiedDMChatroom;
       const index = action.body.index;
       if (modifiedDMChatroom?.type === 10) {
-        let dmFeedChatrooms = state.dmFeedChatrooms;
+        const dmFeedChatrooms = state.dmFeedChatrooms;
         dmFeedChatrooms[index] = modifiedDMChatroom;
         const updatedDmFeedChatrooms = removeDuplicateObjects(dmFeedChatrooms);
         return {
@@ -180,9 +180,9 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case GET_INVITES_SUCCESS: {
       const {userInvites = []} = action.body;
-      let updatedUserInvites = [];
+      const updatedUserInvites = [];
       for (let i = 0; i < userInvites.length; i++) {
-        let newObject = {
+        const newObject = {
           ...userInvites[i],
           ...userInvites[i]?.chatroom,
         };
@@ -195,7 +195,7 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case ACCEPT_INVITE_SUCCESS: {
       const chatroomID = action.body;
-      let filteredInvites = state.invitedChatrooms.filter((val: any) => {
+      const filteredInvites = state.invitedChatrooms.filter((val: any) => {
         return val?.chatroom?.id !== chatroomID;
       });
       return {
@@ -205,7 +205,7 @@ export function homefeedReducer(state = initialState, action: any) {
     }
     case REJECT_INVITE_SUCCESS: {
       const chatroomID = action.body;
-      let filteredInvites = state.invitedChatrooms.filter((val: any) => {
+      const filteredInvites = state.invitedChatrooms.filter((val: any) => {
         return val?.chatroom?.id !== chatroomID;
       });
       return {
@@ -249,15 +249,15 @@ export function homefeedReducer(state = initialState, action: any) {
     case UPDATE_LAST_CONVERSATION: {
       const {lastConversationAnswer, chatroomType, chatroomID} = action.body;
 
-      let isDM = chatroomType === ChatroomType.DMCHATROOM ? true : false;
-      let chatroomList = isDM ? state?.myDMChatrooms : state?.myChatrooms;
-      let index = chatroomList.findIndex((element: any) => {
+      const isDM = chatroomType === ChatroomType.DMCHATROOM ? true : false;
+      const chatroomList = isDM ? state?.myDMChatrooms : state?.myChatrooms;
+      const index = chatroomList.findIndex((element: any) => {
         return element?.chatroom?.id == chatroomID;
       });
 
-      let arr = [...(chatroomList as any)];
+      const arr = [...(chatroomList as any)];
       if (index !== undefined || index !== -1) {
-        let chatroomObject = arr[index];
+        const chatroomObject = arr[index];
         arr[index] = {
           ...chatroomObject,
           lastConversation: {

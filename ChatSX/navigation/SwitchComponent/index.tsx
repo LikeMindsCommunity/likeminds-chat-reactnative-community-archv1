@@ -38,7 +38,7 @@ import getNotification from '../../notifications';
 import ViewParticipants from '../../screens/ViewParticipants';
 import AddParticipants from '../../screens/AddParticipants';
 import DmAllMembers from '../../screens/DmAllMembers';
-import FileUpload from '../../screens/FIleUpload';
+import FileUpload from '../../screens/fileUpload';
 import {
   ADD_PARTICIPANTS,
   CHATROOM,
@@ -79,7 +79,7 @@ const SwitchComponent = () => {
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      let val = await getNotification(remoteMessage);
+      const val = await getNotification(remoteMessage);
       return val;
     });
 

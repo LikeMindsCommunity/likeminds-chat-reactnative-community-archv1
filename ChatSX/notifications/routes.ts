@@ -15,7 +15,7 @@ export function getRoute(route: any) {
   let params = {} as RouteParams,
     match;
 
-  let navigationRoute = route?.match(REGEX_TO_EXTRACT_PATH);
+  const navigationRoute = route?.match(REGEX_TO_EXTRACT_PATH);
   while ((match = REGEX_TO_EXTRACT_PARAMS.exec(route))) {
     params[match[1]] = match[2];
   }
@@ -23,7 +23,7 @@ export function getRoute(route: any) {
   if (navigationRoute) {
     switch (navigationRoute[1]) {
       case ROUTE_CHATROOM: {
-        let paramsKey = Object.keys(params);
+        const paramsKey = Object.keys(params);
         return {
           route: CHATROOM,
           params: {
@@ -34,7 +34,7 @@ export function getRoute(route: any) {
         };
       }
       case ROUTE_CHATROOM_DETAIL: {
-        let paramsKey = Object.keys(params);
+        const paramsKey = Object.keys(params);
         return {
           route: CHATROOM,
           params: {
@@ -45,7 +45,7 @@ export function getRoute(route: any) {
         };
       }
       case ROUTE_POLL_CHATROOM: {
-        let paramsKey = Object.keys(params);
+        const paramsKey = Object.keys(params);
         return {
           route: CHATROOM,
           params: {
@@ -74,7 +74,7 @@ export function getLinkingRoute(route: string) {
   let params = {} as RouteParams,
     match;
 
-  let navigationRoute = route?.match(REGEX_TO_EXTRACT_PATH);
+  const navigationRoute = route?.match(REGEX_TO_EXTRACT_PATH);
   while ((match = REGEX_TO_EXTRACT_PARAMS.exec(route))) {
     params[match[1]] = match[2];
   }
@@ -82,7 +82,7 @@ export function getLinkingRoute(route: string) {
   if (navigationRoute) {
     switch (navigationRoute[1]) {
       case ROUTE_CHATROOM: {
-        let paramsKey = Object.keys(params);
+        const paramsKey = Object.keys(params);
         return {
           route: CHATROOM,
           params: {

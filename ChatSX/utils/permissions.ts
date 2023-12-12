@@ -4,7 +4,7 @@ import {atLeastAndroid13} from '../commonFuctions';
 // function checks if we have access of storage in Android.
 export async function requestStoragePermission() {
   if (Platform.OS === 'android') {
-    let OSVersion = Platform.constants['Release'];
+    const OSVersion = Platform.constants.Release;
 
     if (Number(OSVersion) < 13) {
       try {
@@ -108,7 +108,7 @@ export async function requestCameraPermission() {
 export async function requestAudioRecordPermission() {
   if (Platform.OS === 'android') {
     try {
-      let isAtLeastAndroid13 = atLeastAndroid13();
+      const isAtLeastAndroid13 = atLeastAndroid13();
       const permissions = isAtLeastAndroid13
         ? [
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,

@@ -82,16 +82,16 @@ const DMFeed = ({navigation}: Props) => {
   let endTime = 0;
 
   async function fetchData() {
-    if (!!community?.id) {
-      let payload = {
+    if (community?.id) {
+      const payload = {
         page: 1,
       };
-      let apiRes = await myClient?.checkDMStatus({
+      const apiRes = await myClient?.checkDMStatus({
         requestFrom: 'dm_feed_v2',
       });
-      let response = apiRes?.data;
-      if (!!response) {
-        let routeURL = response?.cta;
+      const response = apiRes?.data;
+      if (response) {
+        const routeURL = response?.cta;
         const hasShowList = SHOW_LIST_REGEX.test(routeURL);
         if (hasShowList) {
           const showListValue = routeURL.match(SHOW_LIST_REGEX)[1];
@@ -119,8 +119,8 @@ const DMFeed = ({navigation}: Props) => {
     const token = async () => {
       const isPermissionEnabled = await requestUserPermission();
       if (isPermissionEnabled) {
-        let fcmToken = await fetchFCMToken();
-        if (!!fcmToken) {
+        const fcmToken = await fetchFCMToken();
+        if (fcmToken) {
           setFCMToken(fcmToken);
         }
       }
@@ -157,7 +157,9 @@ const DMFeed = ({navigation}: Props) => {
     const query = ref(db, `/community/${community?.id}`);
     return onValue(query, snapshot => {
       if (snapshot.exists()) {
-        if (!user?.sdkClientInfo?.community) return;
+        if (!user?.sdkClientInfo?.community) {
+          return;
+        }
         if (isFocused) {
           paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
           setShimmerIsLoading(false);
@@ -172,7 +174,9 @@ const DMFeed = ({navigation}: Props) => {
   useEffect(() => {
     const initiate = async () => {
       await getAppConfig();
-      if (!user?.sdkClientInfo?.community) return;
+      if (!user?.sdkClientInfo?.community) {
+        return;
+      }
       await paginatedSyncAPI(INITIAL_SYNC_PAGE, user, true);
       if (shimmerIsLoading == true && isFocused) {
         endTime = Date.now() / 1000;
@@ -194,10 +198,10 @@ const DMFeed = ({navigation}: Props) => {
 
   //function calls updateDMFeedData action to update myDMChatrooms array with the new data.
   async function updateData(newPage: number) {
-    let payload = {
+    const payload = {
       page: newPage,
     };
-    let response = await dispatch(updateDMFeedData(payload, false) as any);
+    const response = await dispatch(updateDMFeedData(payload, false) as any);
     return response;
   }
 
@@ -206,7 +210,7 @@ const DMFeed = ({navigation}: Props) => {
     setIsLoading(true);
     setTimeout(async () => {
       const res = await updateData(newPage);
-      if (!!res) {
+      if (res) {
         setIsLoading(false);
       }
     }, 1500);
