@@ -1,4 +1,3 @@
-import {current} from '@reduxjs/toolkit';
 import Styles from '../../constants/Styles';
 import {
   ACCEPT_INVITE_SUCCESS,
@@ -7,7 +6,6 @@ import {
   GET_INVITES_SUCCESS,
   INIT_API_SUCCESS,
   PROFILE_DATA_SUCCESS,
-  GET_SYNC_HOMEFEED_CHAT_SUCCESS,
   REJECT_INVITE_SUCCESS,
   SET_DM_PAGE,
   SET_PAGE,
@@ -17,7 +15,6 @@ import {
   UPDATE_HOMEFEED_CHAT_SUCCESS,
   UPDATE_INVITES_SUCCESS,
   UPDATE_LAST_CONVERSATION,
-  TO_BE_DELETED,
   SET_INITIAL_GROUPFEED_CHATROOM,
   INSERT_GROUPFEED_CHATROOM,
   INSERT_DMFEED_CHATROOM,
@@ -29,7 +26,6 @@ import {
   STORE_MY_CLIENT,
 } from '../types/types';
 import {removeDuplicateObjects} from '../../utils/homeFeedUtils';
-import {ChatroomChatRequestState} from '../../enums';
 import {ChatroomType} from '../../enums';
 import {LMChatClient} from '@likeminds.community/chat-rn';
 

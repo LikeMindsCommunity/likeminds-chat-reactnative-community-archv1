@@ -1,4 +1,4 @@
-import React, {Children, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {RealmProvider} from '@realm/react';
 import {UserSchemaRO} from './db/schemas/UserSchema';
