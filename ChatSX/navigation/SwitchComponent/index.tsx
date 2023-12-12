@@ -38,7 +38,7 @@ import getNotification from '../../notifications';
 import ViewParticipants from '../../screens/ViewParticipants';
 import AddParticipants from '../../screens/AddParticipants';
 import DmAllMembers from '../../screens/DmAllMembers';
-import FileUpload from '../../screens/fileUpload';
+import FileUpload from '../../screens/FIleUpload';
 import {
   ADD_PARTICIPANTS,
   CHATROOM,
