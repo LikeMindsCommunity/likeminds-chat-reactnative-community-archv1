@@ -19,7 +19,6 @@ import ExploreFeed from '../../screens/ExploreFeed';
 import ChatRoom from '../../screens/ChatRoom';
 import {useAppDispatch, useAppSelector} from '../../store';
 import ReportScreen from '../../screens/ReportMessage';
-import ImageScreen from '../../components/ImageScreen';
 import {
   LoaderChatroomComponent,
   LoaderComponent,
@@ -55,7 +54,6 @@ import {
   CREATE_POLL_SCREEN,
   IMAGE_CROP_SCREEN,
 } from '../../constants/Screens';
-import VideoPlayer from '../../screens/VideoPlayer';
 import CarouselScreen from '../../screens/CarouselScreen';
 import PollResult from '../../components/PollResult';
 import {CreatePollScreen} from '../../components/Poll';
@@ -145,7 +143,6 @@ const SwitchComponent = () => {
             options={{gestureEnabled: Platform.OS === 'ios' ? false : true}}
           />
           <Stack.Screen name={REPORT} component={ReportScreen} />
-          <Stack.Screen name={IMAGE_SCREEN} component={ImageScreen} />
           <Stack.Screen name={VIEW_PARTICIPANTS} component={ViewParticipants} />
           <Stack.Screen name={ADD_PARTICIPANTS} component={AddParticipants} />
           <Stack.Screen name={DM_ALL_MEMBERS} component={DmAllMembers} />
@@ -154,7 +151,6 @@ const SwitchComponent = () => {
             name={FILE_UPLOAD}
             component={FileUpload}
           />
-          <Stack.Screen name={VIDEO_PLAYER} component={VideoPlayer} />
           <Stack.Screen
             options={{gestureEnabled: false}}
             name={CAROUSEL_SCREEN}
