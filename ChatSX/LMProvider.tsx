@@ -14,7 +14,7 @@ import {LMChatClient} from '@likeminds.community/chat-rn';
 
 interface LMProviderProps {
   myClient: LMChatClient;
-  children: any;
+  children: React.ReactNode;
 }
 
 export const LMProvider = ({
@@ -27,7 +27,7 @@ export const LMProvider = ({
       const initialNotification = await notifee.getInitialNotification();
 
       if (initialNotification) {
-        let routes = getRoute(initialNotification?.notification?.data?.route);
+        const routes = getRoute(initialNotification?.notification?.data?.route);
         setTimeout(() => {
           RootNavigation.navigate(routes.route, routes.params);
         }, 1000);
@@ -55,13 +55,13 @@ export const LMProvider = ({
         body: {myClient: myClient},
       });
 
-      let payload = {
+      const payload = {
         uuid: Credentials.userUniqueId, // uuid
         userName: Credentials.username, // user name
         isGuest: false,
       };
 
-      let response = await myClient?.initiateUser(payload);
+      const response = await myClient?.initiateUser(payload);
 
       dispatch({
         type: INIT_API_SUCCESS,
@@ -69,7 +69,7 @@ export const LMProvider = ({
       });
     };
     callInitApi();
-  }, []);
+  }, [dispatch, myClient]);
 
   return (
     <RealmProvider schema={[UserSchemaRO]}>
