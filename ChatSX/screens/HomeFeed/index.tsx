@@ -26,7 +26,6 @@ import DMFeed from './Tabs/DMFeed';
 import {FAILED, USER_SCHEMA_RO} from '../../constants/Strings';
 import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {useIsFocused} from '@react-navigation/native';
-import {useQuery} from '@realm/react';
 import {parseDeepLink} from '../../components/ParseDeepLink';
 import {DeepLinkRequest} from '../../components/ParseDeepLink/models';
 import {UserSchemaResponse} from '../../db/models';
@@ -59,7 +58,6 @@ const HomeFeed = ({navigation}: Props) => {
   } = useAppSelector(state => state.homefeed);
   const user = useAppSelector(state => state.homefeed.user);
   const {uploadingFilesMessages} = useAppSelector(state => state.upload);
-  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
 
   const INITIAL_SYNC_PAGE = 1;
 
@@ -129,14 +127,8 @@ const HomeFeed = ({navigation}: Props) => {
   async function fetchData() {
     //this line of code is for the sample app only, pass your uuid instead of this.
 
-    const UUID =
-      Credentials.userUniqueId.length > 0
-        ? Credentials.userUniqueId
-        : users[0]?.userUniqueID;
-    const userName =
-      Credentials.username.length > 0
-        ? Credentials.username
-        : users[0]?.userName;
+    const UUID = Credentials.userUniqueId;
+    const userName = Credentials.username;
 
     const payload = {
       uuid: UUID, // uuid
@@ -165,14 +157,9 @@ const HomeFeed = ({navigation}: Props) => {
 
   useEffect(() => {
     const listener = Linking.addEventListener('url', ({url}) => {
-      const uuid =
-        Credentials.userUniqueId.length > 0
-          ? Credentials.userUniqueId
-          : users[0]?.userUniqueID;
-      const userName =
-        Credentials.username.length > 0
-          ? Credentials.username
-          : users[0]?.userName;
+      if (!Credentials.username) return;
+      const uuid = Credentials.userUniqueId;
+      const userName = Credentials.username;
 
       const exampleRequest: DeepLinkRequest = {
         uri: url,

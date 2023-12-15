@@ -12,6 +12,10 @@ import {RouteParams} from './models';
 
 // to get notification routes
 export function getRoute(route: any) {
+  if (route === undefined) {
+    return {route: HOMEFEED, params: {}};
+  }
+
   let params = {} as RouteParams,
     match;
 
@@ -97,6 +101,9 @@ export function getLinkingRoute(route: string) {
         return {route: HOMEFEED, params: {navigationRoute: navigationRoute[1]}};
     }
   } else {
-    return {route: HOMEFEED, params: {navigationRoute: navigationRoute[1]}};
+    return {
+      route: HOMEFEED,
+      params: {navigationRoute: navigationRoute && navigationRoute[1]},
+    };
   }
 }

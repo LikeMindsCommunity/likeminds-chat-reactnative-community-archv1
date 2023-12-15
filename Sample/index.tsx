@@ -10,9 +10,6 @@ import {
   Keyboard,
 } from 'react-native';
 import STYLES from '../ChatSX/constants/Styles';
-import {useQuery, useRealm} from '@realm/react';
-import {UserSchemaResponse} from '../ChatSX/db/models';
-import {USER_SCHEMA_RO} from '../ChatSX/constants/Strings';
 import {Credentials} from '../ChatSX/credentials';
 
 interface ChildProps {
@@ -25,15 +22,7 @@ const FetchKeyInputScreen: React.FC<ChildProps> = ({isTrue, setIsTrue}) => {
   const [userName, setUserName] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
 
-  const realm = useRealm();
-  const data = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
   const handleAddNotes = (userUniqueID: string, userName: string) => {
-    realm.write(() => {
-      realm.create(USER_SCHEMA_RO, {
-        userUniqueID: userUniqueID,
-        userName: userName,
-      });
-    });
     Credentials.setCredentials(userName, userUniqueID);
   };
 

@@ -13,7 +13,6 @@ import {
   SET_POSITION,
 } from '../../store/types/types';
 import {PollConversationView} from '../Poll';
-import {useQuery} from '@realm/react';
 import {myClient} from '../../..';
 import {ChatroomChatRequestState, Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
@@ -174,11 +173,7 @@ const Messages = ({
   const conversationCreator = item?.member?.sdkClientInfo?.uuid;
   const chatroomWithUserUuid = user?.sdkClientInfo?.uuid;
   const chatroomWithUserMemberId = user?.id;
-  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
-  const currentUserUuid =
-    Credentials.userUniqueId.length > 0
-      ? Credentials.userUniqueId
-      : users[0]?.userUniqueID;
+  const currentUserUuid = Credentials.userUniqueId;
 
   // Method to trim the initial DM connection message based on loggedInMember id
   const answerTrimming = (answer: string) => {

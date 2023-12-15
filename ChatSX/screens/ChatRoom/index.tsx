@@ -133,11 +133,8 @@ import {CognitoIdentityCredentials, S3} from 'aws-sdk';
 import AWS from 'aws-sdk';
 import {FlashList} from '@shopify/flash-list';
 import WarningMessageModal from '../../customModals/WarningMessage';
-import {useQuery} from '@realm/react';
-import {Share} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {createShimmerPlaceholder} from 'react-native-shimmer-placeholder';
-import {paginatedSyncAPI} from '../../utils/syncChatroomApi';
 import {
   ChatroomChatRequestState,
   DocumentType,
@@ -224,7 +221,6 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const [flashListMounted, setFlashListMounted] = useState(false);
 
   const reactionArr = ['❤️', '😂', '😮', '😢', '😠', '👍'];
-  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
 
   const {
     chatroomID,
@@ -240,7 +236,7 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const {
     conversations = [],
     chatroomDetails,
-    chatroomDBDetails,
+    chatroomDBDetails = {},
     messageSent,
     isLongPress,
     selectedMessages,
@@ -264,7 +260,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   const memberCanMessage = chatroomDBDetails?.memberCanMessage;
   const chatroomWithUser = chatroomDBDetails?.chatroomWithUser;
   const chatRequestState = chatroomDBDetails?.chatRequestState;
-  const chatroomDBDetailsLength = Object.keys(chatroomDBDetails)?.length;
+  const chatroomDBDetailsLength =
+    chatroomDBDetails && Object.keys(chatroomDBDetails)?.length;
   const [isChatroomTopic, setIsChatroomTopic] = useState(false);
   const [isFound, setIsFound] = useState(false);
 
@@ -913,14 +910,8 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
   // this function fetch initiate API
   async function fetchInitAPI() {
     //this line of code is for the sample app only, pass your uuid instead of this.
-    const UUID =
-      Credentials.userUniqueId.length > 0
-        ? Credentials.userUniqueId
-        : users[0]?.userUniqueID;
-    const userName =
-      Credentials.username.length > 0
-        ? Credentials.username
-        : users[0]?.userName;
+    const UUID = Credentials.userUniqueId;
+    const userName = Credentials.username;
 
     const payload = {
       uuid: UUID,
@@ -1027,6 +1018,10 @@ const ChatRoom = ({navigation, route}: ChatRoom) => {
     const invokeFunction = async () => {
       if (navigationFromNotification) {
         if (appState.match(/active|foreground/)) {
+          const chatroomDetails = await fetchChatroomDetails();
+          if (chatroomDetails?.isChatroomVisited) {
+            setShimmerIsLoading(false);
+          }
           // App has gone to the background
           await fetchInitAPI();
         }
