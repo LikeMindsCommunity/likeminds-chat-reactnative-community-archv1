@@ -146,7 +146,6 @@ import {
 import {ChatroomType} from '../../enums';
 import {onShare} from '../../shareUtils';
 import {ChatroomActions, Events} from '../../enums';
-import {UserSchemaResponse} from '../../db/models';
 import TrackPlayer from 'react-native-track-player';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {getChatroomType, getConversationType} from '../../utils/analyticsUtils';

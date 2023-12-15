@@ -8,8 +8,6 @@ import * as RootNavigation from './RootNavigation';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {setupPlayer} from './audio';
 import SwitchComponent from './navigation/SwitchComponent';
-import {RealmProvider} from '@realm/react';
-import {UserSchemaRO} from './db/schemas/UserSchema';
 
 function LMChatApp(): JSX.Element {
   //To navigate onPress notification while android app is in background state / quit state.
@@ -36,13 +34,11 @@ function LMChatApp(): JSX.Element {
   }, []);
 
   return (
-    <RealmProvider schema={[UserSchemaRO]}>
       <GestureHandlerRootView style={styles.flexStyling}>
         <ReduxProvider store={store}>
             <SwitchComponent />
         </ReduxProvider>
       </GestureHandlerRootView>
-    </RealmProvider>
   );
 }
 

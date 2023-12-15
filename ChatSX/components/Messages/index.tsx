@@ -13,11 +13,8 @@ import {
   SET_POSITION,
 } from '../../store/types/types';
 import {PollConversationView} from '../Poll';
-import {myClient} from '../../..';
-import {ChatroomChatRequestState, Events, Keys} from '../../enums';
+import {Events, Keys} from '../../enums';
 import {ChatroomType} from '../../enums';
-import {UserSchemaResponse} from '../../db/models';
-import {USER_SCHEMA_RO} from '../../constants/Strings';
 import LinkPreview from '../LinkPreview';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {Credentials} from '../../credentials';

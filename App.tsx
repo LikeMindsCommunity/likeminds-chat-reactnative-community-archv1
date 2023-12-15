@@ -9,8 +9,6 @@ import * as RootNavigation from './ChatSX/RootNavigation';
 import FetchKeyInputScreen from './Sample';
 import {parseDeepLink} from './ChatSX/components/ParseDeepLink';
 import {DeepLinkRequest} from './ChatSX/components/ParseDeepLink/models';
-import {UserSchemaResponse} from './ChatSX/db/models';
-import {USER_SCHEMA_RO} from './ChatSX/constants/Strings';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {setupPlayer} from './ChatSX/audio';
 import {GiphySDK} from '@giphy/react-native-sdk';

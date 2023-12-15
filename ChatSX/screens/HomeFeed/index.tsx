@@ -28,7 +28,6 @@ import {DM_FEED, GROUP_FEED} from '../../constants/Screens';
 import {useIsFocused} from '@react-navigation/native';
 import {parseDeepLink} from '../../components/ParseDeepLink';
 import {DeepLinkRequest} from '../../components/ParseDeepLink/models';
-import {UserSchemaResponse} from '../../db/models';
 import {LMChatAnalytics} from '../../analytics/LMChatAnalytics';
 import {Events, Keys} from '../../enums';
 import {Credentials} from '../../credentials';
