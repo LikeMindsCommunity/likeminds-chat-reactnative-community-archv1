@@ -101,7 +101,7 @@ const GroupFeed = ({navigation}: Props) => {
     if (appConfig?.isGroupFeedChatroomsSynced === undefined) {
       startTime = Date.now() / 1000;
       setTimeout(() => {
-        // myClient?.initiateAppConfig();
+        myClient?.initiateAppConfig();
         myClient?.setAppConfig(false);
       }, 200);
     } else {

@@ -142,11 +142,10 @@ const DMFeed = ({navigation}: Props) => {
 
   const getAppConfig = async () => {
     const appConfig = await myClient?.getAppConfig();
-    console.log('getAppConfig DM =', appConfig);
     if (appConfig?.isDmFeedChatroomsSynced === undefined) {
       startTime = Date.now() / 1000;
       setTimeout(() => {
-        // myClient?.initiateAppConfig();
+        myClient?.initiateAppConfig();
         myClient?.setAppConfig(true);
       }, 200);
     } else {
