@@ -11,6 +11,7 @@ import {Platform} from 'react-native';
 import {getRoute} from './routes';
 import {myClient} from '../..';
 import {Credentials} from '../credentials';
+import { ChatroomData } from './models';
 
 export async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
@@ -26,7 +27,7 @@ export const fetchFCMToken = async () => {
 };
 
 export default async function getNotification(remoteMessage: any) {
-  const users = await myClient?.getUserSchema()
+  const users = await myClient?.getUserSchema();
   Credentials.setCredentials(users?.userName, users?.userUniqueID);
   const isIOS = Platform.OS === 'ios' ? true : false;
   const message = isIOS
@@ -51,97 +52,117 @@ export default async function getNotification(remoteMessage: any) {
   }
 
   const route = await getRoute(remoteMessage?.data?.route);
-  const routeGot = route?.params?.navigationRoute;
+  const navigationRoute = route?.params?.navigationRoute;
 
-  if (routeGot === 'collabcard' && routeGot) {
+  if (navigationRoute === 'collabcard' && navigationRoute) {
     const UUID =
       Credentials.userUniqueId.length > 0
         ? Credentials.userUniqueId
         : users?.userUniqueID;
     const userName =
-      Credentials.username.length > 0
-        ? Credentials.username
-        : users?.username;
+      Credentials.username.length > 0 ? Credentials.username : users?.username;
 
     const payload = {
       uuid: UUID, // uuid
       userName: userName, // user name
       isGuest: false,
     };
-    const res = await myClient.initiateUser(payload);
-    if (res?.success === true) {
-      const response = await myClient?.getUnreadConversationNotification();
-      if (response?.success === false && isIOS) {
-        await notifee.displayNotification({
-          title: remoteMessage?.data?.title,
-          body: isIOS ? decodedIOSMsg : decodedAndroidMsg,
-          data: remoteMessage?.data,
-          id: remoteMessage?.messageId,
-          android: {
-            channelId,
-            // pressAction is needed if you want the notification to open the app when pressed
-            pressAction: {
-              id: 'default',
-              launchActivity: 'default',
-            },
-            importance: AndroidImportance.HIGH,
-          },
-        });
-      } else {
-        const unreadConversation = response?.data?.unreadConversation;
-        const sortedUnreadConversation = unreadConversation?.sort(
-          (a: any, b: any) =>
-            b.chatroomLastConversationTimestamp -
-            a.chatroomLastConversationTimestamp,
-        );
-        let totalCount = 0;
-        for (const obj of sortedUnreadConversation) {
-          if (obj.hasOwnProperty('chatroomUnreadConversationCount')) {
-            totalCount += obj.chatroomUnreadConversationCount;
-          }
-        }
 
-        // Create summary
-        notifee.displayNotification({
-          title: 'Emails',
-          subtitle: `${totalCount} messages from ${sortedUnreadConversation?.length} chatrooms`,
-          android: {
-            channelId,
-            groupSummary: true,
-            groupId: '123',
-            groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
-            pressAction: {
-              id: 'default',
-              launchActivity: 'default',
-              launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
-            },
+    if (isIOS) {
+      await notifee.displayNotification({
+        title: remoteMessage?.data?.title,
+        body: isIOS ? decodedIOSMsg : decodedAndroidMsg,
+        data: remoteMessage?.data,
+        id: remoteMessage?.messageId,
+        android: {
+          channelId,
+          // pressAction is needed if you want the notification to open the app when pressed
+          pressAction: {
+            id: 'default',
+            launchActivity: 'default',
           },
-          id: 'group',
-        });
-
-        // Children
-        for (let i = 0; i < sortedUnreadConversation.length; i++) {
-          notifee.displayNotification({
-            title: sortedUnreadConversation[i]?.chatroomName,
-            body: `<b>${sortedUnreadConversation[i]?.chatroomLastConversationUserName}</b>: ${sortedUnreadConversation[i]?.chatroomLastConversation}`,
+          importance: AndroidImportance.HIGH,
+        },
+      });
+    } else {
+      const res = await myClient.initiateUser(payload);
+      if (res?.success === true) {
+        const response = await myClient?.getUnreadConversationNotification();
+        if (response?.success === false) {
+          await notifee.displayNotification({
+            title: remoteMessage?.data?.title,
+            body: decodedAndroidMsg,
+            data: remoteMessage?.data,
+            id: remoteMessage?.messageId,
             android: {
               channelId,
-              groupId: '123',
+              // pressAction is needed if you want the notification to open the app when pressed
+              pressAction: {
+                id: 'default',
+                launchActivity: 'default',
+              },
+              importance: AndroidImportance.HIGH,
+            },
+          });
+        } else {
+          const unreadConversation = response?.data?.unreadConversation;
+          const sortedUnreadConversation = unreadConversation?.sort(
+            (a: ChatroomData, b: ChatroomData) => {
+              return (
+                b?.chatroomLastConversationTimestamp -
+                a?.chatroomLastConversationTimestamp
+              );
+            },
+          );
+          let totalCount = 0;
+          for (const obj of sortedUnreadConversation) {
+            if (obj.hasOwnProperty('chatroomUnreadConversationCount')) {
+              totalCount += obj.chatroomUnreadConversationCount;
+            }
+          }
+
+          // Create summary
+          notifee.displayNotification({
+            title: navigationRoute,
+            subtitle: `${totalCount} messages from ${sortedUnreadConversation?.length} chatrooms`,
+            android: {
+              channelId,
+              groupSummary: true,
+              groupId: navigationRoute?.toString(16),
               groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
-              timestamp:
-                sortedUnreadConversation[i]?.chatroomLastConversationTimestamp *
-                  1000 ?? Date.now(),
-              showTimestamp: true,
-              sortKey: i?.toString(),
               pressAction: {
                 id: 'default',
                 launchActivity: 'default',
                 launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
               },
             },
-            data: {route: sortedUnreadConversation[i]?.routeChild},
-            id: sortedUnreadConversation[i]?.chatroomId?.toString(),
+            id: 'group',
           });
+
+          // Children
+          for (let i = 0; i < sortedUnreadConversation.length; i++) {
+            notifee.displayNotification({
+              title: sortedUnreadConversation[i]?.chatroomName,
+              body: `<b>${sortedUnreadConversation[i]?.chatroomLastConversationUserName}</b>: ${sortedUnreadConversation[i]?.chatroomLastConversation}`,
+              android: {
+                channelId,
+                groupId: navigationRoute?.toString(16),
+                groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
+                timestamp:
+                  sortedUnreadConversation[i]
+                    ?.chatroomLastConversationTimestamp * 1000 ?? Date.now(),
+                showTimestamp: true,
+                sortKey: i?.toString(),
+                pressAction: {
+                  id: 'default',
+                  launchActivity: 'default',
+                  launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+                },
+              },
+              data: {route: sortedUnreadConversation[i]?.routeChild},
+              id: sortedUnreadConversation[i]?.chatroomId?.toString(),
+            });
+          }
         }
       }
     }
