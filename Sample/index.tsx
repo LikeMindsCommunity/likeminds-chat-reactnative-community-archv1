@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   TextInput,
@@ -26,18 +26,20 @@ const FetchKeyInputScreen: React.FC<ChildProps> = ({isTrue, setIsTrue}) => {
     Credentials.setCredentials(userName, userUniqueID);
   };
 
+  useEffect(() => {
+    if (userUniqueID && userName && isButtonClicked) {
+      return setIsTrue(!isTrue);
+    }
+  }, [isButtonClicked]);
+
   const handleButtonPress = () => {
     // Perform some action when the button is pressed
     // You can access the input values from input1 and input2 variables
     handleAddNotes(userUniqueID, userName);
+
     userUniqueID && userName
       ? setIsButtonClicked(true)
       : setIsButtonClicked(false);
-    userUniqueID && userName && isButtonClicked ? (
-      setIsTrue(!isTrue)
-    ) : (
-      <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
-    );
 
     if (userUniqueID && userName) {
       Keyboard.dismiss();

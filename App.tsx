@@ -36,7 +36,7 @@ function App(): JSX.Element {
       setUsers(users);
     };
     userSchema();
-  }, []);
+  }, [isTrue]);
 
   useEffect(() => {
     setUserName(
@@ -47,7 +47,7 @@ function App(): JSX.Element {
         ? Credentials.userUniqueId
         : users?.userUniqueID,
     );
-  }, [users]);
+  }, [users, isTrue]);
 
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
