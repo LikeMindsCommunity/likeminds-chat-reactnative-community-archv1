@@ -6,12 +6,16 @@ import notifee, {
   EventType,
 } from '@notifee/react-native';
 import React from 'react';
-import {decodeForNotifications, generateGifString} from '../commonFuctions';
+import {
+  decodeForNotifications,
+  generateGifString,
+  getNotificationsMessage,
+} from '../commonFuctions';
 import {Platform} from 'react-native';
 import {getRoute} from './routes';
 import {myClient} from '../..';
 import {Credentials} from '../credentials';
-import { ChatroomData } from './models';
+import {ChatroomData} from './models';
 
 export async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
@@ -141,9 +145,22 @@ export default async function getNotification(remoteMessage: any) {
 
           // Children
           for (let i = 0; i < sortedUnreadConversation.length; i++) {
+            const convertedGifString = generateGifString(
+              sortedUnreadConversation[i]?.chatroomLastConversation,
+            );
+
+            const decodedMessage = convertedGifString
+              ? decodeForNotifications(convertedGifString)
+              : '';
+
+            const message = getNotificationsMessage(
+              sortedUnreadConversation[i]?.attachments,
+              decodedMessage,
+            );
+
             notifee.displayNotification({
               title: sortedUnreadConversation[i]?.chatroomName,
-              body: `<b>${sortedUnreadConversation[i]?.chatroomLastConversationUserName}</b>: ${sortedUnreadConversation[i]?.chatroomLastConversation}`,
+              body: `<b>${sortedUnreadConversation[i]?.chatroomLastConversationUserName}</b>: ${message}`,
               android: {
                 channelId,
                 groupId: navigationRoute?.toString(16),

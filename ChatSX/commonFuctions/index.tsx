@@ -1,12 +1,27 @@
 import React, {Alert, Linking, Platform, Text} from 'react-native';
 import STYLES from '../constants/Styles';
-import {PDF_TEXT, VIDEO_TEXT} from '../constants/Strings';
+import {
+  DOCUMENT_ICON,
+  DOCUMENT_STRING,
+  GIF_ICON,
+  MULTIPLE_DOCUMENT_STRING,
+  MULTIPLE_PHOTO_STRING,
+  MULTIPLE_VIDEO_STRING,
+  PDF_TEXT,
+  PHOTO_ICON,
+  PHOTO_STRING,
+  VIDEO_ICON,
+  VIDEO_STRING,
+  VIDEO_TEXT,
+  VOICE_NOTE_ICON,
+} from '../constants/Strings';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import moment from 'moment';
-import {Events, Keys} from '../enums';
+import {DocumentType, Events, Keys} from '../enums';
 import {LMChatAnalytics} from '../analytics/LMChatAnalytics';
 import {getConversationType} from '../utils/analyticsUtils';
+import {MediaAttachment} from './model';
 
 const REGEX_USER_SPLITTING = /(<<.+?\|route:\/\/[^>]+>>)/gu;
 export const REGEX_USER_TAGGING =
@@ -567,4 +582,74 @@ export const generateGifString = (message: string) => {
   );
 
   return resultString?.trim();
+};
+
+export const getNotificationsMessage = (
+  attachments: MediaAttachment[],
+  conversation: string | undefined,
+) => {
+  let imageCount = 0;
+  let videosCount = 0;
+  let pdfCount = 0;
+  let voiceNoteCount = 0;
+  let gifCount = 0;
+
+  const isConversation = conversation ? true : false;
+
+  for (let i = 0; i < attachments?.length; i++) {
+    if (attachments[i].type == DocumentType.IMAGE) {
+      imageCount++;
+    } else if (attachments[i].type == DocumentType.VIDEO) {
+      videosCount++;
+    } else if (attachments[i].type == DocumentType.PDF) {
+      pdfCount++;
+    } else if (attachments[i].type == DocumentType.VOICE_NOTE) {
+      voiceNoteCount++;
+    } else if (attachments[i].type == DocumentType.GIF_TEXT) {
+      gifCount++;
+    }
+  }
+
+  if (imageCount > 0 && videosCount > 0 && pdfCount > 0) {
+    return `${imageCount} ${PHOTO_ICON} ${videosCount} ${VIDEO_ICON} ${pdfCount} ${DOCUMENT_ICON} ${conversation}`;
+  } else if (imageCount > 0 && videosCount > 0) {
+    return `${imageCount} ${PHOTO_ICON} ${videosCount} ${VIDEO_ICON} ${conversation}`;
+  } else if (videosCount > 0 && pdfCount > 0) {
+    return `${videosCount} ${VIDEO_ICON} ${pdfCount} ${DOCUMENT_ICON} ${conversation}`;
+  } else if (imageCount > 0 && pdfCount > 0) {
+    return `${imageCount} ${PHOTO_ICON} ${pdfCount} ${DOCUMENT_ICON} ${conversation}`;
+  } else if (pdfCount > 0) {
+    const isPdfCountGreaterThanOne = pdfCount > 1;
+    return `${isPdfCountGreaterThanOne ? pdfCount : ''} ${DOCUMENT_ICON} ${
+      isConversation
+        ? conversation
+        : isPdfCountGreaterThanOne
+        ? MULTIPLE_DOCUMENT_STRING
+        : DOCUMENT_STRING
+    }`;
+  } else if (videosCount > 0) {
+    const isVideoCountGreaterThanOne = videosCount > 1;
+    return `${isVideoCountGreaterThanOne ? videosCount : ''} ${VIDEO_ICON} ${
+      isConversation
+        ? conversation
+        : isVideoCountGreaterThanOne
+        ? MULTIPLE_VIDEO_STRING
+        : VIDEO_STRING
+    }`;
+  } else if (imageCount > 0) {
+    const isImageCountGreaterThanOne = imageCount > 1;
+    return `${isImageCountGreaterThanOne ? imageCount : ''} ${PHOTO_ICON} ${
+      isConversation
+        ? conversation
+        : isImageCountGreaterThanOne
+        ? MULTIPLE_PHOTO_STRING
+        : PHOTO_STRING
+    }`;
+  } else if (voiceNoteCount > 0) {
+    return `${VOICE_NOTE_ICON} ${conversation}`;
+  } else if (gifCount > 0) {
+    return `${GIF_ICON} ${conversation}`;
+  } else {
+    return conversation;
+  }
 };
