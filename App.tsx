@@ -32,8 +32,11 @@ function App(): JSX.Element {
   useEffect(() => {
     const userSchema = async () => {
       const users = await myClient.getUserSchema();
-      Credentials.setCredentials(users?.userName, users?.userUniqueID);
-      setUsers(users);
+
+      if (users) {
+        Credentials.setCredentials(users?.userName, users?.userUniqueID);
+        setUsers(users);
+      }
     };
     userSchema();
   }, [isTrue]);

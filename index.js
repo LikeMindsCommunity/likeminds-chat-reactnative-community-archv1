@@ -32,10 +32,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 });
 
 const myClient = LMChatClient.setApiKey('')
-  .setfilterStateConversation([
-    ConversationState.MEMBER_JOINED_OPEN_CHATROOM,
-    ConversationState.MEMBER_LEFT_OPEN_CHATROOM,
-  ])
+  .setfilterStateConversation([])
   .build();
 
 function HeadlessCheck({isHeadless}) {

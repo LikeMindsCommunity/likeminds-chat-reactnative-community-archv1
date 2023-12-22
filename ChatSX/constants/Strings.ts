@@ -54,9 +54,19 @@ export const IMAGE_TEXT = 'image';
 export const PHOTO_TEXT = 'photo';
 export const PHOTOS_TEXT = 'photos';
 export const PHOTO_STRING = 'Photo';
+export const MULTIPLE_PHOTO_STRING = 'Photos';
 export const VIDEO_STRING = 'Video';
+export const MULTIPLE_VIDEO_STRING = 'Videos';
 export const DOCUMENT_STRING = 'Document';
+export const MULTIPLE_DOCUMENT_STRING = 'Documents';
 export const VOICE_NOTE_STRING = 'Voice Note';
+
+export const GIF_ICON = '👾';
+export const PHOTO_ICON = '📷';
+export const VIDEO_ICON = '🎥';
+export const VOICE_NOTE_ICON = '🎤';
+export const AUDIO_ICON = '🎧';
+export const DOCUMENT_ICON = '📄';
 
 export const SUCCESS = 'SUCCESS';
 export const FAILED = 'FAILED';
