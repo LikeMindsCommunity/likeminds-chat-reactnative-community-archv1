@@ -7,41 +7,50 @@ import notifee from '@notifee/react-native';
 import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './ChatSX/RootNavigation';
 import FetchKeyInputScreen from './Sample';
-import {useQuery} from '@realm/react';
 import {parseDeepLink} from './ChatSX/components/ParseDeepLink';
 import {DeepLinkRequest} from './ChatSX/components/ParseDeepLink/models';
-import {UserSchemaResponse} from './ChatSX/db/models';
-import {USER_SCHEMA_RO} from './ChatSX/constants/Strings';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {setupPlayer} from './ChatSX/audio';
 import {GiphySDK} from '@giphy/react-native-sdk';
 import {Credentials} from './ChatSX/credentials';
 import {GIPHY_SDK_API_KEY} from './ChatSX/aws-exports';
+import {myClient} from '.';
+import {UserSchema} from '@likeminds.community/chat-rn/dist/shared/responseModels/UserSchema';
 
 function App(): JSX.Element {
-  const users = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
+  const [users, setUsers] = useState<UserSchema>();
   const [userUniqueID, setUserUniqueID] = useState(
     Credentials.userUniqueId.length > 0
       ? Credentials.userUniqueId
-      : users[0]?.userUniqueID,
+      : users?.userUniqueID,
   );
   const [userName, setUserName] = useState(
-    Credentials.username.length > 0 ? Credentials.username : users[0]?.userName,
+    Credentials.username.length > 0 ? Credentials.username : users?.userName,
   );
   const [isTrue, setIsTrue] = useState(true);
 
   useEffect(() => {
+    const userSchema = async () => {
+      const users = await myClient.getUserSchema();
+
+      if (users) {
+        Credentials.setCredentials(users?.userName, users?.userUniqueID);
+        setUsers(users);
+      }
+    };
+    userSchema();
+  }, [isTrue]);
+
+  useEffect(() => {
     setUserName(
-      Credentials.username.length > 0
-        ? Credentials.username
-        : users[0]?.userName,
+      Credentials.username.length > 0 ? Credentials.username : users?.userName,
     );
     setUserUniqueID(
       Credentials.userUniqueId.length > 0
         ? Credentials.userUniqueId
-        : users[0]?.userUniqueID,
+        : users?.userUniqueID,
     );
-  }, [users]);
+  }, [users, isTrue]);
 
   //To navigate onPress notification while android app is in background state / quit state.
   useEffect(() => {
@@ -75,16 +84,17 @@ function App(): JSX.Element {
   useEffect(() => {
     // custom function to get the URL which was used to open the app
     const getInitialURL = async () => {
+      if (!users) return;
       const url = await Linking.getInitialURL(); // This returns the link that was used to open the app
       if (url != null) {
         const uuid =
           Credentials.userUniqueId.length > 0
             ? Credentials.userUniqueId
-            : users[0]?.userUniqueID;
+            : users?.userUniqueID;
         const userName =
           Credentials.username.length > 0
             ? Credentials.username
-            : users[0]?.userName;
+            : users?.userName;
 
         const exampleRequest: DeepLinkRequest = {
           uri: url,

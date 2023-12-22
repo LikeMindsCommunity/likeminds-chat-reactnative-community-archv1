@@ -6,13 +6,11 @@ import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
 import messaging from '@react-native-firebase/messaging';
-import {LMChatClient} from '@likeminds.community/chat-rn';
+import {ConversationState, LMChatClient} from '@likeminds.community/chat-rn';
 import notifee, {EventType} from '@notifee/react-native';
 import getNotification from './ChatSX/notifications';
 import {getRoute} from './ChatSX/notifications/routes';
 import * as RootNavigation from './ChatSX/RootNavigation';
-import {UserSchemaRO} from './ChatSX/db/schemas/UserSchema';
-import {RealmProvider} from '@realm/react';
 import TrackPlayer from 'react-native-track-player';
 import {playbackService} from './ChatSX/audio';
 
@@ -34,8 +32,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 });
 
 const myClient = LMChatClient.setApiKey('')
-  .setPlatformCode('rn')
-  .setVersionCode(parseInt('23'))
+  .setfilterStateConversation([])
   .build();
 
 function HeadlessCheck({isHeadless}) {
@@ -44,11 +41,7 @@ function HeadlessCheck({isHeadless}) {
     return null;
   }
 
-  return (
-    <RealmProvider schema={[UserSchemaRO]}>
-      <App />
-    </RealmProvider>
-  );
+  return <App />;
 }
 
 AppRegistry.registerComponent(appName, () => HeadlessCheck);

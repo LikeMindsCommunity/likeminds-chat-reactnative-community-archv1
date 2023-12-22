@@ -12,6 +12,10 @@ import {RouteParams} from './models';
 
 // to get notification routes
 export function getRoute(route: any) {
+  if (route === undefined) {
+    return {route: HOMEFEED, params: {}};
+  }
+
   let params = {} as RouteParams,
     match;
 
@@ -29,6 +33,7 @@ export function getRoute(route: any) {
           params: {
             chatroomID: params[paramsKey[0]],
             navigationFromNotification: true,
+            navigationRoute: navigationRoute[1],
           },
         };
       }
@@ -39,6 +44,7 @@ export function getRoute(route: any) {
           params: {
             chatroomID: params[paramsKey[0]],
             navigationFromNotification: true,
+            navigationRoute: navigationRoute[1],
           },
         };
       }
@@ -49,14 +55,21 @@ export function getRoute(route: any) {
           params: {
             chatroomID: params[paramsKey[1]],
             navigationFromNotification: true,
+            navigationRoute: navigationRoute[1],
           },
         };
       }
       default:
-        return {route: HOMEFEED, params: {}};
+        return {
+          route: HOMEFEED,
+          params: {navigationRoute: navigationRoute[1]},
+        };
     }
   } else {
-    return {route: HOMEFEED, params: {}};
+    return {
+      route: HOMEFEED,
+      params: {navigationRoute: navigationRoute[1]},
+    };
   }
 }
 
@@ -80,13 +93,17 @@ export function getLinkingRoute(route: string) {
             chatroomID: params[paramsKey[0]],
             navigationFromNotification: false,
             deepLinking: true,
+            navigationRoute: navigationRoute[1],
           },
         };
       }
       default:
-        return {route: HOMEFEED, params: {}};
+        return {route: HOMEFEED, params: {navigationRoute: navigationRoute[1]}};
     }
   } else {
-    return {route: HOMEFEED, params: {}};
+    return {
+      route: HOMEFEED,
+      params: {navigationRoute: navigationRoute && navigationRoute[1]},
+    };
   }
 }
