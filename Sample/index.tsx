@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   TextInput,
@@ -10,9 +10,6 @@ import {
   Keyboard,
 } from 'react-native';
 import STYLES from '../ChatSX/constants/Styles';
-import {useQuery, useRealm} from '@realm/react';
-import {UserSchemaResponse} from '../ChatSX/db/models';
-import {USER_SCHEMA_RO} from '../ChatSX/constants/Strings';
 import {Credentials} from '../ChatSX/credentials';
 
 interface ChildProps {
@@ -25,30 +22,24 @@ const FetchKeyInputScreen: React.FC<ChildProps> = ({isTrue, setIsTrue}) => {
   const [userName, setUserName] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
 
-  const realm = useRealm();
-  const data = useQuery<UserSchemaResponse>(USER_SCHEMA_RO);
   const handleAddNotes = (userUniqueID: string, userName: string) => {
-    realm.write(() => {
-      realm.create(USER_SCHEMA_RO, {
-        userUniqueID: userUniqueID,
-        userName: userName,
-      });
-    });
     Credentials.setCredentials(userName, userUniqueID);
   };
+
+  useEffect(() => {
+    if (userUniqueID && userName && isButtonClicked) {
+      return setIsTrue(!isTrue);
+    }
+  }, [isButtonClicked]);
 
   const handleButtonPress = () => {
     // Perform some action when the button is pressed
     // You can access the input values from input1 and input2 variables
     handleAddNotes(userUniqueID, userName);
+
     userUniqueID && userName
       ? setIsButtonClicked(true)
       : setIsButtonClicked(false);
-    userUniqueID && userName && isButtonClicked ? (
-      setIsTrue(!isTrue)
-    ) : (
-      <ActivityIndicator size="large" color={STYLES.$COLORS.SECONDARY} />
-    );
 
     if (userUniqueID && userName) {
       Keyboard.dismiss();

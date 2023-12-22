@@ -27,7 +27,6 @@
     "@react-navigation/material-top-tabs": "6.6.2",
     "@react-navigation/native": "6.1.2",
     "@react-navigation/native-stack": "6.9.8",
-    "@realm/react": "0.6.0",
     "@reduxjs/toolkit": "1.9.2",
     "@shopify/flash-list": "1.4.3",
     "aws-sdk": "2.1380.0",
