@@ -49,19 +49,21 @@ const ExploreFeedItem: React.FC<Props> = ({
 }) => {
   const [isToast, setIsToast] = useState(false);
   const [msg, setMsg] = useState('');
-  const {user, community} = useAppSelector(state => state.homefeed);
+  const {user} = useAppSelector(state => state.homefeed);
+  const [isChatroomJoined, setIsChatroomJoined] = useState(isJoined);
 
   const dispatch = useAppDispatch();
 
   const leaveChatroom = async (val: boolean) => {
-    const payload = {
-      collabcardId: chatroomID,
-      uuid: user?.sdkClientInfo?.uuid,
-      value: val,
-    };
-    const res = await myClient
-      .followChatroom(payload)
-      .then(async () => {
+    try {
+      const payload = {
+        collabcardId: chatroomID,
+        uuid: user?.sdkClientInfo?.uuid,
+        value: val,
+      };
+      const res = await myClient.followChatroom(payload);
+      if (res?.success) {
+        setIsChatroomJoined(!isChatroomJoined);
         const payload = {
           orderType: filterState,
           page: 1,
@@ -100,12 +102,10 @@ const ExploreFeedItem: React.FC<Props> = ({
         }
         dispatch({type: SET_EXPLORE_FEED_PAGE, body: 1});
         await dispatch(getExploreFeedData(payload) as any);
-      })
-      .catch(() => {
-        Alert.alert('Leave Chatroom failed');
-      });
-
-    return res;
+      }
+    } catch (error) {
+      // process error
+    }
   };
   return (
     <TouchableOpacity
@@ -172,7 +172,7 @@ const ExploreFeedItem: React.FC<Props> = ({
           {/* {pinned && <View style={styles.pinned} />} */}
           {!isSecret ? (
             <View>
-              {!isJoined ? (
+              {!isChatroomJoined ? (
                 <TouchableOpacity
                   onPress={() => {
                     leaveChatroom(true);
